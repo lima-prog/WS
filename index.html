@@ -2871,7 +2871,7 @@ input[type=text]:focus,textarea:focus,select:focus{border-color:#000!important;o
 
 <section class="painel" data-aba="📦 Agrupador / Base">
   <div class="grid2">
-    <div class="cx"><div class="cx-h"><span class="badge">0</span><h3>Busca automática por obra</h3></div>
+    <div class="cx"><div class="cx-h"><span class="badge">0</span><h3>Busca automática por obra</h3><button class="b bz sec" id="ag-atualizar" title="Zerar a aba para uma nova validação" style="margin-left:auto"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg><span>Atualizar</span></button></div>
       <div class="info" id="ag-suporte"></div>
       <div class="lbl">Pasta(s) raiz das obras</div>
       <ul class="lista" id="ag-raizes"><li class="fraco">nenhuma pasta adicionada</li></ul>
@@ -4882,6 +4882,17 @@ $('#ag-add').onclick = async () => agAdicionarDbfs(await escolherArquivos(ACC_TA
 $('#ag-limpar').onclick = () => { S.ag.entries = []; agRenderLista(); };
 areaSoltar($('#ag-drop'), agAdicionarDbfs, ACC_TAB);
 agRenderLista();
+// Atualizar: zera a aba (mantém as pastas raiz já escolhidas) para começar outra validação
+$('#ag-atualizar').onclick = () => {
+  Object.assign(S.ag, { entries: [], base: null, fluxoMap: null, fluxoArq: null, focoRows: null });
+  agRenderLista();
+  $('#ag-obras').value = ''; $('#ag-contador').textContent = 'nenhuma obra digitada';
+  $('#ag-base-lbl').innerHTML = '<span class="fraco">.xlsx / .xlsm · nenhuma base carregada</span>';
+  $('#ag-fluxo-lbl').innerHTML = '<span class="fraco">leitura · nenhum relatório carregado</span>';
+  $('#ag-foco-lbl').innerHTML = '<span class="fraco">nenhum relatório carregado</span>';
+  $('#ag-lote').value = ''; $('#ag-status').textContent = ''; $('#ag-status').className = 'status';
+  $('#ag-tab').innerHTML = '';
+};
 
 async function agBase(f) {
   const lbl = $('#ag-base-lbl'); const ext = extOf(f.name);
@@ -18070,7 +18081,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 101';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"]];const PACOTE_ATUAL=694;
+const VERSAO='Versão 102';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"]];const PACOTE_ATUAL=694;
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
