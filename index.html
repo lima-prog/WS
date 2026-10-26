@@ -744,6 +744,14 @@ html,body{background:#fff!important}
 #an-limpar span,#an-focco-limpar span,#an-atualizar span{color:#1f2937!important}
 #an-limpar svg,#an-focco-limpar svg,#an-atualizar svg{stroke:#1f2937!important}
 #an-limpar:hover,#an-focco-limpar:hover,#an-atualizar:hover{background:#f1f3f8!important;border-color:#9aa3b5!important}
+#an-lista li.ok-item{background:#f3faf5!important;border:1px solid #cfe8d6;border-radius:6px;margin:2px 0;padding:6px 10px}
+#an-lista .ic-ok{flex:none}
+#an-lista .nm{font-weight:700;color:#111}
+#an-lista .tag-ok{font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px}
+.erro-corp{display:flex;gap:14px;align-items:flex-start;border-left:4px solid #b42318;background:#fef3f2;border-radius:6px;padding:14px 16px;min-width:380px;max-width:520px}
+.erro-ic{flex:none;margin-top:2px}.erro-tx p{margin:0 0 10px;color:#1f2937;font-size:13px;line-height:1.45}
+.erro-arqs{background:#fff;border:1px solid #f0c9c5;border-radius:6px;padding:6px 10px;margin:0 0 10px;font-family:Consolas,monospace;font-size:12px;color:#7a1b13;max-height:110px;overflow:auto}
+.erro-ac{margin:0!important;padding-top:8px;border-top:1px solid #f0c9c5}
 #an-exportar:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
 .drop{background:#d9deee!important;border:2px dashed #3b4590!important;color:#111!important;font-weight:700;border-radius:12px;padding:20px 12px}
 .drop:hover,.drop.over{background:#c8cfe8!important;border-color:#3040a8!important}
@@ -2630,12 +2638,33 @@ async function lerPacote(arq, p) {
   return { bytes, ...r };
 }
 // ═══ ABA ANÁLISE ═══
-function anRender() { renderListaArquivos($('#an-lista'), S.an.dbfs, i => { S.an.dbfs.splice(i, 1); anRender(); }); }
-function anAdd(files) { for (const f of files) if (!temArquivo(S.an.dbfs, f)) S.an.dbfs.push(f); anRender(); }
+const IC_OK = '<svg class="ic-ok" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#1e8e3e"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function anRender() {
+  const ul = $('#an-lista'); ul.innerHTML = S.an.dbfs.length ? '' : '<li class="fraco">nenhum arquivo</li>';
+  S.an.dbfs.forEach((f, i) => {
+    const li = document.createElement('li'); li.className = 'ok-item';
+    li.innerHTML = `${IC_OK}<span class="nm">${esc(f.name)}</span><span class="tag-ok">Carregado com sucesso</span><span class="x" title="remover">✕</span>`;
+    li.querySelector('.x').onclick = () => { S.an.dbfs.splice(i, 1); anRender(); }; ul.appendChild(li);
+  });
+}
+const ehCsv = f => /\.csv$/i.test(f.name);
+function erroFormato(nomes) {
+  const html = `<div class="erro-corp"><div class="erro-ic"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M12 3L2 21h20L12 3z" fill="#fff" stroke="#b42318" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v5" stroke="#b42318" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="18" r="1.3" fill="#b42318"/></svg></div>
+    <div class="erro-tx"><p>O arquivo selecionado não é compatível com esta etapa e <b>não foi adicionado</b>.</p>
+    <div class="erro-arqs">${nomes.map(n => '<div>' + esc(n) + '</div>').join('')}</div>
+    <p class="erro-ac"><b>Formato aceito:</b> Arquivo de Valores Separados por Vírgulas do Microsoft Excel (.csv)</p></div></div>`;
+  return modal({ titulo: 'Formato de documento inválido', html, botoes: [{ txt: 'Entendi', valor: null, cls: 'principal' }] });
+}
+function anAdd(files) {
+  const ruins = files.filter(f => !ehCsv(f));
+  for (const f of files) if (ehCsv(f) && !temArquivo(S.an.dbfs, f)) S.an.dbfs.push(f);
+  anRender();
+  if (ruins.length) erroFormato(ruins.map(f => f.name));
+}
 function anFocco(f) { S.an.focco = f; $('#an-focco-lbl').textContent = f.name; $('#an-focco-lbl').className = 'ok'; }
-$('#an-add').onclick = async () => anAdd(await escolherArquivos(ACC_TAB, true));
+$('#an-add').onclick = async () => anAdd(await escolherArquivos('.csv', true));
 $('#an-limpar').onclick = () => { S.an.dbfs = []; anRender(); };
-areaSoltar($('#an-drop'), anAdd, ACC_TAB);
+areaSoltar($('#an-drop'), anAdd, '.csv');
 $('#an-focco-btn').onclick = async () => { const f = await escolherArquivos(ACC_TAB + ',.html,.htm', false); if (f[0]) anFocco(f[0]); };
 areaSoltar($('#an-focco-drop'), f => anFocco(f[0]), ACC_TAB + ',.html,.htm', false);
 $('#an-focco-limpar').onclick = () => { S.an.focco = null; $('#an-focco-lbl').textContent = 'nenhum arquivo carregado'; $('#an-focco-lbl').className = 'fraco'; };
@@ -18081,7 +18110,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 102';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"]];const PACOTE_ATUAL=694;
+const VERSAO='Versão 103';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"]];const PACOTE_ATUAL=694;
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
