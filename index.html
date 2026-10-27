@@ -20382,7 +20382,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     var ui = PP.ui, h = ui.h, arquivo = null, df = null;
     var status = h('div', { class: 'status mt' });
     function rodape() { var imp = cfgTab().get('ultima_impressora', '') || 'nenhuma'; status.textContent = '👤 ' + usuario() + ' | 🖨️ Última impressora: ' + imp; }
-    raiz.appendChild(ui.cabecalhoFerramenta('Sistema de Etiquetas', 'Importa a planilha de fluxos (a mesma gerada no Relatório de Fluxos), grava as etiquetas do pacote no histórico e imprime na Zebra (100×100 mm, 203 dpi).\n\n1) Início: escolha a planilha (o nº do pacote vem do nome do arquivo, ex.: "relatorio_fluxos_LOTE 634.xlsx") e clique em IMPORTAR DADOS.\n2) Emitir etiqueta: filtre, marque e clique em Imprimir selecionadas.\n3) Histórico: tudo que já foi importado/impresso.\n\nFluxos 1, 2, 3 e 4 geram etiqueta, mais o saquinho DEMANDA/LCT.\n\nImpressão direta precisa do "Zebra Browser Print" instalado no computador (serviço gratuito da Zebra). Sem ele, as etiquetas saem como arquivo .zpl para enviar à impressora.'));
+    raiz.appendChild(ui.cabecalhoFerramenta('Impressão de Etiquetas', 'Importa a planilha de fluxos (a mesma gerada no Relatório de Fluxos), grava as etiquetas do pacote no histórico e imprime na Zebra (100×100 mm, 203 dpi).\n\n1) Início: escolha a planilha (o nº do pacote vem do nome do arquivo, ex.: "relatorio_fluxos_LOTE 634.xlsx") e clique em IMPORTAR DADOS.\n2) Emitir etiqueta: filtre, marque e clique em Imprimir selecionadas.\n3) Histórico: tudo que já foi importado/impresso.\n\nFluxos 1, 2, 3 e 4 geram etiqueta, mais o saquinho DEMANDA/LCT.\n\nImpressão direta precisa do "Zebra Browser Print" instalado no computador (serviço gratuito da Zebra). Sem ele, as etiquetas saem como arquivo .zpl para enviar à impressora.'));
     var abas = h('div', { class: 'abas', style: { alignItems: 'center' } }), paineis = [];
     raiz.appendChild(abas);
     var acoes = h('div', { class: 'linha', style: { marginLeft: 'auto', paddingBottom: '6px' } },
@@ -20555,7 +20555,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     raiz.appendChild(status);
     combos(); buscarClick(); ativar(0); rodape();
   }
-  PP.ferramentas.etiquetas = { titulo: 'Sistema de Etiquetas', icone: 'impressora', grupo: 'Expedição', montar: montar };
+  PP.ferramentas.etiquetas = { titulo: 'Impressão de Etiquetas', icone: 'impressora', grupo: 'Área de impressão', montar: montar };
 })(PP);
 
 /* ===== 99_app.js ===== */
@@ -20993,7 +20993,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 105';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Sistema de Etiquetas", "PPCPM - SISTEMA DE ETIQUETAS"]];const PACOTE_ATUAL=694;
+const VERSAO='Versão 106';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -21160,7 +21160,7 @@ IC.usr='<circle cx="10.5" cy="8" r="4.2"/><path d="M3.5 20.5a7.5 7.5 0 0 1 12.2-
 const ico=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
 
 /* NAV */
-const NAV=[['home','Tela inicial','dash'],['prod','Produção','fab'],['val','Processo de validação','op'],['ops','Ordens de Produção','op'],['rot','Gerenciador de Roteiros','pal'],['exp','Expedição','fab'],['plan','Planejamento','gan'],['cap','Capacidade','gau'],['qual','Qualidade / RNC','nut'],['kpi','Indicadores','kpi'],['rel','Relatórios','rel'],['usr','Usuários','usr'],['cfg','Configurações','cfg']];
+const NAV=[['home','Tela inicial','dash'],['prod','Produção','fab'],['val','Processo de validação','op'],['ops','Ordens de Produção','op'],['rot','Gerenciador de Roteiros','pal'],['exp','Área de impressão','fab'],['plan','Planejamento','gan'],['cap','Capacidade','gau'],['qual','Qualidade / RNC','nut'],['kpi','Indicadores','kpi'],['rel','Relatórios','rel'],['usr','Usuários','usr'],['cfg','Configurações','cfg']];
 const CHV='<svg class="ic chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 const GRP={val:['pg8'],rot:['pg10','pg11'],exp:['pg12']};const grpOf=id=>GRP.val.includes(id)?'val':GRP.rot.includes(id)?'rot':GRP.exp.includes(id)?'exp':'prod';
 const subHTML=k=>`<div class="sub" id="sub-${k}">${PROG.filter(p=>grpOf(p[0])===k).map(p=>`<button class="n" data-v="${p[0]}">${ico('rel')}<span>${p[1]}</span></button>`).join('')}</div>`;
