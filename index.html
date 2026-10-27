@@ -20374,6 +20374,65 @@ if (typeof module !== 'undefined') module.exports = PP;
 
   PP.logica.etiquetas = { gerar_zpl: gerar_zpl, ler_planilha: ler_planilha, extrair_pacote_do_nome_arquivo: extrair_pacote_do_nome_arquivo, gerar_etiquetas_para_pacote: gerar_etiquetas_para_pacote, importar: importar, buscar: buscar, config: config, PADRAO: PADRAO };
 
+
+  /* ---------------- impressão pelo navegador / PDF (V107) ---------------- */
+  var DPI_ZEBRA = 203;
+  function paginasEtq(etqs, c) {
+    return etqs.map(function (e) { var L = layout(e, c); var alt = Math.max(L.H, L.yData + pt(c.fonte_data) + mm(c.margem_inferior)); return { svg: previaSVG(e, c), w: L.W, h: alt }; });
+  }
+  function medidasMm(pags) {
+    var W = Math.max.apply(null, pags.map(function (p) { return p.w; })), H = Math.max.apply(null, pags.map(function (p) { return p.h; }));
+    return { w: +(W * 25.4 / DPI_ZEBRA).toFixed(2), h: +(H * 25.4 / DPI_ZEBRA).toFixed(2) };
+  }
+  function imprimirNavegador(pags) {
+    return new Promise(function (res) {
+      var m = medidasMm(pags);
+      var html = '<!doctype html><html><head><meta charset="utf-8"><title>Etiquetas</title><style>@page{size:' + m.w + 'mm ' + m.h + 'mm;margin:0}html,body{margin:0;padding:0;background:#fff}' +
+        '.p{width:' + m.w + 'mm;height:' + m.h + 'mm;overflow:hidden;break-after:page;page-break-after:always}.p:last-child{break-after:auto;page-break-after:auto}.p svg{display:block;width:100%;height:100%}</style></head><body>' +
+        pags.map(function (p) { return '<div class="p">' + p.svg + '</div>'; }).join('') + '</body></html>';
+      var f = document.createElement('iframe'); f.setAttribute('aria-hidden', 'true');
+      f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+      f.onload = function () {
+        setTimeout(function () {
+          try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { console.error(e); }
+          setTimeout(function () { try { f.remove(); } catch (e) { } res(true); }, 600);
+        }, 300);
+      };
+      document.body.appendChild(f); f.srcdoc = html;
+    });
+  }
+  async function gerarPdf(pags) {
+    var ESC = 2, enc = new TextEncoder(), partes = [], pos = 0, offs = [];
+    function put(x) { var b = typeof x === 'string' ? enc.encode(x) : x; partes.push(b); pos += b.length; }
+    function marca(n) { offs[n] = pos; }
+    var imgs = [];
+    for (var i = 0; i < pags.length; i++) {
+      var p = pags[i], cw = Math.round(p.w * ESC), ch = Math.round(p.h * ESC);
+      var img = new Image();
+      await new Promise(function (ok, err) { img.onload = ok; img.onerror = function () { err(new Error('Falha ao desenhar a etiqueta')); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(p.svg.replace('<svg ', '<svg width="' + cw + '" height="' + ch + '" ')); });
+      var cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+      var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cw, ch); cx.drawImage(img, 0, 0, cw, ch);
+      var b64 = cv.toDataURL('image/jpeg', 0.95).split(',')[1], bin = atob(b64), by = new Uint8Array(bin.length);
+      for (var k = 0; k < bin.length; k++) by[k] = bin.charCodeAt(k);
+      imgs.push({ cw: cw, ch: ch, bytes: by, wpt: +(p.w * 72 / DPI_ZEBRA).toFixed(2), hpt: +(p.h * 72 / DPI_ZEBRA).toFixed(2) });
+    }
+    put('%PDF-1.4\n');
+    marca(1); put('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+    var kids = imgs.map(function (_, i) { return (3 + 3 * i) + ' 0 R'; }).join(' ');
+    marca(2); put('2 0 obj\n<< /Type /Pages /Kids [' + kids + '] /Count ' + imgs.length + ' >>\nendobj\n');
+    imgs.forEach(function (g, i) {
+      var pg = 3 + 3 * i, ct = pg + 1, im = pg + 2, cont = 'q ' + g.wpt + ' 0 0 ' + g.hpt + ' 0 0 cm /Im0 Do Q';
+      marca(pg); put(pg + ' 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + g.wpt + ' ' + g.hpt + '] /Resources << /XObject << /Im0 ' + im + ' 0 R >> >> /Contents ' + ct + ' 0 R >>\nendobj\n');
+      marca(ct); put(ct + ' 0 obj\n<< /Length ' + cont.length + ' >>\nstream\n' + cont + '\nendstream\nendobj\n');
+      marca(im); put(im + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + g.cw + ' /Height ' + g.ch + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + g.bytes.length + ' >>\nstream\n'); put(g.bytes); put('\nendstream\nendobj\n');
+    });
+    var total = 3 + 3 * imgs.length, xr = pos;
+    put('xref\n0 ' + total + '\n0000000000 65535 f \n');
+    for (var n = 1; n < total; n++) put(String(offs[n]).padStart(10, '0') + ' 00000 n \n');
+    put('trailer\n<< /Size ' + total + ' /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF');
+    return new Blob(partes, { type: 'application/pdf' });
+  }
+
   /* ---------------- tela ---------------- */
   var CAMPOS_CFG = [['margem_superior', 'Margem superior (mm)', 0, 90], ['margem_inferior', 'Margem inferior (mm)', 0, 90], ['margem_esquerda', 'Margem esquerda (mm)', 0, 90], ['margem_direita', 'Margem direita (mm)', 0, 90],
     ['fonte_obra', 'Fonte OBRA (pt)', 10, 150], ['fonte_fluxo', 'Fonte FLUXO (pt)', 10, 150], ['fonte_pacote', 'Fonte PACOTE (pt)', 10, 200], ['fonte_data', 'Fonte DATA (pt)', 10, 100], ['espacamento_vertical', 'Espaço entre linhas (mm)', 0, 30], ['espessura_linha', 'Espessura das linhas (dots)', 1, 10]];
@@ -20440,7 +20499,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         ui.botao('📦 DEMANDA/LCT', { click: demanda })),
       h('div', { class: 'mt' }, tEmit.el),
       h('div', { class: 'linha mt' }, ui.botao('✅ Marcar todas', { click: function () { marcar(true); } }), ui.botao('❌ Desmarcar todas', { click: function () { marcar(false); } }), lblTot,
-        h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ui.botao('⬇ Baixar .zpl', { click: function () { imprimir(true); } }), ui.botao('🖨️ Imprimir selecionadas', { classe: 'prim', click: function () { imprimir(false); } }))), combos);
+        h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ui.botao('⬇ Baixar PDF', { click: function () { imprimir('pdf'); } }), ui.botao('🖨️ Imprimir selecionadas', { classe: 'prim', click: function () { imprimir(false); } }))), combos);
     function combos() {
       [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, distintos('fluxo')]].forEach(function (x) {
         var atual = x[0].value; x[0].innerHTML = '';
@@ -20474,7 +20533,27 @@ if (typeof module !== 'undefined') module.exports = PP;
       var ok = await ui.modal({ titulo: 'Selecionar impressora', corpo: h('div', null, h('div', { class: 'mb' }, 'Selecione a impressora:'), cb), botoes: [{ texto: 'Cancelar', valor: false }, { texto: '✓ Selecionar', valor: true, classe: 'prim' }] });
       return ok ? { via: r.via, imp: lista[+cb.value] } : null;
     }
-    async function imprimir(soArquivo) {
+    async function imprimir(modo) {
+      var l = ids();
+      if (!l.length) { ui.alerta('Aviso', 'Nenhuma etiqueta selecionada!', 'alerta'); return; }
+      var c = config(), etqs = porIds(l), pags = paginasEtq(etqs, c);
+      try {
+        if (modo === 'pdf') {
+          status.textContent = '📄 Gerando PDF...';
+          var blob = await gerarPdf(pags);
+          PP.fs.baixar(blob, 'etiquetas_' + U.limparNomeArquivo((etqs[0] && etqs[0].pacote) || 'pacote') + '.pdf', 'application/pdf');
+        } else {
+          status.textContent = '🖨️ Abrindo a janela de impressão...';
+          await imprimirNavegador(pags);
+        }
+      } catch (e) { console.error(e); status.textContent = '❌ Erro'; await ui.erro('Erro', 'Não foi possível preparar as etiquetas: ' + U.msgErro(e)); return; }
+      status.textContent = 'ℹ️ ' + etqs.length + ' etiqueta(s) ' + (modo === 'pdf' ? 'em PDF' : 'enviadas para a janela de impressão');
+      if (await ui.confirmar('Marcar como impressas?', (modo === 'pdf' ? 'O PDF com ' : 'A impressão de ') + etqs.length + ' etiqueta(s) foi ' + (modo === 'pdf' ? 'gerado.' : 'aberta.') + '\nDepois de imprimir, marcar essas etiquetas como impressas?')) {
+        etqs.forEach(function (e) { tab().atualizar(function (r) { return r.id === e.id; }, { impresso: 1 }); });
+      }
+      buscarClick();
+    }
+    async function imprimirZpl(soArquivo) {
       var l = ids();
       if (!l.length) { ui.alerta('Aviso', 'Nenhuma etiqueta selecionada!', 'alerta'); return; }
       var dest = soArquivo ? { via: 'arquivo' } : await escolherImpressora();
@@ -20543,6 +20622,10 @@ if (typeof module !== 'undefined') module.exports = PP;
         .then(function (v) { if (v !== null && v !== undefined) { cfgTab().set('operador', U.strip(v)); rodape(); } });
     }
     async function teste() {
+      var pg = paginasEtq([{ obra: 'TESTE', fluxo: 'FLUXO 1', pacote: 'PACOTE 999', observacao: 'Teste de impressão' }], config());
+      await imprimirNavegador(pg);
+    }
+    async function testeZpl() {
       var dest = await escolherImpressora(); if (!dest) return;
       var z = gerar_zpl({ obra: 'TESTE', fluxo: 'FLUXO 1', pacote: 'PACOTE 999', observacao: 'Teste de impressão' }, config());
       try {
@@ -20993,7 +21076,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 106';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;
+const VERSAO='Versão 107';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
