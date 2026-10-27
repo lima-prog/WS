@@ -20197,7 +20197,7 @@ if (typeof module !== 'undefined') module.exports = PP;
   var U = PP.util, PL = PP.planilhas;
   var FLUXOS_VALIDOS = ['Fluxo 1', 'Fluxo 2', 'Fluxo 3', 'Fluxo 4'];
   var OBSERVACAO_MAX = 50, TODOS = 'Todos', TODAS = 'Todas';
-  var PADRAO = { margem_superior: 25, margem_inferior: 25, margem_esquerda: 15, margem_direita: 8, fonte_obra: 55, fonte_fluxo: 65, fonte_pacote: 90, fonte_data: 30, espacamento_vertical: 8, mostrar_borda: false, mostrar_linhas: true, espessura_linha: 2 };
+  var PADRAO = { margem_superior: 25, margem_inferior: 25, margem_esquerda: 15, margem_direita: 8, fonte_obra: 55, fonte_fluxo: 65, fonte_pacote: 90, fonte_data: 30, espacamento_vertical: 8, mostrar_borda: false, mostrar_linhas: true, espessura_linha: 2, largura_etiqueta_mm: 50, altura_etiqueta_mm: 90, centralizar: true, ajuste_x_mm: 0, ajuste_y_mm: 0 };
   var PADROES_PACOTE = [/[Ll][Oo][Tt][Ee]\s+(\d+)/, /[Ll][Oo][Tt][Ee](\d+)/, /pacote\s+(\d+)/, /pacote(\d+)/];
   function len(s) { return Array.from(s).length; }
   function tab() { return PP.db.tabela('etiquetas_individual'); }
@@ -20258,7 +20258,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     var L = {};
     L.obra = et.obra; L.fluxo = et.fluxo; L.pacote = U.strip(et.pacote.split('PACOTE ').join(''));
     L.obs = et.observacao || '';
-    L.W = mm(c.largura_mm); L.H = mm(c.altura_mm);
+    L.W = Math.round((c.largura_etiqueta_mm || 50) * 8); L.H = Math.round((c.altura_etiqueta_mm || 90) * 8);
     L.x = mm(c.margem_esquerda); L.lt = L.W - L.x - mm(c.margem_direita);
     var esp = mm(c.espacamento_vertical);
     L.yObra = mm(c.margem_superior); L.yL1 = L.yObra + pt(c.fonte_obra) + esp; L.yFluxo = L.yL1 + esp;
@@ -20267,6 +20267,12 @@ if (typeof module !== 'undefined') module.exports = PP;
     var bp = mm(3);
     L.bx = L.x - bp; L.by = L.yObra - bp; L.bw = L.lt + bp * 2; L.bh = L.yData + pt(c.fonte_data) - L.yObra + bp * 2;
     if (len(L.obs) > 50) L.obs = Array.from(L.obs).slice(0, 47).join('') + '...';
+    // V108: centraliza o conteúdo na etiqueta (203 dpi = 8 dots por mm) + ajuste fino
+    var topo = c.mostrar_borda ? L.by : L.yObra, base = c.mostrar_borda ? L.by + L.bh : L.yData + pt(c.fonte_data);
+    var dy = (c.centralizar ? Math.round((L.H - (base - topo)) / 2 - topo) : 0) + Math.round((+c.ajuste_y_mm || 0) * 8);
+    var dx = (c.centralizar ? Math.round(L.W / 2 - (L.x + L.lt / 2)) : 0) + Math.round((+c.ajuste_x_mm || 0) * 8);
+    ['yObra', 'yL1', 'yFluxo', 'yL2', 'yPac', 'yL3', 'yObs', 'yData', 'by'].forEach(function (k) { if (L[k] !== undefined) L[k] += dy; });
+    L.x += dx; L.bx += dx;
     return L;
   }
   function gerar_zpl(et, c, agora) {
@@ -20288,7 +20294,7 @@ if (typeof module !== 'undefined') module.exports = PP;
   // Prévia aproximada (SVG, 1 dot = 1 unidade) — a Zebra usa a fonte 0 (CG Triumvirate condensada)
   function previaSVG(et, c) {
     var L = layout(et, c), data = fmtData(new Date()), s = [];
-    var alt = Math.max(L.H, L.yData + pt(c.fonte_data) + mm(c.margem_inferior));
+    var alt = L.H;
     s.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + L.W + ' ' + alt + '" class="etq-previa">');
     s.push('<rect width="' + L.W + '" height="' + alt + '" fill="#fff"/>');
     if (c.mostrar_borda) s.push('<rect x="' + L.bx + '" y="' + L.by + '" width="' + L.bw + '" height="' + L.bh + '" fill="none" stroke="#000" stroke-width="' + c.espessura_linha + '"/>');
@@ -20378,7 +20384,7 @@ if (typeof module !== 'undefined') module.exports = PP;
   /* ---------------- impressão pelo navegador / PDF (V107) ---------------- */
   var DPI_ZEBRA = 203;
   function paginasEtq(etqs, c) {
-    return etqs.map(function (e) { var L = layout(e, c); var alt = Math.max(L.H, L.yData + pt(c.fonte_data) + mm(c.margem_inferior)); return { svg: previaSVG(e, c), w: L.W, h: alt }; });
+    return etqs.map(function (e) { var L = layout(e, c); var alt = L.H; return { svg: previaSVG(e, c), w: L.W, h: alt }; });
   }
   function medidasMm(pags) {
     var W = Math.max.apply(null, pags.map(function (p) { return p.w; })), H = Math.max.apply(null, pags.map(function (p) { return p.h; }));
@@ -20435,7 +20441,8 @@ if (typeof module !== 'undefined') module.exports = PP;
 
   /* ---------------- tela ---------------- */
   var CAMPOS_CFG = [['margem_superior', 'Margem superior (mm)', 0, 90], ['margem_inferior', 'Margem inferior (mm)', 0, 90], ['margem_esquerda', 'Margem esquerda (mm)', 0, 90], ['margem_direita', 'Margem direita (mm)', 0, 90],
-    ['fonte_obra', 'Fonte OBRA (pt)', 10, 150], ['fonte_fluxo', 'Fonte FLUXO (pt)', 10, 150], ['fonte_pacote', 'Fonte PACOTE (pt)', 10, 200], ['fonte_data', 'Fonte DATA (pt)', 10, 100], ['espacamento_vertical', 'Espaço entre linhas (mm)', 0, 30], ['espessura_linha', 'Espessura das linhas (dots)', 1, 10]];
+    ['fonte_obra', 'Fonte OBRA (pt)', 10, 150], ['fonte_fluxo', 'Fonte FLUXO (pt)', 10, 150], ['fonte_pacote', 'Fonte PACOTE (pt)', 10, 200], ['fonte_data', 'Fonte DATA (pt)', 10, 100], ['espacamento_vertical', 'Espaço entre linhas (mm)', 0, 30], ['espessura_linha', 'Espessura das linhas (dots)', 1, 10],
+    ['largura_etiqueta_mm', 'Largura da etiqueta (mm)', 20, 150], ['altura_etiqueta_mm', 'Altura da etiqueta (mm)', 20, 300], ['ajuste_x_mm', 'Ajuste horizontal (mm)  − esquerda / + direita', -30, 30], ['ajuste_y_mm', 'Ajuste vertical (mm)  − sobe / + desce', -30, 30]];
 
   function montar(raiz) {
     var ui = PP.ui, h = ui.h, arquivo = null, df = null;
@@ -20603,18 +20610,24 @@ if (typeof module !== 'undefined') module.exports = PP;
 
     function dlgConfig() {
       var c = config(), campos = {};
-      var form = h('div', { class: 'grade g2' });
+      var form = h('div', { style: 'display:grid;grid-template-columns:1fr 1fr;gap:6px 14px' });
       CAMPOS_CFG.forEach(function (x) {
-        var e = h('input', { class: 'campo', type: 'number', min: String(x[2]), max: String(x[3]), step: '1', value: String(Math.trunc(c[x[0]])) });
+        var e = h('input', { class: 'campo', type: 'number', min: String(x[2]), max: String(x[3]), step: 'any', value: String(c[x[0]]) });
         campos[x[0]] = e; form.appendChild(h('label', { class: 'rotulo' }, x[1], e));
       });
-      var cbB = h('input', { type: 'checkbox' }), cbL = h('input', { type: 'checkbox' }); cbB.checked = !!c.mostrar_borda; cbL.checked = !!c.mostrar_linhas;
+      var cbB = h('input', { type: 'checkbox' }), cbL = h('input', { type: 'checkbox' }); cbB.checked = !!c.mostrar_borda; cbL.checked = !!c.mostrar_linhas; var cbC = h('input', { type: 'checkbox' }); cbC.checked = c.centralizar !== false;
       var prev = h('div', { class: 'etq-caixa pequena' });
-      function atual() { var n = Object.assign({}, c); CAMPOS_CFG.forEach(function (x) { var v = parseInt(campos[x[0]].value, 10); if (isNaN(v)) v = x[2]; n[x[0]] = Math.max(x[2], Math.min(x[3], v)); }); n.mostrar_borda = cbB.checked; n.mostrar_linhas = cbL.checked; return n; }
-      function rp() { prev.innerHTML = previaSVG({ obra: '1936-100-12', fluxo: 'Fluxo 3', pacote: 'PACOTE 689', observacao: '' }, atual()); }
-      form.addEventListener('input', rp); cbB.addEventListener('change', rp); cbL.addEventListener('change', rp); rp();
-      ui.modal({ titulo: 'Configurações da etiqueta', largura: 820, corpo: h('div', { class: 'grade g2' }, h('div', null, form, h('label', { class: 'linha mt' }, cbB, 'Mostrar borda'), h('label', { class: 'linha' }, cbL, 'Mostrar linhas separadoras'),
-        h('div', { class: 'linha mt' }, ui.botao('Restaurar padrão', { classe: 'mini', click: function () { CAMPOS_CFG.forEach(function (x) { campos[x[0]].value = String(PADRAO[x[0]]); }); cbB.checked = PADRAO.mostrar_borda; cbL.checked = PADRAO.mostrar_linhas; rp(); } }))), prev),
+      function atual() { var n = Object.assign({}, c); CAMPOS_CFG.forEach(function (x) { var v = parseFloat(String(campos[x[0]].value).replace(',', '.')); if (isNaN(v)) v = x[2]; n[x[0]] = Math.max(x[2], Math.min(x[3], v)); }); n.mostrar_borda = cbB.checked; n.mostrar_linhas = cbL.checked; n.centralizar = cbC.checked; return n; }
+      function rp() {
+        var sv = previaSVG({ obra: '1936-100-12', fluxo: 'Fluxo 3', pacote: 'PACOTE 689', observacao: '' }, atual()), vb = sv.match(/viewBox="0 0 (\d+) (\d+)"/), W = +vb[1], H = +vb[2];
+        var g = '<rect x="1" y="1" width="' + (W - 2) + '" height="' + (H - 2) + '" fill="none" stroke="#6b7280" stroke-width="3" stroke-dasharray="14 8"/>' +
+          '<line x1="' + W / 2 + '" y1="0" x2="' + W / 2 + '" y2="' + H + '" stroke="#e11d48" stroke-width="2" stroke-dasharray="10 8"/>' +
+          '<line x1="0" y1="' + H / 2 + '" x2="' + W + '" y2="' + H / 2 + '" stroke="#e11d48" stroke-width="2" stroke-dasharray="10 8"/>';
+        prev.innerHTML = sv.replace('</svg>', g + '</svg>');
+      }
+      form.addEventListener('input', rp); cbB.addEventListener('change', rp); cbL.addEventListener('change', rp); cbC.addEventListener('change', rp); rp();
+      ui.modal({ titulo: 'Configurações da etiqueta', largura: 820, corpo: h('div', { style: 'display:flex;gap:18px;align-items:flex-start' }, h('div', { style: 'flex:1;min-width:0' }, form, h('label', { class: 'linha mt' }, cbB, 'Mostrar borda'), h('label', { class: 'linha' }, cbL, 'Mostrar linhas separadoras'), h('label', { class: 'linha' }, cbC, 'Centralizar o conteúdo na etiqueta (automático)'), h('div', { class: 'fraco mt' }, 'Pré-visualização: a linha tracejada cinza é a borda da etiqueta e as vermelhas marcam o centro exato. Use o ajuste horizontal/vertical para mover o conteúdo.'),
+        h('div', { class: 'linha mt' }, ui.botao('Restaurar padrão', { classe: 'mini', click: function () { CAMPOS_CFG.forEach(function (x) { campos[x[0]].value = String(PADRAO[x[0]]); }); cbB.checked = PADRAO.mostrar_borda; cbL.checked = PADRAO.mostrar_linhas; cbC.checked = PADRAO.centralizar; rp(); } }))), h('div', { style: 'flex:0 0 270px;position:sticky;top:0' }, prev)),
         botoes: [{ texto: 'Cancelar', valor: false }, { texto: '💾 Salvar', valor: true, classe: 'prim' }] }).then(function (ok) { if (ok) { salvarConfig(atual()); ui.toast('Layout salvo'); } });
     }
     function dlgOperador() {
@@ -21076,7 +21089,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 107';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;
+const VERSAO='Versão 108';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg8", "Validação de Peso | Análise", "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
