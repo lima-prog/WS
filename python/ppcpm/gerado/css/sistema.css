@@ -519,7 +519,7 @@ i.car{display:inline-block;border:3px solid transparent;border-top:4px solid #55
 .hw .prw{display:grid;align-items:center;gap:14px;width:100%;padding:9px 16px;border:0;border-bottom:1px solid var(--line-soft);background:transparent;color:#1c2a38;font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer;transition:background .2s}
 .hw .prw:hover{background:var(--head)}.hw .prw:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
 .hw .pth{display:grid;gap:14px;padding:8px 16px;background:var(--head);border-bottom:1px solid var(--line);font-size:12px;font-weight:700;color:var(--muted);position:sticky;top:0;z-index:1}
-.hw .ppac{grid-template-columns:110px 130px 1fr 52px}.hw .pobr{grid-template-columns:110px 100px 130px 1fr}
+.hw .ppac{grid-template-columns:110px 130px 1fr 52px}.hw .pobr{grid-template-columns:110px 130px 100px 1fr}
 .hw .prw.sel{background:var(--accs);box-shadow:inset 4px 0 0 var(--acc)}.hw .prw.group{background:var(--accs)}
 .hw .prw.flash{animation:hwflash 1.1s ease-out}@keyframes hwflash{0%{background:var(--acc);color:#fff}100%{background:var(--accs)}}
 .hw .ptr{height:8px;border-radius:4px;background:var(--barbg);overflow:hidden}.hw .ptr i{display:block;height:100%;border-radius:4px;transform-origin:left;animation:hwgrow .8s cubic-bezier(.2,.7,.2,1) both}
@@ -531,5 +531,5 @@ i.car{display:inline-block;border:3px solid transparent;border-top:4px solid #55
 .hw .pcode{font-family:Consolas,"Courier New",monospace;font-weight:600;font-size:14px}
 .hw .pvz{padding:22px;text-align:center;color:var(--muted)}
 @keyframes hwgrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@media (max-width:640px){.hw .ppac{grid-template-columns:90px 1fr 46px}.hw .ppac .pmini,.hw .pth.ppac span:nth-child(2){display:none}.hw .pobr{grid-template-columns:96px 1fr auto}.hw .pobr .pstp,.hw .pth.pobr span:nth-child(3){display:none}}
+@media (max-width:640px){.hw .ppac{grid-template-columns:90px 1fr 46px}.hw .ppac .pmini,.hw .pth.ppac span:nth-child(2){display:none}.hw .pobr{grid-template-columns:96px 1fr auto}.hw .pobr .psub,.hw .pth.pobr span:nth-child(2){display:none}}
 @media (prefers-reduced-motion:reduce){.hw *{animation:none!important;transition:none!important}}
