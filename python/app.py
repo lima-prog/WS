@@ -63,5 +63,19 @@ def resumo():
 
 
 if __name__ == "__main__":
-    print(f"SISTEMA - PPCPM ({VERSAO}) em http://127.0.0.1:5000")
-    app.run(debug=True)
+    import socket
+    import sys
+
+    # python app.py          -> só neste computador
+    # python app.py --rede   -> outros computadores da rede também abrem (http://IP-deste-PC:5000)
+    na_rede = "--rede" in sys.argv
+    print(f"SISTEMA - PPCPM ({VERSAO}) aberto em http://127.0.0.1:5000")
+    if na_rede:
+        try:  # descobre o IP deste computador na rede (não envia nada)
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("10.255.255.255", 1))
+                ip = s.getsockname()[0]
+        except OSError:
+            ip = socket.gethostbyname(socket.gethostname())
+        print(f"Na rede da empresa: http://{ip}:5000")
+    app.run(host="0.0.0.0" if na_rede else "127.0.0.1", port=5000, debug="--debug" in sys.argv)

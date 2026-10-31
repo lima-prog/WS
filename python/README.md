@@ -11,6 +11,7 @@ index.html  ──►  gerar_python.py  ──►  ppcpm/gerado/  ──►  app
 | Arquivo | Para que serve |
 |---|---|
 | `gerar_python.py` | Separa o `index.html` em partes organizadas e confere se a remontagem fica idêntica |
+| `ABRIR_SISTEMA.bat` | Abre o sistema no Windows (duplo clique, CMD ou Terminal) |
 | `app.py` | Servidor Python que abre o sistema em `http://127.0.0.1:5000` |
 | `ppcpm/config.py` | Versão, pacote atual, obra para impressão, menu e ligação com o Supabase |
 | `ppcpm/calculos.py` | Regras da Tela inicial (quadros da "Visão geral do dia") já escritas em Python |
@@ -19,12 +20,32 @@ index.html  ──►  gerar_python.py  ──►  ppcpm/gerado/  ──►  app
 | `ppcpm/gerado/` | Partes do sistema separadas pelo gerador (veja `MAPA.md`) — **não editar à mão** |
 | `testes/` | Testes automáticos (`python -m pytest testes`) |
 
-## Usar no seu computador
+## Abrir pelo Windows (CMD, Terminal ou duplo clique)
+
+Precisa do Python 3.10 ou mais novo (https://www.python.org/downloads/, marcando **"Add python.exe to PATH"**).
+
+**Duplo clique:** abra a pasta `python` e dê dois cliques em `ABRIR_SISTEMA.bat`.
+
+**Pelo CMD ou Terminal do Windows:**
+
+```bat
+cd C:\caminho\da\pasta\python
+ABRIR_SISTEMA.bat
+```
+
+No PowerShell / Terminal do Windows use `.\ABRIR_SISTEMA.bat`.
+
+Na primeira vez ele prepara tudo sozinho (cria a pasta `.venv` e instala os componentes). Depois abre o navegador em `http://127.0.0.1:5000`. Para fechar, feche a janela preta ou aperte `Ctrl+C`.
+
+**Liberar para outros computadores da rede:** `ABRIR_SISTEMA.bat --rede` — a janela mostra o endereço (ex.: `http://192.168.0.15:5000`) para os colegas abrirem.
+
+## Abrir manualmente (qualquer sistema)
 
 ```bash
 cd python
 pip install -r requirements.txt
-python app.py
+python app.py            # só neste computador
+python app.py --rede     # outros computadores da rede também
 ```
 
 ## A cada versão nova
