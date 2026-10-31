@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script>
+/* SISTEMA PPCPM - AVISA: usa a janela de aviso do sistema */
+(function(){var nativo=window.alert.bind(window);window.alert=function(m){try{if(window.top!==window&&window.top.__avisa)return window.top.__avisa(m)}catch(e){}nativo(m)}})();
+<\/script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roteirização de Produção</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+<style>
+  :root { --bg:#eef1f6; --surface:#fff; --border:#d9dde6; --accent:#0b5cad; --accent2:#0b5cad; --text:#1a2233; --muted:#4b5563; --font:Arial,Helvetica,sans-serif; --mono:Arial,Helvetica,sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:24px 28px 20px; font-weight:600; }
+  header { width:100%; max-width:960px; margin-bottom:22px; text-align:center; }
+  .rota-l { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; font-size:13px; color:var(--text); }
+  .rota-l b { font-size:14px; margin-right:4px; }
+  .rota-l .c { background:#fff; border:1px solid var(--border); border-radius:6px; padding:6px 12px; font-weight:700; font-size:12.5px; }
+  .rota-l i { font-style:normal; color:#9aa3b5; font-weight:400; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:22px 24px; width:100%; max-width:960px; margin-bottom:16px; box-shadow:0 1px 3px rgba(20,30,70,.06); }
+  .ch { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .ch h2 { font-size:16px; font-weight:700; color:#1f2547; text-transform:none; letter-spacing:0; margin:0; }
+  .nb { flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:#0b5cad; color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; }
+  .ext { margin-left:auto; display:flex; gap:8px; }
+  .ext span { background:#e9edf4; color:#4b5563; border-radius:4px; padding:3px 9px; font-size:11px; font-weight:700; }
+  .drop-zone { border:2px dashed #aebfdc; background:#f3f6fb; border-radius:10px; padding:44px 24px; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color:#0b5cad; background:#e6edf8; }
+  .drop-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .drop-icon { display:block; margin:0 auto 14px; }
+  .drop-zone .t1 { font-size:16px; font-weight:700; color:#1a2233; }
+  .drop-zone .ou { font-size:12px; color:#4b5563; margin:10px 0; }
+  .btn-sel { display:inline-flex; align-items:center; gap:8px; background:#0b5cad; color:#ffffff; border-radius:7px; padding:10px 22px; font-weight:700; font-size:14px; }
+  .drop-zone:hover .btn-sel { background:#1a6dc0; }
+  .drop-zone .nome { font-size:12px; color:#4b5563; margin-top:14px; }
+  #progress-wrap { display:none; }
+  .progress-bar-bg { height:6px; background:#e5e8ef; border-radius:3px; overflow:hidden; margin-bottom:10px; }
+  .progress-bar-fill { height:100%; background:#0b5cad; border-radius:3px; transition:width 0.3s; width:0%; }
+  #progress-label { font-size:13px; color:var(--muted); }
+  #summary-wrap { display:none; }
+  .summary-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .badge { font-size:11.5px; padding:4px 12px; border-radius:20px; background:#e7eefa; color:#0b5cad; border:1px solid #c5d6ef; font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; padding:10px 12px; background:#f3f5f9; border-bottom:1px solid #dfe3ea; font-size:12.5px; color:#4b5563; font-weight:700; }
+  td { padding:9px 12px; border-bottom:1px solid #e6e9f0; color:#1a2233; }
+  tr:last-child td { border-bottom:none; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; flex-shrink:0; }
+  .rota-cell { display:flex; align-items:center; }
+  .count-cell { font-weight:700; text-align:right; }
+  .pct-cell { font-size:12px; color:var(--muted); text-align:right; }
+  tr.total-row td { font-weight:700; border-top:1px solid #dfe3ea; color:#1a2233; padding-top:12px; }
+  #btn-download { display:none; margin-top:20px; width:100%; padding:13px; background:#0b5cad; color:#ffffff; border:none; border-radius:7px; font-size:14px; font-family:var(--font); font-weight:700; cursor:pointer; transition:background 0.2s; }
+  #btn-download:hover { background:#1a6dc0; }
+  #btn-download .sub { display:block; font-size:11.5px; opacity:0.85; margin-top:2px; font-weight:600; }
+  #btn-reset { display:none; background:#0b5cad; border:none; color:#ffffff; padding:10px 18px; border-radius:7px; font-size:13px; cursor:pointer; font-family:var(--font); font-weight:700; transition:background 0.2s; margin-top:12px; width:100%; }
+  #btn-reset:hover { background:#1a6dc0; }
+  #error-msg { display:none; background:#fdecec; border:1px solid #f3b4b4; color:#b42318; border-radius:8px; padding:12px 16px; font-size:13px; margin-top:12px; }
+  .ph-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:960px; margin-bottom:16px; }
+  .ph { display:flex; align-items:center; gap:12px; border:1px dashed #c3cad8; border-radius:10px; background:#fff; padding:18px 20px; color:#8a93a5; font-size:13px; font-weight:600; }
+  .ph .nb { background:#c9ced8; }
+  body:has(#progress-wrap[style*="block"]) .ph-row, body:has(#summary-wrap[style*="block"]) .ph-row { display:none; }
+  footer { margin-top:18px; font-size:12px; color:var(--muted); text-align:center; font-weight:600; }
+  .btn-limpar { display:inline-flex; align-items:center; gap:8px; margin-left:14px; background:#fff; color:#1f2937; border:1px solid #c5cbd6; border-radius:7px; padding:7px 16px; font:700 13px Arial,Helvetica,sans-serif; cursor:pointer; }
+  .btn-limpar:hover { background:#f1f3f8; border-color:#9aa3b5; }
+</style>
+</head>
+<body>
+<header>
+  <div class="rota-l"><b>Roteirização:</b><span class="c">Preparação</span><i>|</i><span class="c">Perfiladeiras</span><i>|</i><span class="c">Laminados</span><i>|</i><span class="c">Pintura</span><i>|</i><span class="c">Galvânica</span><i>|</i><span class="c">CSC</span><i>|</i><span class="c">Armação</span><i>|</i><span class="c">Terça Z</span></div>
+</header>
+
+<div class="card">
+  <div class="ch"><span class="nb">1</span><h2>Selecionar planilha</h2><button type="button" class="btn-limpar" id="btn-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button><div class="ext"><span>.xls</span><span>.xlsx</span></div></div>
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept=".xls,.xlsx">
+    <svg class="drop-icon" viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <div class="t1">Arraste o pacote de ordens de produção aqui</div>
+    <div class="ou">ou</div>
+    <span class="btn-sel"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Selecionar arquivo</span>
+    <div class="nome" id="arq-nome">Nenhum arquivo escolhido</div>
+  </div>
+  <div id="error-msg"></div>
+</div>
+
+<div class="card" id="progress-wrap">
+  <div class="ch"><span class="nb">2</span><h2>Processando</h2></div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar"></div></div>
+  <div id="progress-label">Aguardando...</div>
+</div>
+
+<div class="card" id="summary-wrap">
+  <div class="summary-title">
+    <div class="ch" style="margin:0"><span class="nb">3</span><h2>Resultado</h2></div>
+    <span class="badge" id="pacote-badge">PACOTE —</span>
+  </div>
+  <table>
+    <thead><tr><th>Setor / Rota</th><th style="text-align:right">Ordens</th><th style="text-align:right">%</th></tr></thead>
+    <tbody id="summary-body"></tbody>
+  </table>
+  <button id="btn-download">⬇ Baixar Excel Roteirizado<span class="sub" id="download-filename">Roteirizacao_PACOTE.xlsx</span></button>
+  <button id="btn-reset">↩ Processar outro arquivo</button>
+</div>
+
+<div class="ph-row"><div class="ph"><span class="nb">2</span>Liberado após carregar a planilha</div><div class="ph"><span class="nb">3</span>Liberado após carregar a planilha</div></div>
+
+<footer>Processamento 100% local</footer>
+
+<script>
+const ROUTE_CFG = {
+  'PREPARAÇÃO':               { hdr:'1F4E79', txt:'FFFFFF', row:'BDD7EE', dot:'#3b82f6' },
+  'PREPARAÇÃO (DOBRA)':       { hdr:'2E75B6', txt:'FFFFFF', row:'DEEAF1', dot:'#60a5fa' },
+  'PERFILADEIRA U/C':         { hdr:'833C0B', txt:'FFFFFF', row:'FCE4D6', dot:'#f97316' },
+  'PERFILADEIRA L':           { hdr:'375623', txt:'FFFFFF', row:'E2EFDA', dot:'#22c55e' },
+  'PERFILADEIRA Z':           { hdr:'7030A0', txt:'FFFFFF', row:'E9D6F5', dot:'#a855f7' },
+  'PERFILADEIRA BANZO JOIST': { hdr:'C55A11', txt:'FFFFFF', row:'FAD7AC', dot:'#fb923c' },
+  'PERFILADEIRA U JOIST':     { hdr:'843C0C', txt:'FFFFFF', row:'F4D2C1', dot:'#c2410c' },
+  'ACESSÓRIOS JOIST':         { hdr:'203864', txt:'FFFFFF', row:'C5D9F1', dot:'#1d4ed8' },
+  'ACESSÓRIO PADRÃO':         { hdr:'156082', txt:'FFFFFF', row:'C6EFCE', dot:'#0ea5e9' },
+  'BARRAS':                   { hdr:'4472C4', txt:'FFFFFF', row:'DDEBF7', dot:'#6366f1' },
+  'CENTRO DE SERVIÇO':        { hdr:'00B0F0', txt:'1F3864', row:'D6F4FF', dot:'#06b6d4' },
+  'PINTURA':                  { hdr:'C00000', txt:'FFFFFF', row:'FFD7D7', dot:'#ef4444' },
+  'GALVÂNICA':                { hdr:'7F7F7F', txt:'FFFFFF', row:'EDEDED', dot:'#94a3b8' },
+  'LAMINADOS':                { hdr:'70AD47', txt:'FFFFFF', row:'EBF7E2', dot:'#84cc16' },
+  'ARMAÇÃO':                  { hdr:'404040', txt:'FFFFFF', row:'F2F2F2', dot:'#6b7280' },
+};
+const ROUTE_ORDER = Object.keys(ROUTE_CFG);
+
+// Colunas de saída — apenas as que existem no arquivo original
+const COLS_FIXED = ['PLANEJADOR','PACOTE','OBRA','NOME TRECHO','SUB TRECHO','POSICAO',
+  'GRP LIC','MARCA','ESP','LARG','COMP','DESENHO','NOME PERFIL',
+  'ORDEM','COD ITEM','QTDE OF','COD ITEM DEMANDA',
+  'DESC TECNICA DEMANDA','COD ALMOX DEM','QTDE DEM UNIT','QTDE DEMANDA','UM','ROTA'];
+
+const COL_W = {
+  'PLANEJADOR':30,'PACOTE':8,'OBRA':8,'NOME TRECHO':20,'SUB TRECHO':12,
+  'POSICAO':10,'GRP LIC':24,'MARCA':16,'ESP':7,'LARG':7,'COMP':10,
+  'DESENHO':12,'NOME PERFIL':20,'ORDEM':12,'COD ITEM':14,'QTDE OF':8,
+  'COD ITEM DEMANDA':18,'DESC TECNICA DEMANDA':38,'COD ALMOX DEM':14,
+  'QTDE DEM UNIT':14,'QTDE DEMANDA':14,'UM':6,'ROTA':25
+};
+
+const OBS_MAP = {
+  'PREPARAÇÃO':               'Chapa bruta/cortada ASTM · sem intermediários',
+  'PREPARAÇÃO (DOBRA)':       'Perfil U/C dentro do parâmetro mas comp < 800mm',
+  'PERFILADEIRA U/C':         'Alma ≥100, aba ≤106 (U) · alma >100, aba1 >50, aba2 <30 (C) · comp ≥800mm',
+  'PERFILADEIRA L':           'Abas iguais · esp ≤ 3,0mm · sem intermediários',
+  'PERFILADEIRA Z':           'GRP LIC = PERFIL Z · sem intermediários · sem tinta',
+  'PERFILADEIRA BANZO JOIST': 'GRP LIC = BANZO JOIST / BANZO PROJOIST · sem intermediários',
+  'PERFILADEIRA U JOIST':     'GRP LIC = PERFIL U JOIST / PROJOIST · sem intermediários',
+  'ACESSÓRIOS JOIST':         'GRP LIC = ACESSORIOS JOIST/PRENSA/PROJOIST · sem inter. · sem tinta',
+  'ACESSÓRIO PADRÃO':         'SE2-4 · SEZ1-4 · SD1 · TIRA BLANK estoque',
+  'BARRAS':                   'Barra redonda ASTM A36 / SAE 1020',
+  'CENTRO DE SERVIÇO':        'Arremate · Calha · Telhas TP/Zipada · Bobina Zipada',
+  'PINTURA':                  'Tinta (qualquer tipo) · Catalisador/Diluente Epoxi/PU — PRIORIDADE MÁXIMA',
+  'GALVÂNICA':                'Qualquer demanda com ZINCO',
+  'LAMINADOS':                'Perfil W/HP/I/U ASTM · Cantoneira · Tubo red./quad. · sem intermediários',
+  'ARMAÇÃO':                  'Todos os itens não classificados nas rotas acima',
+};
+
+const BARRAS = new Set([
+  'BARRA REDONDA ASTM A36 12,70MM','BARRA REDONDA ASTM A36 16,00MM',
+  'BARRA REDONDA ASTM A36 19,00MM','BARRA REDONDA ASTM A36 22,20MM',
+  'BARRA REDONDA ASTM A36 25,40MM','BARRA REDONDA ASTM A36 31,75MM',
+  'BARRA REDONDA ASTM A36 38,10MM','BARRA REDONDA ASTM A36 44,45MM',
+  'BARRA REDONDA ASTM A36 9,50MM', 'BARRA REDONDA SAE 1020 38,10MM'
+].map(s=>s.toUpperCase()));
+
+const ACESS_PADRAO = new Set([
+  'SE2 ESTOQUE','SE3 ESTOQUE','SE4 ESTOQUE','SEZ1 ESTOQUE','SEZ2 ESTOQUE',
+  'SEZ3 ESTOQUE','SEZ4 ESTOQUE','SD1 ESTOQUE',
+  'TIRA BLANK 25 X 3000 A572 PC','TIRA BLANK 25 X 3000 ZAR 400 PC'
+].map(s=>s.toUpperCase()));
+
+const CS_PERFIS = new Set(['ARREMATE','CALHA','TELHA TP100','TELHA TP17','TELHA TP35','TELHA TP40','TELHA ZIPADA']);
+
+function parseU(n){ const m=String(n).match(/^U(\d+\.?\d*)X(\d+\.?\d*)X[\d.]+/i); return m?[+m[1],+m[2]]:null; }
+function parseC(n){ const m=String(n).match(/^C(\d+\.?\d*)X(\d+\.?\d*)X(\d+\.?\d*)/i); return m?[+m[1],+m[2],+m[3]]:null; }
+function parseL(n){ const m=String(n).match(/^L(\d+\.?\d*)X(\d+\.?\d*)X([\d.]+)/i); return m?[+m[1],+m[2],+m[3]]:null; }
+function parseComp(v){ if(v==null||v==='')return null; const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; }
+function isInter(d){ return /INTERMEDIARI/i.test(String(d)); }
+function isTinta(d){ return /\bTINTA\b/i.test(String(d)); }
+function isCatDil(d){ return /\b(CATALISADOR|DILUENTE)\b.*\b(EPOXI|PU)\b/i.test(String(d)); }
+
+function fixQty(val, um){
+  if(val==null||val===''||String(val).toUpperCase()==='NONE') return null;
+  const umUp = String(um||'').trim().toUpperCase();
+  if(typeof val === 'string'){
+    let raw = val.trim();
+    if(raw===''||raw==='None') return null;
+    if(raw.startsWith(',')) raw='0'+raw;
+    const n = parseFloat(raw.replace(',','.'));
+    return isNaN(n)?val:Math.round(n*1e6)/1e6;
+  }
+  if(typeof val === 'number'){
+    if(umUp==='KG' && Number.isInteger(val) && Math.abs(val)>=1)
+      return Math.round((val/1000)*1e6)/1e6;
+    return val;
+  }
+  return val;
+}
+
+function classify(row){
+  const desc = String(row['DESC TECNICA DEMANDA']||'').trim();
+  const du   = desc.toUpperCase();
+  const grp  = String(row['GRP LIC']||'').trim().toUpperCase();
+  const nome = String(row['NOME PERFIL']||'').trim();
+  const nu   = nome.toUpperCase();
+  const comp = parseComp(row['COMP']);
+  const itr  = isInter(desc);
+
+  if(isTinta(desc)||isCatDil(desc))           return 'PINTURA';
+  if(/\bZINCO\b/i.test(desc))                 return 'GALVÂNICA';
+  if(/^CHAPA\s+(ASTM|CORTADA)/i.test(du))     return 'PREPARAÇÃO';
+  if(BARRAS.has(du))                           return 'BARRAS';
+  if(ACESS_PADRAO.has(du))                     return 'ACESSÓRIO PADRÃO';
+  if(grp.includes('PERFIL Z')&&!itr)           return 'PERFILADEIRA Z';
+  if((grp.includes('BANZO JOIST')||grp.includes('BANZO PROJOIST'))&&!itr) return 'PERFILADEIRA BANZO JOIST';
+  if((grp.includes('PERFIL U JOIST')||grp.includes('PERFIL U PROJOIST'))&&!itr) return 'PERFILADEIRA U JOIST';
+  if(['ACESSORIOS JOIST','ACESSORIOS JOIST PRENSA','ACESSORIOS PROJOIST PRENSA'].some(x=>grp.includes(x))&&!itr) return 'ACESSÓRIOS JOIST';
+  if(CS_PERFIS.has(nu)||grp.includes('TELHAS')||grp.includes('BOBINA ZIPADA')) return 'CENTRO DE SERVIÇO';
+  if(!itr){
+    if(/^PERFIL\s+(W|HP|I|U)\s+ASTM/i.test(du))          return 'LAMINADOS';
+    if(/^CANTONEIRA\s+(ASTM|PARA\s+LANTERNIM)/i.test(du)) return 'LAMINADOS';
+    if(/^TUBO\s+(REDONDO|QUADRADO)/i.test(du))            return 'LAMINADOS';
+    if(grp.includes('VIGA/PILAR LAMINADO')||grp.includes('PERFIL L JOIST')||grp.includes('PERFIL L PROJOIST')) return 'LAMINADOS';
+  }
+  if(!itr && /^L\d/i.test(nu)){
+    const pl=parseL(nome); if(pl&&pl[0]===pl[1]&&pl[2]<=3.0) return 'PERFILADEIRA L';
+  }
+  if(!itr){
+    if(/^U\d/i.test(nu)){
+      const pu=parseU(nome);
+      if(pu){
+        const[alma,aba]=pu;
+        if(/^U150X81X3\.00/i.test(nome)&&comp!=null&&comp<500) return 'PREPARAÇÃO';
+        if(alma>=100&&aba<=106){
+          if(comp!=null&&comp>=800) return 'PERFILADEIRA U/C';
+          if(comp!=null)            return 'PREPARAÇÃO (DOBRA)';
+        }
+      }
+    }
+    if(/^C\d/i.test(nu)){
+      const pc=parseC(nome);
+      if(pc){
+        const[alma,aba1,aba2]=pc;
+        if(alma>100&&aba1>50&&aba2<30){
+          if(comp!=null&&comp>=800) return 'PERFILADEIRA U/C';
+          if(comp!=null)            return 'PREPARAÇÃO (DOBRA)';
+        }
+      }
+    }
+  }
+  return 'ARMAÇÃO';
+}
+
+function hexARGB(h){ return 'FF'+h.replace('#','').toUpperCase(); }
+
+function buildXlsx(rows, pacoteNum){
+  const wb = XLSX.utils.book_new();
+  const groups={};
+  for(const r of ROUTE_ORDER) groups[r]=[];
+  for(const row of rows) groups[row.ROTA].push(row);
+  const total=rows.length;
+
+  // RESUMO
+  const resumoData=[
+    [`ROTEIRIZAÇÃO v3 — PACOTE ${pacoteNum}`,'','',''],
+    ['SETOR / ROTA','QTD ORDENS','% DO TOTAL','CRITÉRIOS'],
+    ...ROUTE_ORDER.map(r=>[r,groups[r].length,(groups[r].length/total*100).toFixed(1)+'%',OBS_MAP[r]||'']),
+    ['TOTAL',total,'100,0%','']
+  ];
+  const wsR=XLSX.utils.aoa_to_sheet(resumoData);
+  wsR['!cols']=[{wch:30},{wch:14},{wch:12},{wch:58}];
+  XLSX.utils.book_append_sheet(wb,wsR,'RESUMO');
+
+  // DATA SHEETS — usa apenas colunas que existem no arquivo
+  for(const rota of ROUTE_ORDER){
+    const sub=groups[rota];
+    if(!sub.length) continue;
+    // Build cols list from what actually exists in data
+    const colsOut = COLS_FIXED.filter(c => c==='ROTA' || sub[0].hasOwnProperty(c));
+    const dataRows=sub.map(row=>colsOut.map(c=>{
+      const v=row[c]; return(v==null||v==='None'||v==='nan')?'':v;
+    }));
+    const ws=XLSX.utils.aoa_to_sheet([colsOut,...dataRows]);
+    ws['!cols']=colsOut.map(c=>({wch:COL_W[c]||12}));
+    ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:dataRows.length,c:colsOut.length-1}})};
+    const cfg=ROUTE_CFG[rota]||{};
+    for(let c=0;c<colsOut.length;c++){
+      const addr=XLSX.utils.encode_cell({r:0,c});
+      if(!ws[addr]) continue;
+      ws[addr].s={
+        font:{bold:true,color:{rgb:hexARGB(cfg.txt||'000000')}},
+        fill:{patternType:'solid',fgColor:{rgb:hexARGB(cfg.hdr||'CCCCCC')}},
+        alignment:{horizontal:'center',vertical:'center',wrapText:true}
+      };
+    }
+    let sname=rota.substring(0,31).replace(/[\/\\?*\[\]:]/g,'_');
+    XLSX.utils.book_append_sheet(wb,ws,sname);
+  }
+  return wb;
+}
+
+function setProgress(pct,label){
+  document.getElementById('progress-bar').style.width=pct+'%';
+  document.getElementById('progress-label').textContent=label;
+}
+
+function showError(msg){
+  const el=document.getElementById('error-msg');
+  el.textContent='⚠ '+msg; el.style.display='block';
+}
+
+let resultWb=null, resultFilename='Roteirizacao.xlsx';
+
+async function processFile(file){
+  { const l=document.getElementById('arq-nome'); if(l) l.textContent=file.name; }
+  document.getElementById('error-msg').style.display='none';
+  document.getElementById('progress-wrap').style.display='block';
+  document.getElementById('summary-wrap').style.display='none';
+  document.getElementById('btn-download').style.display='none';
+  document.getElementById('btn-reset').style.display='none';
+  setProgress(5,'Lendo arquivo...');
+
+  try{
+    const buf=await file.arrayBuffer();
+    setProgress(20,'Parseando planilha...');
+
+    const wb=XLSX.read(buf,{type:'array',cellDates:false,raw:true});
+    const wsName=wb.SheetNames[0];
+    const ws=wb.Sheets[wsName];
+
+    // ── Leitura robusta: percorre linhas até encontrar a linha de cabeçalho ──
+    // O cabeçalho é a linha que contém "DESC TECNICA DEMANDA"
+    const allRows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+
+    let headerIdx=-1;
+    for(let i=0;i<Math.min(allRows.length,10);i++){
+      const row=allRows[i];
+      if(row && row.some(v=>String(v||'').trim().toUpperCase()==='DESC TECNICA DEMANDA')){
+        headerIdx=i; break;
+      }
+    }
+
+    if(headerIdx===-1){
+      showError('Não foi possível encontrar a linha de cabeçalho. Certifique-se que a coluna "DESC TECNICA DEMANDA" existe na planilha.');
+      return;
+    }
+
+    setProgress(35,'Mapeando colunas...');
+
+    // Normaliza headers: remove espaços extras, converte para maiúsculo para comparação
+    const rawHeaders=allRows[headerIdx].map(h=>h!=null?String(h).trim():'');
+
+    // Monta mapa coluna → índice (case-insensitive, trim)
+    const colIndex={};
+    rawHeaders.forEach((h,i)=>{ if(h) colIndex[h.toUpperCase()]=i; });
+
+    // Verifica colunas mínimas necessárias
+    const required=['DESC TECNICA DEMANDA','GRP LIC','NOME PERFIL','COMP','QTDE DEMANDA','QTDE DEM UNIT','UM','PACOTE'];
+    for(const r of required){
+      if(colIndex[r.toUpperCase()]===undefined){
+        showError(`Coluna obrigatória não encontrada: "${r}". Colunas disponíveis: ${rawHeaders.filter(h=>h).join(', ')}`);
+        return;
+      }
+    }
+
+    // Função para obter valor de uma coluna por nome (case-insensitive)
+    function getCol(rawRow, colName){
+      const idx=colIndex[colName.toUpperCase()];
+      return idx!==undefined?rawRow[idx]:null;
+    }
+
+    const dataRows=allRows.slice(headerIdx+1).filter(r=>r&&r.some(v=>v!=null&&v!==''));
+
+    setProgress(50,'Classificando ordens...');
+
+    const rows=[];
+    for(const raw of dataRows){
+      // Constrói objeto com TODOS os headers originais
+      const row={};
+      rawHeaders.forEach((h,i)=>{ if(h) row[h]=raw[i]!=null?raw[i]:null; });
+      // Fixa quantities
+      row['QTDE DEMANDA'] =fixQty(getCol(raw,'QTDE DEMANDA'), getCol(raw,'UM'));
+      row['QTDE DEM UNIT']=fixQty(getCol(raw,'QTDE DEM UNIT'),getCol(raw,'UM'));
+      row['ROTA']=classify(row);
+      rows.push(row);
+    }
+
+    setProgress(75,'Gerando Excel...');
+
+    const pacoteNum=rows[0]?.['PACOTE']||'?';
+    resultFilename=`Roteirizacao_PCT_${pacoteNum}.xlsx`;
+    document.getElementById('download-filename').textContent=resultFilename;
+    document.getElementById('pacote-badge').textContent=`PACOTE ${pacoteNum}`;
+    resultWb=buildXlsx(rows,pacoteNum);
+
+    setProgress(95,'Montando resumo...');
+
+    const counts={};
+    for(const r of ROUTE_ORDER) counts[r]=0;
+    for(const row of rows) counts[row.ROTA]=(counts[row.ROTA]||0)+1;
+    const total=rows.length;
+
+    const tbody=document.getElementById('summary-body');
+    tbody.innerHTML='';
+    for(const rota of ROUTE_ORDER){
+      const cnt=counts[rota]; if(!cnt) continue;
+      const cfg=ROUTE_CFG[rota];
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><div class="rota-cell"><span class="dot" style="background:${cfg.dot}"></span>${rota}</div></td><td class="count-cell">${cnt.toLocaleString('pt-BR')}</td><td class="pct-cell">${(cnt/total*100).toFixed(1)}%</td>`;
+      tbody.appendChild(tr);
+    }
+    const trT=document.createElement('tr');
+    trT.className='total-row';
+    trT.innerHTML=`<td>TOTAL</td><td class="count-cell">${total.toLocaleString('pt-BR')}</td><td class="pct-cell">100%</td>`;
+    tbody.appendChild(trT);
+
+    setProgress(100,'Concluído ✓');
+    setTimeout(()=>{
+      document.getElementById('progress-wrap').style.display='none';
+      document.getElementById('summary-wrap').style.display='block';
+      document.getElementById('btn-download').style.display='block';
+      document.getElementById('btn-reset').style.display='block';
+    },400);
+
+  }catch(e){
+    showError('Erro ao processar: '+e.message);
+    console.error(e);
+  }
+}
+
+document.getElementById('btn-download').addEventListener('click',()=>{
+  if(!resultWb) return;
+  XLSX.writeFile(resultWb,resultFilename,{bookType:'xlsx',type:'binary',cellStyles:true});
+});
+
+document.getElementById('btn-reset').addEventListener('click',()=>{
+  document.getElementById('summary-wrap').style.display='none';
+  document.getElementById('btn-download').style.display='none';
+  document.getElementById('btn-reset').style.display='none';
+  document.getElementById('file-input').value='';
+  resultWb=null;
+  { const l=document.getElementById('arq-nome'); if(l) l.textContent='Nenhum arquivo escolhido'; }
+});
+
+document.getElementById('file-input').addEventListener('change',e=>{
+  if(e.target.files[0]) processFile(e.target.files[0]);
+});
+
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+dz.addEventListener('drop',e=>{
+  e.preventDefault(); dz.classList.remove('drag-over');
+  const f=e.dataTransfer.files[0]; if(f) processFile(f);
+});
+
+document.getElementById('btn-limpar').addEventListener('click',()=>{
+  ['progress-wrap','summary-wrap','error-msg','btn-download','btn-reset'].forEach(i=>{document.getElementById(i).style.display='none';});
+  document.getElementById('file-input').value='';
+  resultWb=null;
+  const l=document.getElementById('arq-nome'); if(l) l.textContent='Nenhum arquivo escolhido';
+});
+<\/script>
+<script>
+/* ===== TEMA CINZA – troca o branco das telas por cinza claro ===== */
+(function () {
+  var CORES = { pagina: "#d9dee5", quadro: "#e8ebef", dentro: "#eef0f3", campo: "#f2f4f6", borda: "#c9d0d9" };
+  function quaseBranco(cor, minimo) {
+    minimo = minimo || 244;
+    var m = cor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+    if (!m) return false;
+    if (m[4] !== undefined && parseFloat(m[4]) < 0.9) return false;
+    var r = +m[1], g = +m[2], b = +m[3];
+    return Math.min(r, g, b) >= minimo && Math.max(r, g, b) - Math.min(r, g, b) <= 20;
+  }
+  function aplicar(raiz) {
+    document.body.style.setProperty("background-color", CORES.pagina, "important");
+    document.documentElement.style.setProperty("background-color", CORES.pagina, "important");
+    var todos = (raiz || document.body).querySelectorAll("*");
+    for (var i = 0; i < todos.length; i++) {
+      var el = todos[i];
+      if (el.dataset.temaCinza) continue;
+      var cs = getComputedStyle(el);
+      if (!quaseBranco(cs.backgroundColor)) continue;
+      var tag = el.tagName, cor;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") {
+        cor = CORES.campo;
+      } else {
+        var pai = el.parentElement, dentroDeQuadro = false;
+        while (pai && pai !== document.body) {
+          if (pai.dataset.temaCinza === "quadro") { dentroDeQuadro = true; break; }
+          pai = pai.parentElement;
+        }
+        cor = dentroDeQuadro ? CORES.dentro : CORES.quadro;
+        el.dataset.temaCinza = "quadro";
+      }
+      el.style.setProperty("background-color", cor, "important");
+      if (!el.dataset.temaCinza) el.dataset.temaCinza = "campo";
+      if (parseFloat(cs.borderTopWidth) > 0 && quaseBranco(cs.borderTopColor, 215)) {
+        el.style.setProperty("border-color", CORES.borda, "important");
+      }
+    }
+  }
+  function iniciar() {
+    aplicar();
+    var espera;
+    new MutationObserver(function () { clearTimeout(espera); espera = setTimeout(aplicar, 60); })
+      .observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
+  else iniciar();
+})();
+<\/script>
+</body>
+</html>

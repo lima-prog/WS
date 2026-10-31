@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="escuro">
+<head><script>
+/* SISTEMA PPCPM - AVISA: usa a janela de aviso do sistema */
+(function(){var nativo=window.alert.bind(window);window.alert=function(m){try{if(window.top!==window&&window.top.__avisa)return window.top.__avisa(m)}catch(e){}nativo(m)}})();
+<\/script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCP — Impressão Casada</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"><\/script>
+<style>
+:root{--cyan:#00e5ff;--magenta:#ff2fd0;--green:#39ff8f;--amber:#ffb02e;--red:#ff4d4d;
+--bg:#0b0e14;--panel:#0f1420;--alt:#121826;--btn:#141a29;--btnp:#1a2233;--tab:#11151f;--tabsel:#161c2c;
+--border:#232a3b;--borderf:#2a3348;--text:#e6edf3;--muted:#c3cbd8;--weak:#8b95a5;--dis:#4a5266;--sel:#17324a;--ondest:#04121a;}
+:root[data-theme="claro"]{--bg:#eef1f6;--panel:#ffffff;--alt:#f2f5fa;--btn:#ffffff;--btnp:#e4e9f0;--tab:#e2e8f0;--tabsel:#ffffff;
+--border:#d7dee7;--borderf:#c3ccd9;--text:#18212e;--muted:#3c4758;--weak:#707c8c;--dis:#aab3c0;--sel:#cdeaf6;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',Inter,system-ui,sans-serif;font-size:13px}
+.app{max-width:1400px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.logo{font-size:22px;background:linear-gradient(135deg,var(--cyan),var(--magenta));color:var(--ondest);border-radius:8px;padding:6px 10px;font-weight:900}
+.titulo{font-size:17px;font-weight:800;color:var(--cyan);letter-spacing:.4px}
+.sub{font-size:11px;color:var(--weak)}
+.espaco{flex:1}
+.tabs{display:flex;gap:3px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.tabs a{text-decoration:none;background:var(--tab);color:var(--weak);border:none;border-radius:8px 8px 0 0;padding:8px 14px;font-weight:600;font-size:12px;cursor:pointer}
+.tabs a.ativo{color:var(--cyan);background:var(--tabsel);border-bottom:2px solid var(--cyan)}
+.painel{display:none;background:var(--panel);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:12px}
+.painel.ativo{display:block}
+.gb{border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0;background:var(--panel)}
+.gb>h3{margin:0 0 10px;font-size:13px;color:var(--cyan);letter-spacing:.3px}
+.gb.recolhida>*:not(h3){display:none}
+.gb h3.clicavel{cursor:pointer;user-select:none}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.cresce{flex:1;min-width:160px}
+button.b{background:var(--btn);color:var(--text);border:1px solid var(--borderf);border-radius:8px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px}
+button.b:hover:not(:disabled){border-color:var(--cyan);color:var(--cyan)}
+button.b:disabled{color:var(--dis);border-color:var(--border);cursor:not-allowed}
+button.principal{background:linear-gradient(90deg,#0aa5c2,var(--cyan));color:var(--ondest);border:none;font-weight:800}
+button.acao{background:linear-gradient(90deg,#b3199c,var(--magenta));color:var(--ondest);border:none;font-weight:800}
+button.principal:hover:not(:disabled),button.acao:hover:not(:disabled){color:var(--ondest);filter:brightness(1.15)}
+button.principal:disabled,button.acao:disabled{background:var(--btnp);color:var(--dis)}
+button.mini{padding:2px 8px;font-size:11px;border-radius:6px}
+input[type=text],textarea,select{background:var(--panel);border:1px solid var(--borderf);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;font-family:inherit}
+input[type=text]:focus,textarea:focus{outline:none;border-color:var(--cyan)}
+textarea{width:100%;font-family:Consolas,monospace}
+.drop{border:2px dashed var(--borderf);border-radius:8px;color:var(--weak);text-align:center;padding:14px 8px;cursor:pointer;margin-top:6px;font-size:12px}
+.drop:hover,.drop.over{border-color:var(--cyan);color:var(--cyan)}
+.lista{list-style:none;margin:6px 0;padding:4px;border:1px solid var(--border);border-radius:8px;max-height:150px;overflow:auto;min-height:30px}
+.lista li{padding:4px 6px;border-radius:4px;display:flex;gap:8px;align-items:center}
+.lista li:nth-child(even){background:var(--alt)}
+.lista li .x{margin-left:auto;cursor:pointer;color:var(--weak)}
+.ok{color:var(--green)}.warn{color:var(--amber)}.err{color:var(--red)}.fraco{color:var(--weak)}
+.status{margin:8px 0;color:var(--muted);white-space:pre-wrap}
+.info{font-size:11px;color:var(--weak)}
+.tabwrap{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:8px;margin-top:6px}
+table.t{border-collapse:collapse;width:100%;font-size:12px}
+table.t th{position:sticky;top:0;background:var(--tabsel);color:#000;font-weight:800;padding:6px;border-bottom:2px solid #0b5cad;text-align:left;white-space:nowrap}
+table.t td{padding:4px 6px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.t tr:nth-child(even) td{background:var(--alt)}
+tr.st-ok td{color:var(--green)}tr.st-warn td{color:var(--amber)}tr.st-err td{color:var(--red)}tr.st-solo td{color:#ff9a4d}
+.arvore{border:1px solid var(--border);border-radius:8px;padding:6px;min-height:200px;max-height:640px;overflow:auto;color:var(--muted)}
+.arvore ul{list-style:none;margin:0;padding-left:18px}
+.arvore>ul{padding-left:0}
+.tn{display:flex;gap:6px;align-items:center;padding:3px 4px;border-radius:4px;cursor:default}
+.tn:hover{background:var(--alt)}
+.tn.sel{background:var(--sel);color:var(--cyan)}
+.tg{width:14px;display:inline-block;cursor:pointer;color:var(--weak)}
+.tn .det{color:var(--weak);font-size:12px}
+.modal-fundo{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal{background:var(--panel);border:1px solid var(--borderf);border-radius:12px;padding:16px;max-width:640px;width:100%;max-height:90vh;overflow:auto}
+.modal h2{margin:0 0 10px;font-size:15px;color:#000;font-weight:800}
+.modal pre{white-space:pre-wrap;background:var(--alt);padding:8px;border-radius:6px;max-height:300px;overflow:auto;font-size:12px}
+.chk{display:flex;gap:6px;align-items:center;margin:4px 0}
+.chk small{color:var(--weak)}
+@media (max-width:600px){.app{padding:8px}.tabs a{text-decoration:none;padding:6px 8px;font-size:11px}}
+
+.cf-txt{font-size:12px;color:var(--muted);white-space:pre-wrap;margin:0 0 8px}
+.cf-split{display:flex;gap:6px;align-items:stretch;margin-top:8px;resize:vertical;overflow:hidden}
+.cf-esq{flex:0 0 42%;min-width:260px;display:flex;flex-direction:column;gap:6px}
+.cf-dir{flex:1;min-width:300px;display:flex;flex-direction:column;gap:6px}
+.cf-busca{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--borderf);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;font-family:inherit}
+.cf-det{font-size:12px;color:var(--muted);white-space:pre-wrap;background:var(--alt);border-radius:6px;padding:6px 8px;min-height:18px}
+.cf-tab{border:1px solid var(--border);border-radius:6px;height:440px;overflow:auto;background:var(--panel)}
+.cf-tab table{border-collapse:collapse;width:100%;font-size:12.5px}
+.cf-tab th{position:sticky;top:0;background:var(--panel);text-align:left;padding:5px 7px;border-bottom:2px solid var(--text);white-space:nowrap;z-index:1}
+.cf-tab td{padding:3px 7px;border-bottom:1px solid var(--border);white-space:nowrap}
+.cf-tab tr:nth-child(even) td{background:var(--alt)}
+.cf-tab tr.cf-cnc td:first-child{font-weight:700}
+.cf-tab tr.cf-sel td{background:var(--btnp)!important;outline:1px solid var(--cyan)}
+.cf-tab tr[data-k]{cursor:pointer}
+.cf-tg{display:inline-block;width:14px;color:var(--weak);user-select:none}
+@media(max-width:900px){.cf-split{flex-direction:column}.cf-esq{flex-basis:auto}}
+/* V60 — Impressão Casada: tema claro, cartões, botões #0b5cad */
+:root,:root[data-theme="escuro"],:root[data-theme="claro"]{--bg:#eef1f6!important;--panel:#fff!important;--alt:#f4f6fa!important;--btn:#fff!important;--btnp:#e6eaf2!important;--tab:#fff!important;--tabsel:#f3f5f9!important;--border:#dfe3ea!important;--borderf:#c5cbd6!important;--text:#1a2233!important;--muted:#374151!important;--weak:#4b5563!important;--dis:#9aa3b5!important;--sel:#e1ecf8!important;--cyan:#0b5cad!important;--green:#0a7a3a!important;--amber:#b86e00!important;--red:#b42318!important}
+html,body,button,input,select,textarea,table,th,td,label,small,span,div,h3,a,li{font-family:Arial,Helvetica,sans-serif!important}
+html,body{background:#eef1f6!important;color:#1a2233!important;font-weight:600}
+header,.tabs{display:none!important}
+.app{max-width:none!important;width:100%;min-height:100vh;margin:0;padding:0!important;display:flex;flex-direction:column}
+.painel{display:block;flex:1;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:20px 24px!important;min-height:100vh}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.cx,.gb{background:#fff;border:1px solid #d9dde6;border-radius:10px;padding:18px 20px;box-shadow:0 1px 3px rgba(20,30,70,.06);margin:0 0 16px}
+.grid2>.cx{margin-bottom:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.cx-h h3,.gb>h3{margin:0 0 12px;font-size:15px;font-weight:700;color:#1f2547;letter-spacing:0}
+.cx-h h3{margin:0}
+.badge{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:#3040a8;color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px}
+.linha{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+button.bz,button.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#0b5cad!important;color:#ffffff!important;border:1px solid #0b5cad!important;border-radius:7px;padding:8px 16px;font-weight:700;font-size:13px;box-shadow:none;cursor:pointer}
+button.b:hover:not(:disabled){background:#1a6dc0!important;border-color:#1a6dc0!important;color:#fff!important}
+button.b.sec{background:#fff!important;color:#1f2937!important;border:1px solid #c5cbd6!important}
+button.b.sec:hover:not(:disabled){background:#f1f3f8!important;border-color:#9aa3b5!important;color:#1f2937!important}
+button.b:disabled{opacity:.45;cursor:not-allowed}
+.lista{background:#fff;border:1px solid #d3d8e2;border-radius:7px;padding:8px 12px;list-style:none;margin:0 0 12px;font-size:12.5px;min-height:0;max-height:150px;overflow:auto}
+.lista:empty{display:none}
+.lblbox{margin:0 0 12px;font-size:12px;font-weight:600;color:#4b5563;word-break:break-word;min-height:15px}
+.drop{display:flex!important;align-items:center;justify-content:center;min-height:56px;margin:0!important;font-size:13px;background:#f3f6fb!important;border:2px dashed #aebfdc!important;color:#374151!important;font-weight:600;border-radius:8px;padding:14px 12px}
+.drop:hover,.drop.over{background:#e6edf8!important;border-color:#0b5cad!important;color:#374151!important}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:9px;align-items:center;margin:0 0 10px;font-size:13px;font-weight:700;color:#1a2233}
+.chk input{width:16px;height:16px;accent-color:#0b5cad}
+.chk small{color:#4b5563;font-size:11.5px;font-weight:600}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:7px;background:#fff;color:#000;padding:8px 11px;font-weight:600;font-size:13px}
+input[type=text]:focus,textarea:focus,select:focus,.cf-busca:focus{border-color:#000!important;outline:none!important;box-shadow:0 0 0 1px #000!important}
+.cx.out{padding:14px 20px}.cx.out .barra{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.cx.out .linha{margin:0}.cx.out .status{margin:0;font-size:13px;color:#1a2233;max-width:60%}
+.cx.res{padding:0;overflow:hidden}.cx.res .arvore{border:0;border-radius:0;min-height:140px;color:#1a2233;padding:10px 14px}
+.tn:hover{background:#f3f5f9}.tn.sel{background:#e1ecf8;color:#0b5cad}
+.cf-tab{border-color:#dfe3ea}.cf-tab th{background:#f3f5f9;border-bottom:1px solid #dfe3ea;color:#4b5563}
+.cf-det{background:#f3f5f9}
+.modal .b{background:#0b5cad!important;color:#ffffff!important}
+@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">⚙</div>
+  <div><div class="titulo">PPCP — Impressão Casada</div>
+  <div class="sub">Projeart · Análise DBF × FOCCO · Fluxo 1-4 automático · Base preenchida</div></div>
+  <div class="espaco"></div>
+  <button class="b" id="btn-cores">⚙ Cores</button>
+</header>
+<nav class="tabs"><a href="1-analise-dbf-focco.html" class="">⚖️ Análise DBF × FOCCO</a><a href="2-agrupador-base.html" class="">📦 Agrupador / Base</a><a href="3-impressao-casada.html" class="ativo">🖨️ Impressão Casada</a><a href="4-impressao-casada-multiobra.html" class="">🖨️📚 Impressão Casada — Multi-Obra</a><a href="5-grupo-lic.html" class="">🏷️ Grupo LIC</a><a href="6-fluxo-4.html" class="">🔀 Fluxo 04</a></nav>
+
+<section class="painel" data-aba="🖨️ Impressão Casada" id="painel-imp"></section>
+</div>
+
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════
+   UTILITÁRIOS
+   ════════════════════════════════════════════════════════════════ */
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const $ = (s, el = document) => el.querySelector(s);
+const tick = () => new Promise(r => setTimeout(r, 0));
+const VERSAO = '2026-10-15-web';
+
+function norm(v) {
+  if (v === null || v === undefined) return '';
+  let s = String(v).replace(/\u00a0/g, ' ');
+  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return s.replace(/\s+/g, ' ').trim().toUpperCase();
+}
+const squash = v => norm(v).replace(/[^A-Z0-9]/g, '');
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function escRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\\-]/g, '\\$&'); }
+function extOf(nome) { const i = String(nome).lastIndexOf('.'); return i >= 0 ? nome.slice(i + 1).toLowerCase() : ''; }
+function dateTag() { const d = new Date(); return String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); }
+function vazio(v) { return v === null || v === undefined || (typeof v === 'number' && isNaN(v)); }
+function parseBr(v) {
+  if (v === null || v === undefined || v === '') return 0;
+  if (typeof v === 'number') return isFinite(v) ? v : 0;
+  let s = String(v).trim(); if (!s) return 0;
+  if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+  else if (s.includes('.') && s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  const n = Number(s); return isFinite(n) ? n : 0;
+}
+function sinal(n, d) { return (n >= 0 ? '+' : '') + n.toFixed(d); }
+function fmtBr(n, d = 2) { return n.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function baixar(blob, nome) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+}
+function colNum(col) { let n = 0; for (const ch of col) n = n * 26 + (ch.charCodeAt(0) - 64); return n; }
+function colLetra(n) { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+function serialData(y, m, d) { return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 864e5; }
+function serialHoje() { const d = new Date(); return serialData(d.getFullYear(), d.getMonth() + 1, d.getDate()); }
+function lsGet(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+function cmpArr(a, b) { const n = Math.min(a.length, b.length); for (let i = 0; i < n; i++) { if (a[i] < b[i]) return -1; if (a[i] > b[i]) return 1; } return a.length - b.length; }
+
+const SPIN = ['◐', '◓', '◑', '◒'];
+async function rodar({ botoes = [], status, msg, fn, ok }) {
+  botoes.forEach(b => b && (b.disabled = true));
+  let q = 0, atual = msg;
+  status.textContent = SPIN[0] + ' ' + msg;
+  const t = setInterval(() => { status.textContent = SPIN[q++ % 4] + ' ' + atual; }, 180);
+  const fim = () => { clearInterval(t); botoes.forEach(b => b && (b.disabled = false)); };
+  try {
+    await tick();
+    const r = await fn(m => { atual = m; });
+    fim();
+    if (ok) await ok(r);
+    return r;
+  } catch (e) {
+    fim(); console.error(e);
+    status.textContent = '❌ ' + (e && e.message || e);
+    alert('Erro: ' + (e && e.message || e));
+  }
+}
+
+function escolherArquivos(accept, multi) {
+  return new Promise(res => {
+    const i = document.createElement('input'); i.type = 'file'; if (accept) i.accept = accept; i.multiple = !!multi;
+    i.onchange = () => res([...i.files]); i.click();
+  });
+}
+function areaSoltar(el, onFiles, accept, multi = true) {
+  el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('over'));
+  el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('over'); const f = [...e.dataTransfer.files]; if (f.length) onFiles(multi ? f : [f[0]]); });
+  el.addEventListener('click', async () => { const f = await escolherArquivos(accept, multi); if (f.length) onFiles(f); });
+}
+
+function modal({ titulo, html, botoes = [{ txt: 'Fechar', valor: null, cls: 'principal' }] }) {
+  return new Promise(res => {
+    const fundo = document.createElement('div'); fundo.className = 'modal-fundo';
+    const m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = `<h2>${esc(titulo)}</h2><div class="corpo"></div><div class="linha" style="justify-content:flex-end;margin-top:12px"></div>`;
+    const corpo = m.querySelector('.corpo');
+    if (typeof html === 'string') corpo.innerHTML = html; else if (html) corpo.appendChild(html);
+    const lb = m.querySelector('.linha:last-child');
+    for (const b of botoes) {
+      const el = document.createElement('button'); el.className = 'b ' + (b.cls || ''); el.textContent = b.txt;
+      el.onclick = () => { fundo.remove(); res(b.valor); }; lb.appendChild(el);
+    }
+    fundo.appendChild(m); document.body.appendChild(fundo);
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ESQUEMAS E CONSTANTES (iguais ao Python)
+   ════════════════════════════════════════════════════════════════ */
+const ESQUEMA_DBF = ["NUM_COM", "NUM_DIS", "TRA_PEZ", "MAR_PEZ", "DES_PEZ", "POS_PEZ", "QTA_PEZ",
+  "NOM_PRO", "LUN_PRO", "LAR_PRO", "SPE_PRO", "MAT_PRO", "PUN_LIS", "SUN_LIS",
+  "IDENTIFICADOR", "ESPESSURA", "Desenho", "Descrição", "Material", "Chapas",
+  "Peso", "Qtd", "MARCA+TRECHO", "adcionar1", "adcionar2", "ÚLTIMO_PROCESSO",
+  "REVISÃO", "FUR", "DESENVOLVIMENTO", "VOLUME", "Identifier", "END_MARCA",
+  "GRUPO LIC", "ACABAMENTO", "TIPO PINTURA",
+  "COR PINTURA1", "COR PINTURA2", "COR PINTURA3",
+  "COMP B - PINT LIQ 1", "COMP C - PINT LIQ 1", "COMP B - PINT LIQ 2",
+  "COMP C - PINT LIQ 2", "COMP B - PINT LIQ 3", "COMP C - PINT LIQ 3",
+  "PESO_ESP_SV_1", "MICRAGEM1", "PESO_ESP_SV_2", "MICRAGEM2",
+  "PESO_ESP_SV_3", "MICRAGEM3", "Grupo FOCCO", "Peso Total", "Pintura Total",
+  "QTD_PINTURA_1", "QTD_PINTURA_2", "QTD_PINTURA_3",
+  "QTD - COMP B - PINT LIQ 1", "QTD - COMP C - PINT LIQ 1",
+  "QTD - COMP B - PINT LIQ 2", "QTD - COMP C - PINT LIQ 2",
+  "QTD - COMP B - PINT LIQ 3", "QTD - COMP C - PINT LIQ 3", "PINT_DIF",
+  "Desenho FOCCO", "Tempo Rep", "Descrição Focco", "Material Focco",
+  "Almoxarifado", "LINHA", "TRECHO", "TIPO LINHA", "PREFIXO_CONJUNTO",
+  "PREFIXO PEÇA", "COMP", "LARGURA", "ALTURA", "AREA UNIT", "AREA TOTAL",
+  "PESO UNIT", "PESO TOTAL", "TIPO MAT", "ESP ALMA", "ESP FLANGE",
+  "TEKLA COD FOCCO", "PERFIL TEKLA", "POLIVIGA", "DESENHISTA", "PROJETISTA",
+  "FLG_REC", "TIPO_GEOM", "RECORTE", "DIAM_FURO", "FURO_OBL", "QTD_FUROS", "Unid Med"];
+
+const ALIAS_DBF = {
+  'NUM_DIS': ['N LIBERACAO', 'Nº LIBERAÇÃO'], 'TRA_PEZ': ['ULT. PROCESSO 1', 'ÚLT. PROCESSO 1'],
+  'MAR_PEZ': ['MARCA'], 'DES_PEZ': ['PRODUTO ACABADO'], 'POS_PEZ': ['POSICAO', 'POSIÇÃO'],
+  'QTA_PEZ': ['QTD PC TT GERAL', 'QTD PÇ TT GERAL'], 'NOM_PRO': ['MATERIA-PRIMA', 'MATÉRIA-PRIMA'],
+  'LUN_PRO': ['COMPRIMENTO (mm)'], 'LAR_PRO': ['LARGURA (mm)'], 'SPE_PRO': ['ESPESSURA (mm)'],
+  'MAT_PRO': ['COMPOSICAO MP 1', 'COMPOSIÇÃO MP 1'], 'PUN_LIS': ['PESO UNIT (KG)'], 'SUN_LIS': ['AREA (mm)', 'ÁREA (mm)'],
+  'IDENTIFICADOR': ['GEOMETRIA PERFIL'], 'ESPESSURA': ['ESPESSURA GERAL (mm)'], 'Desenho': ['N DESENHO', 'Nº DESENHO'],
+  'Descrição': ['DESC. OBJETO/MARCA'], 'Material': ['COMPOSICAO MP 2', 'COMPOSIÇÃO MP 2'], 'Chapas': ['FORMATO CHAPA'],
+  'Peso': ['PESO TT (KG)'], 'Qtd': ['QTD PC TT MP', 'QTD PÇ TT MP'],
+  'ÚLTIMO_PROCESSO': ['ULTIMO PROCESSO', 'ÚLTIMO PROCESSO', 'ULT. PROCESSO 2', 'ÚLT. PROCESSO 2'],
+  'FUR': ['FURACAO', 'FURAÇÃO'], 'Peso Total': ['PESO TT (KG)_V2', 'PESO TOTAL_V2'], 'TRECHO': ['OF-TRECHO'],
+  'DESENHISTA': ['DESENHISTA'], 'PROJETISTA': ['PROJETISTA'],
+};
+const COL_DBF_INICIO = 0, COL_DBF_FIM = 34;
+const IDX_MAQ_BC = 129, IDX_MAQ_CH = 130, IDX_MAQ_G6M = 131, IDX_MAQ_G3M = 132, IDX_MAQ_PERFIL_UC = 127;
+const FLUXO_PARA_COL = { 'FLUXO 1': IDX_MAQ_G6M, 'FLUXO 2': IDX_MAQ_G3M, 'FLUXO 3': IDX_MAQ_BC, 'FLUXO 4': IDX_MAQ_CH };
+const FLUXO_PARA_MAQ = { 'FLUXO 1': 'G6m', 'FLUXO 2': 'G3m', 'FLUXO 3': 'BC', 'FLUXO 4': 'CH' };
+const MARCAS_EXCECAO_FIXA = {};
+for (const m of ['ED3', 'ED-13', 'ED-2', 'ED-4', 'PDG-1', '-143', 'ALT4800-1', 'ALT5200-1', 'ALT6000A-1', 'ALT6000B-1'])
+  MARCAS_EXCECAO_FIXA[m] = { maq: 'PERFIL. U/C', col: IDX_MAQ_PERFIL_UC, fluxo: `${m} (regra fixa → Perfiladeira U/C)` };
+for (const m of ['SLT1', 'SLT2', 'SLT3', 'ACE1', 'NM2', 'CSV1'])
+  MARCAS_EXCECAO_FIXA[m] = { maq: 'CH', col: IDX_MAQ_CH, fluxo: `${m} (regra fixa → Fluxo 4)` };
+const LINHA_INICIAL_BASE = 10;
+const LINHA_NUM_PCT = 5, COL_NUM_PCT = 3, LINHA_DT_REFRESH = 2, COL_DT_REFRESH = 3;
+
+const ESQUEMA_FOCCO = ["COD EMP", "NUM PEDV", "LOTE OF", "NUM ORDEM", "TP ORD", "DT EMISSAO",
+  "OBRA", "SUB TRECHO", "GRUPO LIC", "NRO DES", "MARCA", "POSICAO",
+  "TP MATL", "ESPESSURA", "TP ITEM", "GRP INV", "COD FAM 3",
+  "DESCRICAO FAM 3", "COD FAM 4", "DESCRICAO FAM 4", "COD ITEM",
+  "ID CONFIG", "DESC TECNICA", "DT INICIAL", "DT FINAL", "QTDE",
+  "QTDE ENTREGUE", "QTDE REFUGO", "QTDE PENDENTE", "QTDE PEND POS REF",
+  "UMP", "PESO DEMAND", "PESO REQUIS", "PESO PENDEN", "FINAL", "IMPR",
+  "CREATED ON", "CREATED BY", "COD FUNC", "NOME",
+  "COD ALMOX", "DESCRICAO ALMOX", "LOG APONT", "LOG USUARO APONT",
+  "ZERO", "VAL", "RETRAB", "DIAS", "OBSERVACAO", "MASCARA"];
+const ABA_FOCCO = 'FOCCO_VISION_NDPCP301';
+const LINHA_INICIAL_FOCCO = 11;
+const CHAVES_FOCCO = ['COD EMP', 'NUM PEDV', 'LOTE OF', 'NUM ORDEM', 'OBRA', 'MARCA'];
+const DATE_COLS_FOCCO = new Set(['DT EMISSAO', 'DT INICIAL', 'DT FINAL']);
+
+const IE = {}; ESQUEMA_DBF.forEach((c, i) => { if (!(c in IE)) IE[c] = i; });
+const CHAVES_DBF = ['MAR_PEZ', 'NUM_COM', 'POS_PEZ', 'DES_PEZ', 'NUM_DIS', 'QTA_PEZ', 'PESO TOTAL', 'MARCA+TRECHO', 'GRUPO LIC'];
+const NOMES_CONHECIDOS = new Set(ESQUEMA_DBF.map(squash));
+for (const k in ALIAS_DBF) for (const v of ALIAS_DBF[k]) NOMES_CONHECIDOS.add(squash(v));
+
+/* ════════════════════════════════════════════════════════════════
+   LEITURA MULTIFORMATO
+   ════════════════════════════════════════════════════════════════ */
+function decodificarTexto(bytes) {
+  let s;
+  try { s = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch (e) { s = new TextDecoder('windows-1252').decode(bytes); }
+  return s.replace(/^\uFEFF/, '');
+}
+function pareceHtml(bytes) {
+  const s = new TextDecoder('latin1').decode(bytes.slice(0, 1000)).toLowerCase();
+  return s.includes('<html') || s.includes('<!doctype') || s.includes('<table');
+}
+function htmlParaTabelas(texto) {
+  const doc = new DOMParser().parseFromString(texto, 'text/html');
+  const tabelas = [...doc.querySelectorAll('table')];
+  const out = [];
+  tabelas.forEach((t, i) => {
+    const rows = [];
+    for (const tr of t.rows) {
+      const linha = [];
+      for (const td of tr.cells) {
+        td.querySelectorAll('br').forEach(br => br.replaceWith(' '));
+        const tx = td.textContent.replace(/\u00a0/g, ' ').trim();
+        linha.push(tx ? tx : null);
+      }
+      rows.push(linha);
+    }
+    if (rows.length) {
+      const larg = Math.max(...rows.map(r => r.length));
+      out.push({ nome: tabelas.length > 1 ? `Tabela ${i + 1}` : 'HTML', rows: rows.map(r => r.concat(Array(larg - r.length).fill(null))) });
+    }
+  });
+  if (!out.length) throw new Error('nenhuma <table> encontrada no arquivo HTML');
+  return out;
+}
+function farejarSeparador(txt) {
+  const amostra = txt.split(/\r?\n/).slice(0, 10).join('\n');
+  let melhor = ',', mc = -1;
+  for (const d of [';', '\t', ',', '|']) { const c = amostra.split(d).length - 1; if (c > mc) { mc = c; melhor = d; } }
+  return melhor;
+}
+function parseCSV(txt, sep) {
+  const rows = []; let row = [], campo = '', aspas = false;
+  for (let i = 0; i < txt.length; i++) {
+    const ch = txt[i];
+    if (aspas) {
+      if (ch === '"') { if (txt[i + 1] === '"') { campo += '"'; i++; } else aspas = false; }
+      else campo += ch;
+    } else if (ch === '"' && campo === '') aspas = true;
+    else if (ch === sep) { row.push(campo); campo = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && txt[i + 1] === '\n') i++;
+      row.push(campo); rows.push(row); row = []; campo = '';
+    } else campo += ch;
+  }
+  if (campo !== '' || row.length) { row.push(campo); rows.push(row); }
+  return rows;
+}
+async function lerArquivoTabular(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const ext = extOf(file.name);
+  if (['xlsx', 'xlsm', 'xls', 'csv', 'txt', 'htm', 'html'].includes(ext) && pareceHtml(bytes)) return htmlParaTabelas(decodificarTexto(bytes));
+  if (['csv', 'txt', 'tsv', 'prn'].includes(ext)) {
+    const txt = decodificarTexto(bytes);
+    return [{ nome: file.name, rows: parseCSV(txt, ext === 'tsv' ? '\t' : farejarSeparador(txt)) }];
+  }
+  if (['xlsx', 'xlsm', 'xls', 'xlsb', 'dbf', 'ods'].includes(ext)) {
+    const wb = XLSX.read(bytes, { type: 'array', cellDates: false, cellFormula: false, cellHTML: false, cellText: false });
+    return wb.SheetNames.map(n => ({ nome: ext === 'dbf' ? file.name : n, rows: XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: true, defval: null, blankrows: true }) }));
+  }
+  throw new Error(`formato ".${ext}" não suportado`);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   NORMALIZAÇÃO DA DBF
+   ════════════════════════════════════════════════════════════════ */
+function acharCabecalho(rows, chaves = CHAVES_DBF, limite = 30) {
+  let melhor = -1, score = 0;
+  const ks = chaves.map(squash);
+  for (let i = 0; i < Math.min(limite, rows.length); i++) {
+    const cel = new Set((rows[i] || []).map(squash));
+    const sc = ks.filter(k => cel.has(k)).length;
+    if (sc > score) { score = sc; melhor = i; }
+    if (sc >= 2) break;
+  }
+  if (melhor >= 0 && score > 0) return melhor;
+  for (let i = 0; i < Math.min(limite, rows.length); i++)
+    if ((rows[i] || []).filter(v => norm(v) !== '').length >= 3) return i;
+  return 0;
+}
+function escolherPlanilhaDbf(planilhas) {
+  let melhor = null, ms = -1e9;
+  for (const { nome, rows } of planilhas) {
+    if (!rows || !rows.length) continue;
+    const hi = acharCabecalho(rows);
+    const cel = new Set((rows[hi] || []).map(squash));
+    let score = CHAVES_DBF.filter(k => cel.has(squash(k))).length + Math.min(rows.length, 500) / 500;
+    if (norm(nome).includes('CONSOLIDAD')) score -= 30;
+    if (score > ms) { ms = score; melhor = { nome, rows, hi }; }
+  }
+  return melhor;
+}
+function linhaEhCabecalho(row) {
+  const cel = (row || []).map(squash).filter(Boolean);
+  if (cel.length < 4) return false;
+  return cel.filter(v => NOMES_CONHECIDOS.has(v)).length >= 6;
+}
+function mapearEsquema(hdrRows) {
+  const norms = hdrRows.map(h => h.map(norm)), squs = hdrRows.map(h => h.map(squash));
+  const usados = new Set();
+  const busca = nome => {
+    const n = norm(nome), q = squash(nome);
+    for (const H of norms) for (let i = 0; i < H.length; i++) if (H[i] === n && !usados.has(i)) return i;
+    if (q) for (const H of squs) for (let i = 0; i < H.length; i++) if (H[i] === q && !usados.has(i)) return i;
+    return -1;
+  };
+  return ESQUEMA_DBF.map(c => {
+    let i = busca(c);
+    if (i < 0) for (const a of (ALIAS_DBF[c] || [])) { i = busca(a); if (i >= 0) break; }
+    if (i >= 0) usados.add(i);
+    return i;
+  });
+}
+function recuperarNumComDeData(bruto, numDis) {
+  const serial = Number(bruto);
+  if (bruto === '' || !isFinite(serial) || serial !== Math.trunc(serial) || serial < 1 || serial > 200000) return null;
+  const d = new Date(Date.UTC(1899, 11, 30) + serial * 864e5);
+  const cand = `${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`;
+  return numDis && String(numDis).includes(cand) ? cand : null;
+}
+function normalizarDbf(rows) {
+  const hi = acharCabecalho(rows);
+  const hdr = [(rows[hi] || []).map(v => vazio(v) ? '' : String(v))];
+  let p = hi + 1;
+  while (p < rows.length && hdr.length < 3 && linhaEhCabecalho(rows[p])) { hdr.push((rows[p] || []).map(v => vazio(v) ? '' : String(v))); p++; }
+  const mapa = mapearEsquema(hdr);
+  const iNC = IE['NUM_COM'], iND = IE['NUM_DIS'];
+  const idPeca = [iNC, iND, IE['MAR_PEZ'], IE['POS_PEZ'], IE['DES_PEZ']];
+  const out = [];
+  for (let k = p; k < rows.length; k++) {
+    const r = rows[k] || [];
+    if (linhaEhCabecalho(r)) continue;
+    let nr = mapa.map(i => (i < 0 || i >= r.length || vazio(r[i])) ? '' : String(r[i]).trim());
+    nr = nr.map(v => v.toLowerCase() === 'nan' ? '' : v);
+    const rec = recuperarNumComDeData(nr[iNC], nr[iND]);
+    if (rec) nr[iNC] = rec;
+    if (!idPeca.some(i => nr[i].trim())) continue;
+    out.push(nr);
+  }
+  return { rows: out, hi };
+}
+async function lerDbfs(files) {
+  const entries = [];
+  for (const f of files) {
+    const e = { file: f, nome: f.name, status: 'lendo', rows: null, msg: '' };
+    try {
+      const pl = await lerArquivoTabular(f);
+      const alvo = escolherPlanilhaDbf(pl);
+      if (!alvo) throw new Error('nenhuma planilha com dados');
+      const { rows } = normalizarDbf(alvo.rows);
+      if (!rows.length) throw new Error('0 linhas de dados reconhecidas');
+      e.rows = rows; e.status = 'ok'; e.msg = `${rows.length} linhas · aba "${alvo.nome}"`;
+    } catch (err) { e.status = 'erro'; e.msg = err.message || String(err); }
+    entries.push(e);
+    await tick();
+  }
+  return entries;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RELATÓRIO DE FLUXOS + CASAMENTO DE FLUXO NA DBF
+   ════════════════════════════════════════════════════════════════ */
+function posBaseColapsada(pos) { let s = String(pos).split(/[@\[]/)[0].trim(); return s.replace(/_(\d+|[ULC])$/i, ''); }
+function posBase(pos) { let s = String(pos).replace(/\[[A-Za-z]\]$/, '').trim(); s = s.replace(/@(\d+)$/, '_$1'); return s.replace(/_[ULC]$/i, ''); }
+function posSemSubtrecho(pos) { return String(pos).trim().replace(/^\d+-\d+_/, ''); }
+
+async function lerRelatorioFluxos(file) {
+  const pl = await lerArquivoTabular(file);
+  let aba = pl.find(p => norm(p.nome) === norm('Relatório Consolidado')) || pl.find(p => norm(p.nome).includes('CONSOLIDAD'));
+  if (!aba) throw new Error('não encontrei a aba "Relatório Consolidado" no relatório de fluxos');
+  const rows = aba.rows, header = (rows[0] || []).map(norm);
+  const iOF = header.includes('OF') ? header.indexOf('OF') : 0;
+  const iPos = header.includes(norm('Posição')) ? header.indexOf(norm('Posição')) : 1;
+  const iFx = header.includes('FLUXO') ? header.indexOf('FLUXO') : 3;
+  const granular = {}, colapsado = {}, valores = {};
+  let ignoradas = 0;
+  for (const r of rows.slice(1)) {
+    if (!r || !r.some(v => v !== null && v !== '')) continue;
+    const of = r[iOF], pos = r[iPos], fluxo = norm(r[iFx]);
+    if (!of || !pos) continue;
+    const col = FLUXO_PARA_COL[fluxo];
+    if (col === undefined) { ignoradas++; continue; }
+    const valor = { maq: FLUXO_PARA_MAQ[fluxo], col, fluxo: r[iFx] };
+    granular[`${norm(of)}|${norm(posBase(pos))}`] = valor;
+    const kc = `${norm(of)}|${norm(posBaseColapsada(pos))}`;
+    colapsado[kc] = valor; (valores[kc] = valores[kc] || new Set()).add(col);
+  }
+  for (const k of Object.keys(colapsado)) if (valores[k].size !== 1) delete colapsado[k];
+  return { mapa: { granular, colapsado }, ignoradas, aba: aba.nome };
+}
+function candidatosOfTrecho(row) {
+  const c = []; const numCom = row[IE['NUM_COM']];
+  if (numCom) {
+    c.push(numCom);
+    const sl = String(numCom).trim().replace(/_L\d+$/i, '');
+    if (sl && sl !== numCom && !c.includes(sl)) c.push(sl);
+  }
+  const numDis = row[IE['NUM_DIS']];
+  if (numDis && numCom) {
+    let obra = String(numCom).trim().replace(/\.0$/, '').replace(/_L\d+$/i, '');
+    if (obra) {
+      const m = new RegExp(escRe(obra) + '[-_](\\d+-\\d+)').exec(String(numDis));
+      if (m) { const rc = `${obra}-${m[1]}`; if (!c.includes(rc)) c.push(rc); }
+    }
+  }
+  return c;
+}
+function construirPosComFilhos(linhas) {
+  const s = new Set();
+  for (const row of linhas) {
+    const pos = row[IE['POS_PEZ']];
+    if (!pos || !String(pos).trim()) continue;
+    if (/_\d+$/.test(posBase(String(pos).trim()))) s.add(norm(row[IE['NUM_COM']]) + '¦' + norm(posBaseColapsada(String(pos))));
+  }
+  return s;
+}
+function acharFluxoDaLinha(row, fluxoMap, posComFilhos) {
+  const pos = row[IE['POS_PEZ']];
+  if (!pos || !pos.trim()) return null;
+  const chavePos = norm(posBase(pos));
+  if (MARCAS_EXCECAO_FIXA[chavePos]) return { ...MARCAS_EXCECAO_FIXA[chavePos], chave: null };
+  const semSub = norm(posBase(posSemSubtrecho(pos)));
+  if (MARCAS_EXCECAO_FIXA[semSub]) return { ...MARCAS_EXCECAO_FIXA[semSub], chave: null };
+  if (!fluxoMap) return null;
+  const granular = fluxoMap.granular || {}, colapsado = fluxoMap.colapsado || {};
+  const cands = candidatosOfTrecho(row);
+  for (const of of cands) { const ch = `${norm(of)}|${chavePos}`; if (granular[ch]) return { ...granular[ch], chave: ch }; }
+  if (posComFilhos && !/_\d+$/.test(chavePos)) {
+    if (posComFilhos.has(norm(row[IE['NUM_COM']]) + '¦' + norm(posBaseColapsada(pos)))) return null;
+  }
+  const pc = norm(posBaseColapsada(pos));
+  for (const of of cands) { const ch = `${norm(of)}|${pc}`; if (colapsado[ch]) return { ...colapsado[ch], chave: ch }; }
+  return null;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RELATÓRIO FOCO (NDPCP301)
+   ════════════════════════════════════════════════════════════════ */
+function acharCabecalhoFoco(rows, limite = 15) {
+  let melhor = -1, score = 0; const ks = CHAVES_FOCCO.map(squash);
+  for (let i = 0; i < Math.min(limite, rows.length); i++) {
+    const cel = new Set((rows[i] || []).map(squash));
+    const sc = ks.filter(k => cel.has(k)).length;
+    if (sc > score) { score = sc; melhor = i; }
+    if (sc >= 4) break;
+  }
+  if (melhor >= 0 && score >= 2) return melhor;
+  throw new Error('não encontrei o cabeçalho do relatório FOCO (esperava colunas como "COD EMP", "NUM PEDV"...)');
+}
+async function lerRelatorioFoco(file) {
+  const rows = (await lerArquivoTabular(file))[0].rows;
+  const hi = acharCabecalhoFoco(rows);
+  const header = (rows[hi] || []).map(norm);
+  const mapa = ESQUEMA_FOCCO.map(c => header.indexOf(norm(c)));
+  const out = [];
+  for (let k = hi + 1; k < rows.length; k++) {
+    const r = rows[k] || [];
+    const nr = mapa.map(i => (i >= 0 && i < r.length) ? r[i] : null);
+    if (!nr.some(v => v !== null && v !== undefined && String(v).trim() !== '')) continue;
+    out.push(nr);
+  }
+  return { linhas: out, faltando: mapa.filter(i => i < 0).length };
+}
+function coagirValorFoco(nomeCol, v) {
+  if (vazio(v)) return null;
+  if (typeof v === 'number') return v;
+  const s = String(v).trim();
+  if (!s || s.toLowerCase() === 'nan') return null;
+  if (DATE_COLS_FOCCO.has(nomeCol)) {
+    const m = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(s);
+    if (m) { let y = +m[3]; if (m[3].length === 2) y = y < 69 ? 2000 + y : 1900 + y; return serialData(y, +m[2], +m[1]); }
+    return s;
+  }
+  const ns = (s.includes(',') && !s.includes('.')) ? s.replace(',', '.') : s;
+  if (/^-?\d+$/.test(ns)) return parseInt(ns, 10);
+  if (/^-?\d+(\.\d+)?$/.test(ns)) return parseFloat(ns);
+  return s;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GERAÇÃO DA BASE — edita o .xlsx direto no XML (preserva fórmulas,
+   estilos, tabelas dinâmicas, macros e as demais abas)
+   ════════════════════════════════════════════════════════════════ */
+const NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const NS_XML = 'http://www.w3.org/XML/1998/namespace';
+function parseXml(s) {
+  const d = new DOMParser().parseFromString(s, 'application/xml');
+  if (d.getElementsByTagName('parsererror').length) throw new Error('XML inválido dentro do arquivo Excel');
+  return d;
+}
+function serXml(d) {
+  let s = new XMLSerializer().serializeToString(d);
+  if (!s.startsWith('<?xml')) s = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' + s;
+  return s;
+}
+function filhos(el, nome) { const o = []; for (let n = el.firstChild; n; n = n.nextSibling) if (n.nodeType === 1 && n.localName === nome) o.push(n); return o; }
+function primeiroFilho(el, nome) { for (let n = el.firstChild; n; n = n.nextSibling) if (n.nodeType === 1 && n.localName === nome) return n; return null; }
+function todos(doc, nome) { const o = []; const l = doc.getElementsByTagName('*'); for (let i = 0; i < l.length; i++) if (l[i].localName === nome) o.push(l[i]); return o; }
+function resolverAlvo(base, alvo) {
+  if (alvo.startsWith('/')) return alvo.slice(1);
+  const out = []; for (const p of (base + alvo).split('/')) { if (p === '..') out.pop(); else if (p !== '.' && p !== '') out.push(p); }
+  return out.join('/');
+}
+const limparTextoXml = s => s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+function refCel(ref) { const m = /^\$?([A-Z]+)\$?(\d+)$/.exec(ref); return m ? { c: colNum(m[1]), r: +m[2] } : null; }
+
+const RE_REF = /(?<![A-Za-z0-9_.])(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?![A-Za-z0-9_(!])/g;
+function deslocarFormula(f, dR, dC) {
+  if (!dR && !dC) return f;
+  let out = '', seg = '', i = 0; const n = f.length;
+  const flush = () => {
+    out += seg.replace(RE_REF, (m, c$, col, r$, row) => {
+      let cn = colNum(col), rn = parseInt(row, 10);
+      if (cn > 16384) return m;
+      if (!c$) cn += dC; if (!r$) rn += dR;
+      if (cn < 1 || rn < 1 || cn > 16384 || rn > 1048576) return '#REF!';
+      return c$ + colLetra(cn) + r$ + rn;
+    });
+    seg = '';
+  };
+  while (i < n) {
+    const ch = f[i];
+    if (ch === '"' || ch === "'") {
+      flush(); let j = i + 1;
+      while (j < n) { if (f[j] === ch) { if (f[j + 1] === ch) { j += 2; continue; } break; } j++; }
+      out += f.slice(i, j + 1); i = j + 1; continue;
+    }
+    if (ch === '[') {
+      flush(); let d = 0, j = i;
+      while (j < n) { if (f[j] === '[') d++; else if (f[j] === ']') { d--; if (d === 0) break; } j++; }
+      out += f.slice(i, j + 1); i = j + 1; continue;
+    }
+    seg += ch; i++;
+  }
+  flush(); return out;
+}
+
+class EditorAba {
+  constructor(doc) {
+    this.doc = doc; this.ns = doc.documentElement.namespaceURI;
+    this.sd = todos(doc, 'sheetData')[0];
+    if (!this.sd) throw new Error('aba sem sheetData');
+    this.rowMap = new Map(); this.rowNums = []; let last = 0;
+    for (const r of filhos(this.sd, 'row')) {
+      let n = r.getAttribute('r'); n = n ? parseInt(n, 10) : last + 1;
+      if (!r.getAttribute('r')) r.setAttribute('r', String(n));
+      this.rowMap.set(n, r); this.rowNums.push(n); last = n;
+    }
+    this.rowNums.sort((a, b) => a - b);
+    this.cellMaps = new Map(); this.maxCol = new Map(); this.tocadas = new Set(); this.masters = null;
+  }
+  get maxRow() { return this.rowNums.length ? this.rowNums[this.rowNums.length - 1] : 0; }
+  el(nome) { return this.doc.createElementNS(this.ns, nome); }
+  linha(n, criar) {
+    let r = this.rowMap.get(n);
+    if (r || !criar) return r || null;
+    r = this.el('row'); r.setAttribute('r', String(n));
+    const nums = this.rowNums; let lo = 0, hi = nums.length;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (nums[m] < n) lo = m + 1; else hi = m; }
+    if (lo >= nums.length) this.sd.appendChild(r); else this.sd.insertBefore(r, this.rowMap.get(nums[lo]));
+    nums.splice(lo, 0, n); this.rowMap.set(n, r); return r;
+  }
+  celulas(n) {
+    let m = this.cellMaps.get(n); if (m) return m;
+    m = new Map(); let mx = 0; const r = this.rowMap.get(n);
+    if (r) {
+      let last = 0;
+      for (const c of filhos(r, 'c')) {
+        const ref = c.getAttribute('r'); let col;
+        if (ref) col = colNum(ref.replace(/\d+$/, '').replace(/\$/g, '')); else { col = last + 1; c.setAttribute('r', colLetra(col) + n); }
+        m.set(col, c); last = col; if (col > mx) mx = col;
+      }
+    }
+    this.cellMaps.set(n, m); this.maxCol.set(n, mx); return m;
+  }
+  celula(n, col, criar, estilo) {
+    const m = this.celulas(n); let c = m.get(col);
+    if (c || !criar) return c || null;
+    const r = this.linha(n, true);
+    c = this.el('c'); c.setAttribute('r', colLetra(col) + n);
+    if (estilo) c.setAttribute('s', estilo);
+    if (col > this.maxCol.get(n)) { r.appendChild(c); this.maxCol.set(n, col); }
+    else { let suc = null, sc = Infinity; for (const [k, e] of m) if (k > col && k < sc) { sc = k; suc = e; } if (suc) r.insertBefore(c, suc); else r.appendChild(c); }
+    m.set(col, c); this.tocadas.add(n); return c;
+  }
+  carregarMasters() {
+    if (this.masters) return; this.masters = new Map();
+    for (const f of todos(this.doc, 'f')) if (f.getAttribute('t') === 'shared' && f.getAttribute('ref') && f.textContent) {
+      const rc = refCel(f.parentNode.getAttribute('r')); if (rc) this.masters.set(f.getAttribute('si'), { texto: f.textContent, r: rc.r, c: rc.c, f });
+    }
+  }
+  materializarShared(si, fMaster) {
+    this.carregarMasters(); const ms = this.masters.get(si); if (!ms) return;
+    for (const f of todos(this.doc, 'f')) {
+      if (f === fMaster || f.getAttribute('t') !== 'shared' || f.getAttribute('si') !== si) continue;
+      const rc = refCel(f.parentNode.getAttribute('r')); if (!rc) continue;
+      f.removeAttribute('t'); f.removeAttribute('si'); f.removeAttribute('ref');
+      f.textContent = deslocarFormula(ms.texto, rc.r - ms.r, rc.c - ms.c);
+    }
+    this.masters.delete(si);
+  }
+  limpar(c) {
+    const f = primeiroFilho(c, 'f');
+    if (f && f.getAttribute('t') === 'shared' && f.getAttribute('ref')) this.materializarShared(f.getAttribute('si'), f);
+    while (c.firstChild) c.removeChild(c.firstChild);
+    c.removeAttribute('t');
+  }
+  setValor(n, col, v, estilo) {
+    if (v === null || v === undefined || v === '') { const c = this.celula(n, col, false); if (c) this.limpar(c); return; }
+    const c = this.celula(n, col, true, estilo); this.limpar(c);
+    if (typeof v === 'number' && isFinite(v)) { const e = this.el('v'); e.textContent = String(v); c.appendChild(e); }
+    else {
+      c.setAttribute('t', 'inlineStr'); const is = this.el('is'), t = this.el('t');
+      t.setAttributeNS(NS_XML, 'xml:space', 'preserve'); t.textContent = limparTextoXml(String(v)); is.appendChild(t); c.appendChild(is);
+    }
+  }
+  setFormula(n, col, texto, estilo) { const c = this.celula(n, col, true, estilo); this.limpar(c); const f = this.el('f'); f.textContent = texto; c.appendChild(f); }
+  formulaModelo(n, col) {
+    const c = this.celula(n, col, false); if (!c) return null;
+    const f = primeiroFilho(c, 'f'); if (!f) return null;
+    const t = f.getAttribute('t'); if (t === 'array' || t === 'dataTable') return null;
+    if (f.textContent) return f.textContent;
+    if (t === 'shared') { this.carregarMasters(); const ms = this.masters.get(f.getAttribute('si')); if (ms) return deslocarFormula(ms.texto, n - ms.r, col - ms.c); }
+    return null;
+  }
+  estilo(n, col) { const c = this.celula(n, col, false); return c ? c.getAttribute('s') : null; }
+  finalizar() {
+    for (const n of this.tocadas) { const r = this.rowMap.get(n); if (r) r.removeAttribute('spans'); }
+    const dim = todos(this.doc, 'dimension')[0];
+    if (dim) {
+      const ref = dim.getAttribute('ref') || 'A1';
+      const [a, b] = ref.split(':'); const ini = refCel(a) || { c: 1, r: 1 }; const fim = refCel(b || a) || ini;
+      let mc = fim.c; for (const v of this.maxCol.values()) if (v > mc) mc = v;
+      dim.setAttribute('ref', `${colLetra(ini.c)}${ini.r}:${colLetra(mc)}${Math.max(fim.r, this.maxRow)}`);
+    }
+    return serXml(this.doc);
+  }
+}
+
+async function mapearAbas(zip) {
+  const wbDoc = parseXml(await zip.file('xl/workbook.xml').async('string'));
+  const relsDoc = parseXml(await zip.file('xl/_rels/workbook.xml.rels').async('string'));
+  const rels = {};
+  for (const r of todos(relsDoc, 'Relationship')) rels[r.getAttribute('Id')] = { target: r.getAttribute('Target'), type: r.getAttribute('Type') || '', el: r };
+  const sheets = {};
+  for (const s of todos(wbDoc, 'sheet')) {
+    let rid = s.getAttributeNS(NS_R, 'id');
+    if (!rid) for (const a of Array.from(s.attributes)) if (a.localName === 'id') rid = a.value;
+    if (rels[rid]) sheets[s.getAttribute('name')] = resolverAlvo('xl/', rels[rid].target);
+  }
+  return { wbDoc, relsDoc, rels, sheets };
+}
+function valorLote(lote) { const s = String(lote).trim(); const n = Number(s.replace(',', '.')); return (s !== '' && isFinite(n)) ? n : s; }
+function valorCelulaDbf(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  const s = String(v).trim();
+  const ns = (s.includes(',') && !s.includes('.')) ? s.replace(',', '.') : s;
+  return /^-?\d+(\.\d+)?$/.test(ns) ? parseFloat(ns) : s;
+}
+
+async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco, progresso) {
+  const ext = extOf(fileBase.name);
+  if (!['xlsx', 'xlsm'].includes(ext)) throw new Error('a Base precisa ser .xlsx ou .xlsm (se estiver em .xlsb, abra no Excel e "Salvar Como" .xlsx)');
+  progresso('Abrindo a base…');
+  const zip = await JSZip.loadAsync(await fileBase.arrayBuffer());
+  const { wbDoc, relsDoc, rels, sheets } = await mapearAbas(zip);
+  const caminhoDbf = sheets['DBF'];
+  if (!caminhoDbf) throw new Error('a planilha base não tem aba "DBF"');
+
+  progresso('Lendo a aba DBF…'); await tick();
+  const ed = new EditorAba(parseXml(await zip.file(caminhoDbf).async('string')));
+  ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
+  ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
+
+  progresso('Montando os dados novos…'); await tick();
+  const n = linhas.length, oldMax = ed.maxRow, fim = Math.max(oldMax, LINHA_INICIAL_BASE + n - 1);
+  const posComFilhos = construirPosComFilhos(linhas);
+  let comFluxo = 0, semFluxo = 0; const achadas = new Set();
+  const valores = [], fluxoCol = [];
+  for (const row of linhas) {
+    const vals = []; for (let c0 = COL_DBF_INICIO; c0 <= COL_DBF_FIM; c0++) vals.push(valorCelulaDbf(row[c0]));
+    valores.push(vals);
+    const filho = !!(row[IE['POS_PEZ']] && row[IE['POS_PEZ']].trim());
+    const f = filho ? acharFluxoDaLinha(row, fluxoMap, posComFilhos) : null;
+    if (f) { fluxoCol.push(f.col); comFluxo++; achadas.add(f.chave); }
+    else { fluxoCol.push(null); if (filho) semFluxo++; }
+  }
+
+  // modelo de fórmula da linha 10 (pra "arrastar" pra baixo, igual o AutoFill)
+  const colsFormula = [];
+  for (const [col] of ed.celulas(LINHA_INICIAL_BASE)) {
+    if (col <= COL_DBF_FIM + 1 || (col >= IDX_MAQ_PERFIL_UC && col <= IDX_MAQ_G3M)) continue;
+    const t = ed.formulaModelo(LINHA_INICIAL_BASE, col);
+    if (t) colsFormula.push({ col, texto: t, estilo: ed.estilo(LINHA_INICIAL_BASE, col) });
+  }
+  const estilos = {};
+  for (let c = 1; c <= COL_DBF_FIM + 1; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
+  for (let c = IDX_MAQ_PERFIL_UC; c <= IDX_MAQ_G3M; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
+
+  progresso('Escrevendo a aba DBF…'); await tick();
+  for (let k = 0; k <= fim - LINHA_INICIAL_BASE; k++) {
+    const r = LINHA_INICIAL_BASE + k;
+    for (let c = 1; c <= COL_DBF_FIM + 1; c++) ed.setValor(r, c, k < n ? valores[k][c - 1] : null, estilos[c]);
+    for (let c = IDX_MAQ_BC; c <= IDX_MAQ_G3M; c++) ed.setValor(r, c, (k < n && fluxoCol[k] === c) ? 'X' : null, estilos[c]);
+    if (k < n && fluxoCol[k] === IDX_MAQ_PERFIL_UC) ed.setValor(r, IDX_MAQ_PERFIL_UC, 'X', estilos[IDX_MAQ_PERFIL_UC]);
+    if (k % 400 === 0) { progresso(`Escrevendo a aba DBF… ${k}/${fim - LINHA_INICIAL_BASE + 1}`); await tick(); }
+  }
+
+  if (colsFormula.length && n > 1) {
+    progresso('Arrastando fórmulas…'); await tick();
+    for (let r = LINHA_INICIAL_BASE + 1; r <= LINHA_INICIAL_BASE + n - 1; r++) {
+      for (const fc of colsFormula) {
+        const c = ed.celula(r, fc.col, false);
+        if (c && primeiroFilho(c, 'f')) continue;
+        ed.setFormula(r, fc.col, deslocarFormula(fc.texto, r - LINHA_INICIAL_BASE, 0), fc.estilo);
+      }
+      if (r % 300 === 0) { progresso(`Arrastando fórmulas… linha ${r}`); await tick(); }
+    }
+  }
+  progresso('Salvando a aba DBF…'); await tick();
+  zip.file(caminhoDbf, ed.finalizar());
+
+  const naoEncontradas = [];
+  if (fluxoMap) for (const [ch, info] of Object.entries(fluxoMap.granular || {})) if (!achadas.has(ch)) { const [of, marca] = ch.split('|'); naoEncontradas.push([of, marca, info.maq]); }
+
+  // aba FOCCO
+  let linhasFocoGravadas = 0;
+  if (linhasFoco && linhasFoco.length) {
+    const cf = sheets[ABA_FOCCO];
+    if (!cf) throw new Error(`a planilha base não tem aba "${ABA_FOCCO}"`);
+    progresso('Escrevendo aba FOCO…'); await tick();
+    const ef = new EditorAba(parseXml(await zip.file(cf).async('string')));
+    const nc = ESQUEMA_FOCCO.length, nf = linhasFoco.length;
+    const ff = Math.max(ef.maxRow, LINHA_INICIAL_FOCCO + nf - 1);
+    const est = {}; for (let c = 1; c <= nc; c++) est[c] = ef.estilo(LINHA_INICIAL_FOCCO, c);
+    for (let k = 0; k <= ff - LINHA_INICIAL_FOCCO; k++) {
+      const r = LINHA_INICIAL_FOCCO + k;
+      for (let c = 1; c <= nc; c++) ef.setValor(r, c, k < nf ? coagirValorFoco(ESQUEMA_FOCCO[c - 1], linhasFoco[k][c - 1]) : null, est[c]);
+      if (k % 400 === 0) await tick();
+    }
+    zip.file(cf, ef.finalizar());
+    linhasFocoGravadas = nf;
+  }
+
+  // tabelas dinâmicas: corrige intervalo e marca pra atualizar ao abrir
+  progresso('Corrigindo intervalo das tabelas dinâmicas…'); await tick();
+  const fimDados = LINHA_INICIAL_BASE + n - 1;
+  let cachesCorrigidos = 0, cachesErro = 0;
+  const ajustarRef = ref => { const m = /^(\$?[A-Z]+\$?\d+):(\$?[A-Z]+)(\$?)(\d+)$/.exec(ref); return m ? `${m[1]}:${m[2]}${m[3]}${fimDados}` : null; };
+  const nomesTabela = new Set();
+  const pivDefs = Object.keys(zip.files).filter(p => /^xl\/pivotCache\/pivotCacheDefinition\d*\.xml$/i.test(p));
+  for (const p of pivDefs) {
+    try {
+      const d = parseXml(await zip.file(p).async('string'));
+      d.documentElement.setAttribute('refreshOnLoad', '1');
+      d.documentElement.setAttribute('missingItemsLimit', '0');
+      const ws = todos(d, 'worksheetSource')[0];
+      if (ws) {
+        if (ws.getAttribute('ref') && norm(ws.getAttribute('sheet')) === 'DBF') {
+          const nr = ajustarRef(ws.getAttribute('ref')); if (nr) { ws.setAttribute('ref', nr); cachesCorrigidos++; }
+        } else if (ws.getAttribute('name')) nomesTabela.add(ws.getAttribute('name'));
+      }
+      zip.file(p, serXml(d));
+    } catch (e) { cachesErro++; }
+  }
+  // origem por nome (tabela do Excel ou nome definido apontando pra DBF)
+  if (nomesTabela.size) {
+    for (const p of Object.keys(zip.files).filter(p => /^xl\/tables\/[^/]+\.xml$/i.test(p))) {
+      const d = parseXml(await zip.file(p).async('string')); const t = d.documentElement;
+      if (nomesTabela.has(t.getAttribute('name')) || nomesTabela.has(t.getAttribute('displayName'))) {
+        const nr = ajustarRef(t.getAttribute('ref') || '');
+        if (nr) { t.setAttribute('ref', nr); const af = todos(d, 'autoFilter')[0]; if (af) af.setAttribute('ref', nr); zip.file(p, serXml(d)); cachesCorrigidos++; }
+      }
+    }
+    for (const dn of todos(wbDoc, 'definedName')) {
+      if (!nomesTabela.has(dn.getAttribute('name'))) continue;
+      const m = /^('?DBF'?!)(\$?[A-Z]+\$?\d+):(\$?[A-Z]+)(\$?)(\d+)$/i.exec(dn.textContent.trim());
+      if (m) { dn.textContent = `${m[1]}${m[2]}:${m[3]}${m[4]}${fimDados}`; cachesCorrigidos++; }
+    }
+  }
+  // força recálculo completo ao abrir e remove a cadeia de cálculo antiga
+  let calc = todos(wbDoc, 'calcPr')[0];
+  if (!calc) {
+    calc = wbDoc.createElementNS(wbDoc.documentElement.namespaceURI, 'calcPr');
+    const depois = ['oleSize', 'customWorkbookViews', 'pivotCaches', 'smartTagPr', 'smartTagTypes', 'webPublishing', 'fileRecoveryPr', 'webPublishObjects', 'extLst'];
+    let ref = null; for (const nome of depois) { ref = primeiroFilho(wbDoc.documentElement, nome); if (ref) break; }
+    if (ref) wbDoc.documentElement.insertBefore(calc, ref); else wbDoc.documentElement.appendChild(calc);
+  }
+  calc.setAttribute('fullCalcOnLoad', '1');
+  zip.file('xl/workbook.xml', serXml(wbDoc));
+  if (zip.file('xl/calcChain.xml')) {
+    zip.remove('xl/calcChain.xml');
+    for (const id in rels) if (/\/calcChain$/.test(rels[id].type)) rels[id].el.parentNode.removeChild(rels[id].el);
+    zip.file('xl/_rels/workbook.xml.rels', serXml(relsDoc));
+    const ct = parseXml(await zip.file('[Content_Types].xml').async('string'));
+    for (const o of todos(ct, 'Override')) if (o.getAttribute('PartName') === '/xl/calcChain.xml') o.parentNode.removeChild(o);
+    zip.file('[Content_Types].xml', serXml(ct));
+  }
+  const pivots = Object.keys(zip.files).filter(p => /^xl\/pivotTables\/pivotTable\d*\.xml$/i.test(p)).length;
+
+  progresso('Compactando o arquivo final…'); await tick();
+  const mime = ext === 'xlsm' ? 'application/vnd.ms-excel.sheet.macroEnabled.12' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const blob = await zip.generateAsync({ type: 'blob', mimeType: mime, compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  return { blob, ext, comFluxo, semFluxo, naoEncontradas, linhasFoco: linhasFocoGravadas, cachesCorrigidos, cachesErro, pivots, formulasArrastadas: colsFormula.length };
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ANÁLISE DBF × FOCCO
+   ════════════════════════════════════════════════════════════════ */
+const PALAVRAS_EXCLUIR_FOCCO = ['TINTA', 'ZINCO', 'CATALISADOR', 'DILUENTE'];
+function findCol(header, ...nomes) {
+  const H = header.map(norm), Hs = header.map(squash);
+  for (const n of nomes) { const i = H.indexOf(norm(n)); if (i >= 0) return i; }
+  for (const n of nomes) { const a = squash(n); if (a) { const i = Hs.indexOf(a); if (i >= 0) return i; } }
+  for (const n of nomes) { const a = squash(n); if (a.length >= 5) for (let i = 0; i < Hs.length; i++) if (Hs[i] && Hs[i].includes(a)) return i; }
+  return -1;
+}
+async function parseOneDbfAnalise(file) {
+  const alvo = escolherPlanilhaDbf(await lerArquivoTabular(file));
+  if (!alvo) throw new Error(`${file.name}: nenhuma planilha com dados`);
+  const { rows } = normalizarDbf(alvo.rows);
+  if (!rows.length) throw new Error(`${file.name}: sem linhas de dados (aba "${alvo.nome}")`);
+  const CM = IE['MAR_PEZ'], CG = IE['GRUPO LIC'], CQ = IE['QTA_PEZ'], CP = IE['Peso Total'], CD = IE['NUM_DIS'];
+  if (!rows.some(r => r[CM].trim())) throw new Error(`${file.name}: coluna MAR_PEZ / MARCA não encontrada`);
+  const marcas = {}; let ofTrecho = '', obra = '';
+  for (const r of rows) {
+    if (!r[CM] || !r[CM].trim()) continue;
+    const peso = parseBr(r[CP]); if (peso <= 0) continue;
+    const marca = r[CM].trim();
+    marcas[marca] = { grupo: r[CG] ? r[CG].trim() : '', qtd: parseBr(r[CQ]), peso };
+    if (!ofTrecho && r[CD]) { const m = /(\d{3,6})-(\d+-\d+)_/.exec(r[CD]); if (m) ofTrecho = `${m[1]}-${m[2]}`; }
+    if (!obra && r[0] && r[0].trim()) obra = r[0].trim().replace(/_L\d+$/, '');
+  }
+  return { marcas, ofTrecho: ofTrecho || obra, rows };
+}
+async function parseMultiDbfAnalise(files) {
+  const all = {}; let ofTrecho = ''; const raw = [];
+  for (const f of files) {
+    const r = await parseOneDbfAnalise(f);
+    if (!ofTrecho && r.ofTrecho) ofTrecho = r.ofTrecho;
+    for (const [m, d] of Object.entries(r.marcas)) { if (all[m]) { all[m].peso += d.peso; all[m].qtd += d.qtd; } else all[m] = { ...d }; }
+    raw.push(...r.rows);
+  }
+  return { marcas: all, ofTrecho, rows: raw };
+}
+function dedupFocco(raw) {
+  const marcas = {};
+  for (const [marca, linhas] of Object.entries(raw)) {
+    const bob = new Set(); for (const l of linhas) if (l.desc.includes('BOBINA') && l.desc.includes('1200')) bob.add(Math.round(l.qtde * 1000));
+    let total = 0; for (const l of linhas) { if (l.desc.includes('CHAPA') && bob.has(Math.round(l.qtde * 1000))) continue; total += l.qtde; }
+    marcas[marca] = { peso: total, grupo: linhas[0].grupo };
+  }
+  return marcas;
+}
+async function parseFoccoExport(file) {
+  const pl = await lerArquivoTabular(file);
+  let rows = null, hi = -1;
+  for (const { rows: r } of pl) {
+    for (let i = 0; i < Math.min(15, r.length); i++) if ((r[i] || []).map(squash).includes('MARCA')) { rows = r; hi = i; break; }
+    if (rows) break;
+  }
+  if (!rows) { rows = pl.length ? pl[0].rows : []; hi = acharCabecalho(rows, ['MARCA', 'GRP LIC', 'DESC TECNICA', 'QTDE CORRIGIDA', 'OBRA']); }
+  if (!rows.length || hi < 0) throw new Error('FOCCO: cabeçalho não encontrado');
+  const h = rows[hi];
+  const cM = findCol(h, 'MARCA'), cG = findCol(h, 'GRP LIC'), cD = findCol(h, 'DESC TECNICA'), cQ = findCol(h, 'QTDE CORRIGIDA'),
+    cU = findCol(h, 'UM'), cO = findCol(h, 'OBRA'), cS = findCol(h, 'SUB TRECHO');
+  if (cM < 0) throw new Error('FOCCO: coluna MARCA não encontrada');
+  const val = (r, c) => (c >= 0 && c < r.length) ? r[c] : null;
+  const raw = {}; let ofTrecho = '';
+  for (const r of rows.slice(hi + 1)) {
+    if (!r || vazio(val(r, cM))) continue;
+    const marca = String(val(r, cM)).trim(); if (!marca) continue;
+    if (!ofTrecho && val(r, cO)) { const st = val(r, cS) ? String(val(r, cS)).replace(/_/g, '-') : ''; ofTrecho = `${val(r, cO)}-${st}`; }
+    const um = val(r, cU) ? String(val(r, cU)).toUpperCase().trim() : '';
+    if (um && um !== 'KG') continue;
+    const desc = val(r, cD) ? String(val(r, cD)).toUpperCase() : '';
+    if (PALAVRAS_EXCLUIR_FOCCO.some(p => desc.includes(p))) continue;
+    (raw[marca] = raw[marca] || []).push({ desc, qtde: parseBr(val(r, cQ)), grupo: val(r, cG) ? String(val(r, cG)).trim() : '' });
+  }
+  return { marcas: dedupFocco(raw), ofTrecho };
+}
+function getStatus(delta, pct) {
+  if (Math.abs(delta) < 0.001) return { cls: 'ok', label: 'OK', filter: 'ok' };
+  if (Math.abs(pct) <= 1) return { cls: 'ok', label: `✓ ${sinal(pct, 2)}%`, filter: 'ok' };
+  if (Math.abs(pct) <= 5) return { cls: 'warn', label: `⚠ ${sinal(pct, 2)}%`, filter: 'divergente' };
+  return { cls: 'err', label: `✕ ${sinal(pct, 2)}%`, filter: 'divergente' };
+}
+function buildResults(dbf, focco) {
+  const all = new Set([...Object.keys(dbf.marcas), ...Object.keys(focco.marcas)]);
+  const det = [], gm = {};
+  for (const marca of all) {
+    const d = dbf.marcas[marca], f = focco.marcas[marca];
+    const pd = d ? d.peso : 0, pf = f ? f.peso : 0, grupo = d ? d.grupo : f.grupo, qtd = d ? d.qtd : 0;
+    const delta = pf - pd, pct = pd !== 0 ? delta / pd * 100 : (pf !== 0 ? 100 : 0);
+    det.push({ marca, grupo, qtd, pesoDBF: pd, pesoFOCCO: pf, delta, pct, soloDBF: !!d && !f, soloFOCCO: !d && !!f });
+    const g = gm[grupo] = gm[grupo] || { grupo, marcas: 0, pesoDBF: 0, pesoFOCCO: 0 };
+    g.marcas++; g.pesoDBF += pd; g.pesoFOCCO += pf;
+  }
+  const grp = Object.values(gm).map(g => { const delta = g.pesoFOCCO - g.pesoDBF; return { ...g, delta, pct: g.pesoDBF !== 0 ? delta / g.pesoDBF * 100 : 0 }; });
+  grp.sort((a, b) => a.grupo.localeCompare(b.grupo));
+  det.sort((a, b) => a.grupo.localeCompare(b.grupo) || a.marca.localeCompare(b.marca));
+  return { det, grp };
+}
+async function exportarAnaliseExcel(nomeBase, det, grp, dbfRows) {
+  const wb = new ExcelJS.Workbook();
+  const ws1 = wb.addWorksheet('Análise DBF × FOCCO');
+  const COR = { hBg: '1E3A5F', hFn: 'FFFFFF', ok_bg: 'D1FAE5', ok_fn: '065F46', warn_bg: 'FEF3C7', warn_fn: '92400E', err_bg: 'FEE2E2', err_fn: '991B1B', solo_bg: 'FFF7ED', solo_fn: 'C2410C', tot_bg: 'E0E7FF' };
+  const fill = bg => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + bg } });
+  const font = (fn, bold = false, size) => ({ name: 'Calibri', color: { argb: 'FF' + fn }, bold, ...(size ? { size } : {}) });
+  const thin = { style: 'thin', color: { argb: 'FFD1D5DB' } };
+  const border = { top: thin, bottom: thin, left: thin, right: thin };
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  ws1.mergeCells('A1:H1');
+  Object.assign(ws1.getCell('A1'), { value: `VALIDAÇÃO — ${nomeBase} — ${hoje}` });
+  ws1.getCell('A1').font = font('FFFFFF', true); ws1.getCell('A1').fill = fill('1E40AF'); ws1.getCell('A1').alignment = { vertical: 'middle', indent: 1 };
+  ws1.getRow(1).height = 26;
+  ws1.mergeCells('A3:H3'); ws1.getCell('A3').value = 'POR GRUPO LIC';
+  ws1.getCell('A3').font = font(COR.hFn, true); ws1.getCell('A3').fill = fill(COR.hBg); ws1.getCell('A3').alignment = { indent: 1 };
+  const cab = (row) => { row.eachCell(c => { c.font = font('E2E8F0', true); c.fill = fill('334155'); c.alignment = { vertical: 'middle', horizontal: 'center' }; c.border = border; }); row.height = 16; };
+  ws1.getRow(4).values = ['Grupo LIC', 'Qtd Marcas', 'Peso DBF (kg)', 'Peso FOCCO (kg)', 'Delta (kg)', 'Delta %', 'Status']; cab(ws1.getRow(4));
+  let linha = 5, tD = 0, tF = 0;
+  const fmt = (row, cols) => { for (const [c, f] of cols) if (row.getCell(c).value !== null && row.getCell(c).value !== undefined) row.getCell(c).numFmt = f; };
+  for (const g of grp) {
+    tD += g.pesoDBF; tF += g.pesoFOCCO;
+    const st = getStatus(g.delta, g.pct);
+    const bg = st.filter === 'ok' ? COR.ok_bg : (Math.abs(g.pct) > 5 ? COR.err_bg : COR.warn_bg);
+    const fn = st.filter === 'ok' ? COR.ok_fn : (Math.abs(g.pct) > 5 ? COR.err_fn : COR.warn_fn);
+    const row = ws1.getRow(linha++); row.values = [g.grupo, g.marcas, g.pesoDBF, g.pesoFOCCO, g.delta, g.pct / 100, st.label];
+    for (let c = 1; c <= 7; c++) { const cl = row.getCell(c); cl.font = font(fn, c === 1); cl.fill = fill(bg); cl.border = border; }
+    fmt(row, [[2, '0'], [3, '#,##0.000'], [4, '#,##0.000'], [5, '+#,##0.000;-#,##0.000;"-"'], [6, '+0.00%;-0.00%']]);
+    row.getCell(7).alignment = { horizontal: 'center' };
+  }
+  const td2 = tF - tD, tp2 = tD !== 0 ? td2 / tD * 100 : 0;
+  let row = ws1.getRow(linha++); row.values = ['TOTAL', grp.reduce((s, g) => s + g.marcas, 0), tD, tF, td2, tp2 / 100, ''];
+  for (let c = 1; c <= 7; c++) { const cl = row.getCell(c); cl.font = font('1E3A5F', true); cl.fill = fill(COR.tot_bg); cl.border = border; }
+  fmt(row, [[2, '0'], [3, '#,##0.000'], [4, '#,##0.000'], [5, '+#,##0.000;-#,##0.000;"-"'], [6, '+0.00%;-0.00%']]);
+  linha++;
+  ws1.mergeCells(linha, 1, linha, 8); row = ws1.getRow(linha++); row.getCell(1).value = 'POR MARCA — DETALHE';
+  row.getCell(1).font = font(COR.hFn, true); row.getCell(1).fill = fill(COR.hBg); row.getCell(1).alignment = { indent: 1 };
+  row = ws1.getRow(linha++); row.values = ['Marca', 'Grupo LIC', 'Qtd DBF', 'Peso DBF (kg)', 'Peso FOCCO (kg)', 'Delta (kg)', 'Delta %', 'Status']; cab(row);
+  const smMap = {};
+  for (const d of det) {
+    const st = getStatus(d.delta, d.pct), solo = d.soloDBF || d.soloFOCCO;
+    let bg, fn;
+    if (solo) { bg = COR.solo_bg; fn = COR.solo_fn; smMap[d.marca] = 'solo'; }
+    else if (st.filter === 'ok') { bg = COR.ok_bg; fn = COR.ok_fn; smMap[d.marca] = 'ok'; }
+    else if (Math.abs(d.pct) > 5) { bg = COR.err_bg; fn = COR.err_fn; smMap[d.marca] = 'err'; }
+    else { bg = COR.warn_bg; fn = COR.warn_fn; smMap[d.marca] = 'warn'; }
+    const sl = d.soloDBF ? '⚠ Só DBF' : (d.soloFOCCO ? '⚠ Só FOCCO' : st.label);
+    row = ws1.getRow(linha++);
+    row.values = [d.marca, d.grupo, d.qtd > 0 ? d.qtd : null, d.pesoDBF > 0 ? d.pesoDBF : null, d.pesoFOCCO > 0 ? d.pesoFOCCO : null, solo ? null : d.delta, solo ? null : d.pct / 100, sl];
+    for (let c = 1; c <= 8; c++) { const cl = row.getCell(c); cl.font = font(fn, c === 1); cl.fill = fill(bg); cl.border = border; }
+    row.getCell(8).alignment = { horizontal: 'center' };
+    fmt(row, [[4, '#,##0.000'], [5, '#,##0.000'], [6, '+#,##0.000;-#,##0.000;"-"'], [7, '+0.00%;-0.00%']]);
+  }
+  [30, 26, 12, 18, 18, 16, 12, 20].forEach((w, i) => ws1.getColumn(i + 1).width = w);
+
+  const ws2 = wb.addWorksheet('DBF Validada');
+  const cor = { ok: 'D1FAE5', warn: 'FEF3C7', err: 'FEE2E2', solo: 'FFF7ED' };
+  const nc = ESQUEMA_DBF.length;
+  ws2.mergeCells(1, 1, 1, Math.min(nc, 30));
+  ws2.getCell('A1').value = `DBF VALIDADA — ${nomeBase} — ${new Date().toLocaleString('pt-BR')}`;
+  ws2.getCell('A1').font = font(COR.hFn, true); ws2.getCell('A1').fill = fill(COR.hBg); ws2.getCell('A1').alignment = { vertical: 'middle', indent: 1 };
+  ws2.getRow(1).height = 22;
+  const h = ws2.getRow(2); h.values = ESQUEMA_DBF.slice();
+  h.eachCell(c => { c.font = font(COR.hFn, true); c.fill = fill('334155'); c.alignment = { vertical: 'middle', horizontal: 'center' }; c.border = border; });
+  const CM = IE['MAR_PEZ'], CP = IE['Peso Total'];
+  let lr = 3;
+  for (const rr of dbfRows) {
+    if (!rr.some(v => v !== '')) continue;
+    const pai = parseBr(rr[CP]) > 0;
+    const bg = pai ? (cor[smMap[rr[CM]]] || 'FFFFFF') : 'F8FAFC';
+    const r = ws2.getRow(lr++); r.values = rr.map(valorCelulaDbf);
+    for (let c = 1; c <= nc; c++) { const cl = r.getCell(c); cl.font = { name: 'Calibri', size: 9, color: { argb: 'FF' + (pai ? '1E3A5F' : '374151') }, bold: pai }; cl.fill = fill(bg); cl.border = border; }
+    r.height = pai ? 15 : 13;
+  }
+  ws2.views = [{ state: 'frozen', ySplit: 2 }];
+  for (let i = 1; i <= nc; i++) ws2.getColumn(i).width = (i - 1 === CM) ? 24 : 12;
+  const buf = await wb.xlsx.writeBuffer();
+  return new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LEITURA DE PDF (pdf.js) — linhas, palavras, texto cru
+   ════════════════════════════════════════════════════════════════ */
+async function abrirPdfJs(bytes) {
+  if (!window.pdfjsLib) throw new Error('a biblioteca pdf.js não carregou (verifique a internet)');
+  return await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
+}
+async function textoDaPagina(page) {
+  const vp = page.getViewport({ scale: 1 });
+  const tc = await page.getTextContent();
+  const itens = []; let cru = '';
+  for (const it of tc.items) {
+    if (typeof it.str !== 'string') continue;
+    cru += it.str + (it.hasEOL ? '\n' : ' ');
+    if (!it.str.trim()) continue;
+    const [x, y] = vp.convertToViewportPoint(it.transform[4], it.transform[5]);
+    const h = Math.hypot(it.transform[2], it.transform[3]) || Math.hypot(it.transform[0], it.transform[1]) || 8;
+    itens.push({ x, y, w: it.width || 0, h, s: it.str });
+  }
+  itens.sort((a, b) => a.y - b.y || a.x - b.x);
+  const grupos = [];
+  for (const it of itens) {
+    const L = grupos[grupos.length - 1];
+    if (L && Math.abs(it.y - L.y) <= Math.max(2, Math.min(L.h, it.h) * 0.45)) L.itens.push(it);
+    else grupos.push({ y: it.y, h: it.h, itens: [it] });
+  }
+  const linhas = grupos.map(L => {
+    L.itens.sort((a, b) => a.x - b.x);
+    let s = '', fimX = -1e9;
+    for (const it of L.itens) {
+      if (s && it.x - fimX > it.h * 0.15 && !s.endsWith(' ') && !it.s.startsWith(' ')) s += ' ';
+      s += it.s; fimX = it.x + it.w;
+    }
+    return s.replace(/\s+/g, ' ').trim();
+  }).filter(Boolean);
+  const palavras = [];
+  for (const it of itens) {
+    const len = it.s.length || 1; const re = /\S+/g; let m;
+    while ((m = re.exec(it.s))) {
+      const x0 = it.x + it.w * (m.index / len), x1 = it.x + it.w * ((m.index + m[0].length) / len);
+      palavras.push({ x0, x1, y0: it.y - it.h, y1: it.y, t: m[0] });
+    }
+  }
+  return { linhas, palavras, cru };
+}
+async function lerPaginasPdf(bytes, progresso, rotulo) {
+  const doc = await abrirPdfJs(bytes);
+  const out = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const p = await doc.getPage(i);
+    out.push(await textoDaPagina(p));
+    if (progresso && i % 5 === 0) progresso(`${rotulo || 'Lendo PDF'}… página ${i}/${doc.numPages}`);
+  }
+  await doc.destroy();
+  return out;
+}
+async function calcularAreasDeTinta(bytes, progresso, rotulo) {
+  const doc = await abrirPdfJs(bytes);
+  const areas = [];
+  const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const v1 = page.getViewport({ scale: 1, rotation: 0 });
+    const view = page.view; const bw = v1.width, bh = v1.height;
+    const esc = Math.min(1, 700 / Math.max(bw, bh, 1));
+    const vp = page.getViewport({ scale: esc, rotation: 0 });
+    canvas.width = Math.max(1, Math.ceil(vp.width)); canvas.height = Math.max(1, Math.ceil(vp.height));
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    const W = canvas.width, H = canvas.height, d = ctx.getImageData(0, 0, W, H).data;
+    let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) {
+      const k = (y * W + x) * 4;
+      if (d[k] < 245 || d[k + 1] < 245 || d[k + 2] < 245) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+    if (x1 < 0) { areas.push(null); continue; }
+    x0 = Math.max(0, x0 - 1); y0 = Math.max(0, y0 - 1); x1 = Math.min(W - 1, x1 + 1); y1 = Math.min(H - 1, y1 + 1);
+    const L = x0 / esc, R = (x1 + 1) / esc, T = bh - y0 / esc, B = bh - (y1 + 1) / esc;
+    if (((R - L) * (T - B)) / Math.max(bw * bh, 1) > 0.65) { areas.push(null); continue; }
+    const mg = Math.max(R - L, T - B) * 0.02 + 5;
+    areas.push({ left: view[0] + Math.max(0, L - mg), bottom: view[1] + Math.max(0, B - mg), right: view[0] + Math.min(bw, R + mg), top: view[1] + Math.min(bh, T + mg) });
+    if (progresso && i % 5 === 0) progresso(`${rotulo || 'Medindo área útil'}… ${i}/${doc.numPages}`);
+  }
+  await doc.destroy();
+  return areas;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   IMPRESSÃO CASADA — casamento CNC × Ordens
+   ════════════════════════════════════════════════════════════════ */
+const RE_COLCHETE = /\[\s*([A-Za-z0-9]+)\s*\]/;
+const RE_QTD_CNC = /(?:^|\s)(?:\d+\s+)?([A-Za-z0-9@_.\-]+(?:\s*\[[^\]]*\])?)\s*-\s*OF[A-Za-z0-9\-_.]+\s*-\s*Q(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\b/;
+const RE_POS_CNC_SRC = String.raw`(?:^|\s)([A-Za-z0-9@_.\-]+(?:\s*\[[^\]]*\])?)\s*-\s*OF[A-Za-z0-9\-_.]+`;
+const RE_CNC_NUM_1 = /\bCNC\b[^\dA-Za-z]{0,4}(\d{3,8})\b/;
+const RE_CNC_NUM_2 = /JOB\S*\s+(\d{3,8})\b/i;
+const RE_CNC_NUM_3 = /^\s*(\d{3,8})\s+Sucata/im;
+const RE_ESP = [/\b\d+\s*\/\s*(\d+[,.]\d+)\s*\//, /(\d+[,.]\d+)\s*MM\b/i, /x\s*(\d+[,.]\d+)\s*x/i];
+const RE_OF_ORDEM = /\bOF:\s*(\d{5,12})\b/;
+const RE_CNC_APOS_JOB = /JOB\d+\s+(\d{4,6})\b/;
+
+function separarParte(bruto) {
+  const t = String(bruto ?? '').trim(); const m = RE_COLCHETE.exec(t);
+  return m ? [t.replace(/\s*\[[^\]]*\]/g, '').trim(), m[1].toUpperCase()] : [t, null];
+}
+const ehParteComplementar = p => p !== null && p !== 'A' && p !== '1';
+function normPosCasamento(b) {
+  if (!b) return '';
+  let s = String(b).trim().toUpperCase();
+  s = s.replace(/\[[^\]]*\]/g, '').replace(/[\u00a0\s]/g, '').replace(/@/g, '_').replace(/_[A-Z]+$/, '').replace(/[.,;:]+$/, '');
+  return s;
+}
+function variacoesPosicao(pos) {
+  const out = [pos]; const c = pos.indexOf('_');
+  if (c > 0) { const d = pos.slice(c + 1).replace(/^-+/, ''); if (d && d !== pos && !(/^\d+$/.test(d) && d.length < 3)) out.push(d); }
+  return out;
+}
+function ordemDaPosicao(pos, p2o) { for (const v of variacoesPosicao(pos)) if (p2o[v]) return p2o[v]; return null; }
+const rotuloEspessura = e => e ? String(e).replace('.', ',') + ' mm' : 'espessura não identificada';
+function extrairNumeroCnc(linhas) {
+  const t = linhas.join('\n'); let m;
+  if ((m = RE_CNC_NUM_1.exec(t))) return m[1];
+  if ((m = RE_CNC_NUM_2.exec(t))) return m[1];
+  if ((m = RE_CNC_NUM_3.exec(t))) return m[1];
+  return null;
+}
+function extrairNumeroCncPorPosicao(palavras) {
+  const rot = [], nums = [];
+  for (const w of palavras) {
+    const t = w.t.trim().toUpperCase().replace(/:+$/, ''); const cx = (w.x0 + w.x1) / 2, cy = (w.y0 + w.y1) / 2;
+    if (t === 'CNC') rot.push([cx, cy]); else if (/^\d{3,8}$/.test(t)) nums.push([cx, cy, t]);
+  }
+  if (!rot.length || !nums.length) return null;
+  let melhor = null, md = null;
+  for (const [rx, ry] of rot) for (const [nx, ny, v] of nums) { const d = 30 * (nx - rx) ** 2 + (ny - ry) ** 2; if (md === null || d < md) { md = d; melhor = v; } }
+  return melhor;
+}
+function extrairEspessuraCnc(linhas) { const t = linhas.join('\n'); for (const rx of RE_ESP) { const m = rx.exec(t); if (m) return m[1].replace(',', '.'); } return null; }
+function extrairPosicoesCnc(linhas) {
+  const achadas = new Set(), comp = new Set(), rotComp = new Set(), qtd = {};
+  for (const linha of linhas) {
+    const q = RE_QTD_CNC.exec(linha);
+    if (q) {
+      const np = normPosCasamento(separarParte(q[1])[0]);
+      if (np) { qtd[np] = qtd[np] || { neste_cnc: 0, necessario: 0 }; qtd[np].neste_cnc += +q[3]; qtd[np].necessario = Math.max(qtd[np].necessario, +q[2]); }
+    }
+    const re = new RegExp(RE_POS_CNC_SRC, 'g'); let m;
+    while ((m = re.exec(linha))) {
+      const [base, parte] = separarParte(m[1]); const np = normPosCasamento(base);
+      if (!np || /^Q\d+$/i.test(np)) continue;
+      if (ehParteComplementar(parte)) { comp.add(np); rotComp.add(`${np}[${parte}]`); } else achadas.add(np);
+    }
+  }
+  return { achadas, comp, rotComp, qtd };
+}
+function apurarQuantidades(mapa) {
+  const soma = {};
+  for (const [c, d] of Object.entries(mapa)) for (const [pos, q] of Object.entries(d.quantidades)) {
+    const s = soma[pos] = soma[pos] || { cortado: 0, necessario: 0, cncs: [] };
+    s.cortado += q.neste_cnc; s.necessario = Math.max(s.necessario, q.necessario); s.cncs.push(c);
+  }
+  return soma;
+}
+function posicaoCompleta(pos, soma) { const s = soma[pos]; if (!s || !s.necessario) return true; return s.cortado >= s.necessario; }
+function processarPaginasOrdens(paginas) {
+  const ordens = {}, p2o = {}; let atual = null;
+  paginas.forEach((pg, p) => {
+    const texto = pg.linhas.join('\n').replace(/-[ \t]*\n[ \t]*/g, '-');
+    const mOf = RE_OF_ORDEM.exec(texto);
+    if (mOf) {
+      atual = mOf[1];
+      ordens[atual] = ordens[atual] || { posicoes: new Set(), paginas: [], obra: null };
+      if (!ordens[atual].obra) ordens[atual].obra = primeiroPadrao(texto, PADROES_PACOTE.obra);
+      const rp = /\bPOS:\s*([A-Za-z0-9@_.\-\[\]]+)/g; let m;
+      while ((m = rp.exec(texto))) {
+        const np = normPosCasamento(separarParte(m[1])[0]); if (!np) continue;
+        ordens[atual].posicoes.add(np); for (const v of variacoesPosicao(np)) if (!(v in p2o)) p2o[v] = atual;
+      }
+      const rm = /\bMARCA:\s*([^\n]+)/g;
+      while ((m = rm.exec(texto))) {
+        const so = m[1].split(/\s+(?=[A-Z_]+:)/)[0];
+        for (const br of so.split(',')) { const mk = normPosCasamento(separarParte(br)[0]); if (!mk) continue; for (const v of variacoesPosicao(mk)) if (!(v in p2o)) p2o[v] = atual; }
+      }
+    }
+    if (atual) ordens[atual].paginas.push(p);
+  });
+  return { ordens, p2o };
+}
+function agruparCncs(mapa, p2o, unir, exigir) {
+  const cncs = Object.keys(mapa), soma = apurarQuantidades(mapa);
+  const lib = pos => !exigir || posicaoCompleta(pos, soma);
+  const odc = {}, vdc = {};
+  for (const c of cncs) {
+    const s = new Set(); for (const pos of mapa[c].posicoes) { if (!lib(pos)) continue; const of = ordemDaPosicao(pos, p2o); if (of) s.add(of); }
+    odc[c] = s; const v = new Set(s);
+    if (unir) for (const pos of mapa[c].complementares) { if (!lib(pos)) continue; const of = ordemDaPosicao(pos, p2o); if (of) v.add(of); }
+    vdc[c] = v;
+  }
+  const pai = {}; cncs.forEach(c => pai[c] = c);
+  const raiz = x => { while (pai[x] !== x) { pai[x] = pai[pai[x]]; x = pai[x]; } return x; };
+  for (let i = 0; i < cncs.length; i++) for (let j = i + 1; j < cncs.length; j++) {
+    const a = cncs[i], b = cncs[j]; for (const o of vdc[a]) if (vdc[b].has(o)) { pai[raiz(a)] = raiz(b); break; }
+  }
+  const bk = {}; for (const c of cncs) (bk[raiz(c)] = bk[raiz(c)] || []).push(c);
+  const grupos = [];
+  for (const mem of Object.values(bk)) {
+    mem.sort((a, b) => +a - +b);
+    let ords = new Set(); for (const c of mem) for (const o of odc[c]) ords.add(o);
+    if (!ords.size && unir) for (const c of mem) for (const o of vdc[c]) ords.add(o);
+    let esp = null; for (const c of mem) if (mapa[c].espessura) { esp = mapa[c].espessura; break; }
+    grupos.push({ cncs: mem, espessura: esp, ordens: [...ords].sort((a, b) => +a - +b) });
+  }
+  const ce = e => { const n = parseFloat(e); return e !== null && isFinite(n) ? n : Infinity; };
+  grupos.sort((a, b) => ce(a.espessura) - ce(b.espessura) || +a.cncs[0] - +b.cncs[0]);
+  return grupos;
+}
+async function lerRelatorioLantek(file) {
+  const pl = await lerArquivoTabular(file);
+  if (!pl.length || !pl[0].rows.length) throw new Error('relatório do Lantek vazio');
+  const rows = pl[0].rows; const header = (rows[0] || []).map(h => norm(h).replace(/^\uFEFF/, ''));
+  const idx = (...ns) => { for (const n of ns) { const i = header.indexOf(norm(n)); if (i >= 0) return i; } return -1; };
+  const iR = idx('REFERENCIA', 'REFERÊNCIA'), iM = idx('MAQUINA', 'MÁQUINA'), iD = idx('DATA PROG NESTING'), iN = idx('ID NESTING');
+  if (iR < 0) throw new Error('não encontrei a coluna "REFERENCIA" — é mesmo o "Análise de Nestings" do Lantek?');
+  const prog = {};
+  for (const r of rows.slice(1)) {
+    const ref = String(r[iR] ?? '').trim(); if (!ref) continue;
+    const m = new RegExp(RE_POS_CNC_SRC).exec(ref); if (!m) continue;
+    const mo = /OF([A-Za-z0-9\-_.]+)/.exec(ref); if (!mo) continue;
+    const pos = norm(posBase(separarParte(m[1])[0])), of = norm(mo[1]);
+    const mq = /-\s*Q(\d+)/.exec(ref);
+    const e = prog[of + '|' + pos] = prog[of + '|' + pos] || { pos, qtd: 0, maquina: null, data: null, nesting_ids: [] };
+    e.qtd += mq ? +mq[1] : 0;
+    if (iM >= 0 && r[iM]) e.maquina = String(r[iM]);
+    if (iD >= 0 && r[iD]) e.data = String(r[iD]);
+    if (iN >= 0 && r[iN]) e.nesting_ids.push(String(r[iN]));
+  }
+  return prog;
+}
+
+async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = true, arqRelatorio = null, arqLantek = null }, progresso) {
+  const mapa = {}, semNumero = [], bytesCnc = [];
+  for (let f = 0; f < arqCnc.length; f++) {
+    progresso(`Lendo PDF de CNC ${f + 1}/${arqCnc.length}…`);
+    const bytes = new Uint8Array(await arqCnc[f].arrayBuffer()); bytesCnc.push(bytes);
+    const pags = await lerPaginasPdf(bytes, progresso, `Lendo ${arqCnc[f].name}`);
+    pags.forEach((pg, p) => {
+      let num = null; const mj = RE_CNC_APOS_JOB.exec(pg.cru); if (mj) num = mj[1];
+      if (!num) num = extrairNumeroCnc(pg.linhas);
+      if (!num) num = extrairNumeroCncPorPosicao(pg.palavras);
+      if (!num) { semNumero.push({ arquivo: arqCnc[f].name, pagina: p + 1 }); return; }
+      const m = mapa[num] = mapa[num] || { posicoes: new Set(), complementares: new Set(), rotulos: new Set(), quantidades: {}, paginas: [], espessura: null };
+      m.paginas.push({ arquivo: f, indice: p });
+      if (!m.espessura) m.espessura = extrairEspessuraCnc(pg.linhas);
+      const info = extrairPosicoesCnc(pg.linhas);
+      for (const [pos, q] of Object.entries(info.qtd)) { const x = m.quantidades[pos] = m.quantidades[pos] || { neste_cnc: 0, necessario: 0 }; x.neste_cnc += q.neste_cnc; x.necessario = Math.max(x.necessario, q.necessario); }
+      info.achadas.forEach(x => m.posicoes.add(x)); info.comp.forEach(x => m.complementares.add(x)); info.rotComp.forEach(x => m.rotulos.add(x));
+    });
+  }
+  progresso('Lendo ordens de fabricação…');
+  const bytesOrd = new Uint8Array(await arqOrdens.arrayBuffer());
+  const { ordens, p2o } = processarPaginasOrdens(await lerPaginasPdf(bytesOrd, progresso, 'Lendo ordens'));
+  if (!Object.keys(mapa).length) throw new Error('Nenhum número de CNC foi reconhecido nos PDFs de nesting.');
+  if (!Object.keys(ordens).length) throw new Error('Nenhuma Ordem de Fabricação foi reconhecida no PDF de ordens.');
+  progresso('Casando posições e montando sequência…');
+  const grupos = agruparCncs(mapa, p2o, unir, exigir);
+
+  if (arqRelatorio) {
+    progresso('Lendo relatório de fluxos…');
+    const lr = await lerRelatorioFluxosPacote(arqRelatorio);
+    const p2f = {};
+    for (const r of lr) {
+      if (!r.posicao) continue; const np = normPosCasamento(separarParte(r.posicao)[0]); const fx = numeroFluxo(r.fluxo);
+      if (!np || !fx) continue; p2f[np] = p2f[np] || {}; p2f[np][fx] = (p2f[np][fx] || 0) + 1;
+    }
+    const maisComum = obj => Object.entries(obj).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0][0];
+    for (const g of grupos) {
+      const cont = {};
+      for (const c of g.cncs) for (const pos of mapa[c].posicoes) if (p2f[pos]) { const fx = maisComum(p2f[pos]); cont[fx] = (cont[fx] || 0) + 1; }
+      g.fluxo_relatorio = Object.keys(cont).length ? maisComum(cont) : '—';
+      const obras = {}; for (const o of g.ordens) { const ob = ordens[o] && ordens[o].obra; if (ob) obras[ob] = (obras[ob] || 0) + 1; }
+      g.obra = Object.keys(obras).length ? Object.entries(obras).sort((a, b) => b[1] - a[1])[0][0] : '—';
+    }
+    const ce = g => { const n = parseFloat(String(g.espessura).replace(',', '.')); return g.espessura && isFinite(n) ? n : Infinity; };
+    grupos.sort((a, b) => (a.obra < b.obra ? -1 : a.obra > b.obra ? 1 : 0) || (a.fluxo_relatorio < b.fluxo_relatorio ? -1 : a.fluxo_relatorio > b.fluxo_relatorio ? 1 : 0) || ce(a) - ce(b) || +a.cncs[0] - +b.cncs[0]);
+  }
+  const usadas = new Set(); grupos.forEach(g => g.ordens.forEach(o => usadas.add(o)));
+  const orfas = Object.keys(ordens).filter(o => !usadas.has(o)).sort((a, b) => +a - +b);
+  const cncsSemOrdem = []; grupos.forEach(g => { if (!g.ordens.length) cncsSemOrdem.push(...g.cncs); });
+  const soma = apurarQuantidades(mapa); const incompletas = [];
+  if (exigir) for (const pos of Object.keys(soma).sort()) if (!posicaoCompleta(pos, soma)) { const s = soma[pos]; incompletas.push({ pos, cortado: s.cortado, necessario: s.necessario, cncs: s.cncs.join(', ') }); }
+  const partes = []; for (const c of Object.keys(mapa).sort((a, b) => +a - +b)) for (const pos of mapa[c].rotulos) partes.push({ cnc: c, pos });
+  const semProg = [], progSemCnc = [];
+  if (arqLantek) {
+    progresso('Lendo relatório do Lantek…');
+    const prog = await lerRelatorioLantek(arqLantek);
+    const posProg = new Set(Object.values(prog).map(e => e.pos));
+    for (const of of orfas) {
+      const pn = [...ordens[of].posicoes].map(p => norm(posBase(p)));
+      const pr = pn.filter(p => posProg.has(p));
+      const item = { ordem: of, posicoes: [...ordens[of].posicoes].sort().join(', ') };
+      if (pr.length) { item.detalhe = Object.values(prog).find(e => pr.includes(e.pos)) || null; progSemCnc.push(item); }
+      else semProg.push(item);
+    }
+  }
+  return { mapa, ordens, p2o, grupos, usadas, orfas, cncsSemOrdem, semNumero, incompletas, partes, semProg, progSemCnc, bytesCnc, bytesOrd };
+}
+function resumoRelatorio(a) {
+  return {
+    grupos: a.grupos.length, espessuras: [...new Set(a.grupos.map(g => rotuloEspessura(g.espessura)))].sort(),
+    ordens_usadas: a.usadas.size, total_cncs: Object.keys(a.mapa).length, total_ordens: Object.keys(a.ordens).length,
+    descartadas: a.orfas.map(o => ({ ordem: o, posicoes: [...a.ordens[o].posicoes].sort().join(', ') })),
+    cncsSemOrdem: a.cncsSemOrdem, semNumero: a.semNumero, incompletas: a.incompletas, partes: a.partes,
+    semProg: a.semProg, progSemCnc: a.progSemCnc,
+    relatorio: a.grupos.map(g => ({ cncs: g.cncs, espessura: g.espessura, ordens: g.ordens, obra: g.obra, fluxo_relatorio: g.fluxo_relatorio })),
+  };
+}
+
+const A4P = [595.28, 841.89];
+async function gerarImpressaoCasada(arqCnc, arqOrdens, opc, progresso) {
+  const { duplex = true, folhaDedicada = true, a4 = true, exigir = true, unir = true, arqRelatorio = null, arqLantek = null, ignorarPendencias = false } = opc;
+  const a = await analisarImpressaoBase(arqCnc, arqOrdens, { unir, exigir, arqRelatorio, arqLantek }, progresso);
+  if (!ignorarPendencias && (a.semProg.length || a.progSemCnc.length)) return { bloqueado: true, semProg: a.semProg, progSemCnc: a.progSemCnc };
+  const { PDFDocument, degrees } = PDFLib;
+  progresso('Abrindo PDFs para montagem…');
+  const docsCnc = []; for (const b of a.bytesCnc) docsCnc.push(await PDFDocument.load(b.slice(0), { ignoreEncryption: true }));
+  const docOrd = await PDFDocument.load(a.bytesOrd.slice(0), { ignoreEncryption: true });
+  const saida = await PDFDocument.create();
+  let tintaCnc = null, tintaOrd = null;
+  if (a4) {
+    tintaCnc = []; for (let f = 0; f < a.bytesCnc.length; f++) tintaCnc.push(await calcularAreasDeTinta(a.bytesCnc[f], progresso, `Medindo área útil de ${arqCnc[f].name}`));
+    tintaOrd = await calcularAreasDeTinta(a.bytesOrd, progresso, 'Medindo área útil das ordens');
+  }
+  const est = { tam: A4P, rot: 0 };
+  async function addNormalizada(doc, idx, caixa) {
+    const p = doc.getPage(idx); const rot = (((p.getRotation().angle || 0) % 360) + 360) % 360;
+    let box;
+    if (caixa && caixa.right - caixa.left > 5 && caixa.top - caixa.bottom > 5) box = caixa;
+    else { const cb = p.getCropBox(); box = { left: cb.x, bottom: cb.y, right: cb.x + cb.width, top: cb.y + cb.height }; }
+    const w = box.right - box.left, h = box.top - box.bottom;
+    const [aw, ah] = w > h ? [A4P[1], A4P[0]] : A4P;
+    const emb = await saida.embedPage(p, box);
+    const s = Math.min(aw / w, ah / h), dw = w * s, dh = h * s;
+    const np = saida.addPage([aw, ah]);
+    np.drawPage(emb, { x: (aw - dw) / 2, y: (ah - dh) / 2, width: dw, height: dh });
+    if (rot) np.setRotation(degrees(rot));
+    est.tam = [aw, ah]; est.rot = rot;
+  }
+  async function addDireta(doc, idx) {
+    const [cp] = await saida.copyPages(doc, [idx]); saida.addPage(cp);
+    const { width, height } = cp.getSize(); est.tam = [width, height]; est.rot = (((cp.getRotation().angle || 0) % 360) + 360) % 360;
+  }
+  const addCnc = (f, i) => a4 ? addNormalizada(docsCnc[f], i, tintaCnc[f][i]) : addDireta(docsCnc[f], i);
+  const addOrdem = i => a4 ? addNormalizada(docOrd, i, tintaOrd[i]) : addDireta(docOrd, i);
+  const addBranca = () => { const p = saida.addPage(est.tam); if (est.rot) p.setRotation(degrees(est.rot)); };
+  const fecharBloco = q => { if (duplex && q % 2 === 1) { addBranca(); return 1; } return 0; };
+  async function empilharCnc(pgs) {
+    let br = 0;
+    for (const p of pgs) { await addCnc(p.arquivo, p.indice); if (duplex && folhaDedicada) { addBranca(); br++; } }
+    if (!folhaDedicada) { if (duplex && pgs.length % 2 === 1) { addBranca(); br++; } }
+    else if (!duplex) { addBranca(); br++; }
+    return br;
+  }
+  progresso('Montando o PDF…');
+  const relatorio = [];
+  for (const g of a.grupos) {
+    const dc = [], dor = [];
+    for (const c of g.cncs) { const pgs = a.mapa[c].paginas; dc.push({ cnc: c, paginas: pgs.length, branca: await empilharCnc(pgs) }); }
+    for (const o of g.ordens) {
+      const idx = a.ordens[o].paginas; for (const i of idx) await addOrdem(i);
+      dor.push({ ordem: o, posicoes: [...a.ordens[o].posicoes].sort().join(', '), paginas: idx.length, branca: fecharBloco(idx.length) });
+    }
+    relatorio.push({ cncs: g.cncs, espessura: g.espessura, obra: g.obra, fluxo_relatorio: g.fluxo_relatorio, detalhe_cnc: dc, detalhe_ord: dor });
+    await tick();
+  }
+  saida.setCreator('Validador Fluxos PPCP ' + VERSAO); saida.setProducer('Validador Fluxos PPCP ' + VERSAO);
+  saida.setSubject(a4 ? 'A4 conferido' : 'sem padronizar A4');
+  progresso('Salvando o PDF…');
+  const bytes = await saida.save();
+  const r = resumoRelatorio(a); r.relatorio = relatorio; r.total_paginas = saida.getPageCount(); r.pdf = new Blob([bytes], { type: 'application/pdf' });
+  r.a4 = a4; r.pdfBytes = bytes;
+  try { r.conf = await montarConferencia(a, exigir, progresso); } catch (e) { console.warn('conferência', e); r.conf = null; }
+  if (ignorarPendencias && (a.semProg.length || a.progSemCnc.length)) r.pendencias = textoPendencias(a.semProg, a.progSemCnc);
+  return r;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CONFERÊNCIA CNC × ORDENS (portado do app desktop 2026-10-06)
+   ════════════════════════════════════════════════════════════════ */
+const RE_REF_QTD_VISUAL = /([A-Za-z0-9@_.\-]+(?:\s*\[[^\]]*\])?)\s*-\s*OF[A-Za-z0-9\-_.]+\s*-\s*Q(\d+)/;
+const chaveNatural = t => String(t).split(/(\d+)/).map(x => /^\d+$/.test(x) ? +x : x.toLowerCase());
+function cmpNatural(a, b) { const A = chaveNatural(a), B = chaveNatural(b); for (let i = 0; i < Math.min(A.length, B.length); i++) { if (A[i] === B[i]) continue; if (typeof A[i] === typeof B[i]) return A[i] < B[i] ? -1 : 1; return typeof A[i] === 'number' ? -1 : 1; } return A.length - B.length; }
+function faixaPaginas(pgs) {
+  pgs = [...new Set(pgs)].sort((a, b) => a - b); const out = []; let ini = null, ant = null;
+  for (const p of pgs) { if (ini === null) ini = ant = p; else if (p === ant + 1) ant = p; else { out.push(ini === ant ? String(ini) : `${ini}–${ant}`); ini = ant = p; } }
+  if (ini !== null) out.push(ini === ant ? String(ini) : `${ini}–${ant}`);
+  return out.join(', ');
+}
+/* tabela Chapa / Total / Faltam de cada página do CNC, lida pela POSIÇÃO das palavras */
+async function lerQuantidadesVisuais(bytes) {
+  const doc = await abrirPdfJs(bytes); const saida = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const tx = await textoDaPagina(await doc.getPage(i)); const res = {};
+    const pal = tx.palavras.map(w => [(w.x0 + w.x1) / 2, (w.y0 + w.y1) / 2, w.t]);
+    const cab = pal.find(w => w[2] === 'Chapa');
+    if (cab) {
+      const [xc, yc] = cab; const f = pal.find(w => w[2] === 'Faltam' && Math.abs(w[1] - yc) < 8); const xf = f ? f[0] : null;
+      const zona = pal.filter(w => w[1] > yc + 6 && w[0] < xc - 25).sort((a, b) => a[1] - b[1]);
+      const linhas = []; let atual = [];
+      for (const w of zona) { if (atual.length && Math.abs(w[1] - atual[atual.length - 1][1]) > 6) { linhas.push(atual); atual = []; } atual.push(w); }
+      if (atual.length) linhas.push(atual);
+      const numero = (xcol, yref) => { if (xcol === null) return null; let m = null, md = 1e9; for (const [x, y, t] of pal) if (Math.abs(x - xcol) <= 22 && Math.abs(y - yref) <= 10 && /^\d+$/.test(t) && Math.abs(y - yref) < md) { md = Math.abs(y - yref); m = +t; } return m; };
+      for (const lin of linhas) {
+        const yref = lin.reduce((s, w) => s + w[1], 0) / lin.length;
+        const m = RE_REF_QTD_VISUAL.exec(lin.slice().sort((a, b) => a[0] - b[0]).map(w => w[2]).join(' ')); if (!m) continue;
+        const [base, parte] = separarParte(m[1]); const pos = normPosCasamento(base); if (!pos) continue;
+        const k = pos + '\u0001' + (parte || '');
+        const reg = res[k] = res[k] || { pos, parte: parte || '', chapa: 0, q: 0, faltam: null };
+        reg.chapa += numero(xc, yref) || 0; reg.q = Math.max(reg.q, +m[2]); reg.faltam = numero(xf, yref);
+      }
+    }
+    saida.push(res);
+  }
+  await doc.destroy(); return saida;
+}
+function calcularCompletude(entradas, pedido) {
+  let soma = 0, ultima = null; const por = [];
+  for (const [cnc, qtd] of entradas) {
+    if (qtd === null || qtd === undefined || !pedido) { por.push({ cnc, qtd, acumulado: null, estado: 'desconhecida', ultima: false }); continue; }
+    soma += qtd; const completa = soma >= pedido; const eu = completa && ultima === null; if (eu) ultima = cnc;
+    por.push({ cnc, qtd, acumulado: soma, estado: completa ? 'completa' : 'parcial', ultima: eu });
+  }
+  const status = (!pedido || entradas.some(e => e[1] === null || e[1] === undefined)) ? 'desconhecida' : (soma >= pedido ? 'completa' : 'parcial');
+  return { por_cnc: por, soma, status, ultima_em: ultima };
+}
+async function montarConferencia(a, exigir, progresso) {
+  const soma = apurarQuantidades(a.mapa); const conjDe = {};
+  for (const g of a.grupos) for (const c of g.cncs) conjDe[c] = g.cncs.slice();
+  const visual = []; 
+  for (let f = 0; f < a.bytesCnc.length; f++) { if (progresso) progresso(`Lendo quantidades do CNC ${f + 1}/${a.bytesCnc.length}…`); try { visual.push(await lerQuantidadesVisuais(a.bytesCnc[f])); } catch (e) { visual.push([]); } }
+  const itensCnc = {};
+  for (const c of Object.keys(a.mapa)) {
+    const m = a.mapa[c]; const itens = {};
+    for (const pg of m.paginas) { const res = (visual[pg.arquivo] || [])[pg.indice] || {}; for (const [k, r] of Object.entries(res)) { const it = itens[k] = itens[k] || { pos: r.pos, parte: r.parte, chapa: 0, q: 0 }; it.chapa += r.chapa; it.q = Math.max(it.q, r.q); } }
+    const achadas = new Set(Object.values(itens).map(i => i.pos));
+    const todas = new Set([...m.posicoes, ...m.complementares, ...Object.keys(m.quantidades)]);
+    for (const pos of todas) if (!achadas.has(pos)) { const q = m.quantidades[pos]; itens[pos + '\u0001'] = { pos, parte: '', chapa: q ? q.neste_cnc : null, q: q ? q.necessario : 0 }; }
+    itensCnc[c] = itens;
+  }
+  const cncsOrd = Object.keys(a.mapa).sort((x, y) => +x - +y); const globais = {};
+  for (const c of cncsOrd) for (const [k, it] of Object.entries(itensCnc[c])) { const g = globais[k] = globais[k] || { q: 0, entradas: [] }; g.q = Math.max(g.q, it.q || 0); g.entradas.push([c, it.chapa]); }
+  for (const g of Object.values(globais)) { const r = calcularCompletude(g.entradas, g.q || null); g.porCnc = {}; r.por_cnc.forEach(d => g.porCnc[d.cnc] = d); g.lista = r.por_cnc; g.soma = r.soma; g.status = r.status; g.ultima_em = r.ultima_em; }
+  const cncsDaOrdem = {}, cncPos = [];
+  for (const c of cncsOrd) {
+    const m = a.mapa[c]; const linhas = [];
+    const ks = Object.keys(itensCnc[c]).sort((x, y) => { const [px, ax] = x.split('\u0001'), [py, ay] = y.split('\u0001'); return cmpNatural(px, py) || (ax < ay ? -1 : ax > ay ? 1 : 0); });
+    for (const k of ks) {
+      const it = itensCnc[c][k], g = globais[k], d = g.porCnc[c]; const of = ordemDaPosicao(it.pos, a.p2o);
+      let situacao;
+      if (!of) situacao = 'sem ordem no PDF das Ordens'; else if (exigir && !posicaoCompleta(it.pos, soma)) situacao = 'incompleta — falta peça nos CNCs carregados'; else situacao = 'ok';
+      if (of) (cncsDaOrdem[of] = cncsDaOrdem[of] || new Set()).add(c);
+      linhas.push({ pos: it.pos + (it.parte ? ` [${it.parte}]` : ''), ordem: of, situacao, qtd: d.qtd, pedido: g.q || null, acumulado: d.acumulado, estado: d.estado, ultima: d.ultima, status_total: g.status, ultima_em: g.ultima_em, cncs: g.lista, soma_total: g.soma });
+    }
+    cncPos.push({ cnc: c, espessura: m.espessura, paginas: m.paginas.length, conjunto: conjDe[c] || [c], posicoes: linhas });
+  }
+  const listaOrdens = Object.keys(a.ordens).sort((x, y) => +x - +y).map(of => ({ ordem: of, obra: a.ordens[of].obra, posicoes: [...a.ordens[of].posicoes].sort(cmpNatural), cncs: [...(cncsDaOrdem[of] || [])].sort((x, y) => +x - +y), paginas: a.ordens[of].paginas.length, casa: a.usadas.has(of) }));
+  return { cnc_posicoes: cncPos, lista_ordens: listaOrdens };
+}
+/* lê o PDF da impressão casada (gerado agora ou já existente) e confere se cada ordem ficou unida ao CNC */
+async function verificarPdfGerado(bytes, conf, progresso, nomeArq) {
+  const pgs = await lerPaginasPdf(bytes, progresso, 'Verificando PDF gerado');
+  const blocos = []; let atual = null, ultOf = null, ultCnc = null; const capas = {};
+  pgs.forEach((pg, i) => {
+    const n = i + 1; const texto = pg.cru;
+    const mOf = RE_OF_ORDEM.exec(texto.replace(/-[ \t]*\n[ \t]*/g, '-'));
+    if (mOf) {
+      const of = mOf[1]; if (!atual) { atual = { cncs: {}, ordens: {}, temOrdem: false }; blocos.push(atual); }
+      (atual.ordens[of] = atual.ordens[of] || []).push(n); atual.temOrdem = true; (capas[of] = capas[of] || []).push(n); ultOf = of; ultCnc = null; return;
+    }
+    const mj = RE_CNC_APOS_JOB.exec(texto); const num = mj ? mj[1] : null;
+    if (num || texto.includes('Rep. CNC')) {
+      const cnc = num || ultCnc; if (!cnc) return;
+      if (!atual || atual.temOrdem) { atual = { cncs: {}, ordens: {}, temOrdem: false }; blocos.push(atual); }
+      (atual.cncs[cnc] = atual.cncs[cnc] || []).push(n); ultCnc = cnc; ultOf = null; return;
+    }
+    if (!texto.trim()) return;
+    if (ultOf && atual) atual.ordens[ultOf].push(n);
+  });
+  const blocoDaOrdem = {}; blocos.forEach((b, k) => { for (const of of Object.keys(b.ordens)) (blocoDaOrdem[of] = blocoDaOrdem[of] || []).push(k); });
+  const porCnc = {}; let diverg = 0;
+  for (const c of conf.cnc_posicoes) {
+    const ks = blocos.map((b, k) => c.cnc in b.cncs ? k : -1).filter(k => k >= 0); const linhas = []; let ok = 0, total = 0;
+    if (!ks.length) { for (const p of c.posicoes) { linhas.push({ pos: p.pos, ordem: p.ordem, estado: 'cnc_ausente', texto: 'CNC não está no PDF gerado', onde: '' }); if (p.ordem) total++; } porCnc[c.cnc] = { bloco: null, paginasCnc: [], linhas, ok: 0, total, outras: [], faixa: '' }; diverg += total; continue; }
+    const b = blocos[ks[0]], pc = b.cncs[c.cnc]; const donas = new Set();
+    for (const p of c.posicoes) {
+      const of = p.ordem;
+      if (!of) { linhas.push({ pos: p.pos, ordem: null, estado: 'sem_ordem', texto: 'sem ordem (não casou)', onde: '' }); continue; }
+      donas.add(of); total++;
+      if (of in b.ordens) { ok++; linhas.push({ pos: p.pos, ordem: of, estado: 'unida', texto: 'unida ✓', onde: `CNC pág. ${faixaPaginas(pc)} → OF pág. ${faixaPaginas(b.ordens[of])}` }); }
+      else if (of in blocoDaOrdem) linhas.push({ pos: p.pos, ordem: of, estado: 'outro_bloco', texto: 'ordem em OUTRO bloco ✗', onde: 'OF pág. ' + faixaPaginas(blocoDaOrdem[of].flatMap(k => blocos[k].ordens[of])) });
+      else linhas.push({ pos: p.pos, ordem: of, estado: 'ausente', texto: 'ordem NÃO está no PDF ✗', onde: '' });
+    }
+    diverg += total - ok;
+    const todas = [...pc, ...Object.values(b.ordens).flat()];
+    porCnc[c.cnc] = { bloco: ks[0], paginasCnc: pc, linhas, ok, total, outras: Object.entries(b.ordens).filter(([of]) => !donas.has(of)).map(([of, p]) => [of, faixaPaginas(p)]), faixa: todas.length ? faixaPaginas([Math.min(...todas), Math.max(...todas)]) : '' };
+  }
+  const repetidas = Object.entries(capas).filter(([, p]) => p.length > 1);
+  return { arquivo: nomeArq || 'PDF gerado', totalPaginas: pgs.length, blocos: blocos.length, porCnc, divergencias: diverg, repetidas };
+}
+function nosConferencia(conf) {
+  const AM = 'var(--amber)', VD = 'var(--green)', VM = 'var(--red)';
+  const raiz = { label: `📑 Conferência por CNC (${conf.cnc_posicoes.length})`, cor: 'var(--cyan)', check: false, open: false, children: [] };
+  for (const c of conf.cnc_posicoes) {
+    const sem = c.posicoes.filter(p => p.situacao !== 'ok').length;
+    raiz.children.push({ label: `CNC ${c.cnc}`, det: `${rotuloEspessura(c.espessura)} · ${c.paginas} pág. · conjunto: ${c.conjunto.join(', ')}`, cor: sem ? AM : VD, check: false, children: c.posicoes.map(p => {
+      const est = p.estado === 'desconhecida' ? 'qtd não lida' : `${p.estado === 'completa' ? 'COMPLETA' : 'PARCIAL'}${p.acumulado !== null ? ` ${p.acumulado}/${p.pedido}` : ''}${p.ultima ? ' (última peça aqui)' : ''}`;
+      return { label: p.pos, det: `${p.ordem ? 'ordem ' + p.ordem : 'sem ordem'} · neste CNC ${p.qtd ?? '—'} · ${est}${p.situacao !== 'ok' ? ' · ⚠ ' + p.situacao : ''}`, cor: p.situacao === 'ok' ? undefined : AM, check: false };
+    }) });
+  }
+  const ord = { label: `📋 Ordens do PDF (${conf.lista_ordens.length})`, cor: 'var(--cyan)', check: false, children: conf.lista_ordens.map(o => ({ label: `Ordem ${o.ordem}`, det: `${o.casa ? 'casa' : 'fica de fora'} · ${o.paginas} pág. · CNCs: ${o.cncs.join(', ') || '—'} · ${o.posicoes.join(', ')}`, cor: o.casa ? undefined : AM, check: false })) };
+  return [raiz, ord];
+}
+function nosVerificacao(v, titulo) {
+  const AM = 'var(--amber)', VD = 'var(--green)', VM = 'var(--red)';
+  const raiz = { label: `${v.divergencias ? '🚨' : '✅'} ${titulo} — ${v.totalPaginas} páginas · ${v.blocos} bloco(s) · ${v.divergencias} divergência(s)`, cor: v.divergencias ? VM : VD, check: false, open: true, children: [] };
+  for (const [cnc, d] of Object.entries(v.porCnc)) {
+    const bom = d.ok === d.total;
+    raiz.children.push({ label: `CNC ${cnc}`, det: d.bloco === null ? 'não está no PDF' : `${d.ok}/${d.total} unidas · págs. ${d.faixa}`, cor: bom ? VD : VM, check: false, open: !bom, children: [
+      ...d.linhas.map(l => ({ label: l.pos, det: `${l.ordem ? 'ordem ' + l.ordem + ' · ' : ''}${l.texto}${l.onde ? ' · ' + l.onde : ''}`, cor: l.estado === 'unida' ? undefined : (l.estado === 'sem_ordem' ? AM : VM), check: false })),
+      ...d.outras.map(([of, f]) => ({ label: `Ordem ${of} no mesmo bloco, sem posição neste CNC`, det: `OF pág. ${f}`, cor: AM, check: false }))] });
+  }
+  if (v.repetidas.length) raiz.children.push({ label: `⚠️ Ordens com capa repetida (${v.repetidas.length})`, cor: AM, check: false, children: v.repetidas.map(([of, p]) => ({ label: `Ordem ${of}`, det: 'págs. ' + faixaPaginas(p), check: false })) });
+  return [raiz];
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   PAINEL "Conferência" — igual ao app: CNC à esquerda, detalhe à direita
+   ════════════════════════════════════════════════════════════════ */
+function criarPainelConferencia(host, aoComparar) {
+  host.innerHTML = `<div class="gb"><h3>Conferência — esquerda: CNC e as posições dele (peças, PARCIAL/COMPLETA) &nbsp;|&nbsp; direita: em quais CNCs cada posição está e como ficou no PDF gerado</h3>
+  <div class="cf-txt" data-c="lbl">Clique em "Conferir antes" pra listar os CNCs. Depois de gerar o PDF, cada posição é conferida DENTRO do PDF gerado.</div>
+  <div class="linha"><button class="b bz sec" data-c="comparar" data-id="comparar" title="Lê um PDF de Impressão Casada que você já gerou (ex.: de outro dia) e confere se cada posição dos CNCs carregados ficou unida à ordem"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 14l2 2 4-4"/></svg><span>Comparar com um PDF já gerado…</span></button><span class="fraco" data-c="pdf">PDF comparado: nenhum ainda</span></div>
+  <div class="cf-split"><div class="cf-esq"><input class="cf-busca" data-c="busca" placeholder="buscar CNC, posição ou OF…"><div class="cf-tab" data-c="lista"></div></div>
+  <div class="cf-dir"><div class="cf-det" data-c="cab">← clique num CNC (ou numa posição) da lista</div><div class="cf-tab" data-c="det"></div></div></div></div>`;
+  const q = s => host.querySelector(`[data-c="${s}"]`);
+  const VD = 'var(--green)', AM = 'var(--amber)', VM = 'var(--red)', CZ = '#8b95a5';
+  const S = { conf: null, ver: null, cnc: {}, linhas: {}, posCncs: {}, sel: null };
+  q('comparar').onclick = () => aoComparar && aoComparar();
+  const td = (tr, t, cor, extra) => { const c = document.createElement('td'); c.textContent = t ?? ''; if (cor) c.style.color = cor; if (extra) extra(c); tr.appendChild(c); return c; };
+  const tabela = (el, cols) => { el.innerHTML = ''; const t = document.createElement('table'); const th = document.createElement('thead'); const r = document.createElement('tr'); cols.forEach(c => { const h = document.createElement('th'); h.textContent = c; r.appendChild(h); }); th.appendChild(r); t.appendChild(th); const tb = document.createElement('tbody'); t.appendChild(tb); el.appendChild(t); return tb; };
+  const juntar = (it, pre = '') => { it = it.map(String); if (!it.length) return ''; const c = it.length === 1 ? it[0] : it.slice(0, -1).join(', ') + ' e ' + it[it.length - 1]; return pre + c; };
+  const linhaPdf = (cnc, pos) => { const x = S.ver && S.ver.porCnc[cnc]; return x ? (x.linhas.find(l => l.pos === pos) || null) : null; };
+  function resumoPosicao(pos, ordem) {
+    const cncs = S.posCncs[pos] || [];
+    if (!ordem) return ['sem ordem (não casou)', 'neutro'];
+    if (!S.ver) return cncs.length > 1 ? [`previsto: unir com ${juntar(cncs, 'os CNCs ')} (gere o PDF p/ confirmar)`, 'neutro'] : ['gere o PDF para confirmar', 'neutro'];
+    const unidas = cncs.filter(c => (linhaPdf(c, pos) || {}).estado === 'unida'), nao = cncs.filter(c => !unidas.includes(c));
+    if (cncs.length <= 1) {
+      const l = cncs.length ? linhaPdf(cncs[0], pos) : null;
+      if (l && l.estado === 'unida') return [`✓ unida · OF pág. ${l.onde.split('OF pág. ').pop()}`, 'ok'];
+      const c0 = cncs[0] || '?', est = l && l.estado, onde = ((l && l.onde) || '').replace('OF pág. ', '');
+      if (est === 'outro_bloco') return [`✗ NÃO unida com o CNC ${c0} — OF em outro bloco (pág. ${onde})`, 'ruim'];
+      if (est === 'ausente') return [`✗ NÃO unida com o CNC ${c0} — a OF não está no PDF`, 'ruim'];
+      if (est === 'cnc_ausente') return [`✗ o CNC ${c0} não está no PDF`, 'ruim'];
+      return [`✗ NÃO unida com o CNC ${c0}`, 'ruim'];
+    }
+    if (!nao.length) return [`✓ unida com ${juntar(unidas, 'os CNCs ')}`, 'ok'];
+    if (unidas.length) return [`✗ unida só com ${juntar(unidas, unidas.length === 1 ? 'o CNC ' : 'os CNCs ')}; NÃO unida com ${juntar(nao, nao.length === 1 ? 'o CNC ' : 'os CNCs ')}`, 'ruim'];
+    return [`✗ NÃO unida com nenhum dos CNCs (${juntar(cncs)})`, 'ruim'];
+  }
+  const corDe = t => ({ ok: VD, ruim: VM, neutro: CZ })[t];
+  const txtEstado = (d, pedido) => d.estado === 'desconhecida' ? ['quantidade não lida', CZ] : d.estado === 'completa' ? [d.ultima ? 'COMPLETA ◄ última peça aqui' : 'COMPLETA', VD] : [`PARCIAL ${d.acumulado}/${pedido} · faltam ${pedido - d.acumulado}`, AM];
+  const txtTotal = p => p.status_total === 'desconhecida' ? ['quantidade não lida', CZ] : p.status_total === 'completa' ? [`COMPLETA ${p.soma_total}/${p.pedido}`, VD] : [`PARCIAL ${p.soma_total}/${p.pedido} · faltam ${p.pedido - p.soma_total}`, AM];
+  const pdfDoCnc = (cnc, pos) => { const l = linhaPdf(cnc, pos); if (!l) return [S.ver ? '—' : 'gere o PDF p/ confirmar', CZ]; return l.estado === 'unida' ? [`✓ unida — ${l.onde}`, VD] : [`✗ ${l.texto}${l.onde ? ' — ' + l.onde : ''}`, VM]; };
+
+  function mostrar(chave) {
+    const det = tabela(q('det'), chave[0] === 'cnc' ? ['Posição', 'Ordem (OF)', 'Em quais CNCs (peças)', 'Situação', 'No PDF gerado'] : ['CNC', 'Peças neste CNC', 'Acumulado', 'Situação', 'No PDF gerado']);
+    if (chave[0] === 'cnc') {
+      const c = S.cnc[chave[1]]; if (!c) return;
+      const x = S.ver && S.ver.porCnc[c.cnc]; const esp = c.espessura ? rotuloEspessura(c.espessura) : 'espessura não identificada';
+      const ords = new Set(c.posicoes.filter(p => p.ordem).map(p => p.ordem));
+      let cab = `CNC ${c.cnc} · ${esp} · ${c.paginas} página(s) no PDF do CNC  —  ${c.posicoes.length} posição(ões) · ${ords.size} ordem(ns)`;
+      if (x && x.bloco !== null) cab += `\nNo PDF gerado: CNC nas págs. ${faixaPaginas(x.paginasCnc)} · bloco das págs. ${x.faixa} · ${x.ok} de ${x.total} posições unidas ao CNC`;
+      else if (x) cab += '\nNo PDF gerado: ✗ este CNC não aparece no PDF';
+      else cab += '\nPDF gerado: ainda não — gere o PDF (ou use "Comparar com um PDF já gerado…")';
+      q('cab').textContent = cab;
+      for (const p of c.posicoes) {
+        const onde = p.cncs.length === 1 ? `só no CNC ${p.cncs[0].cnc} (${p.cncs[0].qtd ?? '?'} pç)` : p.cncs.length === 2 ? p.cncs.map(d => `CNC ${d.cnc} (${d.qtd})`).join(' + ') : `${p.cncs.length} CNCs (veja abaixo)`;
+        const [tt, ct] = txtTotal(p); const [tp, tipo] = resumoPosicao(p.pos, p.ordem);
+        const tr = document.createElement('tr'); td(tr, p.pos); td(tr, p.ordem || '—'); td(tr, onde, p.cncs.length > 1 ? AM : null); td(tr, tt, ct); td(tr, tp, corDe(tipo)); det.appendChild(tr);
+        if (p.cncs.length > 1) for (const d of p.cncs) {
+          const [te, ce] = txtEstado(d, p.pedido || 0); const [tq, cq] = pdfDoCnc(d.cnc, p.pos); const r2 = document.createElement('tr');
+          td(r2, `↳ CNC ${d.cnc}${d.cnc === c.cnc ? ' (este)' : ''}`, null, e => e.style.paddingLeft = '22px'); td(r2, ''); td(r2, `${d.qtd ?? '?'} peça(s)${d.acumulado === null ? '' : ` · acumulado ${d.acumulado} de ${p.pedido}`}`); td(r2, te, ce); td(r2, tq, cq); det.appendChild(r2);
+        }
+      }
+      return;
+    }
+    const [, cncClic, pos] = chave; const p0 = S.linhas[cncClic + '\u0001' + pos]; if (!p0) return;
+    const [tt] = txtTotal(p0); const o = (S.conf.lista_ordens.find(x => x.ordem === p0.ordem)) || {}; const [tp] = resumoPosicao(pos, p0.ordem); const n = p0.cncs.length;
+    q('cab').textContent = `Posição ${pos} · OF ${p0.ordem || '—'}${p0.ordem ? ` (${o.paginas ?? '?'} pág. da ordem)` : ''} · pede ${p0.pedido || '?'} peça(s)  —  ${n > 1 ? `está em ${n} CNCs` : `só no CNC ${p0.cncs[0].cnc}`}\nSituação: ${tt}\nNo PDF gerado: ${tp}`;
+    for (const d of p0.cncs) {
+      const [te, ce] = txtEstado(d, p0.pedido || 0); const [tq, cq] = pdfDoCnc(d.cnc, pos); const tr = document.createElement('tr');
+      td(tr, `CNC ${d.cnc}${d.cnc === cncClic ? '   ◄ clicado' : ''}`); td(tr, d.qtd === null ? '?' : String(d.qtd)); td(tr, d.acumulado === null ? '—' : `${d.acumulado} de ${p0.pedido}`); td(tr, te, ce); td(tr, tq, cq); det.appendChild(tr);
+    }
+  }
+  function popular(conf, ver, nomePdf) {
+    S.conf = conf || S.conf; conf = S.conf; S.ver = ver || null; S.cnc = {}; S.linhas = {}; S.posCncs = {};
+    const lista = tabela(q('lista'), ['CNC  /  posições dele', 'Ordem (OF)', 'Peças neste CNC · situação', 'PDF']);
+    q('det').innerHTML = ''; q('busca').value = ''; q('cab').textContent = '← clique num CNC (ou numa posição) da lista';
+    if (!conf) return;
+    for (const c of conf.cnc_posicoes) { S.cnc[c.cnc] = c; for (const p of c.posicoes) { (S.posCncs[p.pos] = S.posCncs[p.pos] || []).push(c.cnc); S.linhas[c.cnc + '\u0001' + p.pos] = p; } }
+    const itens = {}; for (const c of conf.cnc_posicoes) for (const p of c.posicoes) if (!(p.pos in itens)) itens[p.pos] = p;
+    const cont = st => Object.values(itens).filter(p => p.status_total === st).length;
+    const semOrdem = conf.cnc_posicoes.reduce((s, c) => s + c.posicoes.filter(p => !p.ordem).length, 0), deFora = conf.lista_ordens.filter(o => !o.casa).length;
+    const rep = Object.values(S.posCncs).filter(cs => cs.length > 1).length, nd = cont('desconhecida');
+    let txt = `${conf.cnc_posicoes.length} CNC(s) · ${Object.keys(itens).length} posição(ões) (contando [A]/[B] à parte): ${cont('completa')} COMPLETA(S) · ${cont('parcial')} PARCIAL(IS)${nd ? ` · ${nd} sem quantidade lida` : ''} · ${rep} em mais de um CNC  |  ${conf.lista_ordens.length} ordem(ns) no PDF das Ordens · ${deFora} ficam de fora`;
+    if (semOrdem) txt += `  |  ⚠ ${semOrdem} posição(ões) sem ordem`;
+    if (S.ver) {
+      const vs = Object.values(S.ver.porCnc), ok = vs.reduce((s, x) => s + x.ok, 0), tot = vs.reduce((s, x) => s + x.total, 0);
+      txt += `\nPDF conferido (${nomePdf || S.ver.arquivo}, ${S.ver.totalPaginas} págs., ${S.ver.blocos} blocos): ` + (ok === tot ? `✓ ${ok} de ${tot} posições unidas ao CNC` : `✗ ${tot - ok} posição(ões) NÃO ficaram unidas ao CNC (${ok} de ${tot} ok)`);
+      if (S.ver.repetidas.length) txt += `  |  ⚠ ${S.ver.repetidas.length} ordem(ns) REPETIDA(S) no PDF`;
+      q('pdf').textContent = 'PDF comparado: ' + (nomePdf || S.ver.arquivo);
+    }
+    q('lbl').textContent = txt;
+    const selecionar = (tr, chave) => { host.querySelectorAll('.cf-sel').forEach(x => x.classList.remove('cf-sel')); tr.classList.add('cf-sel'); mostrar(chave); };
+    let primeiro = null;
+    for (const c of conf.cnc_posicoes) {
+      const esp = c.espessura ? rotuloEspessura(c.espessura) : 'esp. ?'; const nC = c.posicoes.filter(p => p.estado === 'completa').length, nP = c.posicoes.filter(p => p.estado === 'parcial').length;
+      let pt = '', cp = CZ;
+      if (S.ver) { const x = S.ver.porCnc[c.cnc]; if (!x) { pt = '—'; } else if (x.bloco === null) { pt = '✗ fora'; cp = VM; } else if (x.ok === x.total) { pt = '✓'; cp = VD; } else { pt = `✗ ${x.total - x.ok}`; cp = VM; } }
+      const tr = document.createElement('tr'); tr.className = 'cf-cnc'; tr.dataset.k = '1';
+      tr.dataset.busca = [c.cnc, ...c.posicoes.map(p => p.pos), ...c.posicoes.filter(p => p.ordem).map(p => p.ordem)].join(' ').toLowerCase();
+      const tg = td(tr, '', null, e => { const s = document.createElement('span'); s.className = 'cf-tg'; s.textContent = '▾'; e.appendChild(s); e.appendChild(document.createTextNode(`CNC ${c.cnc} · ${esp}`)); });
+      td(tr, `${c.posicoes.length} pos.`); td(tr, `${nC} completa(s)${nP ? ` · ${nP} PARCIAL(IS)` : ''}`, nP ? AM : VD); td(tr, pt, cp); lista.appendChild(tr);
+      const filhos = [];
+      tr.onclick = e => { if (e.target.classList.contains('cf-tg')) { const aberto = e.target.textContent === '▾'; e.target.textContent = aberto ? '▸' : '▾'; filhos.forEach(f => f.style.display = aberto ? 'none' : ''); return; } selecionar(tr, ['cnc', c.cnc]); };
+      if (!primeiro) primeiro = [tr, ['cnc', c.cnc]];
+      for (const p of c.posicoes) {
+        const nc = (S.posCncs[p.pos] || []).length; const f = document.createElement('tr'); f.dataset.k = '1';
+        const nome = p.pos + (nc > 1 ? `   ⇄ ${nc} CNCs` : '');
+        let qt, cq; if (p.estado === 'desconhecida') { qt = 'quantidade não lida'; cq = CZ; } else { qt = `${p.qtd} pç · ${p.estado === 'completa' ? 'COMPLETA' : 'PARCIAL'} ${p.acumulado}/${p.pedido}${p.ultima ? '  ◄ última peça' : ''}`; cq = p.estado === 'completa' ? VD : AM; }
+        let mk = '', cm = CZ; if (S.ver) { const [, tipo] = resumoPosicao(p.pos, p.ordem); [mk, cm] = { ok: ['✓', VD], ruim: ['✗', VM], neutro: ['—', CZ] }[tipo]; }
+        td(f, nome, null, e => e.style.paddingLeft = '26px'); td(f, p.ordem || '—', p.ordem ? null : VM); td(f, qt, cq); td(f, mk, cm); lista.appendChild(f); filhos.push(f);
+        f.onclick = () => selecionar(f, ['pos', c.cnc, p.pos]);
+      }
+    }
+    if (primeiro) selecionar(...primeiro);
+  }
+  q('busca').oninput = () => { const t = q('busca').value.trim().toLowerCase(); let vis = true; q('lista').querySelectorAll('tbody tr').forEach(tr => { if (tr.classList.contains('cf-cnc')) { vis = !t || tr.dataset.busca.includes(t); } tr.style.display = vis ? '' : 'none'; }); };
+  return { popular };
+}
+
+function textoPendencias(semProg, progSemCnc) {
+  const l = ['PENDÊNCIAS LANTEK — ordens que ficaram de fora desta impressão casada', `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
+  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem} — ${d.posicoes}`)); l.push(''); }
+  if (progSemCnc.length) {
+    l.push(`🟡 PROGRAMADA NO LANTEK, MAS SEM O CNC CARREGADO AQUI (${progSemCnc.length})`);
+    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem} — ${det}`); });
+  }
+  return l.join('\n');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GRUPO LIC + FLUXO 4 — classificação de material
+   ════════════════════════════════════════════════════════════════ */
+const RE_BARRA_MAT = /\bBARRA(?:S)?\b|\bBARR\.|\bREDONDO\s*CA\b|\bCA-?\s?[56]0\b|\bBR[_\s]*(?:RED|CHAT|CH|QUAD|SEXT)(?![A-Z])/;
+const RE_ITEM_PILARETE = /^PLL\d{0,3}(?:_[A-Z]+)?\s*(?:[-–]|$)/;
+const RE_ITEM_PADRAO = /^(?:SD|SEZ|SEC|PC)\d{0,3}(?:_[A-Z]+)?\s*(?:[-–]|$)/;
+function numeroBr(v) { if (v === null || v === undefined || v === '') return null; const s = String(v).replace(',', '.').trim(); if (s === '') return null; const n = Number(s); return isFinite(n) ? n : null; }
+function mmBr(v) { const n = numeroBr(v); if (n === null) return null; return String(parseFloat(n.toPrecision(6))).replace('.', ','); }
+function medidasDoTexto(t) {
+  const m = /(\d+(?:[,.]\d+)?)\s*[Xx*×]\s*(\d+(?:[,.]\d+)?)(?:\s*[Xx*×]\s*(\d+(?:[,.]\d+)?))?/.exec(String(t));
+  if (!m) return null;
+  return { a: numeroBr(m[1]), b: numeroBr(m[2]), c: m[3] === undefined ? null : numeroBr(m[3]), bruto: m[0].replace(/\s+/g, '').replace(/[*×]/g, 'x') };
+}
+function lerPerfilDesenho(texto) {
+  const c = String(texto || '').toUpperCase().replace(/\s+/g, ' '); if (!c) return null;
+  const br = v => String(v).replace('.', ','); let m;
+  if ((m = /\bBR[_\s]*RED[_\s.]*(\d+(?:[,.]\d+)?)/.exec(c))) return { familia: 'BARRA REDONDA', bitola: 'Ø ' + br(m[1]), espessura: mmBr(m[1]) };
+  if ((m = /\bBR[_\s]*CHAT?[_\s.]*(\d+(?:[,.]\d+)?)[_\s]*[Xx*×][_\s]*(\d+(?:[,.]\d+)?)/.exec(c))) return { familia: 'BARRA CHATA', bitola: br(m[1]) + 'x' + br(m[2]), espessura: mmBr(m[2]) };
+  if ((m = /\bBR[_\s]*QUAD[_\s.]*(\d+(?:[,.]\d+)?)/.exec(c))) return { familia: 'BARRA QUADRADA', bitola: br(m[1]), espessura: mmBr(m[1]) };
+  if ((m = /\bLAM\.?[_\s]*(\d+(?:[,.]\d+)?)/.exec(c))) return { familia: 'CHAPA', bitola: null, espessura: mmBr(m[1]) };
+  if (/\bBR[_\s]*(?:RED|CHAT|CH|QUAD|SEXT)(?![A-Z])/.test(c)) {
+    const fam = /BR[_\s]*RED/.test(c) ? 'BARRA REDONDA' : (/BR[_\s]*QUAD/.test(c) ? 'BARRA QUADRADA' : 'BARRA CHATA');
+    return { familia: fam, bitola: null, espessura: null };
+  }
+  return null;
+}
+function ehPilarete(o, mat) {
+  if (!o) return false;
+  if (o.familia && o.familia.includes('PILARETE')) return true;
+  if (RE_ITEM_PILARETE.test(String(o.item || '').toUpperCase().trim())) return true;
+  if (/\bPILARETE\b|\bPILAR\.?\s*LAM\b/.test(String(o.descricao || '').toUpperCase())) return true;
+  return !!(mat && /\bPILARETE\b/.test(String(mat).toUpperCase()));
+}
+function ehPecaPadrao(o) { if (!o) return false; if (o.estoque) return true; return RE_ITEM_PADRAO.test(String(o.item || '').toUpperCase().trim()); }
+function ehBarra(o, mat) {
+  if (!o) return false;
+  if (o.familia && o.familia.includes('BARRA')) return true;
+  if (RE_BARRA_MAT.test(String(o.descricao || '').toUpperCase())) return true;
+  return !!(mat && RE_BARRA_MAT.test(String(mat).toUpperCase()));
+}
+function classePacote(o) {
+  if (ehPecaPadrao(o)) return 'PEÇAS PADRÃO / ESTOQUE';
+  if (ehBarra(o)) return 'ACESSÓRIOS DE BARRA';
+  if (ehPilarete(o)) return 'PILARETE LAMINADO';
+  return o.familia || 'A CLASSIFICAR';
+}
+const pesoClasse = c => c === 'PEÇAS PADRÃO / ESTOQUE' ? 3 : (c === 'A CLASSIFICAR' ? 2 : 1);
+function classificarMaterial(desc) {
+  const t = String(desc || '').toUpperCase().replace(/\s+/g, ' ');
+  const med = medidasDoTexto(t); const bit = med ? med.bruto : null;
+  const ec = med && med.c !== null ? mmBr(med.c) : null;
+  const ecb = med ? (med.c !== null ? med.c : med.b) : null;
+  if (/\bTELA\b|\bALAMBRAD/.test(t)) return { familia: /PASSARINH/.test(t) ? 'TELA PASSARINHEIRO' : 'TELA', espessura: null, bitola: null };
+  if (RE_BARRA_MAT.test(t)) {
+    const car = lerPerfilDesenho(t); if (car && car.familia) return car;
+    if (/BARRA\s*RED|BARRA\s*Ø|\bBR[_\s]*RED(?![A-Z])|\bREDONDO\s*CA\b|\bCA-?\s?[56]0\b/.test(t)) return { familia: 'BARRA REDONDA', espessura: null, bitola: bit };
+    if (/BARRA\s*QUAD|\bBR[_\s]*QUAD(?![A-Z])/.test(t)) return { familia: 'BARRA QUADRADA', espessura: null, bitola: bit };
+    const chata = /BARRA\s*CHATA|\bBR[_\s]*CHAT?(?![A-Z])/.test(t);
+    return { familia: chata ? 'BARRA CHATA' : 'BARRA', espessura: ecb === null ? null : mmBr(ecb), bitola: bit };
+  }
+  if (/\bPILARETE\b|\bPILAR\.?\s*LAM\b/.test(t)) return { familia: 'PILARETE LAMINADO', espessura: ecb === null ? null : mmBr(ecb), bitola: bit };
+  let m = /\b(?:PERFIL[_\s]*)?(W|HP|VS|CS|CVS)[_\s]*(\d{2,4})\s*[Xx*×]\s*(\d+(?:[,.]\d+)?)/.exec(t);
+  if (m) return { familia: 'PERFIL ' + m[1], espessura: null, bitola: `${m[1]} ${m[2]}x` + m[3].replace('.', ',') };
+  if (/\bPERFIL[_\s]*[IH]\b|\bVIGA[_\s]*[IH]\b/.test(t)) return { familia: 'PERFIL I / H', espessura: null, bitola: bit };
+  if (/\bPERFIL[_\s]*Z\b|\bENTERPRISE\s*Z\b|\bZ[_\s]*\d{2,3}\s*[Xx*×]/.test(t)) return { familia: 'PERFIL Z', espessura: ec, bitola: bit };
+  if (/\bUDC\b|\bPERFIL[_\s]*U\b|\bU[_\s]*\d{2,3}\s*[Xx*×]/.test(t)) return { familia: 'PERFIL U / UDC', espessura: ec, bitola: bit };
+  if (/CARTOLA/.test(t)) return { familia: 'PERFIL CARTOLA', espessura: ec, bitola: bit };
+  if (/\bTUBO\b|\bTB\b/.test(t)) {
+    let fam = 'TUBO';
+    if (/\bRED(?:ONDO|\.)?\b|Ø|\bDIAM/.test(t)) fam = 'TUBO REDONDO';
+    else if (/\bQUAD(?:RADO|\.)?\b/.test(t)) fam = 'TUBO QUADRADO';
+    else if (/\bRET(?:ANGULAR|\.)?\b/.test(t)) fam = 'TUBO RETANGULAR';
+    else if (med && med.c !== null) fam = med.a === med.b ? 'TUBO QUADRADO' : 'TUBO RETANGULAR';
+    else if (med) fam = 'TUBO REDONDO';
+    return { familia: fam, espessura: ecb === null ? null : mmBr(ecb), bitola: bit };
+  }
+  if (/CANTONEIRA|\bL[_\s]*\d{2,3}\s*[Xx*×]\s*\d+/.test(t)) return { familia: 'CANTONEIRA', espessura: ecb === null ? null : mmBr(ecb), bitola: bit };
+  if (/BARRA\s*RED|BARRA\s*Ø|\bREDONDO\s*CA\b/.test(t)) return { familia: 'BARRA REDONDA', espessura: null, bitola: bit };
+  if (/BARRA\s*CHATA|\bBARRA\b/.test(t)) return { familia: 'BARRA CHATA', espessura: ecb === null ? null : mmBr(ecb), bitola: bit };
+  if (/\bTELHA\b|\bTRAPEZOID/.test(t)) return { familia: 'TELHA', espessura: ec, bitola: bit };
+  if (/\bCHAPA\b|\bCH\b|#/.test(t)) {
+    const mc = /(?:\bCHAPA\b|\bCH\b|#)\s*(\d+(?:[,.]\d+)?)/.exec(t);
+    const e = mc ? numeroBr(mc[1]) : (med && med.c !== null ? med.c : null);
+    return { familia: 'CHAPA', espessura: e === null ? null : mmBr(e), bitola: bit };
+  }
+  if (/PARAFUSO|PORCA|ARRUELA|CHUMBADOR/.test(t)) return { familia: 'FIXAÇÃO', espessura: null, bitola: null };
+  return { familia: null, espessura: ec, bitola: bit };
+}
+
+const PADROES_PACOTE = {
+  grupoLic: [/\bGRP[_\s]*LIC\.?\s*:?\s*([^\n]{1,60})/i, /\bGRUPO[\s_]*LIC(?:ITACAO|ITAÇÃO)?\s*[:=]\s*([^\n]{1,60})/i, /\bGR(?:\.|UPO)?[\s_]*LIC\.?\s*[:=]\s*([^\n]{1,60})/i, /\bGRUPO\s*[:=]\s*([^\n]{1,60})/i],
+  obra: [/\bOBRA\s*:?\s*(\d{1,10})\b/i],
+  item: [/\bITEM\s*:\s*([^\n]{1,60})/i, /\b(?:DESCRICAO|DESCRIÇÃO|PRODUTO)\s*[:=]\s*([^\n]{1,90})/i],
+  bitolaNome: [/\bNOME_PERFIL\s*:\s*(\S{1,30})/i, /\bNOME[_\s]*ITEM\s*:\s*(\S{1,30})/i],
+  material: [/\bTP[_\s]*MATL\s*:\s*([^\n]{1,60})/i, /\b(?:MATERIAL|MAT)\s*[:=]\s*([^\n]{1,90})/i],
+  espessura: [/\bESP(?:ESSURA)?\s*[:=]\s*(\d+(?:[,.]\d+)?)\s*(?:MM)?\b/i, /\bE\s*=\s*(\d+(?:[,.]\d+)?)\s*MM\b/i],
+  estoque: [/\bITEM[_\s]*EST\s*:?\s*(SIM|S|NAO|NÃO|N)\b/i],
+  ident: [/\bIDENT\s*:?\s*([A-Z_]{3,30})\b/i],
+  demanda: [/\b\d{3,6}\s*[-–]\s*((?:CHAPA|BARRA|TUBO|PERFIL|TELA|TELHA|CANTONEIRA|CH)\b[^\n]{0,60})/i,
+    /\b((?:CHAPA|BARRA|TUBO|TELA|TELHA|CANTONEIRA)\s+(?:CORTAD|LAMINAD|GALV|ASTM|DOBRAD|[A-Z0-9])[^\n]{0,60})/i],
+};
+const SEP = String.raw`\s*[:;.\-]?\s*`;
+const PADROES_OF = [
+  new RegExp(String.raw`\bOF\b` + SEP + String.raw`(\d{5,12})\b`, 'i'),
+  new RegExp(String.raw`\bO\.?F\.?\s*n?[º°o]?` + SEP + String.raw`(\d{5,12})\b`, 'i'),
+  new RegExp(String.raw`\bORDEM(?:\s*DE\s*FABRICA\S*)?\s*n?[º°o]?` + SEP + String.raw`(\d{5,12})\b`, 'i'),
+  new RegExp(String.raw`\bO\.?P\.?\s*n?[º°o]?` + SEP + String.raw`(\d{5,12})\b`, 'i'),
+  new RegExp(String.raw`\b(?:JOB|WORK\s*ORDER)` + SEP + String.raw`(\d{5,12})\b`, 'i')];
+const ROTULOS_POS = ['POS', 'POSICAO', 'POSIÇÃO', 'PECA', 'PEÇA', 'MARCA', 'MARK', 'PIECE', 'ITEM_POS'];
+const RE_ROTULOS_POS = ROTULOS_POS.map(r => new RegExp('\\b' + escRe(r).replace(/_/g, '[_\\s]') + '\\b' + SEP + '([A-Za-z0-9@_.\\-\\[\\]]+)', 'gi'));
+function acharOfPacote(t) { for (const rx of PADROES_OF) { const m = rx.exec(t); if (m) return m[1]; } return null; }
+function acharPosicoesPacote(t) {
+  const out = [];
+  for (const rx of RE_ROTULOS_POS) { rx.lastIndex = 0; let m; while ((m = rx.exec(t))) { const n = normPosCasamento(separarParte(m[1])[0]); if (n) out.push({ bruto: m[1], norm: n }); } }
+  return out;
+}
+function limparCampo(v) {
+  let s = String(v || '');
+  s = s.split(/\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ_.]{2,}\s*:)/)[0];
+  s = s.split(/\s+(?=GRP[_\s]*LIC)/i)[0];
+  return s.trim().replace(/[.,;:\-]+$/, '').replace(/\s+/g, ' ');
+}
+function primeiroPadrao(t, lista) { for (const rx of lista) { const m = rx.exec(t); if (m && limparCampo(m[1])) return limparCampo(m[1]); } return null; }
+const limparDemanda = v => String(v || '').replace(/\s+(?:KG|TON|UN|P[ÇC]|M2|M)\b[\s\S]*$/i, '').trim();
+function trocaFamilia(atual, nova) { if (!nova) return false; if (!atual) return true; if (nova === atual) return false; return nova.startsWith(atual); }
+function chaveGrupoLic(o) { const c = String(o.item || '').split(' - ')[0].trim().toUpperCase(); return c || null; }
+
+function lerOrdensDoPacote(paginas) {
+  const ordens = {}, p2o = {}; let atual = null;
+  paginas.forEach((pg, p) => {
+    const texto = pg.linhas.join('\n').replace(/-[ \t]*\n[ \t]*/g, '-');
+    const of = acharOfPacote(texto);
+    if (of) {
+      atual = of;
+      ordens[atual] = ordens[atual] || { of: atual, paginas: [], posicoes: new Set(), rotulos: new Set(), texto_cab: '', texto_desenho: '', grupo_lic: null, descricao: '', familia: null, item: '', bitola_nome: '', material: '', espessura: null, bitola: null, estoque: false };
+      ordens[atual].texto_cab += (ordens[atual].texto_cab ? '\n' : '') + texto;
+      for (const it of acharPosicoesPacote(texto)) { ordens[atual].posicoes.add(it.norm); ordens[atual].rotulos.add(it.bruto); for (const v of variacoesPosicao(it.norm)) if (!(v in p2o)) p2o[v] = atual; }
+    }
+    if (atual) { ordens[atual].paginas.push(p); if (!of && ordens[atual].texto_desenho.length < 4000) ordens[atual].texto_desenho += '\n' + texto; }
+  });
+  const lembrado = lsGet('ppcp_mapa_grupo_lic', {});
+  for (const o of Object.values(ordens)) {
+    const t = o.texto_cab;
+    o.grupo_lic = primeiroPadrao(t, PADROES_PACOTE.grupoLic);
+    o.obra = primeiroPadrao(t, PADROES_PACOTE.obra) || '';
+    o.item = primeiroPadrao(t, PADROES_PACOTE.item) || '';
+    o.bitola_nome = primeiroPadrao(t, PADROES_PACOTE.bitolaNome) || '';
+    o.material = primeiroPadrao(t, PADROES_PACOTE.material) || '';
+    o.descricao = [o.item, o.bitola_nome, o.material].filter(Boolean).join(' · ');
+    if (!o.grupo_lic) { const ch = chaveGrupoLic(o); if (ch && lembrado[ch]) o.grupo_lic = lembrado[ch]; }
+    const est = primeiroPadrao(t, PADROES_PACOTE.estoque);
+    o.estoque = est ? /^S/i.test(est) : /\bESTOQUE\b/i.test(t);
+    o.ident = primeiroPadrao(t, PADROES_PACOTE.ident) || '';
+    o.demanda = limparDemanda(primeiroPadrao(t, PADROES_PACOTE.demanda));
+    const base = [o.item, o.bitola_nome, o.material].filter(Boolean).join(' ');
+    let cls = classificarMaterial(base || t); o.origem_classe = 'ITEM/TP_MATL';
+    if (o.demanda) {
+      const cd = classificarMaterial((base + ' ' + o.demanda).trim());
+      if (cd.familia && (!cls.familia || (cd.familia !== cls.familia && cd.familia.startsWith(cls.familia)))) { cls = cd; o.origem_classe = 'DEMANDA'; }
+    }
+    for (const [fonte, tx] of [['IDENT', o.ident], ['texto da folha', t]]) {
+      if (cls.familia || !tx) continue; const c = classificarMaterial(tx); if (c.familia) { cls = c; o.origem_classe = fonte; }
+    }
+    const car = lerPerfilDesenho(base) || lerPerfilDesenho(t) || lerPerfilDesenho(o.texto_desenho);
+    if (car) { o.perfil_carimbo = car.bitola || car.familia; if (trocaFamilia(cls.familia, car.familia)) { cls = car; o.origem_classe = 'carimbo do desenho'; } }
+    o.familia = cls.familia;
+    o.bitola = cls.bitola || (car ? car.bitola : null);
+    let esp = mmBr(primeiroPadrao(t, PADROES_PACOTE.espessura));
+    if (esp === '0') esp = null;
+    if (!esp && car) esp = car.espessura;
+    if (!esp) esp = cls.espessura;
+    o.espessura = esp;
+  }
+  return { ordens, p2o };
+}
+function chavePosNatural(pos) { return (String(pos).match(/\d+|\D+/g) || []).map(p => /^\d+$/.test(p) ? [0, parseInt(p, 10)] : [1, p.toUpperCase()]); }
+function cmpNatural(a, b) {
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) { const [ta, va] = a[i], [tb, vb] = b[i]; if (ta !== tb) return ta - tb; if (va < vb) return -1; if (va > vb) return 1; }
+  return a.length - b.length;
+}
+function posRepresentativa(o) { const p = [...(o.posicoes || [])]; if (!p.length) return null; p.sort((a, b) => cmpNatural(chavePosNatural(a), chavePosNatural(b))); return p[0]; }
+function cmpOrdensPorPosicao(ordens) {
+  return (a, b) => {
+    const pa = posRepresentativa(ordens[a]), pb = posRepresentativa(ordens[b]);
+    if (pa !== null && pb !== null) return cmpNatural(chavePosNatural(pa), chavePosNatural(pb));
+    if (pa !== null) return -1; if (pb !== null) return 1; return +a - +b;
+  };
+}
+function montarArvoreGrupoLic(ordens) {
+  const pg = new Map();
+  for (const [of, o] of Object.entries(ordens)) {
+    const g = (o.grupo_lic || '').trim() || null, c = classePacote(o), e = o.espessura || o.bitola || '—';
+    if (!pg.has(g)) pg.set(g, {}); const cd = pg.get(g); cd[c] = cd[c] || {}; (cd[c][e] = cd[c][e] || []).push(of);
+  }
+  const cmp = cmpOrdensPorPosicao(ordens);
+  const chaves = [...pg.keys()].sort((a, b) => a === null ? 1 : b === null ? -1 : (a < b ? -1 : a > b ? 1 : 0));
+  return chaves.map(g => {
+    const cd = pg.get(g);
+    const classes = Object.keys(cd).sort((a, b) => pesoClasse(a) - pesoClasse(b) || (a < b ? -1 : 1)).map(c => {
+      const esps = Object.entries(cd[c]).map(([r, ofs]) => ({ rotulo: r, ordens: ofs.sort(cmp) })).sort((a, b) => a.rotulo < b.rotulo ? -1 : 1);
+      return { classe: c, espessuras: esps, total: esps.reduce((s, e) => s + e.ordens.length, 0) };
+    });
+    return { grupo_lic: g || 'SEM GRUPO LIC (preencher)', sem: g === null, classes, total: classes.reduce((s, c) => s + c.total, 0) };
+  });
+}
+function numeroFluxo(v) { const m = /\d+/.exec(String(v ?? '')); return m ? String(parseInt(m[0], 10)) : ''; }
+function ordemDaPosicaoPacote(pos, p2o) {
+  const ex = ordemDaPosicao(pos, p2o); if (ex) return ex;
+  const s = String(pos).toUpperCase(); const semRev = s.replace(/_(?:R|REV)\d*$/, '');
+  const cands = []; if (semRev !== s) cands.push(semRev);
+  const partes = semRev.split('_'); for (let k = 1; k < partes.length; k++) { const c = partes.slice(k).join('_'); if (c.length >= 3) cands.push(c); }
+  for (const c of cands) { const r = ordemDaPosicao(c, p2o); if (r) return r; }
+  return null;
+}
+async function lerRelatorioFluxosPacote(file) {
+  const pl = await lerArquivoTabular(file);
+  const aba = pl.find(p => norm(p.nome) === norm('Relatório Consolidado') || norm(p.nome).includes('CONSOLIDAD'));
+  if (!aba) throw new Error('não encontrei a aba "Relatório Consolidado" no relatório de fluxos');
+  const rows = aba.rows, h = (rows[0] || []).map(norm);
+  const ix = (n, d) => { const i = h.indexOf(norm(n)); return i >= 0 ? i : d; };
+  const iOF = ix('OF', 0), iPos = ix('Posição', 1), iFx = ix('FLUXO', 3), iMat = ix('MATERIAL', 4), iEsp = ix('Espessura (mm)', 5), iMaq = ix('Máquina', null);
+  const g = (r, i) => (i !== null && i < r.length) ? r[i] : null;
+  return rows.slice(1).filter(r => r && r.some(v => v !== null && v !== '')).map(r => ({ of: g(r, iOF), posicao: g(r, iPos), fluxo: g(r, iFx), material: g(r, iMat), espessura: g(r, iEsp), maquina: g(r, iMaq) }));
+}
+const MAQUINAS_FLUXO4 = ['CHINESSINHA', 'CHINESINHA', 'GUILHOTINA PQ'];
+const maquinaIndicaFluxo4 = m => MAQUINAS_FLUXO4.some(x => norm(m || '').startsWith(norm(x)));
+const posicaoFluxo4Fixo = p => ['AR08', 'XH'].some(x => String(p || '').toUpperCase().startsWith(x));
+const obraDoOfPlanilha = v => { const m = /^\s*(\d{2,10})/.exec(String(v ?? '')); return m ? m[1] : ''; };
+function casarFluxoDoPacote(ordens, p2o, obraPacote, linhasRel, alvo, mapaFxPos = {}) {
+  alvo = String(alvo);
+  const daObra = obraPacote ? linhasRel.filter(r => obraDoOfPlanilha(r.of) === obraPacote) : linhasRel;
+  const porOf = {}, semOrdem = [];
+  for (const r of daObra) {
+    let fx = numeroFluxo(r.fluxo); if (!fx && maquinaIndicaFluxo4(r.maquina)) fx = '4';
+    const of = r.posicao ? ordemDaPosicaoPacote(r.posicao, p2o) : null;
+    if (!of || !ordens[of]) { if (fx === alvo) semOrdem.push(r); continue; }
+    const a = porOf[of] = porOf[of] || { fluxos: {}, posicoes: 0 }; a.posicoes++; const k = fx || '—'; a.fluxos[k] = (a.fluxos[k] || 0) + 1;
+  }
+  const dominante = of => {
+    if ([...(ordens[of].posicoes || [])].some(posicaoFluxo4Fixo)) return '4';
+    const fs = porOf[of] && porOf[of].fluxos;
+    if (fs && Object.keys(fs).length) return Object.entries(fs).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0][0];
+    for (const p of ordens[of].posicoes || []) if (mapaFxPos[p]) return String(mapaFxPos[p]);
+    return '';
+  };
+  const doFluxo = [], excl = [], semInfo = [];
+  for (const of of Object.keys(ordens)) {
+    const fx = dominante(of);
+    if (!fx) { semInfo.push({ of, posicoes: [...(ordens[of].posicoes || [])].sort() }); continue; }
+    if (fx !== alvo) continue;
+    const o = ordens[of]; if (ehBarra(o) || ehPilarete(o) || ehPecaPadrao(o)) { excl.push(of); continue; }
+    doFluxo.push(of);
+  }
+  const ce = of => { const e = ordens[of].espessura; const n = parseFloat(String(e).replace(',', '.')); return e && isFinite(n) ? n : Infinity; };
+  const cp = cmpOrdensPorPosicao(ordens);
+  doFluxo.sort((a, b) => ce(a) - ce(b) || cp(a, b));
+  semInfo.sort((a, b) => +a.of - +b.of);
+  return { doFluxo, excl: excl.sort((a, b) => +a - +b), semOrdem, semInfo };
+}
+async function gerarPdfOrdens(bytes, ordens, lista) {
+  const { PDFDocument } = PDFLib;
+  const src = await PDFDocument.load(bytes.slice(0), { ignoreEncryption: true });
+  const out = await PDFDocument.create();
+  const idx = []; for (const of of lista) for (const p of [...((ordens[of] || {}).paginas || [])].sort((a, b) => a - b)) idx.push(p);
+  const pags = await out.copyPages(src, idx); pags.forEach(p => out.addPage(p));
+  return { blob: new Blob([await out.save()], { type: 'application/pdf' }), total: out.getPageCount() };
+}
+const RE_NOME_INVALIDO = /[\\/:*?"<>|]+/g;
+
+/* ════════════════════════════════════════════════════════════════
+   BUSCA AUTOMÁTICA POR OBRA (pastas do computador)
+   ════════════════════════════════════════════════════════════════ */
+const EXT_PRIOR = { '.csv': 0, '.xlsx': 1, '.xlsm': 1, '.xlsb': 1, '.xls': 2, '.txt': 2, '.tsv': 2, '.dbf': 3 };
+function splitExt(n) { const i = n.lastIndexOf('.'); return i > 0 ? [n.slice(0, i), n.slice(i)] : [n, '']; }
+function nomeBateObra(nb, ol) { nb = nb.toLowerCase(); if (nb === ol) return true; return nb.startsWith(ol) && ['_', '-', ' '].includes(nb.charAt(ol.length)); }
+async function listarRef(ref) {
+  if (ref.tipo === 'fs') {
+    const out = [];
+    try { for await (const [name, h] of ref.handle.entries()) out.push({ name, kind: h.kind === 'directory' ? 'dir' : 'file', ref: { tipo: 'fs', handle: h } }); } catch (e) { }
+    return out;
+  }
+  return [...ref.node.children.values()].map(c => ({ name: c.name, kind: c.kind, ref: { tipo: 'v', node: c } }));
+}
+const obterArquivoRef = ref => ref.tipo === 'fs' ? ref.handle.getFile() : Promise.resolve(ref.node.file);
+const cacheZip = new Map();
+async function abrirZip(ref, nome) {
+  const k = ref.tipo === 'fs' ? ref.handle : ref.node;
+  if (!cacheZip.has(k)) cacheZip.set(k, (async () => { try { return await JSZip.loadAsync(await obterArquivoRef(ref)); } catch (e) { return null; } })());
+  return cacheZip.get(k);
+}
+async function escanearZip(ref, nome) {
+  const z = await abrirZip(ref, nome); if (!z) return [];
+  const out = [];
+  z.forEach((caminho, ent) => {
+    if (ent.dir) return;
+    const partes = caminho.split('/'); const [b, x] = splitExt(partes[partes.length - 1]); const pe = EXT_PRIOR[x.toLowerCase()];
+    if (pe === undefined) return;
+    const pai = (partes[partes.length - 2] || '').trim().toUpperCase();
+    out.push({ prior: [pai === 'DBF' ? 0 : 1, pe], base: b, src: { tipo: 'zip', z, interno: caminho } });
+  });
+  return out;
+}
+async function escanearCompleto(ref, nome) {
+  const achados = []; let nivel = [{ ref, nome }];
+  while (nivel.length) {
+    const prox = [], zips = [];
+    const res = await Promise.all(nivel.map(async p => ({ p, ents: await listarRef(p.ref) })));
+    for (const { p, ents } of res) {
+      const pp = p.nome.trim().toUpperCase() === 'DBF' ? 0 : 1;
+      for (const e of ents) {
+        if (e.kind === 'dir') { prox.push({ ref: e.ref, nome: e.name }); continue; }
+        const [b, x] = splitExt(e.name); const xl = x.toLowerCase();
+        if (xl === '.zip') { zips.push(e); continue; }
+        const pe = EXT_PRIOR[xl]; if (pe === undefined) continue;
+        achados.push({ prior: [pp, pe], base: b, src: { tipo: 'arq', ref: e.ref } });
+      }
+    }
+    if (zips.length) (await Promise.all(zips.map(z => escanearZip(z.ref, z.name)))).forEach(a => achados.push(...a));
+    nivel = prox;
+  }
+  return achados;
+}
+function filtrar(achados, ol) {
+  return achados.filter(a => nomeBateObra(a.base, ol)).map(a => ({
+    prior: a.prior, baseLower: a.base.toLowerCase(),
+    obter: async () => a.src.tipo === 'arq' ? obterArquivoRef(a.src.ref) : new File([await a.src.z.file(a.src.interno).async('blob')], a.src.interno.split('/').pop()),
+  }));
+}
+function melhorPorArquivo(cands) {
+  const m = new Map();
+  for (const c of cands) { const at = m.get(c.baseLower); if (!at || cmpArr(c.prior, at.prior) < 0) m.set(c.baseLower, c); }
+  const v = [...m.values()]; if (!v.length) return [];
+  return Math.min(...v.map(c => c.prior[1])) === 0 ? v.filter(c => c.prior[1] === 0) : v;
+}
+async function buscarDbfsPorObra(raizes, obras, completa, progresso) {
+  const prefixos = [...new Set(obras.map(o => o.split('-')[0]))];
+  progresso(`Verificando o atalho de ${prefixos.length} obra(s) em ${raizes.length} pasta(s) raiz…`);
+  const nivel1 = await Promise.all(raizes.map(r => listarRef(r.ref)));
+  const cacheRapido = new Map(), precisaLenta = new Set();
+  await Promise.all(raizes.flatMap((r, ri) => prefixos.map(async pf => {
+    const ent = nivel1[ri].find(e => e.kind === 'dir' && e.name.toLowerCase() === pf.toLowerCase());
+    const ez = nivel1[ri].find(e => e.kind === 'file' && e.name.toLowerCase() === (pf + '.zip').toLowerCase());
+    let v = null; if (ent) v = await escanearCompleto(ent.ref, ent.name); else if (ez) v = await escanearZip(ez.ref, ez.name);
+    cacheRapido.set(ri + '|' + pf, v); if (v === null) precisaLenta.add(ri);
+  })));
+  const cacheLenta = new Map();
+  if (completa && precisaLenta.size) {
+    progresso(`Atalho não achou tudo — varrendo ${precisaLenta.size} pasta(s) raiz inteira(s) (pode demorar)…`);
+    await Promise.all([...precisaLenta].map(async ri => cacheLenta.set(ri, await escanearCompleto(raizes[ri].ref, raizes[ri].nome))));
+  }
+  progresso('Cruzando resultados…');
+  const encontrados = [], naoAchadas = [];
+  for (const obra of obras) {
+    const ol = obra.toLowerCase(), pf = obra.split('-')[0]; const cands = [];
+    for (let ri = 0; ri < raizes.length; ri++) {
+      const bruto = cacheRapido.get(ri + '|' + pf);
+      if (bruto) { cands.push(...filtrar(bruto, ol)); continue; }
+      for (const e of nivel1[ri]) {
+        const ez = e.name.toLowerCase().endsWith('.zip'); const ns = ez ? e.name.slice(0, -4) : e.name;
+        if (!nomeBateObra(ns, ol)) continue;
+        if (e.kind === 'dir') cands.push(...filtrar(await escanearCompleto(e.ref, e.name), ol));
+        else if (ez) cands.push(...filtrar(await escanearZip(e.ref, e.name), ol));
+      }
+      if (cacheLenta.has(ri)) cands.push(...filtrar(cacheLenta.get(ri), ol));
+    }
+    const ach = melhorPorArquivo(cands);
+    if (ach.length) for (const c of ach) { try { encontrados.push(await c.obter()); } catch (e) { } }
+    else naoAchadas.push(obra);
+  }
+  return { encontrados, naoAchadas };
+}
+
+/* ════════════════════════════════════════════════════════════════
+   COMPONENTE: ÁRVORE COM CAIXAS DE MARCAR
+   ════════════════════════════════════════════════════════════════ */
+function renderArvore(container, nos, aoSelecionar) {
+  container.innerHTML = ''; const ul = document.createElement('ul'); let sel = null;
+  const criar = n => {
+    const li = document.createElement('li'); const row = document.createElement('div'); row.className = 'tn';
+    const tem = n.children && n.children.length;
+    const tg = document.createElement('span'); tg.className = 'tg'; tg.textContent = tem ? (n.open ? '▾' : '▸') : ''; row.appendChild(tg);
+    if (n.check !== false) {
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = true; row.appendChild(cb);
+      cb.addEventListener('change', () => li.querySelectorAll('input[type=checkbox]').forEach(x => x.checked = cb.checked));
+    }
+    const lb = document.createElement('span'); lb.textContent = n.label; if (n.cor) lb.style.color = n.cor; row.appendChild(lb);
+    if (n.det) { const d = document.createElement('span'); d.className = 'det'; d.textContent = n.det; row.appendChild(d); }
+    for (const a of n.acoes || []) { const b = document.createElement('button'); b.className = 'b mini'; b.textContent = a.txt; b.onclick = e => { e.stopPropagation(); a.fn(li); }; row.appendChild(b); }
+    if (n.of) li.dataset.of = n.of;
+    li.appendChild(row);
+    let sub = null;
+    if (tem) { sub = document.createElement('ul'); sub.hidden = !n.open; n.children.forEach(c => sub.appendChild(criar(c))); li.appendChild(sub); }
+    tg.onclick = () => { if (!sub) return; sub.hidden = !sub.hidden; tg.textContent = sub.hidden ? '▸' : '▾'; };
+    row.addEventListener('click', e => {
+      if (e.target.tagName === 'INPUT' || e.target === tg || e.target.tagName === 'BUTTON') return;
+      if (sel) sel.classList.remove('sel'); sel = row; row.classList.add('sel'); if (aoSelecionar) aoSelecionar(n, li);
+    });
+    return li;
+  };
+  nos.forEach(n => ul.appendChild(criar(n))); container.appendChild(ul);
+}
+function ofsMarcadasSob(li) {
+  const out = [];
+  for (const x of [li, ...li.querySelectorAll('li[data-of]')]) {
+    if (!x.dataset || !x.dataset.of) continue;
+    const cb = x.querySelector(':scope > .tn > input[type=checkbox]');
+    if (!cb || cb.checked) out.push(x.dataset.of);
+  }
+  return out;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   INTERFACE
+   ════════════════════════════════════════════════════════════════ */
+const S = {
+  an: { dbfs: [], focco: null, det: [], grp: [], rows: [], ofTrecho: '' },
+  ag: { entries: [], base: null, fluxoMap: null, fluxoArq: null, focoRows: null, raizes: [] },
+  lic: { arq: null, bytes: null, ordens: null, p2o: null, sel: null },
+  f4: { arq: null, rel: null, ultimo: null, sel: null },
+};
+
+document.querySelector('.painel').classList.add('ativo');
+
+// ── cores ──
+const CORES_PADRAO = { cyan: '#00e5ff', magenta: '#ff2fd0', green: '#39ff8f', amber: '#ffb02e', modo: 'escuro' };
+function aplicarCores(c) {
+  const r = document.documentElement;
+  r.style.setProperty('--cyan', c.cyan); r.style.setProperty('--magenta', c.magenta); r.style.setProperty('--green', c.green); r.style.setProperty('--amber', c.amber);
+  r.dataset.theme = c.modo === 'claro' ? 'claro' : 'escuro';
+}
+let CORES = { ...CORES_PADRAO, ...lsGet('ppcp_cores', {}) }; aplicarCores(CORES);
+$('#btn-cores').onclick = async () => {
+  const d = document.createElement('div');
+  const campos = [['cyan', 'Destaque / botões principais'], ['magenta', 'Botões de ação'], ['green', 'Sucesso'], ['amber', 'Aviso']];
+  d.innerHTML = campos.map(([k, r]) => `<div class="linha"><input type="color" data-k="${k}" value="${CORES[k]}"> ${r}</div>`).join('') +
+    `<div class="linha">Tema: <label><input type="radio" name="modo" value="escuro" ${CORES.modo !== 'claro' ? 'checked' : ''}> 🌙 Escuro</label><label><input type="radio" name="modo" value="claro" ${CORES.modo === 'claro' ? 'checked' : ''}> ☀ Claro</label></div>`;
+  const v = await modal({ titulo: 'Cores da tela', html: d, botoes: [{ txt: 'Restaurar padrão', valor: 'padrao' }, { txt: 'Cancelar', valor: null }, { txt: 'Aplicar', valor: 'ok', cls: 'principal' }] });
+  if (v === 'padrao') CORES = { ...CORES_PADRAO };
+  else if (v === 'ok') { d.querySelectorAll('input[type=color]').forEach(i => CORES[i.dataset.k] = i.value); CORES.modo = d.querySelector('input[name=modo]:checked').value; }
+  else return;
+  aplicarCores(CORES); lsSet('ppcp_cores', CORES);
+};
+
+function renderTabela(tab, cols, linhas, clsFn) {
+  tab.innerHTML = '<thead><tr>' + cols.map(c => `<th>${esc(c)}</th>`).join('') + '</tr></thead><tbody>' +
+    linhas.map((l, i) => `<tr class="${clsFn ? clsFn(i) : ''}">` + l.map(v => `<td>${esc(v)}</td>`).join('') + '</tr>').join('') + '</tbody>';
+}
+function renderListaArquivos(ul, files, onRemover) {
+  ul.innerHTML = files.length ? '' : '<li class="fraco">nenhum arquivo</li>';
+  files.forEach((f, i) => {
+    const li = document.createElement('li'); li.innerHTML = `<span>📄 ${esc(f.name)}</span><span class="x" title="remover">✕</span>`;
+    li.querySelector('.x').onclick = () => onRemover(i); ul.appendChild(li);
+  });
+}
+const temArquivo = (lista, f) => lista.some(x => x.name === f.name && x.size === f.size && x.lastModified === f.lastModified);
+
+const ACC_TAB = '.xlsx,.xlsm,.xls,.xlsb,.csv,.txt,.tsv,.dbf';
+async function lerPacote(arq, p) {
+  const bytes = new Uint8Array(await arq.arrayBuffer());
+  p('Lendo PDF do pacote…'); const pags = await lerPaginasPdf(bytes, p, 'Lendo PDF do pacote');
+  p('Classificando ordens…'); const r = lerOrdensDoPacote(pags);
+  return { bytes, ...r };
+}
+// ═══ ABAS IMPRESSÃO CASADA (simples e multi-obra) ═══
+function montarImpressao(painel, multi) {
+  const id = s => painel.querySelector(`[data-id="${s}"]`);
+  painel.innerHTML = `
+  <div class="grid2">
+  <div class="cx"><div class="cx-h"><span class="badge">1</span><h3>PDF(s) dos CNCs (nesting)${multi ? ' — pode misturar várias obras' : ''}</h3>${multi ? '' : '<button class="b bz" data-id="atualizar" title="Zerar a aba para uma nova validação" style="margin-left:auto"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg><span>Atualizar</span></button>'}</div>
+    <div class="linha"><button class="b bz" data-id="cnc-add"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6M9 15h6"/></svg><span>Adicionar PDF(s) de CNC…</span></button><button class="b bz sec" data-id="cnc-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <ul class="lista" data-id="cnc-lista"></ul><div class="drop" data-id="cnc-drop"><div>arraste PDF(s) de CNC aqui</div></div></div>
+  <div class="cx"><div class="cx-h"><span class="badge">2</span><h3>PDF das Ordens de Fabricação${multi ? ' — pode misturar várias obras' : ''}</h3></div>
+    <div class="linha"><button class="b bz" data-id="ord-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span>Escolher PDF das Ordens…</span></button><button class="b bz sec" data-id="ord-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <div class="lblbox"><span data-id="ord-lbl" class="fraco">nenhum arquivo carregado</span></div>
+    <div class="drop" data-id="ord-drop"><div>arraste o PDF das Ordens aqui</div></div></div>
+  </div>
+  ${multi ? `<div class="cx"><div class="cx-h"><span class="badge">3</span><h3>Relatório de Fluxos — organiza por Obra → Fluxo</h3></div>
+    <div class="linha"><button class="b bz" data-id="rel-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.3"/><circle cx="6" cy="18" r="2.3"/><circle cx="18" cy="12" r="2.3"/><path d="M6 8.3v7.4M8.3 6H12a3 3 0 0 1 3 3v.7M8.3 18H12a3 3 0 0 0 3-3v-.7"/></svg><span>Escolher Relatório de Fluxos…</span></button><button class="b bz sec" data-id="rel-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <div class="lblbox"><span data-id="rel-lbl" class="fraco">nenhum relatório carregado</span></div>
+    <div class="drop" data-id="rel-drop"><div>arraste o Relatório de Fluxos aqui</div></div></div>` : ''}
+  <div class="grid2">
+  <div class="cx"><div class="cx-h"><span class="badge">${multi ? 4 : 3}</span><h3>Relatório do Lantek (opcional) — segurança extra contra peça sem programação</h3></div>
+    <div class="linha"><button class="b bz" data-id="lan-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg><span>Escolher Relatório do Lantek…</span></button><button class="b bz sec" data-id="lan-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <div class="lblbox"><span data-id="lan-lbl" class="fraco">sem ele, a conferência de "programado ou não" fica desligada</span></div>
+    <div class="drop" data-id="lan-drop"><div>arraste o Relatório do Lantek (.csv) aqui</div></div></div>
+  <div class="cx"><div class="cx-h"><span class="badge">${multi ? 5 : 4}</span><h3>Opções de impressão</h3></div>
+    <label class="chk"><input type="checkbox" data-id="o-duplex" checked> Frente e verso <small>insere página em branco pra fechar bloco ímpar</small></label>
+    <label class="chk"><input type="checkbox" data-id="o-folha" checked> Folha dedicada por CNC <small>cada página de CNC sozinha na folha</small></label>
+    <label class="chk"><input type="checkbox" data-id="o-a4" checked> Padronizar tudo em A4 <small>recorta a margem vazia e aproveita a folha</small></label>
+    <label class="chk"><input type="checkbox" data-id="o-completa" checked> Só com quantidade completa <small>não imprime a ordem se faltar peça nos CNCs</small></label>
+    <label class="chk"><input type="checkbox" data-id="o-unir" checked> Unir peça dividida [A]/[B] <small>as metades saem em sequência</small></label></div>
+  </div>
+  <div class="cx out"><div class="barra"><div class="status" data-id="status">Aguardando arquivos...</div><div class="linha"><button class="b bz sec" data-id="conferir"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Conferir antes</span></button><button class="b acao bz" data-id="gerar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg><span>Gerar PDF${multi ? ' — organizado por Obra → Fluxo' : ' na Sequência de Impressão'}</span></button></div></div></div>
+  <div class="cx res"><div class="arvore" data-id="arvore"></div></div>
+  <div data-id="conf-host"></div>`;
+  painel.querySelectorAll('h3.clicavel').forEach(h => h.onclick = () => { const g = h.parentNode; g.classList.toggle('recolhida'); h.textContent = (g.classList.contains('recolhida') ? '▸' : '▾') + h.textContent.slice(1); });
+  if (id('atualizar')) id('atualizar').onclick = () => montarImpressao(painel, multi);
+  const st = { cnc: [], ord: null, rel: null, lan: null };
+  const rl = () => renderListaArquivos(id('cnc-lista'), st.cnc, i => { st.cnc.splice(i, 1); rl(); });
+  const addCnc = fs => { fs.forEach(f => { if (!temArquivo(st.cnc, f)) st.cnc.push(f); }); rl(); };
+  id('cnc-add').onclick = async () => addCnc(await escolherArquivos('.pdf', true));
+  id('cnc-limpar').onclick = () => { st.cnc = []; rl(); };
+  areaSoltar(id('cnc-drop'), addCnc, '.pdf');
+  const setArq = (k, lblId) => f => { st[k] = f; id(lblId).textContent = '✓ ' + f.name; id(lblId).className = 'ok'; };
+  const sOrd = setArq('ord', 'ord-lbl'), sLan = setArq('lan', 'lan-lbl');
+  id('ord-btn').onclick = async () => { const f = await escolherArquivos('.pdf'); if (f[0]) sOrd(f[0]); };
+  areaSoltar(id('ord-drop'), f => sOrd(f[0]), '.pdf', false);
+  id('lan-btn').onclick = async () => { const f = await escolherArquivos('.csv,.xlsx,.xlsm,.xls'); if (f[0]) sLan(f[0]); };
+  areaSoltar(id('lan-drop'), f => sLan(f[0]), '.csv,.xlsx,.xlsm,.xls', false);
+  if (multi) { const sRel = setArq('rel', 'rel-lbl'); id('rel-btn').onclick = async () => { const f = await escolherArquivos('.xlsx,.xlsm,.xlsb,.xls'); if (f[0]) sRel(f[0]); }; areaSoltar(id('rel-drop'), f => sRel(f[0]), '.xlsx,.xlsm,.xlsb,.xls', false); }
+  const limp = (k, lblId, txt, btnId) => { id(btnId).onclick = () => { st[k] = null; const l = id(lblId); l.textContent = txt; l.className = 'fraco'; }; };
+  limp('ord', 'ord-lbl', 'nenhum arquivo carregado', 'ord-limpar');
+  limp('lan', 'lan-lbl', 'sem ele, a conferência de "programado ou não" fica desligada', 'lan-limpar');
+  if (multi) limp('rel', 'rel-lbl', 'nenhum relatório carregado', 'rel-limpar');
+  rl();
+  const opc = () => ({ duplex: id('o-duplex').checked, folhaDedicada: id('o-folha').checked, a4: id('o-a4').checked, exigir: id('o-completa').checked, unir: id('o-unir').checked, arqRelatorio: multi ? st.rel : null, arqLantek: st.lan });
+  const validar = () => {
+    if (!st.cnc.length || !st.ord) { alert('Selecione o(s) PDF(s) dos CNCs e o PDF das Ordens.'); return false; }
+    if (multi && !st.rel) { alert('Selecione o Relatório de Fluxos — é ele que organiza por Obra → Fluxo.'); return false; }
+    return true;
+  };
+  const AM = 'var(--amber)', VD = 'var(--green)', AZ = 'var(--cyan)', VM = 'var(--red)';
+  const painelConf = criarPainelConferencia(id("conf-host"), null);
+  const popular = r => {
+    const nos = [];
+    const resumo = { label: r.total_paginas ? '📄 Arquivo gerado' : '🔍 Pré-visualização — nenhum PDF gerado ainda', cor: AZ, check: false, open: true, children: [] };
+    if (r.total_paginas) resumo.children.push({ label: 'Total de páginas', det: String(r.total_paginas), check: false });
+    else { resumo.children.push({ label: 'Ordens no PDF', det: String(r.total_ordens), check: false }, { label: 'CNCs reconhecidos', det: String(r.total_cncs), check: false }); }
+    if (multi) resumo.children.push({ label: 'Obras', det: [...new Set(r.relatorio.map(g => g.obra || '—'))].sort().join(' · '), check: false });
+    resumo.children.push({ label: 'Espessuras', det: r.espessuras.join(' · ') || '—', check: false }, { label: 'Conjuntos', det: String(r.grupos), check: false }, { label: r.total_paginas ? 'Ordens impressas' : 'Ordens que vão casar', det: String(r.ordens_usadas), check: false });
+    nos.push(resumo);
+    const conj = { label: `📦 Conjuntos (${r.grupos})`, cor: VD, check: false, open: true, children: [] };
+    let obraAt = null, fxAt = null, nObra = null, nFx = null;
+    for (const g of r.relatorio) {
+      let pai = conj;
+      if (multi) {
+        const ob = g.obra || '—', fx = g.fluxo_relatorio || '—';
+        if (ob !== obraAt) { obraAt = ob; fxAt = null; nObra = { label: `🏗️ Obra ${ob}`, check: false, open: true, children: [] }; conj.children.push(nObra); }
+        if (fx !== fxAt) { fxAt = fx; nFx = { label: `Fluxo ${fx}`, check: false, children: [] }; nObra.children.push(nFx); }
+        pai = nFx;
+      }
+      const ng = { label: `CNC(s) ${g.cncs.join(', ')}`, det: rotuloEspessura(g.espessura), check: false, children: [] };
+      if (g.detalhe_cnc) {
+        g.detalhe_cnc.forEach(dc => ng.children.push({ label: `🔧 CNC ${dc.cnc}`, det: `${dc.paginas} página(s)` + (dc.branca ? ` + ${dc.branca} branca(s)` : ''), check: false }));
+        g.detalhe_ord.forEach(d => ng.children.push({ label: `📋 Ordem ${d.ordem}`, det: `${d.posicoes} · ${d.paginas} página(s)` + (d.branca ? ` + ${d.branca} branca(s)` : ''), check: false }));
+      } else g.ordens.forEach(o => ng.children.push({ label: `📋 Ordem ${o}`, check: false }));
+      pai.children.push(ng);
+    }
+    nos.push(conj);
+    const sec = (lbl, cor, itens, f, det) => { if (itens.length) nos.push({ label: lbl, cor, det, check: false, children: itens.map(f) }); };
+    sec(`⚠️ Sem número de CNC reconhecido (${r.semNumero.length})`, AM, r.semNumero, s => ({ label: s.arquivo, det: `página ${s.pagina}`, check: false }));
+    sec(`⚠️ Posições sem quantidade completa (${r.incompletas.length})`, AM, r.incompletas, x => ({ label: x.pos, det: `cortado ${x.cortado}/${x.necessario} · CNCs: ${x.cncs}`, check: false }));
+    if (r.cncsSemOrdem.length) nos.push({ label: `⚠️ CNC(s) sem ordem casada (${r.cncsSemOrdem.length})`, det: r.cncsSemOrdem.join(', '), cor: AM, check: false });
+    sec(`🔗 Partes complementares [B]/[C]... (${r.partes.length})`, AM, r.partes, x => ({ label: `CNC ${x.cnc}`, det: x.pos, check: false }));
+    sec(`🗑️ Ordens descartadas — sem CNC casado (${r.descartadas.length})`, AM, r.descartadas, d => ({ label: `Ordem ${d.ordem}`, det: d.posicoes, check: false }));
+    sec(`🚨 SEM PROGRAMAÇÃO NO LANTEK (${r.semProg.length})`, VM, r.semProg, d => ({ label: `Ordem ${d.ordem}`, det: d.posicoes, check: false }), 'ninguém programou essa peça em nenhum nesting ainda');
+    sec(`🟡 Programada no Lantek, mas sem CNC carregado aqui (${r.progSemCnc.length})`, AM, r.progSemCnc, d => { const i = d.detalhe; return { label: `Ordem ${d.ordem}`, det: d.posicoes + (i ? ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}` : ''), check: false }; });
+    renderArvore(id('arvore'), nos);
+    if (r.conf) painelConf.popular(r.conf, r.verif || null, r.verifNome);
+  };
+  id('conferir').onclick = () => {
+    if (!validar()) return; const o = opc();
+    rodar({
+      botoes: [id('conferir'), id('gerar')], status: id('status'), msg: 'Lendo PDFs e conferindo o casamento…',
+      fn: async p => { const a = await analisarImpressaoBase(st.cnc, st.ord, o, p); const r = resumoRelatorio(a); r.conf = await montarConferencia(a, o.exigir, p); st.conf = r.conf; return r; },
+      ok: r => {
+        let msg = `🔍 Conferência: ${multi ? new Set(r.relatorio.map(g => g.obra || '—')).size + ' obra(s) · ' : ''}${r.grupos} conjunto(s) · ${r.ordens_usadas} de ${r.total_ordens} ordem(ns) vão casar · ${r.descartadas.length} vão ficar de fora`;
+        if (r.semProg.length) msg += ` · 🚨 ${r.semProg.length} SEM PROGRAMAÇÃO no Lantek`;
+        if (r.progSemCnc.length) msg += ` · 🟡 ${r.progSemCnc.length} programada(s) mas sem CNC aqui`;
+        id('status').textContent = msg; popular(r);
+      },
+    });
+  };
+  id('comparar').onclick = async () => {
+    if (!validar()) return; const f = (await escolherArquivos('.pdf'))[0]; if (!f) return; const o = opc();
+    rodar({
+      botoes: [id('conferir'), id('gerar'), id('comparar')], status: id('status'), msg: 'Conferindo o PDF escolhido com os CNCs e ordens…',
+      fn: async p => { const a = await analisarImpressaoBase(st.cnc, st.ord, o, p); const r = resumoRelatorio(a); r.conf = await montarConferencia(a, o.exigir, p); r.verif = await verificarPdfGerado(new Uint8Array(await f.arrayBuffer()), r.conf, p, f.name); r.verifNome = f.name; return r; },
+      ok: r => { id('status').textContent = r.verif.divergencias ? `🚨 ${r.verif.divergencias} divergência(s) no PDF ${f.name}` : `✅ PDF ${f.name}: todas as ordens estão unidas ao CNC`; popular(r); },
+    });
+  };
+  const gerar = (ignorar) => {
+    if (!validar()) return; const o = { ...opc(), ignorarPendencias: ignorar };
+    rodar({
+      botoes: [id('conferir'), id('gerar')], status: id('status'), msg: 'Lendo PDFs e montando a sequência de impressão…',
+      fn: p => gerarImpressaoCasada(st.cnc, st.ord, o, p),
+      ok: async r => {
+        if (r.bloqueado) {
+          const l = [];
+          if (r.semProg.length) { l.push(`🚨 ${r.semProg.length} ordem(ns) SEM PROGRAMAÇÃO no Lantek:`); r.semProg.slice(0, 15).forEach(d => l.push(`   • Ordem ${d.ordem} — ${d.posicoes}`)); }
+          if (r.progSemCnc.length) { l.push(`🟡 ${r.progSemCnc.length} ordem(ns) programada(s), mas sem o CNC carregado aqui:`); r.progSemCnc.slice(0, 15).forEach(d => l.push(`   • Ordem ${d.ordem} — ${d.posicoes}`)); }
+          id('status').textContent = `🚫 Bloqueado: 🚨 ${r.semProg.length} sem programação · 🟡 ${r.progSemCnc.length} sem CNC aqui`;
+          const v = await modal({ titulo: 'Impressão bloqueada — pendências no Lantek', html: `<p>Existem ordens sem programação confirmada no Lantek. Resolva antes de imprimir, ou gere deixando essas ordens de fora (sai um relatório de pendências separado).</p><pre>${esc(l.join('\n'))}</pre>`, botoes: [{ txt: 'Cancelar', valor: false }, { txt: 'Gerar mesmo assim, deixando de fora', valor: true, cls: 'acao' }] });
+          if (v) gerar(true);
+          return;
+        }
+        const nome = `impressao_casada${multi ? '_multiobra' : ''}_${dateTag()}.pdf`;
+        baixar(r.pdf, nome);
+        if (r.pendencias) baixar(new Blob([r.pendencias], { type: 'text/plain;charset=utf-8' }), nome.replace('.pdf', '_PENDENCIAS_LANTEK.txt'));
+        let msg = `✅ PDF montado: ${r.total_paginas} páginas · ${r.espessuras.length} espessura(s) · ${r.grupos} conjunto(s) · ${r.ordens_usadas} ordem(ns) impressas`;
+        if (r.descartadas.length) msg += ` · ${r.descartadas.length} ordem(ns) descartadas`;
+        if (r.pendencias) msg += ' · ⚠️ pendências deixadas de fora — relatório baixado junto';
+        if (r.a4) msg += ' · A4 conferido ✓';
+        if (r.conf && r.pdfBytes) { try { id('status').textContent = msg + ' · verificando o PDF gerado…'; r.verif = await verificarPdfGerado(r.pdfBytes, r.conf, null, nome); r.verifNome = nome; msg += r.verif.divergencias ? ` · 🚨 ${r.verif.divergencias} divergência(s) no PDF` : ' · verificação do PDF ✓'; } catch (e) { console.warn(e); } }
+        id('status').textContent = msg; popular(r);
+      },
+    });
+  };
+  id('gerar').onclick = () => gerar(false);
+}
+montarImpressao($('#painel-imp'), false);
+// aviso se alguma biblioteca não carregou
+window.addEventListener('load', () => {
+  const faltando = [['XLSX', 'leitura de planilhas'], ['JSZip', 'base/zip'], ['PDFLib', 'montagem de PDF'], ['pdfjsLib', 'leitura de PDF'], ['ExcelJS', 'exportação da análise']].filter(([g]) => !window[g]).map(([, d]) => d);
+  if (faltando.length) alert('Algumas bibliotecas não carregaram (sem internet ou bloqueio de rede): ' + faltando.join(', ') + '. Recarregue a página.');
+});
+<\/script>
+<script>
+/* ===== TEMA CINZA – troca o branco das telas por cinza claro ===== */
+(function () {
+  var CORES = { pagina: "#d9dee5", quadro: "#e8ebef", dentro: "#eef0f3", campo: "#f2f4f6", borda: "#c9d0d9" };
+  function quaseBranco(cor, minimo) {
+    minimo = minimo || 244;
+    var m = cor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+    if (!m) return false;
+    if (m[4] !== undefined && parseFloat(m[4]) < 0.9) return false;
+    var r = +m[1], g = +m[2], b = +m[3];
+    return Math.min(r, g, b) >= minimo && Math.max(r, g, b) - Math.min(r, g, b) <= 20;
+  }
+  function aplicar(raiz) {
+    document.body.style.setProperty("background-color", CORES.pagina, "important");
+    document.documentElement.style.setProperty("background-color", CORES.pagina, "important");
+    var todos = (raiz || document.body).querySelectorAll("*");
+    for (var i = 0; i < todos.length; i++) {
+      var el = todos[i];
+      if (el.dataset.temaCinza) continue;
+      var cs = getComputedStyle(el);
+      if (!quaseBranco(cs.backgroundColor)) continue;
+      var tag = el.tagName, cor;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") {
+        cor = CORES.campo;
+      } else {
+        var pai = el.parentElement, dentroDeQuadro = false;
+        while (pai && pai !== document.body) {
+          if (pai.dataset.temaCinza === "quadro") { dentroDeQuadro = true; break; }
+          pai = pai.parentElement;
+        }
+        cor = dentroDeQuadro ? CORES.dentro : CORES.quadro;
+        el.dataset.temaCinza = "quadro";
+      }
+      el.style.setProperty("background-color", cor, "important");
+      if (!el.dataset.temaCinza) el.dataset.temaCinza = "campo";
+      if (parseFloat(cs.borderTopWidth) > 0 && quaseBranco(cs.borderTopColor, 215)) {
+        el.style.setProperty("border-color", CORES.borda, "important");
+      }
+    }
+  }
+  function iniciar() {
+    aplicar();
+    var espera;
+    new MutationObserver(function () { clearTimeout(espera); espera = setTimeout(aplicar, 60); })
+      .observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
+  else iniciar();
+})();
+<\/script>
+</body>
+</html>

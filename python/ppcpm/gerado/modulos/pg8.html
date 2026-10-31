@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validação de Peso — DBF × FOCCO</title>
+<style>
+:root{--bg:#0f1117;--surface:#191c26;--surface2:#21253a;--border:#2a2f47;--accent:#3b82f6;--accent2:#60a5fa;--ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono','Fira Code',monospace;--sans:'Inter',system-ui,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh;}
+header{border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;}
+.logo{width:30px;height:30px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+h1{font-size:16px;font-weight:600;letter-spacing:-.3px;}
+.subtitle{font-size:11px;color:var(--muted);margin-top:1px;}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 24px;}
+.tab{padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:all .15s;}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent);}
+.tab-panel{display:none;padding:24px;}
+.tab-panel.active{display:block;}
+/* UPLOAD */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:820px;margin-bottom:20px;}
+.upload-card{background:var(--surface);border:1.5px dashed var(--border);border-radius:10px;padding:18px;cursor:pointer;transition:border-color .2s,background .2s;}
+.upload-card:hover,.upload-card.drag-over{border-color:var(--accent);background:var(--surface2);}
+.upload-card.has-file{border-style:solid;border-color:var(--ok);}
+.upload-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.upload-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+.upload-hint{font-size:11px;color:var(--muted);}
+.upload-fname{margin-top:8px;font-size:11px;color:var(--ok);font-family:var(--mono);}
+.file-input{display:none;}
+.dbf-file-tag{display:flex;align-items:center;gap:6px;background:rgba(34,197,94,.1);border:1px solid var(--ok);border-radius:6px;padding:3px 8px;font-size:11px;font-family:var(--mono);color:var(--ok);}
+.dbf-file-tag .dtag-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;}
+.dbf-file-tag .dtag-rm{background:none;border:none;color:var(--ok);cursor:pointer;font-size:13px;padding:0 2px;opacity:.7;}
+.dbf-file-tag .dtag-rm:hover{opacity:1;}
+/* BUTTONS */
+.action-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:opacity .15s,transform .1s;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-green{background:#166534;color:#bbf7d0;border:1px solid #166534;}
+.btn-green:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.status-msg{font-size:12px;color:var(--muted);}
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:16px;display:none;}
+.progress-fill{height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .3s;}
+/* CARDS */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.summary-card{background:var(--surface);border-radius:10px;padding:14px;border:1px solid var(--border);}
+.card-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px;}
+.card-value{font-size:20px;font-weight:700;font-family:var(--mono);}
+.card-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.val-ok{color:var(--ok);}.val-warn{color:var(--warn);}.val-err{color:var(--err);}.val-blue{color:var(--accent2);}
+/* SECTION */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:24px;}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.section-badge{font-size:11px;font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 9px;color:var(--muted);}
+/* FILTER */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.filter-bar input{background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 11px;font-size:12px;width:200px;outline:none;}
+.filter-bar input:focus{border-color:var(--accent);}
+.filter-tag{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;background:var(--surface2);color:var(--muted);}
+.filter-tag.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead tr{background:var(--surface2);}
+thead th{padding:9px 13px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none;}
+thead th:hover{color:var(--text);}
+tbody tr{border-top:1px solid var(--border);transition:background .1s;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:8px 13px;white-space:nowrap;}
+.td-mono{font-family:var(--mono);font-size:11px;}
+.td-marca{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent2);}
+.td-grupo{font-size:11px;color:var(--muted);}
+.delta-pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;font-family:var(--mono);}
+.delta-ok{background:rgba(34,197,94,.12);color:var(--ok);}
+.delta-warn{background:rgba(245,158,11,.12);color:var(--warn);}
+.delta-err{background:rgba(239,68,68,.12);color:var(--err);}
+.delta-zero{background:rgba(100,116,139,.1);color:var(--muted);}
+.grp-row-ok td:first-child{border-left:3px solid var(--ok);}
+.grp-row-warn td:first-child{border-left:3px solid var(--warn);}
+.grp-row-err td:first-child{border-left:3px solid var(--err);}
+.table-footer{padding:8px 13px;font-size:10px;color:var(--muted);background:var(--surface);border-top:1px solid var(--border);border-radius:0 0 10px 10px;display:flex;justify-content:space-between;}
+/* AGRUPADOR DROP ZONE */
+.drop-zone-agrup{border:2px dashed var(--border);border-radius:12px;padding:36px 24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:20px;background:var(--surface);}
+.drop-zone-agrup.drag-over{border-color:var(--accent);background:var(--surface2);}
+.drop-zone-agrup .dz-icon{font-size:36px;margin-bottom:10px;}
+.drop-zone-agrup .dz-title{font-size:15px;font-weight:600;margin-bottom:4px;}
+.drop-zone-agrup .dz-hint{font-size:12px;color:var(--muted);}
+/* AGRUPADOR FILE LIST */
+.agrup-files{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.agrup-file-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:12px;}
+.agrup-file-item .af-icon{font-size:18px;flex-shrink:0;}
+.agrup-file-item .af-info{flex:1;min-width:0;}
+.agrup-file-item .af-name{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.agrup-file-item .af-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.agrup-file-item .af-status{font-size:11px;font-weight:600;}
+.af-status.ok{color:var(--ok);}
+.af-status.err{color:var(--err);}
+.af-status.loading{color:var(--warn);}
+.af-remove{background:none;border:none;color:var(--err);cursor:pointer;font-size:16px;opacity:.6;padding:4px;flex-shrink:0;}
+.af-remove:hover{opacity:1;}
+.empty-state{text-align:center;padding:36px 24px;color:var(--muted);}
+.empty-state .icon{font-size:36px;margin-bottom:10px;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:200;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:560px;max-width:95vw;}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:6px;}
+.modal p{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.modal label{font-size:12px;font-weight:600;display:block;margin-bottom:6px;color:var(--muted);}
+.modal input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:9px 13px;font-size:13px;margin-bottom:14px;outline:none;}
+.modal input:focus{border-color:var(--accent);}
+.modal input[readonly]{opacity:.6;}
+.modal-preview{font-family:var(--mono);font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px 13px;margin-bottom:18px;color:var(--accent2);word-break:break-all;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 16px;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999;max-width:420px;}
+#toast.show{opacity:1;}
+@media(max-width:700px){.summary-grid{grid-template-columns:1fr 1fr;}.upload-grid{grid-template-columns:1fr;}}
+
+/* V72 · tema Produção (cinza claro, botões #0b5cad) */
+:root{--bg:#d9dee5;--surface:#e8ebef;--surface2:#eef0f3;--border:#c9d0d9;--accent:#0b5cad;--accent2:#0b5cad;--ok:#15803d;--warn:#b45309;--err:#c62828;--text:#1f2937;--muted:#4b5563;--sans:'Segoe UI',Inter,system-ui,sans-serif}
+body{font-weight:600;min-height:0}
+header,.tabs{display:none!important}
+.tab-panel{padding:16px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:7px;padding:9px 18px;font-weight:700}
+.btn-primary,.btn-green{background:#0b5cad!important;color:#fff!important;border:1px solid #0b5cad!important}
+.btn-primary:hover:not(:disabled),.btn-green:hover:not(:disabled){background:#1a6dc0!important}
+.btn-secondary{background:#f2f4f6!important;color:#1f2937!important;border:1px solid #c5cbd6!important}
+.btn-secondary:hover{background:#f7f8fa!important;border-color:#9aa3b5!important}
+.upload-card,.drop-zone-agrup{background:#f3f6fb;border-color:#aebfdc}
+.upload-card:hover,.upload-card.drag-over,.drop-zone-agrup.drag-over{border-color:#0b5cad;background:#eaf1fb}
+.summary-card,.agrup-file-item,.modal{background:#e8ebef;border-color:#c9d0d9}
+.table-wrap{background:#eef0f3}
+thead tr{background:#dfe3e9}
+.filter-tag.active{background:#0b5cad;border-color:#0b5cad}
+.modal-overlay{background:rgba(15,23,42,.45)}
+#toast{background:#1f2937;color:#fff;border-color:#1f2937}
+#tab-agrupador{display:none!important}
+.tab-panel#tab-analise{padding-top:22px}
+.cx{background:#e8ebef;border:1px solid #c9d0d9;border-radius:9px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,30,70,.05)}
+.cx-h{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.cx-h .badge{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#3040a8;color:#fff;font-size:12px;font-weight:700}
+.cx-h h3{font-size:15px;font-weight:700;color:#1f2547}
+.cx .linha{margin-bottom:14px}
+.cx .upload-grid{max-width:none;margin-bottom:16px}
+.cx .action-bar{margin-bottom:0}
+.addrow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.addcell{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+@media(max-width:700px){.addrow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⚖️</div>
+  <div>
+    <h1>Validação de Peso — DBF × FOCCO</h1>
+    <div class="subtitle">Comparativo por marca e grupo LIC · Exportação Excel · Agrupador de DBFs</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('analise')">📊 Análise</div>
+  <div class="tab" onclick="switchTab('agrupador')">📦 Agrupador de DBFs</div>
+</div>
+
+<!-- ═══════════════ ABA ANÁLISE ═══════════════ -->
+<div class="tab-panel active" id="tab-analise">
+  <div class="cx"><div class="cx-h"><span class="badge">1</span><h3>Solucionar arquivos</h3></div>
+  <div class="addrow"><div class="addcell"><button type="button" class="btn btn-primary" id="btn-add-planilha" onclick="document.getElementById('file-dbf').click()"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span>Adicionar planilha</span></button><button type="button" class="btn btn-secondary" id="btn-limpar-dbf" onclick="limparDbf()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div><div class="addcell"><button type="button" class="btn btn-primary" id="btn-relatorio" onclick="document.getElementById('file-focco').click()"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span>Relatório</span></button><button type="button" class="btn btn-secondary" id="btn-limpar-focco" onclick="limparFocco()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div></div>
+  <div class="upload-grid">
+    <div class="upload-card" id="drop-dbf"
+         ondragover="dbfDzOver(event)" ondragleave="dbfDzLeave(event)" ondrop="dbfDzDrop(event)"
+         onclick="document.getElementById('file-dbf').click()">
+      <div class="upload-label">Arquivo 1 — DBF Engenharia (L1, L2, …)</div>
+      <div class="upload-title">Planilha(s) DBF</div>
+      <div class="upload-hint">.xlsx ou .csv · arraste uma ou mais partes (L1, L2…)</div>
+      <div id="dbf-files-list" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"></div>
+      <input type="file" id="file-dbf" class="file-input" accept=".xlsx,.xls,.xlsb,.csv" multiple onchange="dbfFilesAdded(this.files)">
+    </div>
+    <div class="upload-card" id="drop-focco" onclick="document.getElementById('file-focco').click()">
+      <div class="upload-label">Arquivo 2 — Relatório FOCCO (ERP)</div>
+      <div class="upload-title">Rel. Necessidades Líquidas</div>
+      <div class="upload-hint">.xls (HTML) ou .xlsx do FOCCO3i</div>
+      <div class="upload-fname" id="name-focco">Clique ou arraste aqui</div>
+      <input type="file" id="file-focco" class="file-input" accept=".xlsx,.xls,.xlsb,.html,.htm">
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-primary" id="btn-analisar" disabled onclick="analisar()">Analisar</button>
+    <button class="btn btn-green" id="btn-exportar" disabled onclick="abrirModalNome()">⬇ Exportar Excel</button>
+    <span class="status-msg" id="status-msg"></span>
+  </div>
+
+  </div>
+  <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <div id="results" style="display:none">
+    <div class="summary-grid" id="summary-grid"></div>
+
+    <div class="section-header">
+      <span class="section-title">Por Grupo LIC</span>
+      <span class="section-badge" id="grp-badge"></span>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr>
+        <th onclick="sortTable('grp',0)">Grupo LIC ↕</th>
+        <th onclick="sortTable('grp',1)">Qtd Marcas ↕</th>
+        <th onclick="sortTable('grp',2)">Peso DBF (kg) ↕</th>
+        <th onclick="sortTable('grp',3)">Peso FOCCO (kg) ↕</th>
+        <th onclick="sortTable('grp',4)">Delta (kg) ↕</th>
+        <th onclick="sortTable('grp',5)">Delta % ↕</th>
+        <th>Status</th>
+      </tr></thead>
+      <tbody id="body-grupo"></tbody></table>
+      <div class="table-footer" id="footer-grupo"></div>
+    </div>
+
+    <div class="section-header" style="margin-top:28px;">
+      <span class="section-title">Por Marca (detalhe)</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="section-badge" id="det-badge"></span>
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="text" id="search-input" placeholder="Buscar marca..." oninput="renderDetalhe()">
+      <span class="filter-tag active" onclick="setFilter(this,'todos')">Todos</span>
+      <span class="filter-tag" onclick="setFilter(this,'divergente')">⚠ Divergentes</span>
+      <span class="filter-tag" onclick="setFilter(this,'apenas-dbf')">Só DBF</span>
+      <span class="filter-tag" onclick="setFilter(this,'apenas-focco')">Só FOCCO</span>
+      <span class="filter-tag" onclick="setFilter(this,'ok')">✓ OK</span>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr>
+        <th onclick="sortTable('det',0)">Marca ↕</th>
+        <th onclick="sortTable('det',1)">Grupo LIC ↕</th>
+        <th onclick="sortTable('det',2)">Qtd DBF ↕</th>
+        <th onclick="sortTable('det',3)">Peso DBF (kg) ↕</th>
+        <th onclick="sortTable('det',4)">Peso FOCCO (kg) ↕</th>
+        <th onclick="sortTable('det',5)">Delta (kg) ↕</th>
+        <th onclick="sortTable('det',6)">Delta % ↕</th>
+        <th>Status</th>
+      </tr></thead>
+      <tbody id="body-detalhe"></tbody></table>
+      <div class="table-footer" id="footer-detalhe"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ABA AGRUPADOR ═══════════════ -->
+<div class="tab-panel" id="tab-agrupador">
+  <p style="color:var(--muted);font-size:13px;margin-bottom:18px;">
+    Arraste os Excel exportados por esta ferramenta (arquivos <code style="color:var(--accent2)">FOCCO_PPCPM_OF-…</code>) para a área abaixo. O consolidado empilha todas as DBFs em sequência.
+  </p>
+
+  <!-- Drop zone -->
+  <div class="drop-zone-agrup" id="dz-agrup"
+       onclick="document.getElementById('file-agrup').click()"
+       ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
+    <div class="dz-icon">📂</div>
+    <div class="dz-title">Arraste os arquivos Excel aqui</div>
+    <div class="dz-hint">ou clique para selecionar · aceita múltiplos .xlsx de uma vez</div>
+    <input type="file" id="file-agrup" class="file-input" multiple accept=".xlsx" onchange="addAgrupFiles(this.files)">
+  </div>
+
+  <div class="agrup-files" id="agrup-files-list"></div>
+
+  <div class="action-bar" id="agrup-action" style="display:none">
+    <button class="btn btn-primary" id="btn-agrupar" onclick="gerarAgrupado()">📦 Gerar Excel Consolidado</button>
+    <button class="btn btn-secondary btn-sm" onclick="limparAgrup()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar lista</span></button>
+    <span class="status-msg" id="agrup-status"></span>
+  </div>
+</div>
+
+<!-- MODAL NOME -->
+<div class="modal-overlay" id="modal-nome">
+  <div class="modal">
+    <h2>Configurar nome do arquivo</h2>
+    <p>Padrão: <code style="color:var(--accent2)">FOCCO_PPCPM_OF-{OF}-{TRECHO}_Validação-Peso-LIC x Posição_rev.{REV}_{DATA}</code></p>
+    <label>OF (Número da Obra)</label>
+    <input type="text" id="nm-of" placeholder="ex: 2120" oninput="atualizarPreview()">
+    <label>Trecho</label>
+    <input type="text" id="nm-trecho" placeholder="ex: 4-01" oninput="atualizarPreview()">
+    <label>Revisão</label>
+    <input type="text" id="nm-rev" placeholder="ex: 01" oninput="atualizarPreview()">
+    <label>Data (automática)</label>
+    <input type="text" id="nm-data" readonly>
+    <label>Preview</label>
+    <div class="modal-preview" id="nm-preview">—</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="confirmarExportar()">⬇ Baixar Excel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"><\/script>
+<script>
+// ═══ ESTADO ═══════════════════════════════════════════════════
+let dbfFiles=[];          // array de File objects (pode ter L1, L2, ...)
+let fileFOCCO=null;
+let detData=[],grpData=[];
+let currentFilter='todos',sortState={};
+let rawDBFRows=[],rawDBFHeader=[];
+let currentOFTrecho='';
+
+// Agrupador: lista de {file, name, status, dbfHeader, dbfRows, detData, ofTrecho}
+let agrupFiles=[];
+
+// ═══ TABS ══════════════════════════════════════════════════════
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  const idx=['analise','agrupador'].indexOf(id);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ═══ UPLOAD ANÁLISE ═══════════════════════════════════════════
+// ── DBF multi-file handlers ──────────────────────────────────
+document.getElementById('file-dbf').addEventListener('change',e=>{dbfFilesAdded(e.target.files);});
+document.getElementById('file-focco').addEventListener('change',e=>{fileFOCCO=e.target.files[0];setFileFocco(fileFOCCO);});
+
+// FOCCO drag-drop (unchanged)
+const foccoEl=document.getElementById('drop-focco');
+foccoEl.addEventListener('dragover',e=>{e.preventDefault();foccoEl.classList.add('drag-over');});
+foccoEl.addEventListener('dragleave',()=>foccoEl.classList.remove('drag-over'));
+foccoEl.addEventListener('drop',e=>{e.preventDefault();foccoEl.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f){fileFOCCO=f;setFileFocco(f);}});
+
+// DBF drag-drop (multi)
+function dbfDzOver(e){e.preventDefault();document.getElementById('drop-dbf').classList.add('drag-over');}
+function dbfDzLeave(e){document.getElementById('drop-dbf').classList.remove('drag-over');}
+function dbfDzDrop(e){e.preventDefault();document.getElementById('drop-dbf').classList.remove('drag-over');dbfFilesAdded(e.dataTransfer.files);}
+
+function dbfFilesAdded(files){
+  for(const f of files){
+    const ext=f.name.toLowerCase();
+    if(!ext.endsWith('.xlsx')&&!ext.endsWith('.xls')&&!ext.endsWith('.xlsb')&&!ext.endsWith('.csv'))continue;
+    if(dbfFiles.find(x=>x.name===f.name))continue; // sem duplicata
+    dbfFiles.push(f);
+  }
+  renderDbfList();
+  checkReady();
+}
+function removeDbfFile(name){
+  dbfFiles=dbfFiles.filter(f=>f.name!==name);
+  renderDbfList();checkReady();
+}
+function renderDbfList(){
+  const el=document.getElementById('dbf-files-list');
+  const dz=document.getElementById('drop-dbf');
+  el.innerHTML=dbfFiles.map(f=>`
+    <div class="dbf-file-tag">
+      <span class="dtag-name" title="${f.name}">📄 ${f.name}</span>
+      <button class="dtag-rm" onclick="event.stopPropagation();removeDbfFile('${f.name}')" title="Remover">✕</button>
+    </div>`).join('');
+  dz.classList.toggle('has-file', dbfFiles.length>0);
+}
+function setFileFocco(f){document.getElementById('name-focco').textContent=f.name;document.getElementById('drop-focco').classList.add('has-file');checkReady();}
+function checkReady(){document.getElementById('btn-analisar').disabled=!(dbfFiles.length>0&&fileFOCCO);}
+
+// ═══ PARSERS ══════════════════════════════════════════════════
+function parseBR(v){
+  if(v===null||v===undefined||v==='')return 0;
+  let s=String(v).trim();if(!s)return 0;
+  if(s.includes(',')&&!s.includes('.'))s=s.replace(',','.');
+  else if(s.includes('.')&&s.includes(','))s=s.replace(/\./g,'').replace(',','.');
+  if(s.startsWith('.'))s='0'+s;
+  const n=parseFloat(s);return isNaN(n)?0:n;
+}
+function readBytes(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(new Uint8Array(e.target.result));r.onerror=rej;r.readAsArrayBuffer(file);});}
+function readText(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsText(file,'latin1');});}
+async function isHtmlFile(file){const b=await readBytes(file);const s=String.fromCharCode(...b.slice(0,10)).toUpperCase();return s.includes('<HTML')||s.includes('<!DOC');}
+
+async function parseOneDBF(file){
+  // Suporte a CSV e XLSX/XLS
+  let rows;
+  const isCSV=file.name.toLowerCase().endsWith('.csv');
+  if(isCSV){
+    const bytes=await readBytes(file);
+    const wb=XLSX.read(bytes,{type:'array',raw:true,FS:';'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+  } else {
+    const bytes=await readBytes(file);
+    const wb=XLSX.read(bytes,{type:'array',raw:true,cellText:true});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+  }
+  let hi=0;
+  for(let i=0;i<Math.min(6,rows.length);i++){
+    if(rows[i]&&rows[i].includes('NUM_COM')){hi=i;break;}
+  }
+  const header=rows[hi];
+  const col=n=>header.indexOf(n);
+  const C_MARCA   =col('MAR_PEZ');
+  const C_POS     =col('POS_PEZ');
+  const C_GRUPO   =col('GRUPO LIC');
+  const C_QTD     =col('QTA_PEZ');
+  const C_PESO_TOT=col('Peso Total');
+  const C_NUM_DIS =col('NUM_DIS');
+  if(C_MARCA<0||C_PESO_TOT<0)
+    throw new Error(`${file.name}: colunas MAR_PEZ / Peso Total nao encontradas.`);
+  const marcas={};let ofTrecho='',obra='';
+  const headerArr=rows[hi].map(v=>v==null?'':String(v));
+  const dataRows=rows.slice(hi+1).map(r=>(r||[]).map(v=>v==null?'':String(v)));
+  for(let i=0;i<dataRows.length;i++){
+    const r=dataRows[i];
+    if(!r[C_MARCA]||String(r[C_MARCA]).trim()==='')continue;
+    const peso=parseBR(r[C_PESO_TOT]);
+    const isPAI=peso>0;
+    if(!isPAI)continue;
+    const marca=String(r[C_MARCA]).trim();
+    const grupo=r[C_GRUPO]?String(r[C_GRUPO]).trim():'';
+    const qtd=parseBR(r[C_QTD]);
+    marcas[marca]={grupo,qtd,peso};
+    if(!ofTrecho&&C_NUM_DIS>=0&&r[C_NUM_DIS]){
+      const m=String(r[C_NUM_DIS]).match(/(\d{3,6})-(\d+-\d+)_/);
+      if(m)ofTrecho=m[1]+'-'+m[2];
+    }
+    if(!obra&&r[0]&&String(r[0]).trim())
+      obra=String(r[0]).trim().replace(/_L\d+$/,'');
+  }
+  if(!ofTrecho)ofTrecho=obra;
+  return{marcas,ofTrecho,headerArr,dataRows};
+}
+
+// Merge multiple DBF files: union of marcas, concat of raw rows (for export)
+async function parseMultiDBF(files){
+  const results=await Promise.all(files.map(parseOneDBF));
+  // Merge marcas (union — each marca expected in only one file)
+  const allMarcas={};
+  let ofTrecho='';
+  for(const r of results){
+    if(!ofTrecho&&r.ofTrecho)ofTrecho=r.ofTrecho;
+    for(const[marca,data]of Object.entries(r.marcas)){
+      if(allMarcas[marca]){
+        // Same marca in multiple files: sum peso (rare, defensive)
+        allMarcas[marca].peso+=data.peso;
+        allMarcas[marca].qtd+=data.qtd;
+      } else {
+        allMarcas[marca]=data;
+      }
+    }
+  }
+  // Merge raw rows for Excel export: use header from first file, concat dataRows
+  rawDBFHeader=results[0].headerArr;
+  rawDBFRows=results.flatMap(r=>r.dataRows);
+  return{marcas:allMarcas,ofTrecho};
+}
+
+async function parseFOCCO_HTML(file){
+  const html=await readText(file);
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const rows=Array.from(doc.querySelectorAll('tr'));
+  let headerRow=null,headerIdx=-1;
+  for(let i=0;i<Math.min(10,rows.length);i++){
+    const cells=Array.from(rows[i].querySelectorAll('td,th')).map(c=>c.textContent.trim());
+    if(cells.includes('MARCA')){headerRow=cells;headerIdx=i;break;}
+  }
+  if(!headerRow)throw new Error('FOCCO HTML: cabeçalho não encontrado.');
+  const C_MARCA=headerRow.indexOf('MARCA'),C_GRUPO=headerRow.indexOf('GRP LIC'),
+        C_DESC=headerRow.indexOf('DESC TECNICA'),C_QTDE=headerRow.indexOf('QTDE CORRIGIDA'),
+        C_UM_H=headerRow.indexOf('UM'),
+        C_OBRA=headerRow.indexOf('OBRA'),C_SUBTR=headerRow.indexOf('SUB TRECHO');
+  const raw={};let foccoTrecho='';
+  for(let i=headerIdx+1;i<rows.length;i++){
+    const cells=Array.from(rows[i].querySelectorAll('td,th')).map(c=>c.textContent.trim());
+    if(cells.length<10)continue;
+    const marca=cells[C_MARCA];if(!marca)continue;
+    if(!foccoTrecho&&C_OBRA>=0&&cells[C_OBRA])
+      foccoTrecho=cells[C_OBRA]+'-'+cells[C_SUBTR].replace(/_/g,'-');
+    const um_h=(C_UM_H>=0?cells[C_UM_H]||'':'').toUpperCase().trim();
+    if(um_h!==''&&um_h!=='KG')continue;
+    const desc=(cells[C_DESC]||'').toUpperCase();
+    if(desc.includes('TINTA')||desc.includes('ZINCO')||desc.includes('CATALISADOR')||desc.includes('DILUENTE'))continue;
+    const qtde=parseBR(cells[C_QTDE]);const grupo=cells[C_GRUPO]||'';
+    if(!raw[marca])raw[marca]=[];
+    raw[marca].push({desc,qtde,grupo});
+  }
+  const r1=dedupFOCCO(raw);r1.ofTrecho=foccoTrecho;return r1;
+}
+
+async function parseFOCCO_XLSX(file){
+  const bytes=await readBytes(file);
+  const wb=XLSX.read(bytes,{type:'array',raw:true,cellText:true});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+  let hi=-1;
+  for(let i=0;i<Math.min(10,rows.length);i++){if(rows[i]&&rows[i].includes('MARCA')){hi=i;break;}}
+  if(hi<0)throw new Error('FOCCO XLSX: cabeçalho não encontrado.');
+  const header=rows[hi];
+  const col=n=>header.indexOf(n);
+  const C_MARCA=col('MARCA'),C_GRUPO=col('GRP LIC'),C_DESC=col('DESC TECNICA'),C_QTDE=col('QTDE CORRIGIDA'),
+        C_UM_X=col('UM'),
+        C_OBRA2=col('OBRA'),C_SUBTR2=col('SUB TRECHO');
+  const raw={};let foccoTrecho2='';
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i];if(!r||r[C_MARCA]==null)continue;
+    const marca=String(r[C_MARCA]).trim();if(!marca)continue;
+    if(!foccoTrecho2&&C_OBRA2>=0&&r[C_OBRA2])
+      foccoTrecho2=String(r[C_OBRA2]).trim()+'-'+(C_SUBTR2>=0?String(r[C_SUBTR2]||'').replace(/_/g,'-'):'');
+    const um_x=C_UM_X>=0&&r[C_UM_X]?String(r[C_UM_X]).toUpperCase().trim():'';
+    if(um_x!==''&&um_x!=='KG')continue;
+    const desc=r[C_DESC]?String(r[C_DESC]).toUpperCase():'';
+    if(desc.includes('TINTA')||desc.includes('ZINCO')||desc.includes('CATALISADOR')||desc.includes('DILUENTE'))continue;
+    const qtde=parseBR(r[C_QTDE]);const grupo=r[C_GRUPO]?String(r[C_GRUPO]).trim():'';
+    if(!raw[marca])raw[marca]=[];
+    raw[marca].push({desc,qtde,grupo});
+  }
+  const r2=dedupFOCCO(raw);r2.ofTrecho=foccoTrecho2;return r2;
+}
+
+function dedupFOCCO(raw){
+  const marcas={};
+  for(const[marca,linhas]of Object.entries(raw)){
+    const bobVals=new Set();
+    for(const l of linhas)if(l.desc.includes('BOBINA')&&l.desc.includes('1200'))bobVals.add(Math.round(l.qtde*1000));
+    let total=0;
+    for(const l of linhas){if(l.desc.includes('CHAPA')&&bobVals.has(Math.round(l.qtde*1000)))continue;total+=l.qtde;}
+    marcas[marca]={peso:total,grupo:linhas[0].grupo};
+  }
+  return{marcas};
+}
+
+// ═══ ANÁLISE ══════════════════════════════════════════════════
+async function analisar(){
+  const btn=document.getElementById('btn-analisar');
+  btn.disabled=true;document.getElementById('btn-exportar').disabled=true;
+  setStatus('Lendo DBF...');progress(15);
+  try{
+    const dbfResult=await parseMultiDBF(dbfFiles);
+    setStatus('Verificando FOCCO...');progress(40);
+    const htmlFOCCO=await isHtmlFile(fileFOCCO);
+    setStatus('Lendo FOCCO...');progress(60);
+    const foccoResult=htmlFOCCO?await parseFOCCO_HTML(fileFOCCO):await parseFOCCO_XLSX(fileFOCCO);
+    const ofTrechoFinal=dbfResult.ofTrecho||foccoResult.ofTrecho||'';
+    dbfResult.ofTrecho=ofTrechoFinal;
+    setStatus('Calculando...');progress(85);
+    buildResults(dbfResult,foccoResult);
+    currentOFTrecho=ofTrechoFinal;
+    progress(100);setStatus('');
+    document.getElementById('results').style.display='block';
+    document.getElementById('btn-exportar').disabled=false;
+    document.getElementById('results').scrollIntoView({behavior:'smooth'});
+    toast('✅ Análise concluída — '+ofTrechoFinal);
+  }catch(e){setStatus('❌ '+e.message);toast('Erro: '+e.message);console.error(e);}
+  finally{btn.disabled=false;setTimeout(()=>progress(0,true),800);}
+}
+
+function buildResults(dbf,focco){
+  const allMarcas=new Set([...Object.keys(dbf.marcas),...Object.keys(focco.marcas)]);
+  detData=[];const grupoMap={};
+  for(const marca of allMarcas){
+    const d=dbf.marcas[marca],f=focco.marcas[marca];
+    const pesoDBF=d?d.peso:0,pesoFOCCO=f?f.peso:0;
+    const grupo=d?d.grupo:f.grupo;const qtd=d?d.qtd:0;
+    const delta=pesoFOCCO-pesoDBF;
+    const pct=pesoDBF!==0?(delta/pesoDBF)*100:(pesoFOCCO!==0?100:0);
+    detData.push({marca,grupo,qtd,pesoDBF,pesoFOCCO,delta,pct,soloDBF:!!d&&!f,soloFOCCO:!d&&!!f});
+    if(!grupoMap[grupo])grupoMap[grupo]={grupo,marcas:0,pesoDBF:0,pesoFOCCO:0};
+    grupoMap[grupo].marcas++;grupoMap[grupo].pesoDBF+=pesoDBF;grupoMap[grupo].pesoFOCCO+=pesoFOCCO;
+  }
+  grpData=Object.values(grupoMap).map(g=>({...g,delta:g.pesoFOCCO-g.pesoDBF,pct:g.pesoDBF!==0?((g.pesoFOCCO-g.pesoDBF)/g.pesoDBF)*100:0}));
+  const totDBF=detData.reduce((s,r)=>s+r.pesoDBF,0),totFOCCO=detData.reduce((s,r)=>s+r.pesoFOCCO,0);
+  const totalDelta=totFOCCO-totDBF,div=detData.filter(r=>Math.abs(r.pct)>1&&Math.abs(r.delta)>0.001).length;
+  const dc=Math.abs(totalDelta)<1?'val-ok':Math.abs(totalDelta)<10?'val-warn':'val-err';
+  document.getElementById('summary-grid').innerHTML=`
+    <div class="summary-card"><div class="card-label">OF / Trecho</div><div class="card-value val-blue" style="font-size:17px">${dbf.ofTrecho||'—'}</div><div class="card-sub">detectado automaticamente</div></div>
+    <div class="summary-card"><div class="card-label">Peso Total DBF</div><div class="card-value val-blue">${fmt(totDBF,2)}</div><div class="card-sub">kg · ${Object.keys(dbf.marcas).length} marcas LIC</div></div>
+    <div class="summary-card"><div class="card-label">Peso Total FOCCO</div><div class="card-value val-blue">${fmt(totFOCCO,2)}</div><div class="card-sub">kg · ${Object.keys(focco.marcas).length} marcas</div></div>
+    <div class="summary-card"><div class="card-label">Delta Geral</div><div class="card-value ${dc}">${totalDelta>=0?'+':''}${fmt(totalDelta,3)}</div><div class="card-sub">kg · ${div} marca(s) com >1% divergência</div></div>`;
+  renderGrupo();renderDetalhe();
+}
+
+// ═══ TABELAS ══════════════════════════════════════════════════
+function renderGrupo(){
+  const tbody=document.getElementById('body-grupo');tbody.innerHTML='';let tD=0,tF=0;
+  for(const g of grpData){
+    tD+=g.pesoDBF;tF+=g.pesoFOCCO;
+    const st=getStatus(g.delta,g.pct);
+    const rc=st.filter==='ok'?'grp-row-ok':Math.abs(g.pct)>5?'grp-row-err':'grp-row-warn';
+    tbody.innerHTML+=`<tr class="${rc}"><td style="font-weight:600">${g.grupo}</td><td class="td-mono">${g.marcas}</td><td class="td-mono">${fmt(g.pesoDBF)}</td><td class="td-mono">${fmt(g.pesoFOCCO)}</td><td>${pill(g.delta,g.pct)}</td><td class="td-mono" style="color:${colorPct(g.pct)}">${fmtPct(g.pct)}</td><td><span class="delta-pill ${st.cls}">${st.label}</span></td></tr>`;
+  }
+  const td=tF-tD,tp=tD!==0?(td/tD)*100:0;
+  tbody.innerHTML+=`<tr style="background:var(--surface2);font-weight:700"><td>TOTAL</td><td class="td-mono">${grpData.reduce((s,g)=>s+g.marcas,0)}</td><td class="td-mono">${fmt(tD)}</td><td class="td-mono">${fmt(tF)}</td><td>${pill(td,tp)}</td><td class="td-mono">${fmtPct(tp)}</td><td></td></tr>`;
+  document.getElementById('grp-badge').textContent=grpData.length+' grupos';
+  document.getElementById('footer-grupo').innerHTML=`<span>${grpData.length} grupos</span><span>DBF: ${fmt(tD)} kg · FOCCO: ${fmt(tF)} kg</span>`;
+}
+
+function renderDetalhe(){
+  const search=document.getElementById('search-input').value.toLowerCase();
+  const filtered=detData.filter(r=>{
+    if(search&&!r.marca.toLowerCase().includes(search))return false;
+    if(currentFilter==='divergente')return Math.abs(r.pct)>1||r.soloDBF||r.soloFOCCO;
+    if(currentFilter==='apenas-dbf')return r.soloDBF;
+    if(currentFilter==='apenas-focco')return r.soloFOCCO;
+    if(currentFilter==='ok')return!r.soloDBF&&!r.soloFOCCO&&Math.abs(r.pct)<=1;
+    return true;
+  });
+  const tbody=document.getElementById('body-detalhe');tbody.innerHTML='';
+  for(const r of filtered){
+    const st=getStatus(r.delta,r.pct);
+    const tag=r.soloDBF?'<span style="color:var(--warn);font-size:9px"> [só DBF]</span>':r.soloFOCCO?'<span style="color:var(--warn);font-size:9px"> [só FOCCO]</span>':'';
+    tbody.innerHTML+=`<tr>
+      <td class="td-marca">${r.marca}${tag}</td><td class="td-grupo">${r.grupo}</td>
+      <td class="td-mono">${r.qtd>0?r.qtd:'—'}</td>
+      <td class="td-mono">${r.soloDBF?`<span style="color:var(--warn)">${fmt(r.pesoDBF)}</span>`:fmt(r.pesoDBF)}</td>
+      <td class="td-mono">${r.soloFOCCO?`<span style="color:var(--warn)">${fmt(r.pesoFOCCO)}</span>`:fmt(r.pesoFOCCO)}</td>
+      <td>${r.soloDBF||r.soloFOCCO?'<span class="delta-pill delta-zero">—</span>':pill(r.delta,r.pct)}</td>
+      <td class="td-mono" style="color:${colorPct(r.pct)}">${r.soloDBF||r.soloFOCCO?'—':fmtPct(r.pct)}</td>
+      <td><span class="delta-pill ${st.cls}">${r.soloDBF?'⚠ Só DBF':r.soloFOCCO?'⚠ Só FOCCO':st.label}</span></td></tr>`;
+  }
+  document.getElementById('det-badge').textContent=filtered.length+' / '+detData.length+' marcas';
+  document.getElementById('footer-detalhe').innerHTML=`<span>Mostrando ${filtered.length} de ${detData.length}</span><span style="color:var(--warn)">${detData.filter(r=>r.soloDBF).length} só DBF · ${detData.filter(r=>r.soloFOCCO).length} só FOCCO</span>`;
+}
+
+// ═══ SORT / FILTER ════════════════════════════════════════════
+const sortKeys={grp:['grupo','marcas','pesoDBF','pesoFOCCO','delta','pct'],det:['marca','grupo','qtd','pesoDBF','pesoFOCCO','delta','pct']};
+function sortTable(tbl,ci){const key=sortKeys[tbl][ci],arr=tbl==='grp'?grpData:detData;const asc=sortState[tbl+ci]!=='asc';sortState[tbl+ci]=asc?'asc':'desc';arr.sort((a,b)=>typeof a[key]==='string'?(asc?a[key].localeCompare(b[key],'pt'):b[key].localeCompare(a[key],'pt')):(asc?a[key]-b[key]:b[key]-a[key]));tbl==='grp'?renderGrupo():renderDetalhe();}
+function setFilter(el,val){document.querySelectorAll('.filter-tag').forEach(t=>t.classList.remove('active'));el.classList.add('active');currentFilter=val;renderDetalhe();}
+
+// ═══ AGRUPADOR ════════════════════════════════════════════════
+function dzOver(e){e.preventDefault();document.getElementById('dz-agrup').classList.add('drag-over');}
+function dzLeave(e){document.getElementById('dz-agrup').classList.remove('drag-over');}
+function dzDrop(e){e.preventDefault();document.getElementById('dz-agrup').classList.remove('drag-over');addAgrupFiles(e.dataTransfer.files);}
+
+function addAgrupFiles(files){
+  for(const f of files){
+    if(!f.name.endsWith('.xlsx'))continue;
+    if(agrupFiles.find(a=>a.name===f.name))continue; // evitar duplicata
+    const entry={file:f,name:f.name,status:'loading',dbfHeader:null,dbfRows:null,ofTrecho:''};
+    agrupFiles.push(entry);
+    renderAgrupList();
+    // Ler a aba "DBF Validada" do Excel exportado
+    readAgrupFile(entry);
+  }
+  document.getElementById('file-agrup').value='';
+}
+
+async function readAgrupFile(entry){
+  try{
+    const bytes=await readBytes(entry.file);
+    const wb=XLSX.read(bytes,{type:'array',raw:true,cellText:true});
+    // Buscar aba "DBF Validada"
+    const sheetName=wb.SheetNames.find(n=>n==='DBF Validada')||wb.SheetNames[0];
+    const ws=wb.Sheets[sheetName];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+
+    // Pular linhas de título (linha 1 = título, linha 2 = cabeçalho)
+    // Detectar linha de cabeçalho: contém 'MAR_PEZ' ou 'NUM_COM'
+    let hi=0;
+    for(let i=0;i<Math.min(5,rows.length);i++){
+      if(rows[i]&&(rows[i].includes('MAR_PEZ')||rows[i].includes('NUM_COM'))){hi=i;break;}
+    }
+
+    const header=rows[hi].map(v=>v==null?'':String(v));
+    const dataRows=rows.slice(hi+1).map(r=>r.map(v=>v==null?'':String(v)));
+
+    // Extrair ofTrecho do título (linha 0) ou do arquivo
+    let ofTrecho='';
+    if(rows[0]&&rows[0][0]){
+      // "DBF VALIDADA — 2120-4-01 — ..."
+      const m=String(rows[0][0]).match(/(\d{3,6}-\d+-\d+)/);
+      if(m)ofTrecho=m[1];
+    }
+    // Fallback: extrair do nome do arquivo (FOCCO_PPCPM_OF-2120-4-01_...)
+    if(!ofTrecho){
+      const m=entry.name.match(/OF-(\d{3,6}-\d+-\d+)/);
+      if(m)ofTrecho=m[1];
+    }
+    // Fallback: usar NUM_DIS
+    if(!ofTrecho){
+      const C_ND=header.indexOf('NUM_DIS');
+      for(const r of dataRows){
+        if(C_ND>=0&&r[C_ND]){
+          const m=r[C_ND].match(/(\d{3,6})-(\d+-\d+)_/);
+          if(m){ofTrecho=m[1]+'-'+m[2];break;}
+        }
+      }
+    }
+
+    entry.dbfHeader=header;
+    entry.dbfRows=dataRows;
+    entry.ofTrecho=ofTrecho||sheetName;
+    entry.status='ok';
+    entry.rowCount=dataRows.filter(r=>r.some(v=>v!=='')).length;
+  }catch(e){
+    entry.status='err';
+    entry.errMsg=e.message;
+  }
+  renderAgrupList();
+}
+
+function renderAgrupList(){
+  const el=document.getElementById('agrup-files-list');
+  const action=document.getElementById('agrup-action');
+  if(agrupFiles.length===0){
+    el.innerHTML='';action.style.display='none';
+    return;
+  }
+  action.style.display='flex';
+  el.innerHTML=agrupFiles.map((a,i)=>{
+    const statusHtml=a.status==='loading'
+      ?'<span class="af-status loading">⏳ Lendo…</span>'
+      :a.status==='ok'
+        ?`<span class="af-status ok">✓ ${a.rowCount} linhas · ${a.ofTrecho}</span>`
+        :`<span class="af-status err">✕ ${a.errMsg||'Erro'}</span>`;
+    return `<div class="agrup-file-item">
+      <div class="af-icon">📄</div>
+      <div class="af-info">
+        <div class="af-name">${a.name}</div>
+        <div class="af-meta">${statusHtml}</div>
+      </div>
+      <button class="af-remove" title="Remover" onclick="removeAgrup(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removeAgrup(i){agrupFiles.splice(i,1);renderAgrupList();}
+function limparAgrup(){agrupFiles=[];renderAgrupList();}
+
+async function gerarAgrupado(){
+  const validos=agrupFiles.filter(a=>a.status==='ok'&&a.dbfHeader&&a.dbfRows);
+  if(!validos.length){toast('Nenhum arquivo válido para agrupar.');return;}
+  const btn=document.getElementById('btn-agrupar');
+  btn.disabled=true;document.getElementById('agrup-status').textContent='Gerando Excel…';
+  try{
+    const wb=new ExcelJS.Workbook();
+    wb.creator='DBF Agrupador';wb.created=new Date();
+    const HDR_BG='1E3A5F',HDR_FN='FFFFFF';
+    const thin={top:{style:'thin',color:{argb:'FFE2E8F0'}},bottom:{style:'thin',color:{argb:'FFE2E8F0'}},left:{style:'thin',color:{argb:'FFE2E8F0'}},right:{style:'thin',color:{argb:'FFE2E8F0'}}};
+    const mkFill=bg=>({type:'pattern',pattern:'solid',fgColor:{argb:'FF'+bg}});
+
+    // Cores de status (vêm da aba "DBF Validada" já com formatação,
+    // mas lemos como texto — aplicamos cor neutra por linha PAI/FILHO)
+    const fillPAI =mkFill('EFF6FF'); // azul muito claro
+    const fillFILHO=mkFill('F8FAFC');// cinza muito claro
+
+    // ABA POR TRECHO
+    for(const entry of validos){
+      const shName=(entry.ofTrecho||entry.name).replace(/[\/\[\]*?:]/g,'-').slice(0,31);
+      const ws=wb.addWorksheet(shName);
+      const header=entry.dbfHeader;
+      const rows=entry.dbfRows;
+      const mtIdx=header.indexOf('MARCA+TRECHO');
+      const C_DESC=header.indexOf('DES_PEZ');
+
+      // Título
+      ws.mergeCells(1,1,1,Math.min(header.length,20));
+      const tc=ws.getCell('A1');
+      tc.value=`DBF — ${entry.ofTrecho} — ${entry.name}`;
+      tc.font={name:'Calibri',bold:true,color:{argb:'FF'+HDR_FN},size:11};
+      tc.fill=mkFill(HDR_BG);tc.alignment={vertical:'middle',horizontal:'left',indent:1};
+      ws.getRow(1).height=22;
+
+      // Cabeçalho
+      const hRow=ws.getRow(2);
+      header.forEach((h,ci)=>{
+        const c=hRow.getCell(ci+1);c.value=h;
+        c.font={name:'Calibri',bold:true,color:{argb:'FF'+HDR_FN},size:9};
+        c.fill=mkFill('334155');c.alignment={vertical:'middle',horizontal:'center'};c.border=thin;
+      });
+      if(mtIdx>=0){[mtIdx+1,mtIdx+2].forEach(ci=>{const c=hRow.getCell(ci+1);c.fill=mkFill('FBB024');c.font={name:'Calibri',bold:true,color:{argb:'FF1C1917'},size:9};});}
+      ws.getRow(2).height=17;
+
+      // Dados
+      const C_POS_A=header.indexOf('POS_PEZ'),C_PT_A=header.indexOf('Peso Total');
+      let curFill=fillFILHO;
+      for(const rawRow of rows){
+        if(!rawRow||rawRow.every(v=>v===''||v===null))continue;
+        const isPAI=parseBR(rawRow[C_PT_A])>0;
+        curFill=isPAI?fillPAI:fillFILHO;
+        const exRow=ws.addRow(rawRow.map(v=>{if(v===''||v===null)return null;const s=String(v).trim();if(!s)return null;let num=s;if(s.includes(',')&&!s.includes('.'))num=s.replace(',','.');const n=parseFloat(num);if(!isNaN(n)&&String(n)===num)return n;return v;}));
+        exRow.eachCell({includeEmpty:false},c=>{c.font={name:'Calibri',size:9,color:{argb:isPAI?'FF1E3A5F':'FF374151'},bold:isPAI};c.fill=curFill;c.border=thin;c.alignment={vertical:'middle'};});
+        if(mtIdx>=0){[mtIdx+1,mtIdx+2].forEach(ci=>{exRow.getCell(ci+1).fill=mkFill('FFF9C4');});}
+        exRow.height=isPAI?15:13;
+      }
+      ws.views=[{state:'frozen',ySplit:2,xSplit:0}];
+      ws.columns=header.map((_,i)=>({width:i===header.indexOf('MAR_PEZ')||i===mtIdx?24:i===mtIdx+1||i===mtIdx+2?16:12}));
+    }
+
+    // ABA CONSOLIDADO — único cabeçalho + dados empilhados
+    const wsAll=wb.addWorksheet('CONSOLIDADO');
+    const totalLinhas=validos.reduce((s,e)=>s+e.dbfRows.filter(r=>r.some(v=>v!=='')).length,0);
+
+    wsAll.mergeCells(1,1,1,20);
+    const tcAll=wsAll.getCell('A1');
+    tcAll.value=`CONSOLIDADO — ${validos.length} trecho(s) · ${totalLinhas} linhas · Gerado ${new Date().toLocaleDateString('pt-BR')}`;
+    tcAll.font={name:'Calibri',bold:true,color:{argb:'FF'+HDR_FN},size:12};
+    tcAll.fill=mkFill(HDR_BG);tcAll.alignment={vertical:'middle',horizontal:'left',indent:1};
+    wsAll.getRow(1).height=26;
+
+    // Cabeçalho único (do primeiro arquivo)
+    const firstHeader=validos[0].dbfHeader;
+    const allMtIdx=firstHeader.indexOf('MARCA+TRECHO');
+    const chRow=wsAll.getRow(2);
+    firstHeader.forEach((h,ci)=>{
+      const c=chRow.getCell(ci+1);c.value=h;
+      c.font={name:'Calibri',bold:true,color:{argb:'FF'+HDR_FN},size:9};
+      c.fill=mkFill('334155');c.alignment={vertical:'middle',horizontal:'center'};c.border=thin;
+    });
+    if(allMtIdx>=0){[allMtIdx+1,allMtIdx+2].forEach(ci=>{const c=chRow.getCell(ci+1);c.fill=mkFill('FBB024');c.font={name:'Calibri',bold:true,color:{argb:'FF1C1917'},size:9};});}
+    chRow.height=18;
+
+    let globalRow=3;
+    for(const entry of validos){
+      const header=entry.dbfHeader;
+      const mtIdx=header.indexOf('MARCA+TRECHO');
+      const C_POS_B=header.indexOf('POS_PEZ'),C_PT_B=header.indexOf('Peso Total');
+      let curFill2=fillFILHO;
+      for(const rawRow of entry.dbfRows){
+        if(!rawRow||rawRow.every(v=>v===''||v===null))continue;
+        const isPAI=parseBR(rawRow[C_PT_B])>0;
+        curFill2=isPAI?fillPAI:fillFILHO;
+        const exRow=wsAll.getRow(globalRow);
+        rawRow.forEach((v,ci)=>{
+          const cell=exRow.getCell(ci+1);
+          if(v===''||v===null){cell.value=null;}
+          else{const s=String(v).trim();let num=s;if(s.includes(',')&&!s.includes('.'))num=s.replace(',','.');const n=parseFloat(num);cell.value=(!isNaN(n)&&String(n)===num)?n:v;}
+          cell.font={name:'Calibri',size:9,color:{argb:isPAI?'FF1E3A5F':'FF374151'},bold:isPAI};
+          cell.fill=curFill2;cell.border=thin;cell.alignment={vertical:'middle'};
+        });
+        if(mtIdx>=0){[mtIdx+1,mtIdx+2].forEach(ci=>{exRow.getCell(ci+1).fill=mkFill('FFF9C4');});}
+        wsAll.getRow(globalRow).height=isPAI?15:13;
+        globalRow++;
+      }
+    }
+    wsAll.views=[{state:'frozen',ySplit:2,xSplit:0}];
+    wsAll.columns=Array.from({length:firstHeader.length||50},(_,i)=>({width:i<5?22:12}));
+
+    // Download
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const nomes=validos.map(e=>e.ofTrecho.replace(/[^a-zA-Z0-9-]/g,'-')).join('_');
+    const fname=`FOCCO_PPCPM_DBF_Agrupado_${nomes}_${dateTag()}.xlsx`;
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();URL.revokeObjectURL(a.href);
+    toast(`✅ Excel gerado: ${fname}`);
+    document.getElementById('agrup-status').textContent='';
+  }catch(e){
+    document.getElementById('agrup-status').textContent='❌ '+e.message;
+    toast('Erro: '+e.message);console.error(e);
+  }finally{btn.disabled=false;}
+}
+
+// ═══ MODAL NOME ═══════════════════════════════════════════════
+function abrirModalNome(){
+  const parts=currentOFTrecho.split('-');
+  document.getElementById('nm-of').value=parts[0]||'';
+  document.getElementById('nm-trecho').value=parts.slice(1).join('-')||'';
+  document.getElementById('nm-rev').value='01';
+  document.getElementById('nm-data').value=dateTag();
+  atualizarPreview();
+  document.getElementById('modal-nome').classList.add('open');
+}
+function fecharModal(){document.getElementById('modal-nome').classList.remove('open');}
+function atualizarPreview(){
+  const of=document.getElementById('nm-of').value.trim();
+  const tr=document.getElementById('nm-trecho').value.trim();
+  const rev=document.getElementById('nm-rev').value.trim().padStart(2,'0');
+  const dt=document.getElementById('nm-data').value.trim();
+  const nome=`FOCCO_PPCPM_OF-${of}-${tr}_Validação-Peso-LIC x Posição_rev.${rev}_${dt}`;
+  document.getElementById('nm-preview').textContent=nome+'.xlsx';
+  return nome;
+}
+async function confirmarExportar(){const nome=atualizarPreview();fecharModal();await exportarExcel(nome);}
+
+// ═══ EXPORTAR EXCEL (análise) ══════════════════════════════════
+async function exportarExcel(nomeBase){
+  const btn=document.getElementById('btn-exportar');btn.disabled=true;setStatus('Gerando Excel…');
+  try{
+    const wb=new ExcelJS.Workbook();wb.creator='Validação DBF×FOCCO';wb.created=new Date();
+    const COR={hBg:'1E3A5F',hFn:'FFFFFF',ok_bg:'D1FAE5',ok_fn:'065F46',warn_bg:'FEF3C7',warn_fn:'92400E',err_bg:'FEE2E2',err_fn:'991B1B',solo_bg:'FFF7ED',solo_fn:'C2410C',tot_bg:'E0E7FF'};
+    const thin={top:{style:'thin',color:{argb:'FFD1D5DB'}},bottom:{style:'thin',color:{argb:'FFD1D5DB'}},left:{style:'thin',color:{argb:'FFD1D5DB'}},right:{style:'thin',color:{argb:'FFD1D5DB'}}};
+    const mkFill=bg=>({type:'pattern',pattern:'solid',fgColor:{argb:'FF'+bg}});
+    const mkFont=(fn,bold=false)=>({name:'Calibri',color:{argb:'FF'+fn},bold});
+
+    // ABA 1: ANÁLISE
+    const ws1=wb.addWorksheet('Análise DBF × FOCCO');
+    ws1.mergeCells('A1:H1');
+    Object.assign(ws1.getCell('A1'),{value:`VALIDAÇÃO — ${nomeBase} — ${new Date().toLocaleDateString('pt-BR')}`,font:mkFont(COR.hFn,true),fill:mkFill('1E40AF'),alignment:{vertical:'middle',horizontal:'left',indent:1}});
+    ws1.getRow(1).height=26;
+    ws1.mergeCells('A3:H3');
+    Object.assign(ws1.getCell('A3'),{value:'POR GRUPO LIC',font:mkFont(COR.hFn,true),fill:mkFill(COR.hBg),alignment:{indent:1}});
+    ws1.getRow(3).height=18;
+    const gh=ws1.addRow(['Grupo LIC','Qtd Marcas','Peso DBF (kg)','Peso FOCCO (kg)','Delta (kg)','Delta %','Status']);
+    gh.eachCell(c=>{c.font=mkFont('E2E8F0',true);c.fill=mkFill('334155');c.alignment={vertical:'middle',horizontal:'center'};c.border=thin;});gh.height=16;
+    let tD=0,tF=0;
+    for(const g of grpData){
+      tD+=g.pesoDBF;tF+=g.pesoFOCCO;
+      const st=getStatus(g.delta,g.pct);
+      const bg=st.filter==='ok'?COR.ok_bg:Math.abs(g.pct)>5?COR.err_bg:COR.warn_bg;
+      const fn=st.filter==='ok'?COR.ok_fn:Math.abs(g.pct)>5?COR.err_fn:COR.warn_fn;
+      const row=ws1.addRow([g.grupo,g.marcas,g.pesoDBF,g.pesoFOCCO,g.delta,g.pct/100,st.label]);
+      row.eachCell(c=>{c.font=mkFont(fn);c.fill=mkFill(bg);c.border=thin;});
+      row.getCell(1).font=mkFont(fn,true);row.getCell(1).alignment={indent:1};
+      row.getCell(2).numFmt='0';row.getCell(3).numFmt='#,##0.000';row.getCell(4).numFmt='#,##0.000';
+      row.getCell(5).numFmt='+#,##0.000;-#,##0.000;"-"';row.getCell(6).numFmt='+0.00%;-0.00%';
+      row.getCell(7).alignment={horizontal:'center'};row.height=16;
+    }
+    const td2=tF-tD,tp2=tD!==0?(td2/tD)*100:0;
+    const tr2=ws1.addRow(['TOTAL',grpData.reduce((s,g)=>s+g.marcas,0),tD,tF,td2,tp2/100,'']);
+    tr2.eachCell(c=>{c.font=mkFont('1E3A5F',true);c.fill=mkFill(COR.tot_bg);c.border=thin;});
+    tr2.getCell(2).numFmt='0';tr2.getCell(3).numFmt='#,##0.000';tr2.getCell(4).numFmt='#,##0.000';
+    tr2.getCell(5).numFmt='+#,##0.000;-#,##0.000;"-"';tr2.getCell(6).numFmt='+0.00%;-0.00%';tr2.height=18;
+    ws1.addRow([]);
+    const sm=ws1.addRow(['POR MARCA — DETALHE']);ws1.mergeCells(`A${sm.number}:H${sm.number}`);
+    sm.getCell(1).value='POR MARCA — DETALHE';sm.getCell(1).font=mkFont(COR.hFn,true);sm.getCell(1).fill=mkFill(COR.hBg);sm.getCell(1).alignment={indent:1};sm.height=18;
+    const dh=ws1.addRow(['Marca','Grupo LIC','Qtd DBF','Peso DBF (kg)','Peso FOCCO (kg)','Delta (kg)','Delta %','Status']);
+    dh.eachCell(c=>{c.font=mkFont('E2E8F0',true);c.fill=mkFill('334155');c.alignment={vertical:'middle',horizontal:'center'};c.border=thin;});dh.height=16;
+    const sorted=[...detData].sort((a,b)=>a.grupo.localeCompare(b.grupo,'pt')||a.marca.localeCompare(b.marca,'pt'));
+    for(const r of sorted){
+      const st=getStatus(r.delta,r.pct);
+      let bg,fn;
+      if(r.soloDBF||r.soloFOCCO){bg=COR.solo_bg;fn=COR.solo_fn;}
+      else if(st.filter==='ok'){bg=COR.ok_bg;fn=COR.ok_fn;}
+      else if(Math.abs(r.pct)>5){bg=COR.err_bg;fn=COR.err_fn;}
+      else{bg=COR.warn_bg;fn=COR.warn_fn;}
+      const sl=r.soloDBF?'⚠ Só DBF':r.soloFOCCO?'⚠ Só FOCCO':st.label;
+      const row=ws1.addRow([r.marca,r.grupo,r.qtd>0?r.qtd:null,r.pesoDBF>0?r.pesoDBF:null,r.pesoFOCCO>0?r.pesoFOCCO:null,r.soloDBF||r.soloFOCCO?null:r.delta,r.soloDBF||r.soloFOCCO?null:r.pct/100,sl]);
+      row.eachCell(c=>{c.font=mkFont(fn);c.fill=mkFill(bg);c.border=thin;});
+      row.getCell(1).font=mkFont(fn,true);row.getCell(8).alignment={horizontal:'center'};
+      [4,5].forEach(ci=>{if(row.getCell(ci).value!=null)row.getCell(ci).numFmt='#,##0.000';});
+      if(row.getCell(6).value!=null)row.getCell(6).numFmt='+#,##0.000;-#,##0.000;"-"';
+      if(row.getCell(7).value!=null)row.getCell(7).numFmt='+0.00%;-0.00%';
+      row.height=15;
+    }
+    ws1.columns=[{width:30},{width:26},{width:12},{width:18},{width:18},{width:16},{width:12},{width:20}];
+
+    // ABA 2: DBF VALIDADA
+    const ws2=wb.addWorksheet('DBF Validada');
+    const pintIdx=rawDBFHeader.indexOf('Pintura');
+    let tH=rawDBFHeader.filter((_,i)=>i!==pintIdx);
+    const mtI=tH.indexOf('MARCA+TRECHO');tH.splice(mtI+1,0,'adcionar1','adcionar2');
+    const tR=rawDBFRows.map(r=>{let nr=r.filter((_,i)=>i!==pintIdx);nr.splice(mtI+1,0,'','');return nr;});
+    const smMap={};for(const r of detData){const st=getStatus(r.delta,r.pct);smMap[r.marca]=r.soloDBF||r.soloFOCCO?'solo':st.filter==='ok'?'ok':Math.abs(r.pct)>5?'err':'warn';}
+    const getFill=s=>mkFill({ok:'D1FAE5',warn:'FEF3C7',err:'FEE2E2',solo:'FFF7ED'}[s]||'FFFFFF');
+    const fillF2=mkFill('F8FAFC');
+    ws2.mergeCells(1,1,1,Math.min(tH.length,30));
+    const t2=ws2.getCell('A1');t2.value=`DBF VALIDADA — ${nomeBase} — ${new Date().toLocaleString('pt-BR')}`;
+    t2.font=mkFont(COR.hFn,true);t2.fill=mkFill(COR.hBg);t2.alignment={vertical:'middle',horizontal:'left',indent:1};ws2.getRow(1).height=22;
+    const hR2=ws2.getRow(2);
+    tH.forEach((h,ci)=>{const c=hR2.getCell(ci+1);c.value=h;c.font=mkFont(COR.hFn,true);c.fill=mkFill('334155');c.alignment={vertical:'middle',horizontal:'center'};c.border=thin;});
+    [mtI+1,mtI+2].forEach(ci=>{const c=hR2.getCell(ci+1);c.fill=mkFill('FBB024');c.font=mkFont('1C1917',true);});hR2.height=17;
+    const CM=tH.indexOf('MAR_PEZ'),CP_E=tH.indexOf('POS_PEZ'),CPT_E=tH.indexOf('Peso Total');
+    let cf3=mkFill('FFFFFF');
+    for(const rr of tR){
+      if(!rr||rr.every(v=>v===''||v===null))continue;
+      const isPAI=parseBR(rr[CPT_E])>0;
+      if(isPAI)cf3=getFill(smMap[rr[CM]]);else cf3=fillF2;
+      const eR=ws2.addRow(rr.map(v=>{if(v===''||v===null)return null;const s=String(v).trim();if(!s)return null;let nm=s;if(s.includes(',')&&!s.includes('.'))nm=s.replace(',','.');const n=parseFloat(nm);if(!isNaN(n)&&String(n)===nm)return n;return v;}));
+      eR.eachCell({includeEmpty:false},c=>{c.font={name:'Calibri',size:9,color:{argb:isPAI?'FF1E3A5F':'FF374151'},bold:isPAI};c.fill=cf3;c.border=thin;c.alignment={vertical:'middle'};});
+      [mtI+2,mtI+3].forEach(ci=>{eR.getCell(ci).fill=mkFill('FFF9C4');});
+      eR.height=isPAI?15:13;
+    }
+    ws2.views=[{state:'frozen',ySplit:2,xSplit:0}];
+    ws2.columns=tH.map((_,i)=>({width:i===CM||i===mtI?24:i===mtI+1||i===mtI+2?16:12}));
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nomeBase+'.xlsx';a.click();URL.revokeObjectURL(a.href);
+    toast('✅ '+nomeBase+'.xlsx');setStatus('');
+  }catch(e){setStatus('❌ '+e.message);toast('Erro: '+e.message);console.error(e);}
+  finally{btn.disabled=false;}
+}
+
+// ═══ CSV ══════════════════════════════════════════════════════
+function exportCSV(){
+  const rows=[['Marca','Grupo LIC','Qtd DBF','Peso DBF (kg)','Peso FOCCO (kg)','Delta (kg)','Delta %','Status']];
+  for(const r of detData){const s=r.soloDBF?'Só DBF':r.soloFOCCO?'Só FOCCO':Math.abs(r.delta)<0.001?'OK':Math.abs(r.pct)<=1?'≤1%':Math.abs(r.pct)<=5?'Divergente':'CRÍTICO';rows.push([r.marca,r.grupo,r.qtd,r.pesoDBF.toFixed(3),r.pesoFOCCO.toFixed(3),r.delta.toFixed(3),r.pct.toFixed(2)+'%',s]);}
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='validacao_DBF_FOCCO.csv';a.click();
+}
+
+// ═══ HELPERS ══════════════════════════════════════════════════
+function fmt(n,dec=3){return Number(n).toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});}
+function fmtPct(n){return(n>=0?'+':'')+Number(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
+function colorPct(pct){return Math.abs(pct)<=1?'var(--ok)':Math.abs(pct)<=5?'var(--warn)':'var(--err)';}
+function getStatus(delta,pct){if(Math.abs(delta)<0.001)return{cls:'delta-zero',label:'OK',filter:'ok'};if(Math.abs(pct)<=1)return{cls:'delta-ok',label:'✓ ≤1%',filter:'ok'};if(Math.abs(pct)<=5)return{cls:'delta-warn',label:'⚠ '+fmtPct(pct),filter:'divergente'};return{cls:'delta-err',label:'✕ '+fmtPct(pct),filter:'divergente'};}
+function pill(delta,pct){const{cls}=getStatus(delta,pct);const sign=delta>0?'+':'';return`<span class="delta-pill ${cls}">${sign}${fmt(delta,3)}</span>`;}
+function dateTag(){const d=new Date();return String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');}
+function setStatus(msg){document.getElementById('status-msg').textContent=msg;}
+function progress(pct,hide=false){const bar=document.getElementById('progress-bar'),fill=document.getElementById('progress-fill');if(hide){bar.style.display='none';fill.style.width='0%';return;}bar.style.display='block';fill.style.width=pct+'%';}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),4500);}
+function limpar(){
+  dbfFiles=[];fileFOCCO=null;detData=[];grpData=[];rawDBFRows=[];rawDBFHeader=[];currentOFTrecho='';
+  document.getElementById('dbf-files-list').innerHTML='';
+  document.getElementById('drop-dbf').classList.remove('has-file');
+  document.getElementById('file-dbf').value='';
+  document.getElementById('name-focco').textContent='Clique ou arraste aqui';
+  document.getElementById('drop-focco').classList.remove('has-file');
+  document.getElementById('file-focco').value='';
+  document.getElementById('results').style.display='none';document.getElementById('btn-analisar').disabled=true;document.getElementById('btn-exportar').disabled=true;setStatus('');
+}
+
+function limparDbf(){dbfFiles=[];renderDbfList();document.getElementById('file-dbf').value='';checkReady();}
+function limparFocco(){fileFOCCO=null;document.getElementById('name-focco').textContent='Clique ou arraste aqui';document.getElementById('drop-focco').classList.remove('has-file');document.getElementById('file-focco').value='';checkReady();}
+<\/script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+{
+  "versao": "Versão 111",
+  "pacote_atual": 694,
+  "obra_impressao": "2139-5-01",
+  "supabase_url": "https://zlbgiodxpywrqapjlldg.supabase.co",
+  "supabase_chave_publica": "sb_publishable_mYX9vBcW3BQnjZYnnrMmhA_EDWpzHQA",
+  "modulos": [
+    {
+      "id": "pg1",
+      "nome": "Análise da DBF X Focco - ERP",
+      "titulo": "PPCPM - ANÁLISE DBF × FOCCO ERP",
+      "arquivo": "modulos/pg1.html"
+    },
+    {
+      "id": "pg2",
+      "nome": "Agrupador | Base",
+      "titulo": "PPCPM - AGRUPADOR | BASE",
+      "arquivo": "modulos/pg2.html"
+    },
+    {
+      "id": "pg3",
+      "nome": "Roteirização produção",
+      "titulo": "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO",
+      "arquivo": "modulos/pg3.html"
+    },
+    {
+      "id": "pg4",
+      "nome": "Impressão Casada - ERP",
+      "titulo": "PPCPM - IMPRESSÃO CASADA - ERP",
+      "arquivo": "modulos/pg4.html"
+    },
+    {
+      "id": "pg5",
+      "nome": "Impressão Casada | Multi obra",
+      "titulo": "PPCPM - IMPRESSÃO CASADA | MULTI OBRA",
+      "arquivo": "modulos/pg5.html"
+    },
+    {
+      "id": "pg6",
+      "nome": "Impressão Grupo - LIC",
+      "titulo": "PPCPM - IMPRESSÃO GRUPO - LIC",
+      "arquivo": "modulos/pg6.html"
+    },
+    {
+      "id": "pg7",
+      "nome": "Impressão - FLUXO 04",
+      "titulo": "PPCPM - IMPRESSÃO - FLUXO 04",
+      "arquivo": "modulos/pg7.html"
+    },
+    {
+      "id": "pg8",
+      "nome": "Validação de Peso | Análise",
+      "titulo": "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE",
+      "arquivo": "modulos/pg8.html"
+    },
+    {
+      "id": "pg10",
+      "nome": "Alteração de Roteiros",
+      "titulo": "PPCPM - ALTERAÇÃO DE ROTEIROS",
+      "arquivo": "modulos/pg10.html"
+    },
+    {
+      "id": "pg11",
+      "nome": "Acesso ao Intranet",
+      "titulo": "PPCPM - ACESSO AO INTRANET",
+      "arquivo": "modulos/pg11.html"
+    },
+    {
+      "id": "pg12",
+      "nome": "Impressão de Etiquetas",
+      "titulo": "PPCPM - IMPRESSÃO DE ETIQUETAS",
+      "arquivo": "modulos/pg12.html"
+    }
+  ],
+  "modulos_no_arquivo": [
+    "pg1",
+    "pg2",
+    "pg3",
+    "pg4",
+    "pg5",
+    "pg6",
+    "pg7",
+    "pg8",
+    "pg10",
+    "pg11",
+    "pg12"
+  ]
+}
