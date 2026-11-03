@@ -5,7 +5,7 @@ Versão em Python do sistema do Grupo Projeart. Fica **no mesmo esquema do HTML*
 ## Como funciona
 
 ```
-index.html  ──►  gerar_python.py  ──►  ppcpm/gerado/  ──►  app.py (Flask)  ──►  mesma página
+index.html  ──►  gerar_python.py  ──►  ppcpm/gerado/  ──►  app.py (Python)  ──►  mesma página
 ```
 
 | Arquivo | Para que serve |
