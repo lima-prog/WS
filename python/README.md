@@ -27,7 +27,7 @@ O mesmo sistema do HTML (mesma tela de login, menu, cores e programas), rodando 
 
 | Arquivo / pasta | Para que serve |
 |---|---|
-| `INSTALAR.bat` | Instala neste PC: cria o atalho **SISTEMA - PPCPM** na Área de Trabalho e no Menu Iniciar, e pergunta se deve abrir com o Windows |
+| `INSTALAR.bat` | Instala neste PC: copia o sistema para `C:\Users\<você>\SISTEMA-PPCPM` e mostra como criar o atalho. Não usa PowerShell, porque o antivírus da empresa (Bitdefender) bloqueia |
 | `ABRIR_SISTEMA.bat` | Abre o sistema (acha o Python sozinho e reabre depois de uma atualização) |
 | `VERIFICAR_SISTEMA.bat` | Confere o PC: Python, conexões (Supabase, GitHub, Vercel), pastas, bibliotecas por seção e últimas atualizações |
 | `INSTALAR_BIBLIOTECAS.bat` | Instala as bibliotecas das seções (pela internet ou sem internet, pela pasta `pacotes`) |
@@ -47,11 +47,9 @@ O mesmo sistema do HTML (mesma tela de login, menu, cores e programas), rodando 
 ## Instalar no seu PC (uma vez)
 
 1. Instale o Python 3.12 ou mais novo pela **Microsoft Store**, que não pede administrador, ou pelo site python.org, marcando **"Add python.exe to PATH"**.
-2. Extraia o `.zip` e dê dois cliques em **`INSTALAR.bat`**.
-   - Se a pasta estiver em Downloads, ele copia o sistema para `C:\Users\<você>\SISTEMA-PPCPM`.
-   - Cria o atalho **SISTEMA - PPCPM** com o ícone do P da Projeart.
-   - Pergunta se o sistema deve abrir junto com o Windows.
-3. Pronto. Daqui para frente, abra pelo atalho. As versões novas chegam sozinhas.
+2. Extraia o `.zip` e dê dois cliques em **`INSTALAR`** (é o INSTALAR.bat: o Windows esconde o ".bat"). Ele copia o sistema para `C:\Users\<você>\SISTEMA-PPCPM` e abre essa pasta.
+3. Crie o atalho: clique com o botão direito em **ABRIR_SISTEMA** → **Mostrar mais opções** → **Enviar para** → **Área de trabalho (criar atalho)**. Depois, renomeie o atalho para **SISTEMA - PPCPM**. Para usar o ícone do P da Projeart: botão direito no atalho → **Propriedades** → **Alterar ícone** → escolha `ppcpm\web\icone.ico`. Em **Executar**, escolha **Minimizada**.
+4. Pronto. Daqui para frente, abra pelo atalho. As versões novas chegam sozinhas.
 
 Opcional: **`INSTALAR_BIBLIOTECAS.bat`** prepara o PC para os programas em Python (pandas, leitura de DBF, PDF…).
 
@@ -69,7 +67,7 @@ Outras opções: `--sem-navegador`, `--sem-atualizar`, `--verificar`.
 | Situação do PC | O que fazer |
 |---|---|
 | Tem internet e Python | `INSTALAR.bat` e depois, se quiser, `INSTALAR_BIBLIOTECAS.bat` |
-| Sem Python | O `ABRIR_SISTEMA.bat` baixa um Python portátil só para a pasta. Se a rede bloquear, instale pela Microsoft Store |
+| Sem Python | Instale o "Python 3.12" pela Microsoft Store (não pede administrador) |
 | Rede bloqueia o pip | Num PC com internet, rode `BAIXAR_PACOTES_OFFLINE.bat`. Copie a pasta com `pacotes` e rode `INSTALAR_BIBLIOTECAS.bat` (usa a mesma versão do Python) |
 | Algo não abre | Rode `VERIFICAR_SISTEMA.bat` e mande o print |
 
@@ -89,3 +87,5 @@ python -m pytest testes         # confere tudo
 3. **Impressão de Etiquetas:** imprimir direto na Zebra ZD220, sem janela (pywin32).
 
 Observação: a Vercel publica só o `index.html`. Esta pasta fica fora da publicação (`.vercelignore`).
+
+**Antivírus da empresa:** nenhum arquivo do sistema usa PowerShell nem altera o Windows. Se o Bitdefender barrar algo mesmo assim, avise a TI: ela pode liberar a pasta `SISTEMA-PPCPM`. Não desligue o antivírus.

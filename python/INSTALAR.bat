@@ -13,7 +13,7 @@ if "%DEST:~-1%"=="\" set "DEST=%DEST:~0,-1%"
 
 rem Se esta rodando de Downloads ou de dentro do .zip, copia para uma pasta fixa
 echo %DEST% | findstr /i /c:"\Downloads\" /c:"\AppData\Local\Temp\" >nul
-if errorlevel 1 goto atalhos
+if errorlevel 1 goto pronto
 set "DEST=%USERPROFILE%\SISTEMA-PPCPM"
 echo Copiando o sistema para %DEST% ...
 robocopy "%~dp0." "%DEST%" /E /NFL /NDL /NJH /NJS /NP /XD .venv __pycache__ >nul
@@ -23,17 +23,14 @@ if errorlevel 8 (
   exit /b 1
 )
 
-:atalhos
-powershell -NoProfile -ExecutionPolicy Bypass -File "%DEST%\ferramentas\atalhos.ps1" -Pasta "%DEST%"
+:pronto
 echo.
-choice /c SN /n /m "Abrir o sistema sozinho quando o Windows ligar? [S/N] "
-if errorlevel 2 (
-  powershell -NoProfile -ExecutionPolicy Bypass -File "%DEST%\ferramentas\atalhos.ps1" -Pasta "%DEST%" -TirarInicio
-) else (
-  powershell -NoProfile -ExecutionPolicy Bypass -File "%DEST%\ferramentas\atalhos.ps1" -Pasta "%DEST%" -Inicio
-)
+echo Pronto! O sistema esta em: %DEST%
 echo.
-echo Pronto! Use o atalho "SISTEMA - PPCPM" na Area de Trabalho.
-echo Pasta do sistema: %DEST%
+echo Falta so o atalho na Area de Trabalho - 3 cliques:
+echo   1. Na pasta que vai abrir agora, clique com o botao direito em ABRIR_SISTEMA
+echo   2. Mostrar mais opcoes  -^>  Enviar para  -^>  Area de trabalho (criar atalho)
+echo   3. Na Area de Trabalho, renomeie o atalho para: SISTEMA - PPCPM
 echo.
+start "" explorer "%DEST%"
 pause

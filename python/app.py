@@ -28,7 +28,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, urlparse
 from urllib.request import urlopen
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))  # Python portátil também acha a pasta ppcpm
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # acha a pasta ppcpm de qualquer lugar
 
 from ppcpm import arquivos_pc, banco, calculos  # noqa: E402
 from ppcpm.config import PASTA_APP, PASTA_GERADO, config, versao, versao_python  # noqa: E402
