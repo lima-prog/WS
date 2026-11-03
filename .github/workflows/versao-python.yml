@@ -1,0 +1,30 @@
+# Toda alteração no index.html (HTML da Vercel) gera de novo a versão Python automaticamente.
+name: Versão Python automática
+on:
+  push:
+    branches: [main]
+    paths: [index.html]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Separar o index.html em partes (python/ppcpm/gerado)
+        run: |
+          cd python
+          python gerar_python.py
+          pip install -q pytest
+          python -m pytest -q testes -p no:cacheprovider
+      - name: Salvar no repositório
+        run: |
+          git config user.name "SISTEMA PPCPM (automático)"
+          git config user.email "actions@users.noreply.github.com"
+          git add python
+          git diff --cached --quiet || git commit -m "Versão Python gerada automaticamente a partir do index.html"
+          git push

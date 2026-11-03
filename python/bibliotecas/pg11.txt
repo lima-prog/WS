@@ -1,0 +1,4 @@
+# Gerenciador de Roteiros › Acesso ao Intranet
+# Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
+
+requests>=2.32                             # Enviar arquivos para a Intranet PCP

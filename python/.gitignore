@@ -3,3 +3,8 @@ __pycache__/
 .pytest_cache/
 .venv/
 .python/
+pacotes/
+dados_locais/
+.atualizando/
+ppcpm/gerado_novo/
+ppcpm/gerado_velho/

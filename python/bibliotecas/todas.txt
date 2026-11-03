@@ -1,0 +1,16 @@
+# SISTEMA - PPCPM — TODAS as bibliotecas (todas as seções)
+# Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
+
+waitress>=3.0                              # Servidor mais forte quando muitos usuários acessam pela rede
+pandas>=2.2                                # Tabelas: ler, cruzar, somar e filtrar planilhas e DBF com rapidez
+openpyxl>=3.1                              # Ler e gravar Excel .xlsx (mantém abas e formatação)
+XlsxWriter>=3.2                            # Gerar o Excel de saída com cores (verde/vermelho), larguras e filtros
+xlrd>=2.0                                  # Ler Excel antigo .xls
+pyxlsb>=1.0.10                             # Ler Excel binário .xlsb
+dbfread>=2.0.7                             # Ler arquivos .DBF (CNC/ERP)
+lxml>=5.2                                  # Ler o export do FOCCO que vem como .xls em HTML
+pypdf>=4.3                                 # Juntar, separar e reordenar páginas de PDF (ordens, impressão casada)
+pdfplumber>=0.11                           # Ler texto e tabelas de dentro do PDF (conferência do PDF gerado)
+reportlab>=4.2                             # Gerar PDF (etiquetas centralizadas, relatórios)
+requests>=2.32                             # Enviar arquivos para a Intranet PCP
+pywin32>=306; sys_platform == 'win32'      # Imprimir direto na Zebra ZD220 (ZPL) e listar impressoras do Windows

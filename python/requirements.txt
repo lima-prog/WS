@@ -1,3 +1,3 @@
-# O sistema NÃO precisa instalar nada: usa só o que já vem com o Python (3.8 ou mais novo).
-# Só para rodar os testes automáticos (opcional):
-pytest>=7.0
+# O sistema NÃO precisa instalar nada para abrir: usa só o que já vem com o Python (3.8 ou mais novo).
+# Bibliotecas por seção (para os programas em Python): veja bibliotecas/BIBLIOTECAS.md
+-r bibliotecas/todas.txt

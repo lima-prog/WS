@@ -1,0 +1,12 @@
+# Produção › Impressão Grupo - LIC
+# Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
+
+pandas>=2.2                                # Tabelas: ler, cruzar, somar e filtrar planilhas e DBF com rapidez
+openpyxl>=3.1                              # Ler e gravar Excel .xlsx (mantém abas e formatação)
+XlsxWriter>=3.2                            # Gerar o Excel de saída com cores (verde/vermelho), larguras e filtros
+xlrd>=2.0                                  # Ler Excel antigo .xls
+pyxlsb>=1.0.10                             # Ler Excel binário .xlsb
+dbfread>=2.0.7                             # Ler arquivos .DBF (CNC/ERP)
+pypdf>=4.3                                 # Juntar, separar e reordenar páginas de PDF (ordens, impressão casada)
+pdfplumber>=0.11                           # Ler texto e tabelas de dentro do PDF (conferência do PDF gerado)
+reportlab>=4.2                             # Gerar PDF (etiquetas centralizadas, relatórios)

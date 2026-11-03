@@ -1,0 +1,4 @@
+# Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC e atualização automática
+# Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
+
+waitress>=3.0                              # Servidor mais forte quando muitos usuários acessam pela rede
