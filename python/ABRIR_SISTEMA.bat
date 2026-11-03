@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableExtensions
 chcp 65001 >nul
 title SISTEMA - PPCPM
 cd /d "%~dp0"
@@ -8,30 +9,51 @@ echo   SISTEMA - PPCPM  ^|  Grupo Projeart
 echo ============================================
 echo.
 
-set "PY="
-where py >nul 2>nul && set "PY=py -3"
-if not defined PY where python >nul 2>nul && set "PY=python"
-if not defined PY (
-  echo [ERRO] Python nao encontrado neste computador.
-  echo Instale o Python 3.10 ou mais novo em https://www.python.org/downloads/
-  echo e marque a opcao "Add python.exe to PATH" na instalacao.
-  echo.
-  pause
-  exit /b 1
-)
+rem ---- procura o Python (nao precisa de administrador nem de pip) ----
+set "PYEXE="
+set "PYARG="
 
-if not exist ".venv\Scripts\python.exe" (
-  echo Preparando o sistema pela primeira vez, aguarde...
-  %PY% -m venv .venv || (echo [ERRO] Nao foi possivel criar o ambiente. & pause & exit /b 1)
-)
+if exist ".python\python.exe" set "PYEXE=%~dp0.python\python.exe"
+if defined PYEXE goto achou
 
-echo Conferindo os componentes...
-".venv\Scripts\python.exe" -m pip install -q --disable-pip-version-check -r requirements.txt || (echo [ERRO] Falha ao instalar os componentes. Confira a internet. & pause & exit /b 1)
+py -3 -c "import sys" >nul 2>nul && (set "PYEXE=py" & set "PYARG=-3")
+if defined PYEXE goto achou
 
+python -c "import sys" >nul 2>nul && set "PYEXE=python"
+if defined PYEXE goto achou
+
+for /d %%D in ("%LOCALAPPDATA%\Programs\Python\Python3*") do if exist "%%D\python.exe" set "PYEXE=%%D\python.exe"
+if defined PYEXE goto achou
+for /d %%D in ("%ProgramFiles%\Python3*") do if exist "%%D\python.exe" set "PYEXE=%%D\python.exe"
+if defined PYEXE goto achou
+for /d %%D in ("C:\Python3*") do if exist "%%D\python.exe" set "PYEXE=%%D\python.exe"
+if defined PYEXE goto achou
+
+rem ---- nao achou: baixa um Python portatil so para esta pasta ----
+echo Python nao encontrado neste computador.
+echo Baixando um Python portatil so para esta pasta (sem instalar, sem administrador)...
 echo.
-echo Abrindo o sistema no navegador...
-echo Para fechar o sistema, feche esta janela ou aperte Ctrl+C.
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$ErrorActionPreference='Stop';[Net.ServicePointManager]::SecurityProtocol='Tls12';" ^
+  "$z=Join-Path $env:TEMP 'ppcpm-python.zip';" ^
+  "Invoke-WebRequest 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip' -OutFile $z -UseBasicParsing;" ^
+  "Expand-Archive $z -DestinationPath '.python' -Force; Remove-Item $z"
+if exist ".python\python.exe" (
+  set "PYEXE=%~dp0.python\python.exe"
+  goto achou
+)
 echo.
-start "" cmd /c "timeout /t 3 /nobreak >nul & start http://127.0.0.1:5000"
-".venv\Scripts\python.exe" app.py %*
+echo [ERRO] Nao foi possivel baixar o Python (a rede da empresa pode bloquear).
+echo Instale o Python por um destes caminhos e abra este arquivo de novo:
+echo   1. Microsoft Store: procure "Python 3.12" e clique em Obter (nao pede administrador)
+echo   2. Site https://www.python.org/downloads/  -  marque "Add python.exe to PATH"
+echo.
+pause
+exit /b 1
+
+:achou
+echo Python encontrado. Abrindo o sistema no navegador...
+echo.
+"%PYEXE%" %PYARG% app.py %*
+echo.
 pause
