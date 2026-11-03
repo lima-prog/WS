@@ -41,7 +41,7 @@ LOCAIS_OK = {"127.0.0.1", "::1", "::ffff:127.0.0.1"}
 
 _pagina = {"chave": None, "bruta": b"", "gzip": b""}
 _trava = threading.Lock()
-ESTADO = {"porta": PORTA_PADRAO, "rede": False, "agendador": None}
+ESTADO = {"porta": PORTA_PADRAO, "rede": False, "agendador": None, "servidor": None, "encerrar": False}
 
 
 def pagina() -> tuple[bytes, bytes]:
@@ -128,6 +128,19 @@ class Sistema(BaseHTTPRequestHandler):
             return self._json({"erro": "Página não encontrada."}, 404)
         except (BrokenPipeError, ConnectionResetError):
             pass
+
+    def do_POST(self):
+        caminho = urlparse(self.path).path.rstrip("/")
+        if caminho == "/api/encerrar":
+            # Botão "Sair" → [S] Sim: desliga o sistema por completo neste PC (só o próprio PC pode)
+            if not self._do_proprio_pc():
+                return self._json({"erro": "Só o próprio computador do sistema pode encerrá-lo."}, 403)
+            self._json({"ok": True, "mensagem": "Sistema encerrado."})
+            print("\nSistema encerrado pelo botão Sair. Até amanhã!")
+            ESTADO["encerrar"] = True
+            threading.Timer(0.5, ESTADO["servidor"].shutdown).start()
+            return None
+        return self._json({"erro": "Página não encontrada."}, 404)
 
     def _arquivos_pc(self, acao: str, q: dict):
         if not self._do_proprio_pc():
@@ -217,7 +230,7 @@ def main(args: list[str]) -> int:
     porta = _porta_livre(PORTA_PADRAO)
     servidor = ThreadingHTTPServer(("0.0.0.0" if na_rede else "127.0.0.1", porta), Sistema)
     servidor.daemon_threads = True
-    ESTADO.update(porta=porta, rede=na_rede)
+    ESTADO.update(porta=porta, rede=na_rede, servidor=servidor)
     endereco = f"http://127.0.0.1:{porta}"
     reiniciar = threading.Event()
 

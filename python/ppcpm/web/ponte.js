@@ -483,6 +483,67 @@
     };
   }
 
+  /* ---------- SAIR = encerrar o sistema por completo neste PC ----------
+     Botão "Sair" do sistema: pergunta [S] Sim / [N] Não. Com Sim, faz o logout e desliga
+     o Python (a janela preta fecha). No dia seguinte, abre de novo pelo atalho.
+     Quem entra pela rede (--rede) só faz o logout normal: não desliga o PC de ninguém. */
+  function perguntaSair() {
+    return new Promise(function (resolve) {
+      estilo();
+      var f = el('div'); f.id = 'ppcpm-sair'; f.setAttribute('role', 'alertdialog'); f.setAttribute('aria-modal', 'true');
+      f.style.cssText = 'position:fixed;inset:0;z-index:2147483600;background:rgba(5,10,25,.6);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,Helvetica,sans-serif';
+      var c = el('div'); c.style.cssText = 'background:#fff;color:#1a2233;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.45);max-width:480px;width:100%;overflow:hidden;border:1px solid #0b2150';
+      var t = el('div', null, 'SISTEMA PPCPM - AVISA'); t.style.cssText = 'background:linear-gradient(180deg,#0b2150,#06142f);color:#fff;font:700 14px Arial,Helvetica,sans-serif;letter-spacing:.5px;text-align:center;padding:13px 16px';
+      var m = el('div'); m.style.cssText = 'padding:20px 24px 6px;font:700 15px Arial,Helvetica,sans-serif;line-height:1.45';
+      m.textContent = 'Deseja sair e encerrar o sistema por completo?';
+      var m2 = el('div', null, 'O sistema será desligado neste PC. Para usar de novo, abra pelo atalho SISTEMA - PPCPM.');
+      m2.style.cssText = 'padding:0 24px 18px;font:600 13px Arial,Helvetica,sans-serif;color:#4b5563;line-height:1.45';
+      var r = el('div'); r.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;background:#f7f8fa;border-top:1px solid #e3e7ee;flex-wrap:wrap';
+      function b(txt, pri) {
+        var x = el('button', null, txt);
+        x.style.cssText = 'font:700 13px Arial,Helvetica,sans-serif;border-radius:7px;padding:8px 16px;cursor:pointer;border:1px solid ' + (pri ? '#0b5cad;background:#0b5cad;color:#fff' : '#c5cbd6;background:#f2f4f6;color:#1f2937');
+        return x;
+      }
+      var bTroca = b('Só trocar de usuário'), bN = b('[N] Não'), bS = b('[S] Sim, encerrar', true);
+      bTroca.style.marginRight = 'auto';
+      r.appendChild(bTroca); r.appendChild(bN); r.appendChild(bS);
+      c.appendChild(t); c.appendChild(m); c.appendChild(m2); c.appendChild(r); f.appendChild(c);
+      function fim(v) { document.removeEventListener('keydown', tecla, true); f.remove(); resolve(v); }
+      function tecla(e) {
+        var k = (e.key || '').toLowerCase();
+        if (k === 's' || k === 'enter') { e.preventDefault(); e.stopPropagation(); fim('sim'); }
+        else if (k === 'n' || k === 'escape') { e.preventDefault(); e.stopPropagation(); fim('nao'); }
+      }
+      bS.onclick = function () { fim('sim'); }; bN.onclick = function () { fim('nao'); }; bTroca.onclick = function () { fim('trocar'); };
+      document.addEventListener('keydown', tecla, true);
+      document.body.appendChild(f); bS.focus();
+    });
+  }
+  function telaEncerrado() {
+    var f = el('div');
+    f.style.cssText = 'position:fixed;inset:0;z-index:2147483646;background:#06142f;color:#e8f0ff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-family:Arial,Helvetica,sans-serif;text-align:center;padding:20px';
+    f.innerHTML = '<div style="font:700 22px Arial,Helvetica,sans-serif;letter-spacing:.5px">SISTEMA - PPCPM ENCERRADO</div>'
+      + '<div style="font:600 14px Arial,Helvetica,sans-serif;color:#9fb5dc">O sistema foi desligado neste PC. Pode fechar esta aba.</div>'
+      + '<div style="font:600 14px Arial,Helvetica,sans-serif;color:#9fb5dc">Para usar de novo, abra pelo atalho <b style="color:#fff">SISTEMA - PPCPM</b>.</div>';
+    document.body.appendChild(f);
+  }
+  if (window.top === window) {
+    document.addEventListener('click', function (e) {
+      var bt = e.target && e.target.closest && e.target.closest('#out');
+      if (!bt || bypass || !ativo) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      perguntaSair().then(function (v) {
+        if (v === 'nao') return;
+        bypass = true; try { bt.click(); } finally { bypass = false; }          // logout normal do sistema
+        if (v !== 'sim') return;
+        setTimeout(function () {
+          fetch('/api/encerrar', { method: 'POST', headers: CAB }).then(function () { telaEncerrado(); try { window.close(); } catch (x) { } })
+            .catch(function () { telaEncerrado(); });
+        }, 600);
+      });
+    }, true);
+  }
+
   // Para os próximos programas em Python: window.PPCPM_PC.abrir({accept:'.dbf', multiple:true})
   window.PPCPM_PC = { abrir: function (o) { return abrirSeletor(o).then(function (r) { return r && r.files ? r.files : []; }); }, ativo: function () { return ativo; } };
 })();
