@@ -108,22 +108,32 @@ def atualizar_python(pacote_remoto) -> bool:
             destino = temp / rel
             destino.parent.mkdir(parents=True, exist_ok=True)
             destino.write_bytes(z.read(n))
-    # copia por cima (a pasta gerado/ é trocada inteira para não misturar versões)
-    for item in temp.iterdir():
-        alvo = PASTA_APP / item.name
-        if item.name == "ppcpm":
-            for sub in item.iterdir():
-                a = alvo / sub.name
-                if sub.is_dir():
-                    shutil.rmtree(a, ignore_errors=True)
-                    shutil.copytree(sub, a)
-                else:
-                    shutil.copy2(sub, a)
-        elif item.is_dir():
-            shutil.rmtree(alvo, ignore_errors=True)
-            shutil.copytree(item, alvo)
-        elif item.name != ARQ_VERSAO_PYTHON.name:
-            shutil.copy2(item, alvo)
+    # Copia só o que mudou, arquivo por arquivo, sem apagar pastas. Assim o ícone do atalho e o
+    # que está em uso nunca somem. Só a pasta gerado/ é trocada inteira (para não misturar versões).
+    novos = {p.relative_to(temp) for p in temp.rglob("*") if p.is_file()}
+    for rel in sorted(novos):
+        if rel.name == ARQ_VERSAO_PYTHON.name and len(rel.parts) == 1:
+            continue
+        if rel.parts[:2] == ("ppcpm", "gerado"):
+            continue
+        origem, alvo = temp / rel, PASTA_APP / rel
+        if alvo.is_file() and alvo.read_bytes() == origem.read_bytes():
+            continue
+        alvo.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(origem, alvo)
+    if (temp / "ppcpm" / "gerado").is_dir():
+        shutil.rmtree(PASTA_GERADO, ignore_errors=True)
+        shutil.copytree(temp / "ppcpm" / "gerado", PASTA_GERADO)
+    # arquivos de código que saíram do sistema (nunca mexe em ícones, dados_locais, .venv...)
+    for pasta in ("ppcpm", "bibliotecas", "ferramentas", "testes"):
+        for velho in (PASTA_APP / pasta).rglob("*"):
+            rel = velho.relative_to(PASTA_APP)
+            if (velho.is_file() and rel not in novos and rel.parts[:2] != ("ppcpm", "gerado")
+                    and "__pycache__" not in rel.parts and velho.suffix.lower() != ".ico"):
+                try:
+                    velho.unlink()
+                except OSError:
+                    pass
     shutil.copy2(temp / ARQ_VERSAO_PYTHON.name, ARQ_VERSAO_PYTHON)   # por último: marca como concluído
     shutil.rmtree(temp, ignore_errors=True)
     registrar(f"Código Python atualizado para o pacote {pacote_remoto}. Reiniciando o sistema...")

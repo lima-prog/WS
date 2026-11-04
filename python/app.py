@@ -212,7 +212,18 @@ def _ip_na_rede() -> str:
         return socket.gethostbyname(socket.gethostname())
 
 
+def _garantir_icone() -> None:
+    """Ícone do atalho num lugar fixo (pasta do sistema), que a atualização nunca apaga."""
+    fixo, origem = PASTA_APP / "icone.ico", PASTA_APP / "ppcpm" / "web" / "icone.ico"
+    try:
+        if origem.exists() and (not fixo.exists() or fixo.stat().st_size == 0):
+            fixo.write_bytes(origem.read_bytes())
+    except OSError:
+        pass
+
+
 def main(args: list[str]) -> int:
+    _garantir_icone()
     if "--verificar" in args:
         from ppcpm.diagnostico import relatorio
         print(relatorio())

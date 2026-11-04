@@ -48,7 +48,7 @@ O mesmo sistema do HTML (mesma tela de login, menu, cores e programas), rodando 
 
 1. Instale o Python 3.12 ou mais novo pela **Microsoft Store**, que não pede administrador, ou pelo site python.org, marcando **"Add python.exe to PATH"**.
 2. Extraia o `.zip` e dê dois cliques em **`INSTALAR`** (é o INSTALAR.bat: o Windows esconde o ".bat"). Ele copia o sistema para `C:\Users\<você>\SISTEMA-PPCPM` e abre essa pasta.
-3. Crie o atalho: clique com o botão direito em **ABRIR_SISTEMA** → **Mostrar mais opções** → **Enviar para** → **Área de trabalho (criar atalho)**. Depois, renomeie o atalho para **SISTEMA - PPCPM**. Para usar o ícone do P da Projeart: botão direito no atalho → **Propriedades** → **Alterar ícone** → escolha `ppcpm\web\icone.ico`. Em **Executar**, escolha **Minimizada**.
+3. Crie o atalho: clique com o botão direito em **ABRIR_SISTEMA** → **Mostrar mais opções** → **Enviar para** → **Área de trabalho (criar atalho)**. Depois, renomeie o atalho para **SISTEMA - PPCPM**. Para usar o ícone do P da Projeart: botão direito no atalho → **Propriedades** → **Alterar ícone** → escolha o `icone.ico` da pasta do sistema. Em **Executar**, escolha **Minimizada**.
 4. Pronto. Daqui para frente, abra pelo atalho. As versões novas chegam sozinhas.
 
 Opcional: **`INSTALAR_BIBLIOTECAS.bat`** prepara o PC para os programas em Python (pandas, leitura de DBF, PDF…).
