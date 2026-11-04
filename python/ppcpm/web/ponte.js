@@ -109,7 +109,7 @@
       '#ppcpm-pc .pc-card.max{border-radius:0}',
       '#ppcpm-pc .pc-top{position:relative;display:flex;align-items:center;justify-content:center;height:46px;padding:0 120px;background:linear-gradient(180deg,#0b2150,#06142f);color:#fff;cursor:move;user-select:none;flex:none}',
       '#ppcpm-pc .pc-top b{font:700 15px Arial,Helvetica,sans-serif;letter-spacing:.6px;text-transform:uppercase;display:flex;align-items:center;gap:9px;white-space:nowrap}',
-      '#ppcpm-pc .pc-top .pc-l{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#9fb5dc;font-size:12px;white-space:nowrap}',
+      '#ppcpm-pc .pc-top .pc-l{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#fff;font-size:12px;white-space:nowrap}',
       '#ppcpm-pc .pc-top .pc-r{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:2px}',
       '#ppcpm-pc .pc-top .pc-r button{background:transparent;border:0;color:#cfdcf5;padding:6px 8px;border-radius:6px}',
       '#ppcpm-pc .pc-top .pc-r button:hover{background:rgba(255,255,255,.12);color:#fff}',
@@ -170,7 +170,15 @@
       '#ppcpm-pc .pc-card.estreita .pc-d{display:none}',
       '#ppcpm-pc .pc-card.estreita .pc-barra .pc-tx{display:none}',
       '#ppcpm-pc .pc-card.estreita .pc-top .pc-l{display:none}',
-      '#ppcpm-pc.arrastando,#ppcpm-pc.arrastando *{user-select:none!important}'
+      '#ppcpm-pc.arrastando,#ppcpm-pc.arrastando *{user-select:none!important}',
+      /* cores fixas: alguns programas forçam cor preta em tudo; aqui a janela mantém as suas */
+      '#ppcpm-pc .pc-top,#ppcpm-pc .pc-top *,#ppcpm-pc .pc-top svg{color:#fff!important}',
+      '#ppcpm-pc .pc-top .pc-l{color:#fff!important;opacity:.92}',
+      '#ppcpm-pc .pc-top svg{stroke:currentColor!important}',
+      '#ppcpm-pc button.pc-pri,#ppcpm-pc button.pc-pri *{color:#fff!important}',
+      '#ppcpm-pc .pc-loc .pc-sv,#ppcpm-pc .pc-loc .pc-sv svg{color:#0b5cad!important}',
+      '#ppcpm-pc .pc-loc .pc-x,#ppcpm-pc .pc-loc .pc-x svg{color:#b42318!important}',
+      '#ppcpm-pc svg{stroke:currentColor}'
     ].join('\n');
     (document.head || document.documentElement).appendChild(c);
   }
