@@ -127,3 +127,27 @@ def test_7z_se_biblioteca_instalada(tmp_path, monkeypatch):
         f.write(tmp_path / "f.csv", "DBF/f.csv")
     assert [i["nome"] for i in arquivos_pc.listar(os.path.join(str(a), "DBF"))["itens"]] == ["f.csv"]
     assert arquivos_pc.ler_arquivo(os.path.join(str(a), "DBF", "f.csv"))[0] == b"a;b\n"
+
+
+def test_zebra_raw_com_acento(tmp_path, monkeypatch):
+    from ppcpm import zebra
+    enviados = []
+
+    class Fake:
+        PRINTER_ENUM_LOCAL, PRINTER_ENUM_CONNECTIONS = 2, 4
+        GetDefaultPrinter = staticmethod(lambda: "Outra")
+        EnumPrinters = staticmethod(lambda f, n=None, l=1: [{"pPrinterName": "Outra", "pPortName": "LPT1:"},
+                                                            {"pPrinterName": "ZDesigner ZD220-203dpi ZPL", "pPortName": "USB001"}])
+        OpenPrinter = staticmethod(lambda n: n)
+        StartDocPrinter = staticmethod(lambda h, l, info: enviados.append(("doc", h, info[2])))
+        WritePrinter = staticmethod(lambda h, d: enviados.append(("dados", d)))
+        StartPagePrinter = EndPagePrinter = EndDocPrinter = ClosePrinter = staticmethod(lambda h: None)
+
+    monkeypatch.setattr(zebra, "win32print", Fake)
+    monkeypatch.setattr(zebra, "ARQ_IMPRESSORA", tmp_path / "imp.json")
+    lista = zebra.listar_impressoras()
+    assert lista[0]["name"].startswith("ZDesigner") and lista[0]["connection"] == "USB001"
+    assert zebra.enviar_zpl("^XA^FDObservação^FS^XZ", lista[0]["name"]) == "raw"
+    assert enviados[0] == ("doc", lista[0]["name"], "RAW")
+    assert enviados[1][1] == "^XA^CI28^FDObservação^FS^XZ".encode("utf-8")
+    assert zebra.ultima_impressora() == lista[0]["name"]

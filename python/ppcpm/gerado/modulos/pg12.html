@@ -2545,8 +2545,10 @@ if (typeof module !== 'undefined') module.exports = PP;
   }
   async function listarImpressoras() {
     if (typeof window.PPCP_LISTAR_IMPRESSORAS === 'function') {
-      var l = await window.PPCP_LISTAR_IMPRESSORAS();
-      return { via: 'sistema', lista: (l || []).map(function (n) { return typeof n === 'string' ? { name: n } : n; }) };
+      try {
+        var l = await window.PPCP_LISTAR_IMPRESSORAS();
+        return { via: 'sistema', lista: (l || []).map(function (n) { return typeof n === 'string' ? { name: n } : n; }) };
+      } catch (e) { return { via: 'nenhum', lista: [], erro: e }; }
     }
     try {
       var r = await bpFetch('/available'), j = await r.json(), lista = (j && (j.printer || j.printers)) || [];
@@ -2652,7 +2654,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     var abas = h('div', { class: 'abas', style: { alignItems: 'center' } }), paineis = [];
     raiz.appendChild(abas);
     var acoes = h('div', { class: 'linha', style: { marginLeft: 'auto', paddingBottom: '6px' } },
-      ui.botao('⚙️ Layout da etiqueta', { classe: 'mini', click: dlgConfig }), ui.botao('🧪 Imprimir teste', { classe: 'mini', click: teste }), ui.botao('👤 Operador', { classe: 'mini', click: dlgOperador }));
+      ui.botao('⚙️ Layout da etiqueta', { classe: 'mini', click: dlgConfig }), ui.botao('🧪 Imprimir teste', { classe: 'mini', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') testeZpl(); else teste(); } }), ui.botao('👤 Operador', { classe: 'mini', click: dlgOperador }));
     function aba(titulo, el, aoAbrir) {
       var b = h('button', { type: 'button' }, titulo), i = paineis.length;
       b.addEventListener('click', function () { ativar(i); });
@@ -2706,7 +2708,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         ui.botao('📦 DEMANDA/LCT', { click: demanda })),
       h('div', { class: 'mt' }, tEmit.el),
       h('div', { class: 'linha mt' }, ui.botao('✅ Marcar todas', { click: function () { marcar(true); } }), ui.botao('❌ Desmarcar todas', { click: function () { marcar(false); } }), lblTot,
-        h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ui.botao('⬇ Baixar PDF', { click: function () { imprimir('pdf'); } }), ui.botao('🖨️ Imprimir selecionadas', { classe: 'prim', click: function () { imprimir(false); } }))), combos);
+        h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ui.botao('⬇ Baixar PDF', { click: function () { imprimir('pdf'); } }), ui.botao('🖨️ Imprimir selecionadas', { classe: 'prim', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') imprimirZpl(false); else imprimir(false); } }))), combos);
     function combos() {
       [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, distintos('fluxo')]].forEach(function (x) {
         var atual = x[0].value; x[0].innerHTML = '';
@@ -2727,7 +2729,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       var r = await listarImpressoras(); rodape();
       if (!r.lista.length) {
         var esc = await ui.modal({ titulo: 'Impressora', tipo: 'alerta', largura: 560,
-          corpo: h('div', null, h('p', null, 'Nenhuma impressora encontrada pelo navegador.'),
+          corpo: h('div', null, h('p', null, 'Nenhuma impressora encontrada pelo navegador.'), r.erro && window.PPCP_IMPRIMIR_ZPL ? h('p', null, 'Sistema PPCPM (Python): ' + U.msgErro(r.erro)) : null,
             h('p', { class: 'fraco' }, 'Para imprimir direto na Zebra, instale e deixe aberto o "Zebra Browser Print" (download gratuito no site da Zebra). Na primeira vez ele pergunta se libera este site — clique em "Yes/Sim".'),
             h('p', { class: 'fraco' }, 'Enquanto isso, você pode baixar o arquivo .zpl e mandar para a impressora (ex.: pelo Zebra Setup Utilities → "Send File").')),
           botoes: [{ texto: 'Cancelar', valor: null }, { texto: '⬇ Baixar .zpl', valor: 'zpl', classe: 'prim' }] });

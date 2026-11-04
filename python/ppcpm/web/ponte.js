@@ -21,7 +21,23 @@
   var CAB = { 'X-PPCPM': '1' };
   fetch(API + 'locais', { cache: 'no-store', headers: CAB }).then(function (r) {
     if (!r.ok) throw 0; return r.json();
-  }).then(function (j) { LOCAIS = j; ativo = true; }).catch(function () { ativo = false; });
+  }).then(function (j) { LOCAIS = j; ativo = true; ligarZebra(); }).catch(function () { ativo = false; });
+
+  /* ---------- ZEBRA: Impressão de Etiquetas manda o ZPL direto para a impressora deste PC ----------
+     O programa de etiquetas procura estes ganchos; sem eles (Vercel) usa a janela do Chrome. */
+  function ligarZebra() {
+    window.PPCP_LISTAR_IMPRESSORAS = function () {
+      return fetch('/api/zebra/impressoras', { cache: 'no-store', headers: CAB }).then(function (r) {
+        return r.json().then(function (j) { if (!r.ok) throw new Error(j.erro || 'Erro ' + r.status); return j.impressoras; });
+      });
+    };
+    window.PPCP_IMPRIMIR_ZPL = function (zpl, impressora) {
+      return fetch('/api/zebra/imprimir', { method: 'POST', headers: { 'X-PPCPM': '1', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ impressora: impressora, zpl: zpl }) }).then(function (r) {
+        return r.json().then(function (j) { if (!r.ok) throw new Error(j.erro || 'Erro ' + r.status); return j; });
+      });
+    };
+  }
 
   /* ---------- utilidades ---------- */
   function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }

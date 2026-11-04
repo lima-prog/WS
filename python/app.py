@@ -30,7 +30,7 @@ from urllib.request import urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # acha a pasta ppcpm de qualquer lugar
 
-from ppcpm import arquivos_pc, banco, calculos  # noqa: E402
+from ppcpm import arquivos_pc, banco, calculos, zebra  # noqa: E402
 from ppcpm.config import PASTA_APP, PASTA_GERADO, config, versao, versao_python  # noqa: E402
 from ppcpm.montagem import montar  # noqa: E402
 
@@ -113,6 +113,13 @@ class Sistema(BaseHTTPRequestHandler):
                                    "rede": ESTADO["rede"], "ultima_verificacao": getattr(ag, "ultimo", None)})
             if caminho.startswith("/api/pc/"):
                 return self._arquivos_pc(caminho[len("/api/pc/"):], q)
+            if caminho == "/api/zebra/impressoras":
+                if not self._do_proprio_pc():
+                    return self._json({"erro": "Impressoras só neste computador."}, 403)
+                try:
+                    return self._json({"impressoras": zebra.listar_impressoras(), "ultima": zebra.ultima_impressora()})
+                except Exception as e:
+                    return self._json({"erro": str(e)}, 500)
             if caminho == "/api/modulos":
                 return self._json(config()["modulos"])
             if caminho.startswith("/api/modulo/"):
@@ -129,8 +136,32 @@ class Sistema(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    def _corpo_json(self) -> dict:
+        n = int(self.headers.get("Content-Length") or 0)
+        if n <= 0 or n > 20 * 1024 * 1024:
+            return {}
+        try:
+            return json.loads(self.rfile.read(n).decode("utf-8"))
+        except ValueError:
+            return {}
+
     def do_POST(self):
         caminho = urlparse(self.path).path.rstrip("/")
+        if caminho == "/api/zebra/imprimir":
+            # Impressão de Etiquetas: ZPL direto na Zebra ligada a este PC
+            if not self._do_proprio_pc():
+                return self._json({"erro": "Só o próprio computador da impressora pode imprimir."}, 403)
+            d = self._corpo_json()
+            zpls = d.get("zpls") or ([d["zpl"]] if d.get("zpl") else [])
+            if not zpls:
+                return self._json({"erro": "Nenhuma etiqueta para imprimir."}, 400)
+            try:
+                metodo = ""
+                for z in zpls:
+                    metodo = zebra.enviar_zpl(str(z), str(d.get("impressora") or ""))
+                return self._json({"ok": True, "enviadas": len(zpls), "metodo": metodo})
+            except Exception as e:
+                return self._json({"erro": str(e)}, 500)
         if caminho == "/api/encerrar":
             # Botão "Sair" → [S] Sim: desliga o sistema por completo neste PC (só o próprio PC pode)
             if not self._do_proprio_pc():
