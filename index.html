@@ -19187,7 +19187,7 @@ if (typeof module !== 'undefined') module.exports = PP;
   var FLUXOS_VALIDOS = ['Fluxo 1', 'Fluxo 2', 'Fluxo 3', 'Fluxo 4'];
   var OBSERVACAO_MAX = 50, TODOS = 'Todos', TODAS = 'Todas';
   var PADRAO = { margem_superior: 25, margem_inferior: 25, margem_esquerda: 15, margem_direita: 8, fonte_obra: 55, fonte_fluxo: 65, fonte_pacote: 90, fonte_data: 30, espacamento_vertical: 8, mostrar_borda: false, mostrar_linhas: true, espessura_linha: 2, largura_etiqueta_mm: 50, altura_etiqueta_mm: 90, centralizar: true, ajuste_x_mm: 0, ajuste_y_mm: 0 };
-  var PADROES_PACOTE = [/[Ll][Oo][Tt][Ee]\s+(\d+)/, /[Ll][Oo][Tt][Ee](\d+)/, /pacote\s+(\d+)/, /pacote(\d+)/];
+  var PADROES_PACOTE = [/LOTE[\s_\-]*(\d+)/i, /PACOTE[\s_\-]*(\d+)/i];
   function len(s) { return Array.from(s).length; }
   function tab() { return PP.db.tabela('etiquetas_individual'); }
   function cfgTab() { return PP.db.config('etiquetas_config'); }
@@ -19240,6 +19240,11 @@ if (typeof module !== 'undefined') module.exports = PP;
   }
   function salvarConfig(c) { var t = cfgTab(); Object.keys(PADRAO).forEach(function (k) { t.set(k, c[k]); }); }
   var mm = function (v) { return Math.trunc(v * 4); }, pt = function (v) { return Math.trunc(v * 1.33); };
+  function fonte_linha2(t, c, lt) {
+    var n = Math.max(1, len(t)), w = Math.min(c.fonte_fluxo, Math.floor(lt / (n * 0.62)));
+    var alt = Math.min(c.fonte_fluxo, Math.max(28, Math.round(w * 1.25)));
+    return { alt: alt, larg: Math.min(w, alt), dy: Math.round((pt(c.fonte_fluxo) - alt) / 2) };
+  }
   function largura_fonte_obra(obra) { var n = len(obra); if (n <= 8) return 48; if (n <= 10) return 45; return Math.max(38, 48 - (n - 10) * 3); }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function fmtData(d) { return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
@@ -19271,7 +19276,8 @@ if (typeof module !== 'undefined') module.exports = PP;
     var linha = function (y) { return '^FO' + (L.x + 10) + ',' + y + '^GB' + (L.lt - 20) + ',' + c.espessura_linha + '^FS\n'; };
     if (c.mostrar_linhas) z += linha(L.yL1) + linha(L.yL2) + linha(L.yL3);
     z += '^FO' + L.x + ',' + L.yObra + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_obra + ',' + largura_fonte_obra(L.obra) + '^FD' + L.obra + '^FS\n';
-    z += '^FO' + L.x + ',' + L.yFluxo + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_fluxo + ',' + c.fonte_fluxo + '^FD' + L.fluxo + '^FS\n';
+    var f2 = fonte_linha2(L.fluxo, c, L.lt);
+    z += '^FO' + L.x + ',' + (L.yFluxo + f2.dy) + '^FB' + L.lt + ',1,0,C^A0N,' + f2.alt + ',' + f2.larg + '^FD' + L.fluxo + '^FS\n';
     z += '^FO' + L.x + ',' + L.yPac + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_pacote + ',' + c.fonte_pacote + '^FD' + L.pacote + '^FS\n';
     if (L.obs) {
       z += '^FO' + L.x + ',' + L.yObs + '^FB' + L.lt + ',2,0,C^A0N,20,20^FD' + L.obs + '^FS\n';
@@ -19293,7 +19299,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       s.push('<text x="' + (L.x + L.lt / 2) + '" y="' + (y + alt * 0.8) + '" font-family="Arial Narrow,Arial,sans-serif" font-weight="700" font-size="' + alt + '" text-anchor="middle" textLength="' + Math.min(L.lt, len(t) * larg * 0.62) + '" lengthAdjust="spacingAndGlyphs" fill="#000">' + U.esc(t) + '</text>');
     };
     tx(L.yObra, c.fonte_obra, largura_fonte_obra(L.obra), L.obra);
-    tx(L.yFluxo, c.fonte_fluxo, c.fonte_fluxo, L.fluxo);
+    var f2 = fonte_linha2(L.fluxo, c, L.lt); tx(L.yFluxo + f2.dy, f2.alt, f2.larg, L.fluxo);
     tx(L.yPac, c.fonte_pacote, c.fonte_pacote, L.pacote);
     if (L.obs) { tx(L.yObs, 20, 20, L.obs); if (c.mostrar_linhas) ln(L.yObs + mm(25)); }
     tx(L.yData, c.fonte_data, c.fonte_data, data);
@@ -19325,14 +19331,68 @@ if (typeof module !== 'undefined') module.exports = PP;
     if (window.PPCP_USUARIO) return String(window.PPCP_USUARIO);
     return cfgTab().get('operador', '') || 'desconhecido';
   }
-  function importar(df, nomeArquivo, obs) {
-    var c = achar_colunas(df.columns);
-    if (c[0] === null || c[1] === null) throw new Error('Planilha inválida! Colunas necessárias (OF e Fluxo) não encontradas. Encontradas: [' + df.columns.map(function (x) { return "'" + String(x) + "'"; }).join(', ') + ']');
-    var pacote = extrair_pacote_do_nome_arquivo(nomeArquivo), d = ler_planilha(df, pacote);
-    if (!d) throw new Error('Nenhuma linha com Fluxo 1, 2, 3 ou 4 encontrada!');
-    var etqs = gerar_etiquetas_para_pacote(d);
-    substituir_pacote(pacote, etqs, usuario(), Array.from(U.strip(obs || '')).slice(0, OBSERVACAO_MAX).join(''));
-    return { pacote: pacote, obras: d.obras.length, total: etqs.length };
+  /* V115: relatório novo "Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx"
+     - aba Preparação     -> uma etiqueta por OBRA × MÁQUINA DE CORTE (coluna CORTE)
+     - aba Não Preparação -> uma etiqueta por OBRA × SETOR (coluna SETOR)
+     - mais o saquinho DEMANDA/LCT do pacote; pacote = coluna LOTE (ou o nome do arquivo) */
+  function semAcento(t) { return String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim(); }
+  function abaDoRelatorio(wb, nome) {
+    var alvo = semAcento(nome);
+    var n = wb.SheetNames.filter(function (x) { return semAcento(x) === alvo; })[0];
+    return n ? wb.Sheets[n] : null;
+  }
+  function linhasDaAba(ws) {
+    var X = XLSX, m = X.utils.sheet_to_json(ws, { header: 1, defval: null, raw: false, blankrows: false });
+    var hi = -1;
+    for (var i = 0; i < Math.min(m.length, 30); i++) { if ((m[i] || []).some(function (v) { return semAcento(v) === 'OF-TRECHO'; })) { hi = i; break; } }
+    if (hi < 0) return null;
+    var cab = m[hi].map(semAcento);
+    return { col: function (nome) { return cab.indexOf(semAcento(nome)); }, linhas: m.slice(hi + 1) };
+  }
+  function valorTexto(v) { var t = U.strip(String(v == null ? '' : v)); return t === '-' || /^nan$/i.test(t) ? '' : t; }
+  function ler_relatorio(bytes, nomeArquivo) {
+    if (typeof XLSX === 'undefined') throw new Error('Leitor de planilhas (SheetJS) não carregado. Recarregue a página.');
+    var wb = XLSX.read(U.toBytes(bytes), { type: 'array', cellDates: false, cellFormula: false, cellHTML: false });
+    var prep = abaDoRelatorio(wb, 'Preparação'), nao = abaDoRelatorio(wb, 'Não Preparação');
+    if (!prep && !nao) throw new Error('Relatório inválido! Use o "Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx" (precisa das abas Preparação e Não Preparação).\nAbas encontradas: ' + wb.SheetNames.join(', '));
+    var obras = new Map(), lote = '';
+    function somar(ws, nomeAba, colGrupo, colReserva) {
+      if (!ws) return 0;
+      var t = linhasDaAba(ws);
+      if (!t) throw new Error('Na aba "' + nomeAba + '" não achei o cabeçalho com a coluna OF-TRECHO.');
+      var cOf = t.col('OF-TRECHO'), cG = t.col(colGrupo), cR = colReserva ? t.col(colReserva) : -1, cL = t.col('LOTE');
+      if (cG < 0) throw new Error('Na aba "' + nomeAba + '" não achei a coluna ' + colGrupo + '.');
+      var n = 0;
+      t.linhas.forEach(function (l) {
+        var obra = valorTexto(l[cOf]); if (!obra) return;
+        var g = valorTexto(l[cG]);
+        if (!g && cR >= 0) g = valorTexto(String(l[cR] || '').split('>')[0]);
+        if (!g) return;
+        if (!lote && cL >= 0 && /^\d+$/.test(valorTexto(l[cL]))) lote = valorTexto(l[cL]);
+        if (!obras.has(obra)) obras.set(obra, { prep: [], nao: [] });
+        var lista = obras.get(obra)[nomeAba === 'Preparação' ? 'prep' : 'nao'];
+        g = g.toUpperCase();
+        if (lista.indexOf(g) < 0) { lista.push(g); n++; }
+      });
+      return n;
+    }
+    var nPrep = somar(prep, 'Preparação', 'CORTE', 'SEQUÊNCIA DE ROTEIRO');
+    var nNao = somar(nao, 'Não Preparação', 'SETOR');
+    if (!obras.size) throw new Error('Nenhuma obra com máquina (Preparação) ou setor (Não Preparação) encontrada no relatório.');
+    var pacote = lote ? 'PACOTE ' + lote : extrair_pacote_do_nome_arquivo(nomeArquivo);
+    var ordem = Array.from(obras.keys()).sort(function (a, b) { return a.localeCompare(b, 'pt-BR', { numeric: true }); });
+    var etqs = [{ obra: 'DEMANDA', fluxo: 'LCT', pacote: pacote, tipo: 'saquinho' }];
+    ordem.forEach(function (obra) {
+      var o = obras.get(obra);
+      o.prep.forEach(function (m) { etqs.push({ obra: obra, fluxo: m, pacote: pacote, tipo: 'preparacao' }); });
+      o.nao.sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); }).forEach(function (st) { etqs.push({ obra: obra, fluxo: st, pacote: pacote, tipo: 'nao_preparacao' }); });
+    });
+    return { pacote: pacote, obras: ordem.length, etiquetas: etqs, preparacao: nPrep, nao_preparacao: nNao };
+  }
+  function importar(bytes, nomeArquivo, obs) {
+    var d = ler_relatorio(bytes, nomeArquivo);
+    substituir_pacote(d.pacote, d.etiquetas, usuario(), Array.from(U.strip(obs || '')).slice(0, OBSERVACAO_MAX).join(''));
+    return { pacote: d.pacote, obras: d.obras, total: d.etiquetas.length, preparacao: d.preparacao, nao_preparacao: d.nao_preparacao };
   }
 
   /* ---------------- impressão ---------------- */
@@ -19458,7 +19518,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     var ui = PP.ui, h = ui.h, arquivo = null, df = null;
     var status = h('div', { class: 'status mt' });
     function rodape() { var imp = cfgTab().get('ultima_impressora', '') || 'nenhuma'; status.textContent = '👤 ' + usuario() + ' | 🖨️ Última impressora: ' + imp; }
-    raiz.appendChild(ui.cabecalhoFerramenta('Impressão de Etiquetas', 'Importa a planilha de fluxos (a mesma gerada no Relatório de Fluxos), grava as etiquetas do pacote no histórico e imprime na Zebra (100×100 mm, 203 dpi).\n\n1) Início: escolha a planilha (o nº do pacote vem do nome do arquivo, ex.: "relatorio_fluxos_LOTE 634.xlsx") e clique em IMPORTAR DADOS.\n2) Emitir etiqueta: filtre, marque e clique em Imprimir selecionadas.\n3) Histórico: tudo que já foi importado/impresso.\n\nFluxos 1, 2, 3 e 4 geram etiqueta, mais o saquinho DEMANDA/LCT.\n\nImpressão direta precisa do "Zebra Browser Print" instalado no computador (serviço gratuito da Zebra). Sem ele, as etiquetas saem como arquivo .zpl para enviar à impressora.'));
+    raiz.appendChild(ui.cabecalhoFerramenta('Impressão de Etiquetas', 'Importa o Relatório de Ordens e Fluxos (Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx), grava as etiquetas do pacote no histórico e imprime na Zebra (203 dpi).\n\n1) Início: escolha o relatório (o nº do pacote vem da coluna LOTE) e clique em IMPORTAR DADOS.\n2) Emitir etiqueta: filtre, marque e clique em Imprimir selecionadas.\n3) Histórico: tudo que já foi importado/impresso.\n\nAba Preparação: uma etiqueta por obra e máquina de corte. Aba Não Preparação: uma etiqueta por obra e setor. Mais o saquinho DEMANDA/LCT.\n\nImpressão direta precisa do "Zebra Browser Print" instalado no computador (serviço gratuito da Zebra). Sem ele, as etiquetas saem como arquivo .zpl para enviar à impressora.'));
     var abas = h('div', { class: 'abas', style: { alignItems: 'center' } }), paineis = [];
     raiz.appendChild(abas);
     var acoes = h('div', { class: 'linha', style: { marginLeft: 'auto', paddingBottom: '6px' } },
@@ -19472,26 +19532,25 @@ if (typeof module !== 'undefined') module.exports = PP;
 
     /* Início */
     var lblPac = h('div', { class: 'forte mt' }, 'Pacote: ---');
-    var sel = new ui.SeletorArquivo({ id: 'etq-planilha', textoDrop: 'arraste a planilha de fluxos (.xlsx / .xls)', tipos: { 'application/vnd.ms-excel': ['.xlsx', '.xls'] }, descricao: 'Excel',
+    var sel = new ui.SeletorArquivo({ id: 'etq-planilha', textoDrop: 'arraste o Relatório de Ordens e Fluxos (.xlsx)', tipos: { 'application/vnd.ms-excel': ['.xlsx', '.xls'] }, descricao: 'Excel',
       aoEscolher: function (fs) { arquivo = fs[0]; lblPac.textContent = 'Pacote: ' + extrair_pacote_do_nome_arquivo(arquivo.name); btnImp.disabled = false; },
       aoLimpar: function () { arquivo = null; lblPac.textContent = 'Pacote: ---'; btnImp.disabled = true; } });
     var eObs = h('input', { class: 'campo', maxlength: String(OBSERVACAO_MAX), placeholder: 'Observação (opcional)' });
     var btnImp = ui.botao('📥 IMPORTAR DADOS', { classe: 'prim grande', desabilitado: true, click: importarClick });
     aba('🏠 Início', h('div', null,
       h('div', { class: 'grade g2' },
-        h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '1'), 'Planilha de fluxos'), sel.el, lblPac),
+        h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '1'), 'Relatório de Ordens e Fluxos'), sel.el, lblPac),
         h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '2'), 'Observação (opcional, até ' + OBSERVACAO_MAX + ' caracteres)'), eObs,
           h('div', { class: 'mt' }, btnImp),
-          h('div', { class: 'fraco mt' }, 'Depois de importar, vá em “Emitir etiqueta” para imprimir.\nFluxos 1, 2, 3 e 4 geram etiqueta (mais o saquinho DEMANDA/LCT).')))));
+          h('div', { class: 'fraco mt' }, 'Depois de importar, vá em “Emitir etiqueta” para imprimir.\nPreparação: uma etiqueta por obra e máquina de corte. Não Preparação: uma etiqueta por obra e setor. Mais o saquinho DEMANDA/LCT.')))));
     async function importarClick() {
       if (!arquivo) return;
       var fs = await sel.pronto(); if (!fs) return;
       status.textContent = 'Lendo planilha...';
       try {
-        var d = PL.readExcel(await fs[0].bytes());
-        var r = importar(d, fs[0].name, eObs.value);
+        var r = importar(await fs[0].bytes(), fs[0].name, eObs.value);
         status.textContent = '✅ ' + r.total + ' etiquetas importadas!';
-        await ui.alerta('Sucesso', 'Dados importados com sucesso!\n\n📦 Pacote: ' + r.pacote + '\n📋 Obras: ' + r.obras + '\n🏷️ Etiquetas: ' + r.total + '\n\n👉 Vá até “Emitir etiqueta” para imprimir.', 'ok');
+        await ui.alerta('Sucesso', 'Dados importados com sucesso!\n\n📦 Pacote: ' + r.pacote + '\n📋 Obras: ' + r.obras + '\n🔧 Preparação (obra × máquina): ' + r.preparacao + '\n🏭 Não Preparação (obra × setor): ' + r.nao_preparacao + '\n🏷️ Etiquetas: ' + r.total + ' (com o saquinho DEMANDA/LCT)' + '\n\n👉 Vá até “Emitir etiqueta” para imprimir.', 'ok');
         combos(); cbPac.value = r.pacote; buscarClick(); ativar(1);
       } catch (e) { console.error(e); status.textContent = '❌ Erro ao importar'; ui.erro('Erro', U.msgErro(e)); }
     }
@@ -19505,13 +19564,13 @@ if (typeof module !== 'undefined') module.exports = PP;
       c.addEventListener('change', function () { if (c.checked) marcados.add(r.id); else marcados.delete(r.id); contador(); });
       return { el: c };
     }
-    var colunas = [{ chave: 'id', titulo: 'ID', alinhar: 'c' }, { chave: 'data_hora', titulo: 'Data' }, { chave: 'pacote', titulo: 'Pacote' }, { chave: 'obra', titulo: 'Obra' }, { chave: 'fluxo', titulo: 'Fluxo' },
+    var colunas = [{ chave: 'id', titulo: 'ID', alinhar: 'c' }, { chave: 'data_hora', titulo: 'Data' }, { chave: 'pacote', titulo: 'Pacote' }, { chave: 'obra', titulo: 'Obra' }, { chave: 'fluxo', titulo: 'Máquina / Setor' },
       { chave: 'observacao', titulo: 'Observação', celula: function (r) { return r.observacao || ''; } }, { chave: 'usuario', titulo: 'Operador' },
       { chave: 'impresso', titulo: 'Status', celula: function (r) { return r.impresso === 1 ? { texto: '✅ Impresso', classe: 'ok' } : { texto: '⏳ Pendente', classe: 'fraco' }; } }];
     var tEmit = new ui.Tabela({ selecao: 'nenhuma', altura: 'calc(100vh - 420px)', vazio: 'Nenhuma etiqueta — importe uma planilha ou ajuste os filtros.', colunas: [{ chave: 'sel', titulo: 'Sel', alinhar: 'c', celula: chk }].concat(colunas), aoDuploClique: previa });
     tEmit.el.style.minHeight = '260px';
     aba('🖨️ Emitir etiqueta', h('div', { class: 'card' },
-      h('div', { class: 'linha' }, h('span', null, 'Pacote:'), cbPac, h('span', null, 'Obra:'), cbObra, h('span', null, 'Fluxo:'), cbFl,
+      h('div', { class: 'linha' }, h('span', null, 'Pacote:'), cbPac, h('span', null, 'Obra:'), cbObra, h('span', null, 'Máquina / Setor:'), cbFl,
         ui.botao('🔍 Buscar', { click: buscarClick }), ui.botao('🗑️ Limpar', { click: function () { [cbPac, cbObra, cbFl].forEach(function (c) { c.selectedIndex = 0; }); buscarClick(); } }),
         ui.botao('📦 DEMANDA/LCT', { click: demanda })),
       h('div', { class: 'mt' }, tEmit.el),
@@ -19528,7 +19587,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     function buscarClick() { preencher(buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS)); }
     function demanda() { var p = cbPac.value; if (!p || p === TODOS) { ui.alerta('Aviso', 'Selecione um pacote!', 'alerta'); return; } preencher(buscar(p, 'DEMANDA', 'LCT')); }
     function marcar(v) { marcados.clear(); if (v) tEmit.linhas.forEach(function (r) { marcados.add(r.id); }); tEmit.render(); contador(); }
-    function ids() { return tEmit.linhas.filter(function (r) { return marcados.has(r.id); }).map(function (r) { return r.id; }); }
+    function ids() { return tEmit.linhas.filter(function (r) { return marcados.has(r.id); }).map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }); }  // imprime na ordem do relatório: saquinho, depois obra por obra
     function contador() { lblTot.textContent = 'Total: ' + tEmit.linhas.length + ' | Selecionadas: ' + ids().length; }
     function porIds(l) { var t = tab(); return l.map(function (i) { var r = t.achar(function (x) { return x.id === i; }); return r ? { id: i, pacote: r.pacote, obra: r.obra, fluxo: r.fluxo, observacao: r.observacao || '' } : null; }).filter(Boolean); }
 
@@ -19614,7 +19673,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     tHist.el.style.minHeight = '260px';
     aba('📜 Histórico', h('div', { class: 'card' }, tHist.el,
       h('div', { class: 'linha mt' }, h('div', { class: 'espaco' }), ui.botao('Exportar CSV', { click: function () {
-        var l = [['ID', 'Data', 'Pacote', 'Obra', 'Fluxo', 'Observação', 'Operador', 'Status']].concat(tHist.linhas.map(function (r) { return [r.id, r.data_hora, r.pacote, r.obra, r.fluxo, r.observacao || '', r.usuario, r.impresso === 1 ? 'Impresso' : 'Pendente']; }));
+        var l = [['ID', 'Data', 'Pacote', 'Obra', 'Máquina / Setor', 'Observação', 'Operador', 'Status']].concat(tHist.linhas.map(function (r) { return [r.id, r.data_hora, r.pacote, r.obra, r.fluxo, r.observacao || '', r.usuario, r.impresso === 1 ? 'Impresso' : 'Pendente']; }));
         PP.fs.baixar(new Blob(['﻿' + PL.escreverCSV(l, ';')], { type: 'text/csv' }), 'historico_etiquetas.csv');
       } }))), function () { tHist.definirLinhas(buscar()); });
 
@@ -20099,7 +20158,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 114';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 115';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
