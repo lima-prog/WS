@@ -9,7 +9,7 @@ Toda versão nova publicada (GitHub lima-prog/ws → Vercel) chega sozinha aqui:
        -> baixa o index.html (GitHub ou, se bloqueado, a Vercel) e regenera ppcpm/gerado/.
           Não precisa reiniciar: na próxima tela o usuário vê "Nova versão disponível".
 
-Confere ao abrir e a cada 30 minutos. Nunca mexe em: dados_locais/, .venv/, .python/, pacotes/.
+Confere ao abrir e a cada 5 minutos. Nunca mexe em: dados_locais/, .venv/, .python/, pacotes/.
 Desligar: python app.py --sem-atualizar
 """
 from __future__ import annotations
@@ -30,7 +30,7 @@ from .gerador import gerar_de_html
 GITHUB_RAW = "https://raw.githubusercontent.com/lima-prog/ws/main/"
 GITHUB_ZIP = "https://codeload.github.com/lima-prog/ws/zip/refs/heads/main"
 VERCEL = "https://sistemaoperacional-grupoprojeartv92.vercel.app/"
-INTERVALO_MIN = 30
+INTERVALO_MIN = 5
 PROTEGIDOS = {"dados_locais", ".venv", ".python", "pacotes", ".atualizando", "__pycache__"}
 ARQ_LOG = PASTA_DADOS / "atualizacoes.log"
 

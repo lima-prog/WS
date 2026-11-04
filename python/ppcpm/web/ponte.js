@@ -555,6 +555,40 @@
     }, true);
   }
 
+  /* ---------- AVISO DE VERSÃO NOVA (HTML ou Python) ----------
+     O Python deste PC se atualiza sozinho. Quando isso acontece, a tela aberta mostra
+     "Nova versão disponível" — é só clicar em Atualizar agora (não precisa sair do sistema). */
+  if (window.top === window) {
+    var inicial = null, avisado = '';
+    function statusAgora() { return fetch('/api/status', { cache: 'no-store' }).then(function (r) { return r.json(); }); }
+    function avisoVersao(texto) {
+      if (document.getElementById('updAviso') || document.getElementById('ppcpm-upd')) return;
+      var d = el('div'); d.id = 'ppcpm-upd'; d.setAttribute('role', 'status');
+      d.style.cssText = 'position:fixed;right:18px;top:18px;z-index:2147483500;display:flex;align-items:center;gap:12px;background:#e8ebef;color:#1f2937;border:1px solid #c9d0d9;border-left:5px solid #0b5cad;border-radius:10px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.35);font:600 13px Arial,Helvetica,sans-serif;max-width:440px';
+      var t = el('span'); t.innerHTML = '<b style="font-weight:800">Nova versão disponível</b><br><span style="font-weight:500;color:#4b5563"></span>';
+      t.lastChild.textContent = texto + ' — salve o que estiver fazendo e atualize.';
+      var ok = el('button', null, 'Atualizar agora'), dep = el('button', null, 'Depois');
+      ok.style.cssText = 'background:#0b5cad;color:#fff;border:1px solid #0b5cad;border-radius:7px;padding:8px 14px;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer;white-space:nowrap';
+      dep.style.cssText = 'background:#f2f4f6;color:#1f2937;border:1px solid #c5cbd6;border-radius:7px;padding:8px 10px;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer';
+      ok.onclick = function () { location.reload(); }; dep.onclick = function () { d.remove(); };
+      d.appendChild(t); d.appendChild(ok); d.appendChild(dep); document.body.appendChild(d);
+    }
+    function conferir() {
+      if (document.hidden) return;
+      statusAgora().then(function (j) {
+        if (!inicial) { inicial = j; return; }
+        var chave = j.versao + '|' + j.pacote_python;
+        if (chave !== inicial.versao + '|' + inicial.pacote_python && chave !== avisado) {
+          avisado = chave;
+          avisoVersao(j.versao !== inicial.versao ? j.versao : 'Pacote Python ' + j.pacote_python);
+        }
+      }).catch(function () { /* sistema reiniciando com a versão nova: confere de novo daqui a pouco */ });
+    }
+    conferir();
+    setInterval(conferir, 30000);
+    document.addEventListener('visibilitychange', conferir);
+  }
+
   // Para os próximos programas em Python: window.PPCPM_PC.abrir({accept:'.dbf', multiple:true})
   window.PPCPM_PC = { abrir: function (o) { return abrirSeletor(o).then(function (r) { return r && r.files ? r.files : []; }); }, ativo: function () { return ativo; } };
 })();
