@@ -19311,16 +19311,18 @@ if (typeof module !== 'undefined') module.exports = PP;
   function substituir_pacote(pacote, etqs, usuario, obs) {
     var t = tab(), agora = U.agoraFmt('%d/%m/%Y %H:%M:%S');
     t.remover(function (r) { return r.pacote === pacote; });
-    etqs.forEach(function (e) { t.inserir({ data_hora: agora, pacote: e.pacote, obra: e.obra, fluxo: e.fluxo, usuario: usuario, impresso: 0, observacao: obs }); });
+    etqs.forEach(function (e) { t.inserir({ data_hora: agora, pacote: e.pacote, obra: e.obra, fluxo: e.fluxo, tipo: e.tipo || '', usuario: usuario, impresso: 0, observacao: obs }); });
   }
   function distintos(campo, desc) {
     var s = new Set(); tab().todos().forEach(function (r) { s.add(r[campo]); });
     var l = Array.from(s).sort(function (a, b) { return U.cmpPy(String(a), String(b)); });
     return desc ? l.reverse() : l;
   }
-  function buscar(pac, obra, fl) {
+  var ETAPAS = { saquinho: 'Saquinho', preparacao: 'Preparação', nao_preparacao: 'Não Preparação' };
+  function buscar(pac, obra, fl, etapa) {
     return tab().filtrar(function (r) {
-      return (!pac || pac === TODOS || r.pacote === pac) && (!obra || obra === TODAS || r.obra === obra) && (!fl || fl === TODOS || r.fluxo === fl);
+      return (!pac || pac === TODOS || r.pacote === pac) && (!obra || obra === TODAS || r.obra === obra) && (!fl || fl === TODOS || r.fluxo === fl)
+        && (!etapa || etapa === TODAS || r.tipo === etapa || (r.tipo === 'saquinho' && etapa !== 'nao_preparacao'));
     }).sort(function (a, b) { return b.id - a.id; });
   }
   function usuario() {
@@ -19381,12 +19383,11 @@ if (typeof module !== 'undefined') module.exports = PP;
     if (!obras.size) throw new Error('Nenhuma obra com máquina (Preparação) ou setor (Não Preparação) encontrada no relatório.');
     var pacote = lote ? 'PACOTE ' + lote : extrair_pacote_do_nome_arquivo(nomeArquivo);
     var ordem = Array.from(obras.keys()).sort(function (a, b) { return a.localeCompare(b, 'pt-BR', { numeric: true }); });
+    // V116 — regras de impressão: 1º saquinho; 2º PREPARAÇÃO obra por obra (máquinas em sequência);
+    //        3º NÃO PREPARAÇÃO obra por obra (setor por setor)
     var etqs = [{ obra: 'DEMANDA', fluxo: 'LCT', pacote: pacote, tipo: 'saquinho' }];
-    ordem.forEach(function (obra) {
-      var o = obras.get(obra);
-      o.prep.forEach(function (m) { etqs.push({ obra: obra, fluxo: m, pacote: pacote, tipo: 'preparacao' }); });
-      o.nao.sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); }).forEach(function (st) { etqs.push({ obra: obra, fluxo: st, pacote: pacote, tipo: 'nao_preparacao' }); });
-    });
+    ordem.forEach(function (obra) { obras.get(obra).prep.forEach(function (m) { etqs.push({ obra: obra, fluxo: m, pacote: pacote, tipo: 'preparacao' }); }); });
+    ordem.forEach(function (obra) { obras.get(obra).nao.sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); }).forEach(function (st) { etqs.push({ obra: obra, fluxo: st, pacote: pacote, tipo: 'nao_preparacao' }); }); });
     return { pacote: pacote, obras: ordem.length, etiquetas: etqs, preparacao: nPrep, nao_preparacao: nNao };
   }
   function importar(bytes, nomeArquivo, obs) {
@@ -19542,7 +19543,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '1'), 'Relatório de Ordens e Fluxos'), sel.el, lblPac),
         h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '2'), 'Observação (opcional, até ' + OBSERVACAO_MAX + ' caracteres)'), eObs,
           h('div', { class: 'mt' }, btnImp),
-          h('div', { class: 'fraco mt' }, 'Depois de importar, vá em “Emitir etiqueta” para imprimir.\nPreparação: uma etiqueta por obra e máquina de corte. Não Preparação: uma etiqueta por obra e setor. Mais o saquinho DEMANDA/LCT.')))));
+          h('div', { class: 'fraco mt' }, 'Depois de importar, vá em “Emitir etiqueta” para imprimir.\nOrdem de impressão: 1º saquinho DEMANDA/LCT · 2º Preparação, obra por obra (máquinas em sequência) · 3º Não Preparação, obra por obra (setor por setor).')))));
     async function importarClick() {
       if (!arquivo) return;
       var fs = await sel.pronto(); if (!fs) return;
@@ -19557,21 +19558,23 @@ if (typeof module !== 'undefined') module.exports = PP;
 
     /* Emitir */
     var marcados = new Set();
-    var cbPac = h('select', { class: 'campo' }), cbObra = h('select', { class: 'campo' }), cbFl = h('select', { class: 'campo' });
+    var cbPac = h('select', { class: 'campo' }), cbObra = h('select', { class: 'campo' }), cbFl = h('select', { class: 'campo' }), cbEtapa = h('select', { class: 'campo' });
+    [[TODAS, 'Todas'], ['preparacao', 'Preparação'], ['nao_preparacao', 'Não Preparação']].forEach(function (x) { cbEtapa.appendChild(h('option', { value: x[0] }, x[1])); });
+    cbEtapa.addEventListener('change', function () { buscarClick(); });
     var lblTot = h('span', { class: 'fraco' }, 'Total: 0 | Selecionadas: 0');
     function chk(r) {
       var c = h('input', { type: 'checkbox' }); c.checked = marcados.has(r.id);
       c.addEventListener('change', function () { if (c.checked) marcados.add(r.id); else marcados.delete(r.id); contador(); });
       return { el: c };
     }
-    var colunas = [{ chave: 'id', titulo: 'ID', alinhar: 'c' }, { chave: 'data_hora', titulo: 'Data' }, { chave: 'pacote', titulo: 'Pacote' }, { chave: 'obra', titulo: 'Obra' }, { chave: 'fluxo', titulo: 'Máquina / Setor' },
+    var colunas = [{ chave: 'id', titulo: 'ID', alinhar: 'c' }, { chave: 'data_hora', titulo: 'Data' }, { chave: 'pacote', titulo: 'Pacote' }, { chave: 'obra', titulo: 'Obra' }, { chave: 'tipo', titulo: 'Etapa', celula: function (r) { return ETAPAS[r.tipo] || ''; } }, { chave: 'fluxo', titulo: 'Máquina / Setor' },
       { chave: 'observacao', titulo: 'Observação', celula: function (r) { return r.observacao || ''; } }, { chave: 'usuario', titulo: 'Operador' },
       { chave: 'impresso', titulo: 'Status', celula: function (r) { return r.impresso === 1 ? { texto: '✅ Impresso', classe: 'ok' } : { texto: '⏳ Pendente', classe: 'fraco' }; } }];
     var tEmit = new ui.Tabela({ selecao: 'nenhuma', altura: 'calc(100vh - 420px)', vazio: 'Nenhuma etiqueta — importe uma planilha ou ajuste os filtros.', colunas: [{ chave: 'sel', titulo: 'Sel', alinhar: 'c', celula: chk }].concat(colunas), aoDuploClique: previa });
     tEmit.el.style.minHeight = '260px';
     aba('🖨️ Emitir etiqueta', h('div', { class: 'card' },
-      h('div', { class: 'linha' }, h('span', null, 'Pacote:'), cbPac, h('span', null, 'Obra:'), cbObra, h('span', null, 'Máquina / Setor:'), cbFl,
-        ui.botao('🔍 Buscar', { click: buscarClick }), ui.botao('🗑️ Limpar', { click: function () { [cbPac, cbObra, cbFl].forEach(function (c) { c.selectedIndex = 0; }); buscarClick(); } }),
+      h('div', { class: 'linha' }, h('span', null, 'Pacote:'), cbPac, h('span', null, 'Obra:'), cbObra, h('span', null, 'Etapa:'), cbEtapa, h('span', null, 'Máquina / Setor:'), cbFl,
+        ui.botao('🔍 Buscar', { click: buscarClick }), ui.botao('🗑️ Limpar', { click: function () { [cbPac, cbObra, cbFl, cbEtapa].forEach(function (c) { c.selectedIndex = 0; }); buscarClick(); } }),
         ui.botao('📦 DEMANDA/LCT', { click: demanda })),
       h('div', { class: 'mt' }, tEmit.el),
       h('div', { class: 'linha mt' }, ui.botao('✅ Marcar todas', { click: function () { marcar(true); } }), ui.botao('❌ Desmarcar todas', { click: function () { marcar(false); } }), lblTot,
@@ -19584,7 +19587,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       });
     }
     function preencher(l) { marcados.clear(); tEmit.definirLinhas(l); contador(); }
-    function buscarClick() { preencher(buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS)); }
+    function buscarClick() { preencher(buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS, cbEtapa.value || TODAS).sort(function (a, b) { return a.id - b.id; })); }  // lista na mesma ordem em que imprime
     function demanda() { var p = cbPac.value; if (!p || p === TODOS) { ui.alerta('Aviso', 'Selecione um pacote!', 'alerta'); return; } preencher(buscar(p, 'DEMANDA', 'LCT')); }
     function marcar(v) { marcados.clear(); if (v) tEmit.linhas.forEach(function (r) { marcados.add(r.id); }); tEmit.render(); contador(); }
     function ids() { return tEmit.linhas.filter(function (r) { return marcados.has(r.id); }).map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }); }  // imprime na ordem do relatório: saquinho, depois obra por obra
@@ -20158,7 +20161,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 115';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 116';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
