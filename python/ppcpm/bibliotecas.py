@@ -28,6 +28,8 @@ LIBS = {
     "pywin32":    ("win32print", "pywin32>=306; sys_platform == 'win32'", "Imprimir direto na Zebra ZD220 (ZPL) e listar impressoras do Windows"),
     "requests":   ("requests", "requests>=2.32", "Enviar arquivos para a Intranet PCP"),
     "waitress":   ("waitress", "waitress>=3.0", "Servidor mais forte quando muitos usuários acessam pela rede"),
+    "py7zr":      ("py7zr", "py7zr>=0.22", "Abrir arquivos compactados .7z como pasta"),
+    "rarfile":    ("rarfile", "rarfile>=4.2", "Abrir arquivos .rar como pasta (precisa do 7-Zip ou WinRAR no PC)"),
 }
 
 PLANILHAS = ["pandas", "openpyxl", "XlsxWriter", "xlrd", "pyxlsb", "dbfread"]
@@ -35,7 +37,7 @@ PDF = ["pypdf", "pdfplumber"]
 
 # (arquivo, nome da seção no sistema, bibliotecas da seção, opcionais)
 SECOES = [
-    ("nucleo", "Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC e atualização automática", [], ["waitress"]),
+    ("nucleo", "Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas e compactados) e atualização automática", [], ["py7zr", "rarfile", "waitress"]),
     ("pg1", "Produção › Análise da DBF X Focco - ERP", PLANILHAS + ["lxml"] + PDF, []),
     ("pg2", "Produção › Agrupador | Base", PLANILHAS + PDF, []),
     ("pg3", "Produção › Roteirização produção", ["pandas", "openpyxl", "XlsxWriter"], []),

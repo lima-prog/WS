@@ -1,6 +1,8 @@
 # SISTEMA - PPCPM — TODAS as bibliotecas (todas as seções)
 # Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
 
+py7zr>=0.22                                # Abrir arquivos compactados .7z como pasta
+rarfile>=4.2                               # Abrir arquivos .rar como pasta (precisa do 7-Zip ou WinRAR no PC)
 waitress>=3.0                              # Servidor mais forte quando muitos usuários acessam pela rede
 pandas>=2.2                                # Tabelas: ler, cruzar, somar e filtrar planilhas e DBF com rapidez
 openpyxl>=3.1                              # Ler e gravar Excel .xlsx (mantém abas e formatação)

@@ -10,7 +10,7 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 
 | Seção do sistema | Arquivo | Bibliotecas |
 |---|---|---|
-| Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC e atualização automática | `nucleo.txt` | nenhuma obrigatória (opcional: waitress) |
+| Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas e compactados) e atualização automática | `nucleo.txt` | nenhuma obrigatória (opcional: py7zr, rarfile, waitress) |
 | Produção › Análise da DBF X Focco - ERP | `pg1.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, lxml, pypdf, pdfplumber |
 | Produção › Agrupador ¦ Base | `pg2.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber |
 | Produção › Roteirização produção | `pg3.txt` | pandas, openpyxl, XlsxWriter |
@@ -27,6 +27,8 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 
 | Biblioteca | Para que serve no sistema |
 |---|---|
+| `py7zr` | Abrir arquivos compactados .7z como pasta |
+| `rarfile` | Abrir arquivos .rar como pasta (precisa do 7-Zip ou WinRAR no PC) |
 | `waitress` | Servidor mais forte quando muitos usuários acessam pela rede |
 | `pandas` | Tabelas: ler, cruzar, somar e filtrar planilhas e DBF com rapidez |
 | `openpyxl` | Ler e gravar Excel .xlsx (mantém abas e formatação) |

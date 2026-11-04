@@ -19,6 +19,7 @@ import sys
 import time
 from pathlib import Path
 
+from . import compactados
 from .config import PASTA_DADOS
 
 ARQ_PASTAS = PASTA_DADOS / "pastas.json"
@@ -133,6 +134,7 @@ def marcar_recente(caminho: str) -> None:
 
 
 # ---------------- listar, buscar, ler ----------------
+# Pastas normais E arquivos compactados (.zip, .7z, .tar...) — veja compactados.py
 def _item(entrada: os.DirEntry) -> dict | None:
     try:
         pasta = entrada.is_dir()
@@ -142,7 +144,8 @@ def _item(entrada: os.DirEntry) -> dict | None:
     if entrada.name.startswith(("~$", ".")) or entrada.name in ("desktop.ini", "Thumbs.db"):
         return None
     return {"nome": entrada.name, "caminho": entrada.path, "pasta": pasta,
-            "tamanho": 0 if pasta else st.st_size, "modificado": int(st.st_mtime)}
+            "tamanho": 0 if pasta else st.st_size, "modificado": int(st.st_mtime),
+            "pacote": (not pasta) and compactados.e_compactado(entrada.name)}
 
 
 def _extensoes(filtro: str) -> set[str]:
@@ -150,41 +153,78 @@ def _extensoes(filtro: str) -> set[str]:
             for e in (filtro or "").split(",") if e.strip() and "/" not in e and e.strip() != "*"}
 
 
-def listar(caminho: str, filtro: str = "") -> dict:
-    caminho = limpar_caminho(caminho)
-    if not os.path.isdir(caminho):
-        if os.path.isfile(caminho):            # colou o caminho de um arquivo: abre a pasta dele
-            caminho = os.path.dirname(caminho)
-        else:
-            raise FileNotFoundError("Pasta não encontrada: " + caminho)
-    exts = _extensoes(filtro)
-    itens, ocultos = [], 0
-    with os.scandir(caminho) as it:
-        for e in it:
-            i = _item(e)
-            if not i:
-                continue
-            if exts and not i["pasta"] and os.path.splitext(i["nome"])[1].lower() not in exts:
-                ocultos += 1
-                continue
-            itens.append(i)
-            if len(itens) >= LIMITE_LISTA:
-                break
-    itens.sort(key=lambda x: (not x["pasta"], x["nome"].lower()))
+def _aceito(i: dict, exts: set[str]) -> bool:
+    """Pastas e compactados sempre aparecem (dá para entrar neles); arquivos só se o tipo for aceito."""
+    if i["pasta"] or i.get("pacote") or not exts:
+        return True
+    nome = i["nome"].lower()
+    return any(nome.endswith(e) for e in exts)
+
+
+def _pai(caminho: str) -> str:
     pai = os.path.dirname(caminho.rstrip("\\/")) if caminho.rstrip("\\/") else ""
     if NO_WINDOWS and len(caminho.rstrip("\\")) == 2:   # raiz de unidade (C:\)
-        pai = ""
+        return ""
+    return pai if pai and pai != caminho else ""
+
+
+def _erro_caminho(caminho: str) -> FileNotFoundError:
+    if caminho.startswith("\\\\"):
+        return FileNotFoundError("Pasta não encontrada na rede: " + caminho + " — confira o caminho e se a rede está conectada.")
+    return FileNotFoundError("Pasta não encontrada: " + caminho + " — confira o caminho.")
+
+
+def listar(caminho: str, filtro: str = "") -> dict:
+    caminho = limpar_caminho(caminho)
+    exts = _extensoes(filtro)
+    dentro = None
+    if not os.path.isdir(caminho):
+        if os.path.isfile(caminho) and compactados.e_compactado(caminho):
+            dentro = (caminho, "")                       # o próprio .zip: entra nele
+        elif os.path.isfile(caminho):                    # colou o caminho de um arquivo: abre a pasta dele
+            caminho = os.path.dirname(caminho)
+        else:
+            dentro = compactados.dividir(caminho)        # caminho que passa por dentro de um .zip
+            if not dentro:
+                raise _erro_caminho(caminho)
+    itens, ocultos = [], 0
+    if dentro:
+        for i in compactados.listar(*dentro):
+            if _aceito(i, exts):
+                itens.append(i)
+            else:
+                ocultos += 1
+    else:
+        with os.scandir(caminho) as it:
+            for e in it:
+                i = _item(e)
+                if not i:
+                    continue
+                if not _aceito(i, exts):
+                    ocultos += 1
+                    continue
+                itens.append(i)
+                if len(itens) >= LIMITE_LISTA:
+                    break
+    itens.sort(key=lambda x: (not (x["pasta"] or x.get("pacote")), x["nome"].lower()))
     marcar_recente(caminho)
-    return {"caminho": caminho, "pai": pai if pai and pai != caminho else "", "itens": itens,
+    return {"caminho": caminho, "pai": _pai(caminho), "itens": itens, "compactado": bool(dentro),
             "ocultos_pelo_filtro": ocultos, "cortado": len(itens) >= LIMITE_LISTA}
 
 
 def buscar(caminho: str, termo: str, filtro: str = "") -> dict:
-    """Procura arquivos pelo nome dentro da pasta e subpastas (até 8 segundos / 300 resultados)."""
+    """Procura pelo nome na pasta, nas subpastas e dentro dos .zip (até 8 segundos / 300 resultados)."""
     caminho = limpar_caminho(caminho)
     termo = (termo or "").strip().lower()
     exts = _extensoes(filtro)
-    achados, inicio, pilha = [], time.monotonic(), [caminho]
+    achados, inicio = [], time.monotonic()
+    dentro = compactados.dividir(caminho) if not os.path.isdir(caminho) else None
+    if dentro or (os.path.isfile(caminho) and compactados.e_compactado(caminho)):
+        arq = dentro[0] if dentro else caminho
+        pref = os.path.join(arq, *dentro[1].split("/")) if dentro and dentro[1] else arq
+        achados = [i for i in compactados.buscar(arq, termo) if i["caminho"].startswith(pref) and _aceito(i, exts)]
+        return {"caminho": caminho, "termo": termo, "itens": achados[:LIMITE_BUSCA], "incompleta": len(achados) > LIMITE_BUSCA}
+    pilha = [caminho]
     while pilha and len(achados) < LIMITE_BUSCA and time.monotonic() - inicio < LIMITE_BUSCA_SEG:
         atual = pilha.pop()
         try:
@@ -195,8 +235,9 @@ def buscar(caminho: str, termo: str, filtro: str = "") -> dict:
                         continue
                     if i["pasta"]:
                         pilha.append(i["caminho"])
-                    if termo in i["nome"].lower() and (i["pasta"] or not exts or
-                                                       os.path.splitext(i["nome"])[1].lower() in exts):
+                    elif i["pacote"] and i["tamanho"] < 300 * 1024 * 1024:
+                        achados.extend(x for x in compactados.buscar(i["caminho"], termo) if _aceito(x, exts) and not x["pasta"])
+                    if termo in i["nome"].lower() and _aceito(i, exts):
                         achados.append(i)
         except OSError:
             continue
@@ -206,20 +247,28 @@ def buscar(caminho: str, termo: str, filtro: str = "") -> dict:
 
 
 def ler_arquivo(caminho: str) -> tuple[bytes, str, str, int]:
-    """Devolve (conteúdo, nome, tipo, data de modificação em ms)."""
+    """Devolve (conteúdo, nome, tipo, data de modificação em ms). Lê também de dentro de .zip."""
     caminho = limpar_caminho(caminho)
-    if not os.path.isfile(caminho):
-        raise FileNotFoundError("Arquivo não encontrado: " + caminho)
-    with open(caminho, "rb") as f:
-        dados = f.read()
     tipo = mimetypes.guess_type(caminho)[0] or "application/octet-stream"
-    return dados, os.path.basename(caminho), tipo, int(os.path.getmtime(caminho) * 1000)
+    nome = os.path.basename(caminho.rstrip("\\/"))
+    if os.path.isfile(caminho):
+        with open(caminho, "rb") as f:
+            dados = f.read()
+        return dados, nome, tipo, int(os.path.getmtime(caminho) * 1000)
+    dentro = compactados.dividir(caminho)
+    if dentro and dentro[1]:
+        dados, data = compactados.ler(*dentro)
+        return dados, nome, tipo, data
+    raise FileNotFoundError("Arquivo não encontrado: " + caminho)
 
 
 def abrir_no_explorador(caminho: str) -> None:
     caminho = limpar_caminho(caminho)
     if not os.path.exists(caminho):
-        raise FileNotFoundError("Caminho não encontrado: " + caminho)
+        dentro = compactados.dividir(caminho)          # dentro de um .zip: mostra o .zip no Explorador
+        if not dentro:
+            raise FileNotFoundError("Caminho não encontrado: " + caminho)
+        caminho = dentro[0]
     if NO_WINDOWS:
         import subprocess
         if os.path.isfile(caminho):
