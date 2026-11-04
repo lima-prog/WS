@@ -1,5 +1,5 @@
 {
-  "versao": "Versão 116",
+  "versao": "Versão 117",
   "pacote_atual": 694,
   "obra_impressao": "2139-5-01",
   "supabase_url": "https://zlbgiodxpywrqapjlldg.supabase.co",
@@ -64,6 +64,12 @@
       "nome": "Impressão de Etiquetas",
       "titulo": "PPCPM - IMPRESSÃO DE ETIQUETAS",
       "arquivo": "modulos/pg12.html"
+    },
+    {
+      "id": "pg13",
+      "nome": "Relatórios dos fluxos",
+      "titulo": "PPCPM - RELATÓRIOS DOS FLUXOS",
+      "arquivo": "modulos/pg13.html"
     }
   ],
   "modulos_no_arquivo": [
@@ -76,6 +82,7 @@
     "pg7",
     "pg10",
     "pg11",
-    "pg12"
+    "pg12",
+    "pg13"
   ]
 }

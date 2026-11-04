@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><script>
+/* SISTEMA PPCPM - AVISA: usa a janela de aviso do sistema */
+(function(){var nativo=window.alert.bind(window);window.alert=function(m){try{if(window.top!==window&&window.top.__avisa)return window.top.__avisa(m)}catch(e){}nativo(m)}})();
+<\/script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório de Ordens x Fluxos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>
+<style>
+  :root { --bg:#eef1f6; --surface:#fff; --border:#d9dde6; --accent:#0b5cad; --accent2:#0b5cad; --text:#1a2233; --muted:#4b5563; --font:Arial,Helvetica,sans-serif; --mono:Consolas,'Courier New',monospace; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:24px 28px 20px; font-weight:600; }
+  header { width:100%; max-width:1100px; margin-bottom:22px; text-align:center; }
+  .rota-l { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; font-size:13px; color:var(--text); }
+  .rota-l b { font-size:14px; margin-right:4px; }
+  .rota-l .c { background:#fff; border:1px solid var(--border); border-radius:6px; padding:6px 12px; font-weight:700; font-size:12.5px; }
+  .rota-l i { font-style:normal; color:#9aa3b5; font-weight:400; }
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:1100px; margin-bottom:16px; }
+  .duo .card { margin-bottom:0; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:22px 24px; width:100%; max-width:1100px; margin-bottom:16px; box-shadow:0 1px 3px rgba(20,30,70,.06); }
+  .ch { display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+  .ch h2 { font-size:16px; font-weight:700; color:#1f2547; text-transform:none; letter-spacing:0; margin:0; }
+  .obs { font-size:12.5px; color:#0b5cad; font-weight:700; margin:0 0 14px 36px; }
+  .nb { flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:#0b5cad; color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; }
+  .ext { margin-left:auto; display:flex; gap:8px; }
+  .ext span { background:#e9edf4; color:#4b5563; border-radius:4px; padding:3px 9px; font-size:11px; font-weight:700; }
+  .drop-zone { border:2px dashed #aebfdc; background:#f3f6fb; border-radius:10px; padding:30px 20px; text-align:center; cursor:pointer; transition:all 0.2s; position:relative; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color:#0b5cad; background:#e6edf8; }
+  .drop-zone input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .drop-icon { display:block; margin:0 auto 12px; }
+  .drop-zone .t1 { font-size:15px; font-weight:700; color:#1a2233; }
+  .drop-zone .ou { font-size:12px; color:#4b5563; margin:8px 0; }
+  .btn-sel { display:inline-flex; align-items:center; gap:8px; background:#0b5cad; color:#ffffff; border-radius:7px; padding:10px 22px; font-weight:700; font-size:14px; }
+  .drop-zone:hover .btn-sel { background:#1a6dc0; }
+  .drop-zone .nome { font-size:12px; color:#4b5563; margin-top:12px; word-break:break-word; }
+  .btn-limpar { display:inline-flex; align-items:center; gap:8px; margin-left:auto; background:#fff; color:#1f2937; border:1px solid #c5cbd6; border-radius:7px; padding:7px 16px; font:700 13px Arial,Helvetica,sans-serif; cursor:pointer; }
+  .btn-limpar:hover { background:#f1f3f8; border-color:#9aa3b5; }
+  .pastas { list-style:none; margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+  .pastas li { display:flex; align-items:center; gap:10px; border:1px solid var(--border); border-radius:7px; padding:8px 10px; font-size:13px; background:#fff; }
+  .pastas li .n { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pastas li .q { color:var(--muted); font-size:12px; white-space:nowrap; }
+  .pastas li button { border:none; background:none; color:#b42318; font:700 16px Arial; cursor:pointer; padding:0 4px; line-height:1; }
+  .pastas li.vazio { justify-content:center; color:#8a93a5; border-style:dashed; }
+  .acao { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .btn-prim { display:inline-flex; align-items:center; gap:8px; background:#0b5cad; color:#fff; border:none; border-radius:7px; padding:12px 26px; font:700 14px Arial,Helvetica,sans-serif; cursor:pointer; transition:background .2s; }
+  .btn-prim:hover:not(:disabled) { background:#1a6dc0; }
+  .btn-prim:disabled { background:#8fb0d6; cursor:not-allowed; }
+  #status { font-size:13px; color:var(--muted); }
+  #status.ok { color:#1e7b45; } #status.erro { color:#b42318; }
+  .progress-bar-bg { height:6px; background:#e5e8ef; border-radius:3px; overflow:hidden; margin:16px 0 6px; display:none; }
+  .progress-bar-fill { height:100%; background:#0b5cad; border-radius:3px; transition:width 0.3s; width:0%; }
+  #log { display:none; margin-top:14px; background:#f7f8fb; border:1px solid var(--border); border-radius:8px; padding:10px 12px; font:12px/1.55 var(--mono); max-height:190px; overflow:auto; white-space:pre-wrap; color:#1a2233; font-weight:400; }
+  #log .ok { color:#1e7b45; } #log .erro { color:#b42318; } #log .aviso { color:#a15c07; }
+  #error-msg { display:none; background:#fdecec; border:1px solid #f3b4b4; color:#b42318; border-radius:8px; padding:12px 16px; font-size:13px; margin-top:12px; }
+  #resultado { display:none; }
+  .summary-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:10px; flex-wrap:wrap; }
+  .badge { font-size:11.5px; padding:4px 12px; border-radius:20px; background:#e7eefa; color:#0b5cad; border:1px solid #c5d6ef; font-weight:700; }
+  .grade { display:grid; grid-template-columns:1fr 1fr; gap:0 28px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { text-align:left; padding:10px 12px; background:#f3f5f9; border-bottom:1px solid #dfe3ea; font-size:12.5px; color:#4b5563; font-weight:700; }
+  td { padding:9px 12px; border-bottom:1px solid #e6e9f0; color:#1a2233; }
+  td.q { font-weight:700; text-align:right; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
+  #btn-download { margin-top:20px; width:100%; padding:13px; background:#0b5cad; color:#ffffff; border:none; border-radius:7px; font-size:14px; font-family:var(--font); font-weight:700; cursor:pointer; transition:background 0.2s; }
+  #btn-download:hover { background:#1a6dc0; }
+  #btn-download .sub { display:block; font-size:11.5px; opacity:0.85; margin-top:2px; font-weight:600; }
+  footer { margin-top:18px; font-size:12px; color:var(--muted); text-align:center; font-weight:600; }
+  @media (max-width: 820px) { .duo, .grade { grid-template-columns:1fr; } body { padding:16px 14px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="rota-l"><b>Relatório de ordens x fluxos:</b><span class="c">Ordens do Focco</span><i>+</i><span class="c">DXF já roteirizados</span><i>→</i><span class="c">Excel</span></div>
+</header>
+
+<div class="duo">
+  <div class="card">
+    <div class="ch"><span class="nb">1</span><h2>Relatório do Focco</h2>
+      <button type="button" class="btn-limpar" id="limpar-focco"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <p class="obs">(no Focco: Relatório de Ordens Liberadas x Demandas)</p>
+    <div class="drop-zone" id="dz-focco">
+      <input type="file" id="in-focco" accept=".xlsx,.xlsm,.xls,.csv,.txt,.html,.htm,.xml">
+      <svg class="drop-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+      <div class="t1">Arraste o relatório do Focco aqui</div>
+      <div class="ou">ou</div>
+      <span class="btn-sel"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Selecionar arquivo</span>
+      <div class="nome" id="nome-focco">Nenhum arquivo escolhido</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="nb">2</span><h2>Pastas dos DXF roteirizados</h2>
+      <button type="button" class="btn-limpar" id="limpar-pastas"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar lista</span></button></div>
+    <p class="obs">(pode ter várias — os fluxos são lidos pelos nomes das pastas)</p>
+    <div class="drop-zone" id="dz-pastas">
+      <input type="file" id="in-pasta" webkitdirectory directory multiple>
+      <svg class="drop-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <div class="t1">Arraste as pastas dos DXF aqui</div>
+      <div class="ou">ou</div>
+      <span class="btn-sel"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg>Selecionar pasta</span>
+    </div>
+    <ul class="pastas" id="lista-pastas"><li class="vazio">Nenhuma pasta adicionada</li></ul>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ch" style="margin-bottom:14px"><span class="nb">3</span><h2>Gerar relatório</h2></div>
+  <div class="acao">
+    <button type="button" class="btn-prim" id="btn-gerar" disabled><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Gerar relatório</button>
+    <span id="status">Escolha o relatório do Focco e ao menos uma pasta de DXF.</span>
+  </div>
+  <div class="progress-bar-bg" id="barra"><div class="progress-bar-fill" id="barra-fill"></div></div>
+  <div id="error-msg"></div>
+  <div id="log"></div>
+</div>
+
+<div class="card" id="resultado">
+  <div class="summary-title">
+    <div class="ch" style="margin:0"><span class="nb">4</span><h2>Resultado</h2></div>
+    <span class="badge" id="badge-lote">LOTE —</span>
+  </div>
+  <div class="grade">
+    <table><thead><tr><th>Ordens no relatório</th><th style="text-align:right">Qtde</th></tr></thead><tbody id="tb-ordens"></tbody></table>
+    <table><thead><tr><th>Abas do Excel</th><th style="text-align:right">Linhas</th></tr></thead><tbody id="tb-abas"></tbody></table>
+  </div>
+  <button id="btn-download">⬇ Baixar Excel do relatório<span class="sub" id="nome-saida">Relatorio_Ordens_Fluxos.xlsx</span></button>
+</div>
+
+<footer>Processamento 100% local — os arquivos não saem deste computador</footer>
+
+<script>
+/* ============================================================================================
+   RELATÓRIO DE ORDENS x FLUXOS — núcleo (mesmas regras do Roteirizador DXF PROJEART v19.4)
+   Tradução fiel das funções Python da aba "Relatório de Ordens". Os nomes das funções são os
+   mesmos do Python para facilitar a conferência. Usa SheetJS (XLSX) para ler e ExcelJS para gravar.
+   ============================================================================================ */
+var RO = (function () {
+  "use strict";
+
+  // ------------------------------------------------------------------ comportamento do Python
+  const ESPACOS_PY = "\t\n\x0b\x0c\r\x1c\x1d\x1e\x1f \x85\xa0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000";
+  function strip(s) {                                   // str.strip() do Python
+    let a = 0, b = s.length;
+    while (a < b && ESPACOS_PY.indexOf(s[a]) >= 0) a++;
+    while (b > a && ESPACOS_PY.indexOf(s[b - 1]) >= 0) b--;
+    return s.slice(a, b);
+  }
+  class PyDate {                                        // data/hora vinda do Excel (datetime do Python)
+    constructor(y, m, d, H, M, S) { this.y = y; this.m = m; this.d = d; this.H = H || 0; this.M = M || 0; this.S = S || 0; }
+    toString() {
+      const p = (n, k) => String(n).padStart(k || 2, "0");
+      return `${p(this.y, 4)}-${p(this.m)}-${p(this.d)} ${p(this.H)}:${p(this.M)}:${p(this.S)}`;
+    }
+    toDateUTC() { return new Date(Date.UTC(this.y, this.m - 1, this.d, this.H, this.M, this.S)); }
+  }
+  function reprFloat(x) {                               // repr(float) do Python
+    if (Number.isNaN(x)) return "nan";
+    if (!Number.isFinite(x)) return x > 0 ? "inf" : "-inf";
+    if (x === 0) return Object.is(x, -0) ? "-0.0" : "0.0";
+    const exp = x.toExponential();                      // dígitos mínimos (ida e volta)
+    const m = exp.match(/^(-?)(\d)(?:\.(\d+))?e([+-]\d+)$/);
+    const sinal = m[1], dig = m[2] + (m[3] || ""), e = parseInt(m[4], 10);
+    if (e >= -4 && e < 16) {
+      let s;
+      if (e >= 0) {
+        const int = dig.length > e + 1 ? dig.slice(0, e + 1) : dig + "0".repeat(e + 1 - dig.length);
+        const frac = dig.length > e + 1 ? dig.slice(e + 1) : "";
+        s = int + "." + (frac || "0");
+      } else {
+        s = "0." + "0".repeat(-e - 1) + dig;
+      }
+      return sinal + s;
+    }
+    const mant = dig.length > 1 ? dig[0] + "." + dig.slice(1) : dig;
+    return sinal + mant + "e" + (e < 0 ? "-" : "+") + String(Math.abs(e)).padStart(2, "0");
+  }
+  function pyStr(v) {                                   // str(v) para os valores lidos do relatório
+    if (v === null || v === undefined) return "None";
+    if (typeof v === "boolean") return v ? "True" : "False";
+    if (typeof v === "number") return Number.isInteger(v) && Math.abs(v) < 1e16 ? String(v) : reprFloat(v);
+    return String(v);
+  }
+  function floatStr(x) { return reprFloat(x); }         // str() de um float (ex.: espessura 3.0 -> "3.0")
+  function T(v) {                                       // bool(v) do Python
+    if (v === null || v === undefined) return false;
+    if (typeof v === "boolean") return v;
+    if (typeof v === "number") return v !== 0;
+    if (typeof v === "string" || Array.isArray(v)) return v.length > 0;
+    if (v instanceof Map || v instanceof Set) return v.size > 0;
+    return true;
+  }
+  function OU() { for (let i = 0; i < arguments.length - 1; i++) if (T(arguments[i])) return arguments[i]; return arguments[arguments.length - 1]; }
+  // decimal exato de um double (para arredondar igual ao Python: metade vai para o par)
+  function decimalExato(x) {
+    const buf = new DataView(new ArrayBuffer(8)); buf.setFloat64(0, Math.abs(x));
+    const hi = buf.getUint32(0), lo = buf.getUint32(4);
+    const expo = (hi >>> 20) & 0x7ff;
+    let mant = (BigInt(hi & 0xfffff) << 32n) | BigInt(lo);
+    let e2;
+    if (expo === 0) e2 = -1074; else { mant |= 1n << 52n; e2 = expo - 1075; }
+    let inteiro, frac = "";
+    if (e2 >= 0) inteiro = (mant << BigInt(e2)).toString();
+    else {
+      const k = -e2, num = mant * (5n ** BigInt(k)), s = num.toString().padStart(k + 1, "0");
+      inteiro = s.slice(0, s.length - k); frac = s.slice(s.length - k);
+    }
+    return { neg: x < 0 || Object.is(x, -0), inteiro, frac };
+  }
+  function fixo(x, casas) {                             // f"{x:.Nf}" do Python (texto)
+    if (!Number.isFinite(x)) return reprFloat(x);
+    const d = decimalExato(x);
+    let frac = d.frac.padEnd(casas + 1, "0");
+    let manter = BigInt(d.inteiro + frac.slice(0, casas));
+    const resto = d.frac.slice(casas);
+    const prim = resto.length ? resto.charCodeAt(0) - 48 : 0;
+    const depois = /[1-9]/.test(resto.slice(1));
+    if (prim > 5 || (prim === 5 && (depois || manter % 2n === 1n))) manter += 1n;
+    let s = manter.toString().padStart(casas + 1, "0");
+    s = casas ? s.slice(0, s.length - casas) + "." + s.slice(s.length - casas) : s;
+    return (d.neg && /[1-9]/.test(s) ? "-" : (d.neg ? "-" : "")) + s;
+  }
+  function pyRound(x, casas) { return Number(fixo(x, casas)); }
+  // comparação de tuplas como no Python (texto por ponto de código)
+  function cmpStr(a, b) {
+    if (a === b) return 0;
+    const n = Math.min(a.length, b.length);
+    for (let i = 0; i < n; i++) {
+      const ca = a.codePointAt(i), cb = b.codePointAt(i);
+      if (ca !== cb) return ca < cb ? -1 : 1;
+      if (ca > 0xffff) i++;
+    }
+    return a.length < b.length ? -1 : a.length > b.length ? 1 : 0;
+  }
+  function cmpVal(a, b) {
+    if (Array.isArray(a)) {
+      for (let i = 0; i < Math.min(a.length, b.length); i++) { const c = cmpVal(a[i], b[i]); if (c) return c; }
+      return a.length - b.length;
+    }
+    if (typeof a === "string" && typeof b === "string") return cmpStr(a, b);
+    if (typeof a === "boolean") a = a ? 1 : 0;
+    if (typeof b === "boolean") b = b ? 1 : 0;
+    if (typeof a === "number" && typeof b === "number") return a < b ? -1 : a > b ? 1 : 0;
+    throw new TypeError("comparação entre tipos diferentes: " + typeof a + " x " + typeof b);
+  }
+  const ordenar = (lista, chave) => lista.map((v, i) => [chave(v), i, v]).sort((x, y) => cmpVal(x[0], y[0]) || x[1] - y[1]).map(x => x[2]);
+  const unicos = arr => Array.from(new Set(arr));
+  function splitN(s, sep, n) {                          // s.split(sep, n) do Python
+    const out = []; let resto = s;
+    while (out.length < n) { const i = resto.indexOf(sep); if (i < 0) break; out.push(resto.slice(0, i)); resto = resto.slice(i + sep.length); }
+    out.push(resto); return out;
+  }
+  const W = "[\\p{L}\\p{N}_]";                          // \w do Python (com acentos)
+  const reB = (corpo, flags) => new RegExp(corpo.replace(/\\b/g, "(?:(?<!" + W + ")(?=" + W + ")|(?<=" + W + ")(?!" + W + "))"), (flags || "") + "u");
+  const ehNum = v => typeof v === "number";
+
+  // ------------------------------------------------------------------ constantes do Roteirizador
+  const DENSIDADE_ACO = 7.85;
+  const _L1_PERFIS = ["L52X52X1.55", "L32X32X1.25", "L32X32X1.55"], _L1_COMP_MIN = 595.0;
+  const _SUBPASTAS_AUXILIARES_FLUXO = new Set(["editar", "banco de corte"]);
+  const _PREFIXOS_NOME_DE_FLUXO = ["fluxo ", "terça z", "terca z", "perfiladeira u e c", "perfiladeira l",
+    "acessórios padrão", "acessorios padrao", "joist ", "laser"];
+  const _ALIASES_FOCCO = [
+    ["lote", ["LOTE OF", "PACOTE", "LOTE"]], ["num_ordem", ["NUM ORDEM", "ORDEM", "NUM ORD", "NUMERO ORDEM"]],
+    ["tp_ord", ["TP ORD", "TIPO ORDEM", "TIPO ORD"]], ["dt_emissao", ["DT EMISSAO", "DATA EMISSAO", "DT EMISSAO ORDEM"]],
+    ["obra", ["OBRA", "COD OBRA"]], ["sub_trecho", ["SUB TRECHO", "SUBTRECHO"]], ["posicao", ["POSICAO", "POS", "POSICAO PECA"]],
+    ["marca", ["MARCA"]], ["mascara", ["MASCARA"]], ["desc_demanda", ["DESC TECNICA DEMANDA"]], ["nome_perfil", ["NOME PERFIL"]],
+    ["cod_item_demanda", ["COD ITEM DEMANDA"]], ["qtde_demanda", ["QTDE DEMANDA"]], ["cod_item", ["COD ITEM"]],
+    ["desc_item", ["DESC TECNICA", "DESCRICAO ITEM", "NOME PERFIL"]], ["grupo_lic", ["GRUPO LIC", "GRP LIC"]],
+    ["planejador", ["PLANEJADOR", "NOME"]], ["qtde", ["QTDE OF", "QTDE", "QUANTIDADE"]], ["espessura", ["ESP", "ESPESSURA"]],
+    ["material", ["TP MATL", "MATERIAL"]], ["comp", ["COMP"]], ["larg", ["LARG"]]];
+  const M = (centro, corte, furo, furo_sempre, dobra) => ({ centro, corte, furo, furo_sempre, dobra });
+  const _MAQUINAS_POR_FLUXO = {
+    "FLUXO 1": M("PREPARAÇÃO", "GUILHOTINA 6M", "PUNCIONADEIRA P113", false, null),
+    "FLUXO 2": M("PREPARAÇÃO", "GUILHOTINA 3M", "PUNCIONADEIRA P51", false, null),
+    "FLUXO 3": M("PREPARAÇÃO", "PLASMA", "PLASMA", true, null),
+    "FLUXO 4": M("PREPARAÇÃO", "GUILHOTINA PQ", "PUNCIONADEIRA P51", false, null),
+    "LASER": M("PREPARAÇÃO", "LASER", "LASER", true, null),
+    "PERFILADEIRA L": M("PERFILADOS", "PERFILADEIRA L", "PERFILADEIRA L", true, "PERFILADEIRA L"),
+    "PERFILADEIRA L1": M("PERFILADOS", "PERFILADEIRA L", "PERFILADEIRA L", true, "PERFILADEIRA L"),
+    "PERFILADEIRA L2": M("PERFILADOS", "PERFILADEIRA L", "PERFILADEIRA L", true, "PERFILADEIRA L"),
+    "PERFILADEIRA U E C": M("PERFILADOS", "PERFILADEIRA U E C", "PERFILADEIRA U E C", true, "PERFILADEIRA U E C"),
+    "JOIST": M("PERFILADOS", "JOIST", "JOIST", true, "JOIST"),
+    "TERCA Z": M("PERFILADOS", "TERÇA Z", "TERÇA Z", true, "TERÇA Z"),
+    "PERFILADEIRA": M("PERFILADOS", "PERFILADEIRA", "PERFILADEIRA", true, "PERFILADEIRA"),
+    "ACESSORIOS PADRAO": M("ACESSÓRIOS PADRÃO", "ACESSÓRIOS PADRÃO", "ACESSÓRIOS PADRÃO", true, "ACESSÓRIOS PADRÃO"),
+  };
+  const _INCLUIR_ORDENS_SEM_POSICAO = false;
+  const _SEQ_PCP = { "FLUXO 1": ["GUILHOTINA 6M", "PUNCIONADEIRA P113", "DOBRADEIRA 6M"],
+    "FLUXO 2": ["GUILHOTINA 3M", "PUNCIONADEIRA P51", "DOBRADEIRA 3M"], "FLUXO 4": ["GUILHOTINA PQ", "PUNCIONADEIRA P51", "DOBRADEIRA PQ"] };
+  const _ROTAS_PREP = ["PREPARAÇÃO", "PREPARAÇÃO (DOBRA)"];
+  const _ROTAS_ORDEM = ["PREPARAÇÃO", "PREPARAÇÃO (DOBRA)", "PERFILADEIRA U/C", "PERFILADEIRA L", "PERFILADEIRA Z",
+    "PERFILADEIRA BANZO JOIST", "PERFILADEIRA U JOIST", "ACESSÓRIOS JOIST", "ACESSÓRIO PADRÃO",
+    "BARRAS", "CENTRO DE SERVIÇO", "PINTURA", "GALVÂNICA", "LAMINADOS", "ARMAÇÃO"];
+  const _OBS_ROTA = {
+    "PREPARAÇÃO": "Chapa bruta/cortada ASTM · sem intermediários",
+    "PREPARAÇÃO (DOBRA)": "Perfil U/C dentro do parâmetro mas comp < 800mm",
+    "PERFILADEIRA U/C": "Alma ≥100, aba ≤106 (U) · alma >100, aba1 >50, aba2 <30 (C) · comp ≥800mm",
+    "PERFILADEIRA L": "Abas iguais · esp ≤ 3,0mm · sem intermediários",
+    "PERFILADEIRA Z": "GRP LIC = PERFIL Z · sem intermediários · sem tinta",
+    "PERFILADEIRA BANZO JOIST": "GRP LIC = BANZO JOIST / BANZO PROJOIST · sem intermediários",
+    "PERFILADEIRA U JOIST": "GRP LIC = PERFIL U JOIST / PROJOIST · sem intermediários",
+    "ACESSÓRIOS JOIST": "GRP LIC = ACESSORIOS JOIST/PRENSA/PROJOIST · sem inter. · sem tinta",
+    "ACESSÓRIO PADRÃO": "SE2-4 · SEZ1-4 · SD1 · TIRA BLANK estoque",
+    "BARRAS": "Barra redonda ASTM A36 / SAE 1020",
+    "CENTRO DE SERVIÇO": "Arremate · Calha · Telhas TP/Zipada · Bobina Zipada",
+    "PINTURA": "Tinta (qualquer tipo) · Catalisador/Diluente Epoxi/PU - PRIORIDADE MÁXIMA",
+    "GALVÂNICA": "Qualquer demanda com ZINCO",
+    "LAMINADOS": "Perfil W/HP/I/U ASTM · Cantoneira · Tubo red./quad. · sem intermediários",
+    "ARMAÇÃO": "Todos os itens não classificados nas rotas acima" };
+  const _ROTA_PARA_FLUXO = { "PERFILADEIRA L": "Perfiladeira L", "PERFILADEIRA U/C": "Perfiladeira U e C", "PERFILADEIRA Z": "Terça Z",
+    "PERFILADEIRA BANZO JOIST": "Joist", "PERFILADEIRA U JOIST": "Joist", "ACESSÓRIOS JOIST": "Joist", "ACESSÓRIO PADRÃO": "Acessórios Padrão" };
+  const _FLUXOS_PREP_NORM = new Set(["FLUXO 1", "FLUXO 2", "FLUXO 3", "FLUXO 4", "LASER"]);
+  const _BARRAS_HTML = new Set(["BARRA REDONDA ASTM A36 12,70MM", "BARRA REDONDA ASTM A36 16,00MM", "BARRA REDONDA ASTM A36 19,00MM",
+    "BARRA REDONDA ASTM A36 22,20MM", "BARRA REDONDA ASTM A36 25,40MM", "BARRA REDONDA ASTM A36 31,75MM",
+    "BARRA REDONDA ASTM A36 38,10MM", "BARRA REDONDA ASTM A36 44,45MM", "BARRA REDONDA ASTM A36 9,50MM",
+    "BARRA REDONDA SAE 1020 38,10MM"].map(s => s.toUpperCase()));
+  const _ACESS_PADRAO_HTML = new Set(["SE2 ESTOQUE", "SE3 ESTOQUE", "SE4 ESTOQUE", "SEZ1 ESTOQUE", "SEZ2 ESTOQUE", "SEZ3 ESTOQUE",
+    "SEZ4 ESTOQUE", "SD1 ESTOQUE", "TIRA BLANK 25 X 3000 A572 PC", "TIRA BLANK 25 X 3000 ZAR 400 PC"].map(s => s.toUpperCase()));
+  const _CS_PERFIS_HTML = new Set(["ARREMATE", "CALHA", "TELHA TP100", "TELHA TP17", "TELHA TP35", "TELHA TP40", "TELHA ZIPADA"]);
+  const _ABA_PINTURA = "ORDENS PARA DESCONSIDERAR", _ABA_PS_PREP = "PS PREP", _ABA_AUX_CONCATENAR = "AUX_CONCATENAR";
+  const _ORDEM_ABAS_RELATORIO = ["ROTEIRIZAÇÃO FOCCO", "Preparação", "Não Preparação", "PS PREP", "ORDENS PARA DESCONSIDERAR",
+    "Relatório Consolidado (FLuxos)", "CSC", "Ordens x DXF", "BASE DE DADOS", "Resumo"];
+  const _COLUNAS_FORA_PREPARACAO = ["TP ORD", "OBRA", "SUB TRECHO"];
+  const _COLUNAS_NAO_PREPARACAO = ["LOTE OF", "SETOR", "OF-TRECHO", "NUM ORDEM", "POSIÇÃO", "ESPESSURA (mm)", "COD ITEM",
+    "MARCA", "QTDE (ORDEM)", "DESCRIÇÃO DO ITEM", "MATERIAL", "LARGURA (mm)", "ALTURA (mm)",
+    "PESO UNITÁRIO (kg)", "PESO TOTAL (kg)", "PLANEJADOR", "TIPO DE PINTURA", "GRUPO LIC"];
+  const _LARGURAS_ROTEIRIZACAO_FOCCO = [62, 24, 32, 16, 26, 66, 48];
+  const L28 = 28.4, L22 = 22.3, L30 = 30.1;
+  const _LARGURAS_USUARIO = {
+    "Preparação": { "LOTE OF": L28, "NUM ORDEM": L28, "OF-TRECHO": L28, "POSIÇÃO": L28, "FLUXO": L28, "CENTRO DE CUSTO": L28, "CORTE": L28,
+      "FURO": L28, "DOBRA": L28, "MATERIAL": L28, "ESPESSURA (mm)": L28, "LARGURA (mm)": L28, "ALTURA (mm)": L28, "PESO UNITÁRIO (kg)": L28,
+      "PESO TOTAL (kg)": L28, "ARQUIVO(S) DXF": L28, "STATUS": L28, "QTDE (ORDEM)": L28, "MARCA": L28, "COD ITEM": L28,
+      "DESCRIÇÃO DO ITEM": L28, "GRUPO LIC": L28, "PLANEJADOR": L28, "SEQUÊNCIA DE ROTEIRO": L28, "TEM FURO?": L28, "OBSERVAÇÃO": L28,
+      "SETOR": L28, "TIPO DE PINTURA": 34 },
+    "Não Preparação": { "LOTE OF": 15.0, "NUM ORDEM": L22, "OF-TRECHO": L22, "POSIÇÃO": L22, "MATERIAL": L22, "ESPESSURA (mm)": L22,
+      "LARGURA (mm)": L22, "ALTURA (mm)": L22, "PESO UNITÁRIO (kg)": L22, "PESO TOTAL (kg)": L22, "QTDE (ORDEM)": L22, "MARCA": L22,
+      "COD ITEM": L22, "DESCRIÇÃO DO ITEM": L22, "GRUPO LIC": L22 },
+    "Relatório Consolidado (FLuxos)": { "OF": 14.0, "Posição": 12.0, "Quantidade": 11.0, "Fluxo": 26.0, "Material": 18.0,
+      "Espessura (mm)": 14.0, "Máquina": 24.0, "Largura (mm)": 14.0, "Altura (mm)": 12.0, "Peso Unitário (kg)": 16.0,
+      "Peso Total (kg)": 16.0, "TEM FURO?": 11.0, "OBRA E TRECHO_POSIÇÃO": 26.0, "FLUXO DE PRODUÇÃO": 22.0, "FURAÇÃO": 11.0 },
+    "CSC": { "COD ITEM DEMANDA": 20.0, "DESC TECNICA DEMANDA": 56.0, "SAL ESTOQUE": 16.0, "N° DA ORDEM": 16.0 },
+    "Ordens x DXF": { "LOTE OF": 9.0, "NUM ORDEM": 11.0, "TP ORD": 8.0, "OBRA": 7.0, "SUB TRECHO": 12.0, "OF-TRECHO": 13.0,
+      "POSIÇÃO": 14.0, "FLUXO": 18.0, "CENTRO DE CUSTO": 18.0, "CORTE": 22.0, "FURO": 22.0, "DOBRA": 18.0, "MATERIAL": 22.0,
+      "ESPESSURA (mm)": 16.0, "LARGURA (mm)": 14.0, "ALTURA (mm)": 13.0, "PESO UNITÁRIO (kg)": 20.0, "PESO TOTAL (kg)": 17.0,
+      "ARQUIVO(S) DXF": 44.0, "STATUS": 22.0, "QTDE (ORDEM)": 13.0, "MARCA": 12.0, "COD ITEM": 18.0, "DESCRIÇÃO DO ITEM": L30,
+      "GRUPO LIC": L30, "PLANEJADOR": L30, "SEQUÊNCIA DE ROTEIRO": 46.4, "TEM FURO?": L30, "OBSERVAÇÃO": L30, "SETOR": L30,
+      "TIPO DE PINTURA": 34 },
+    "BASE DE DADOS": { "PLANEJADOR": 44.0, "PACOTE": 12.2, "OBRA": 10.2, "NOME TRECHO": 18.2, "SUB TRECHO": 16.1, "POSICAO": 13.1,
+      "GRP LIC": 20.8, "MARCA": 25.6, "ESP": 8.6, "LARG": 9.9, "COMP": 10.8, "DESENHO": 13.6, "NOME PERFIL": 19.2, "ORDEM": 11.9,
+      "COD ITEM": 19.1, "MASCARA": 186.4, "QTDE OF": 12.7, "COD ITEM DEMANDA": 23.6, "DESC TECNICA DEMANDA": 53.1,
+      "COD ALMOX DEM": 20.4, "QTDE DEM UNIT": 19.2, "QTDE DEMANDA": 19.6, "UM": 8.6, "ALMOX CONSUMO": 14.7,
+      "TCAD EST ITE ID": 18.8, "DEMANDA ID": 16.7, "ESPESSURA": 15.2, "OBRA E TRECHO": 19.0, "OBRA E TRECHO_POSIÇÃO": 27.9,
+      "FLUXO DE PRODUÇÃO": 24.1, "FURAÇÃO": 17.4, "DOBRA": 15.1, "SEQUÊNCIA DE ROTEIRO": 51.1, "ORDEM ARM/LIMP": 21.9,
+      "ORDEM DE PINTURA/LANTERNIM": 34.3, "PERFIL SOLDADO": 19.8, "CSC": 8.7, "ORDENS PARA DESCONSIDERAR": 32.7,
+      "SETOR": 18.3, "TIPO DE PINTURA": 34 },
+    "Resumo": { "FLUXO": 46.0, "ORDENS": 14.0, "PESO TOTAL (kg)": 18.0 },
+  };
+  _LARGURAS_USUARIO["ROTEIRIZAÇÃO FOCCO"] = {};
+  ["SEQUÊNCIA DE ROTEIRO", "OBRA E TRECHO", "POSIÇÃO", "ORDEM", "FLUXO DE PRODUÇÃO", "DESC TECNICA DEMANDA", "PLANEJADOR"]
+    .forEach((h, i) => { _LARGURAS_USUARIO["ROTEIRIZAÇÃO FOCCO"][h] = _LARGURAS_ROTEIRIZACAO_FOCCO[i]; });
+  _LARGURAS_USUARIO["PS PREP"] = Object.assign({}, _LARGURAS_USUARIO["Não Preparação"]);
+  ["Preparação", "Não Preparação", "PS PREP"].forEach(a => {
+    if ("LOTE OF" in _LARGURAS_USUARIO[a] && !("LOTE" in _LARGURAS_USUARIO[a])) _LARGURAS_USUARIO[a]["LOTE"] = _LARGURAS_USUARIO[a]["LOTE OF"];
+  });
+  const _COLUNAS_CALC = ["ESPESSURA", "OBRA E TRECHO", "OBRA E TRECHO_POSIÇÃO", "FLUXO DE PRODUÇÃO", "FURAÇÃO", "DOBRA",
+    "SEQUÊNCIA DE ROTEIRO", "ORDEM ARM/LIMP", "ORDEM DE PINTURA/LANTERNIM", "PERFIL SOLDADO", "CSC",
+    "ORDENS PARA DESCONSIDERAR", "SETOR", "TIPO DE PINTURA"];
+  const _COLUNAS_CALC_FIM = _COLUNAS_CALC.filter(c => c !== "OBRA E TRECHO");
+  const _MAQUINA_CONSOLIDADO = { "FLUXO 1": "GUILHOTINA 6M", "FLUXO 2": "GUILHOTINA 3M", "FLUXO 3": "AUTOCUT EDGE CONNECT",
+    "FLUXO 4": "CHINESSINHA", "LASER": "LASER", "PERFILADEIRA L": "PERFILADEIRA", "PERFILADEIRA L1": "PERFILADEIRA",
+    "PERFILADEIRA L2": "PERFILADEIRA", "PERFILADEIRA U E C": "PERFILADEIRA", "PERFILADEIRA": "PERFILADEIRA", "TERCA Z": "TERÇA",
+    "ACESSORIOS PADRAO": "INDEFINIDO", "JOIST": "JOIST" };
+
+  // ------------------------------------------------------------------ funções de texto/número
+  function calcular_peso(l, a, e) {
+    if ([l, a, e].some(v => v === null || v === undefined) || [l, a, e].some(v => T(v) && v <= 0)) return 0.0;
+    const volume_mm3 = l * a * e;
+    const volume_cm3 = volume_mm3 / 1000.0;
+    return (volume_cm3 * DENSIDADE_ACO) / 1000.0;
+  }
+  const normalizar_posicao = pos => pos.split("@").join("_");
+  function extrair_quantidade_arquivo(nome) { const m = nome.toUpperCase().match(/Q(\d+)/); return m ? parseInt(m[1], 10) : null; }
+  const _RE_PARTE = /\s*[\[\(]\s*([A-Za-z])\s*[\]\)]/;
+  function separar_parte_posicao(texto) {
+    const t = String(texto || "");
+    const m = t.match(_RE_PARTE);
+    if (!m) return [t, null];
+    return [strip(t.slice(0, m.index) + t.slice(m.index + m[0].length)), m[1].toUpperCase()];
+  }
+  const splitext = n => { const i = n.lastIndexOf("."); return i > 0 ? n.slice(0, i) : n; };
+  function extrair_parte_nome(nome) { return separar_parte_posicao(splitext(nome).split(" - ")[0])[1]; }
+  function extrair_nome(nome) {
+    const partes = splitext(nome).split(" - ");
+    if (partes.length < 2) return [null, null];
+    const pos = normalizar_posicao(separar_parte_posicao(strip(partes[0]))[0]);
+    const of_ = strip(partes[1].split("OF").join(""));
+    return [of_.toUpperCase(), pos.toUpperCase()];
+  }
+  function destino_perfiladeira_L(perfil, comp) {
+    const p = strip(String(perfil || "")).toUpperCase().split(",").join(".");
+    const c = _foc_float(comp);
+    return (_L1_PERFIS.includes(p) && c !== null && c > _L1_COMP_MIN) ? "L1" : "L2";
+  }
+  function extrair_fluxo_base(fluxo) { return T(fluxo) ? strip(fluxo.replace(/\s*\[[^\]]*\]\s*$/, "")) : "Sem Fluxo"; }
+  function _extrair_esp_material_pasta(nome) {
+    nome = strip(nome);
+    const mc = nome.match(/^(\d+),(\d+)(?:\s+([\s\S]*))?$/);
+    if (mc) return [parseFloat(mc[1] + "." + mc[2]), strip(mc[3] || "")];
+    const partes = splitN(nome, "_", 2);
+    if (partes.length < 2) return [null, null];
+    const num = s => /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(s) ? parseFloat(s) : NaN;
+    let esp, material;
+    if (/^\d+$/.test(partes[1])) { esp = num(partes[0] + "." + partes[1]); material = partes.length > 2 ? partes[2] : ""; }
+    else { esp = num(partes[0]); material = partes[1]; }
+    if (Number.isNaN(esp)) return [null, null];
+    return [esp, strip(material)];
+  }
+  function _nome_parece_fluxo(nome) {
+    if (!T(nome)) return false;
+    const n = strip(nome).toLowerCase();
+    return _PREFIXOS_NOME_DE_FLUXO.some(p => n.startsWith(p));
+  }
+  function _norm_cab(texto) {
+    const t = String(texto === null || texto === undefined ? "" : (typeof texto === "string" ? texto : pyStr(texto)));
+    return strip(t.normalize("NFKD").replace(/[^\x00-\x7f]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, " "));
+  }
+  const ehNaN = v => typeof v === "number" && Number.isNaN(v);
+  function _foc_texto(v) { if (v === null || v === undefined || ehNaN(v)) return ""; return strip(pyStr(v)); }
+  const _RE_DATA_TXT = /^\s*(\d{4})-(\d{2})-(\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?\s*$/;
+  function _trechos_conhecidos(valores) {
+    const s = new Set();
+    for (const v of valores) if (typeof v === "string" && /^\d+[_-]\d+$/.test(strip(v))) s.add(strip(v).split("-").join("_"));
+    return s;
+  }
+  function dataValida(y, m, d) { const dt = new Date(Date.UTC(y, m - 1, d)); return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d && y >= 1; }
+  function _sub_trecho_texto(v, pos, conhecidos) {
+    let d = null;
+    if (v instanceof PyDate) d = v;
+    else {
+      const m = String(v !== null && v !== undefined ? pyStr(v) : "").match(_RE_DATA_TXT);
+      if (m && dataValida(+m[1], +m[2], +m[3])) d = new PyDate(+m[1], +m[2], +m[3]);
+    }
+    if (d === null) return _foc_texto(v);
+    const mp = String(pos || "").match(/^(\d+)[-_](\d+)_/);
+    if (mp) return `${mp[1]}_${mp[2]}`;
+    const cands = [`${d.m}_${String(d.d).padStart(2, "0")}`, `${d.d}_${String(d.m).padStart(2, "0")}`];
+    for (const c of cands) if (conhecidos && conhecidos.has(c)) return c;
+    return cands[1];
+  }
+  function floatPy(s) {                                  // float(s) do Python (texto já sem espaços)
+    const t = strip(s).split("_").join("");
+    if (/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(t)) return parseFloat(t);
+    if (/^[+-]?(inf|infinity)$/i.test(t)) return t[0] === "-" ? -Infinity : Infinity;
+    if (/^[+-]?nan$/i.test(t)) return NaN;
+    return undefined;                                    // ValueError
+  }
+  function _foc_float(v) {
+    if (v === null || v === undefined) return null;
+    if (typeof v === "boolean") return v ? 1.0 : 0.0;
+    if (typeof v === "number") return Number.isNaN(v) ? null : v;
+    let s = strip(pyStr(v));
+    if (!s || s === "-") return null;
+    if (s.includes(",")) s = s.split(".").join("").split(",").join(".");
+    const f = floatPy(s);
+    return f === undefined ? null : f;
+  }
+  function _foc_int(v) { const f = _foc_float(v); return f !== null ? Math.trunc(f) : null; }
+  function _foc_data(v) {
+    if (v === null || v === undefined || ehNaN(v)) return "-";
+    const p2 = n => String(n).padStart(2, "0");
+    if (v instanceof PyDate) return `${p2(v.d)}/${p2(v.m)}/${p2(v.y % 100)}`;
+    const s = pyStr(v);
+    let m = s.match(/^\s*(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+    if (m) { const y = m[3].length === 2 ? 2000 + +m[3] : +m[3]; if (dataValida(y, +m[2], +m[1])) return `${p2(+m[1])}/${p2(+m[2])}/${p2(y % 100)}`; }
+    m = s.match(/^\s*(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m && dataValida(+m[1], +m[2], +m[3])) return `${p2(+m[3])}/${p2(+m[2])}/${p2(+m[1] % 100)}`;
+    return s || "-";
+  }
+  function _achar_cabecalho_focco(bruto) {
+    let melhor = null;
+    for (let i = 0; i < Math.min(25, bruto.length); i++) {
+      const cel = bruto[i].map(_norm_cab);
+      const mapa = {};
+      for (const [chave, aliases] of _ALIASES_FOCCO) {
+        for (const alias of aliases) { const k = cel.indexOf(_norm_cab(alias)); if (k >= 0) { mapa[chave] = k; break; } }
+      }
+      const n = Object.keys(mapa).length;
+      if ("obra" in mapa && "posicao" in mapa && "num_ordem" in mapa && (melhor === null || n > melhor[2])) melhor = [i, mapa, n];
+    }
+    return melhor;
+  }
+  function _tipo_ordem(tp, mascara, tem_col) { if (T(tp)) return tp; if (!tem_col) return "-"; return T(mascara) ? "OFA" : "OFM"; }
+  function _esp_do_nome(nome) {
+    const n = strip(String(nome || "")).toUpperCase();
+    const m = n.match(/^BR_[A-Z]+_(\d+(?:[.,]\d+)?)$/) || n.match(/^TB_[\d.,]+X(\d+(?:[.,]\d+)?)/);
+    if (!m) return null;
+    const v = parseFloat(m[1].split(",").join("."));
+    return (v > 0 && v <= 200) ? v : null;
+  }
+  function tipo_pintura_da_mascara(mascara) {
+    const achados = [];
+    for (let seg of String(mascara || "").split("#")) {
+      seg = strip(seg); const u = seg.toUpperCase(); let texto;
+      if (!u) continue;
+      if (u === "SEM PINTURA") texto = "SEM PINTURA";
+      else if (u === "PÓ" || u === "PO") texto = "PÓ";
+      else if (u.startsWith("GALV")) texto = seg;
+      else if (u === "PRIMER") texto = "PRIMER";
+      else if (/^RAL[\s-]?\d{4}$/.test(u)) texto = seg;
+      else continue;
+      if (!achados.includes(texto)) achados.push(texto);
+    }
+    return achados.length ? achados.join(" | ") : "-";
+  }
+  const _marcas_da_ordem = marca => String(marca || "").split(",").map(strip).filter(t => t && t !== "-");
+  function mapa_pintura_por_marca(fl) {
+    const mapa = fl.mapa, ci_sub = mapa.sub_trecho;
+    const get = (linha, chave) => { const ci = mapa[chave]; return (ci !== undefined && ci < linha.length) ? linha[ci] : null; };
+    const conhecidos = _trechos_conhecidos(fl.linhas.filter(l => ci_sub !== undefined && ci_sub < l.length).map(l => l[ci_sub]));
+    const res = new Map();
+    for (const linha of fl.linhas) {
+      const tipo = tipo_pintura_da_mascara(_foc_texto(get(linha, "mascara")));
+      if (tipo === "-") continue;
+      const pos = _foc_texto(get(linha, "posicao"));
+      const obra_i = _foc_int(get(linha, "obra"));
+      const obra_txt = obra_i !== null ? String(obra_i) : _foc_texto(get(linha, "obra"));
+      const sub_raw = _sub_trecho_texto(get(linha, "sub_trecho"), pos, conhecidos);
+      const obra_trecho = `${obra_txt}-${sub_raw}`.split("_").join("-");
+      for (const t of _marcas_da_ordem(_foc_texto(get(linha, "marca")))) {
+        const k = obra_trecho + "\u0000" + t;
+        if (!res.has(k)) res.set(k, new Set());
+        res.get(k).add(tipo);
+      }
+    }
+    return res;
+  }
+  function tipo_pintura_da_ordem(mascara, obra_trecho, marca, mapa_pintura) {
+    const proprio = tipo_pintura_da_mascara(mascara);
+    if (proprio !== "-" || !T(mapa_pintura)) return proprio;
+    const tipos = new Set();
+    for (const t of _marcas_da_ordem(marca)) for (const x of (mapa_pintura.get(String(obra_trecho) + "\u0000" + t) || [])) tipos.add(x);
+    return tipos.size === 1 ? Array.from(tipos)[0] : "-";
+  }
+  function parse_mascara_focco(mascara) {
+    const r = { peso: null, comp: null, larg: null, esp: null, material: null, dobrado: false };
+    if (typeof mascara !== "string" || !mascara.includes("#")) return r;
+    const campos = mascara.split("#").map(strip);
+    r.dobrado = mascara.toUpperCase().includes("PERFIL DOBRADO");
+    const idx_id = campos.findIndex(c => /_R\d+$/.test(c));
+    if (idx_id < 0) return r;
+    const nums = []; let resto = [];
+    for (let j = idx_id + 3; j < campos.length; j++) {
+      const c = campos[j];
+      if (/^-?\d+(,\d+)?$/.test(c)) nums.push(parseFloat(c.split(",").join(".")));
+      else { resto = campos.slice(j); break; }
+    }
+    if (nums.length) r.peso = nums[0];
+    if (nums.length > 1) r.comp = nums[1];
+    if (nums.length > 2) r.larg = nums[2];
+    if (nums.length > 3 && nums[3] > 0 && nums[3] <= 60) r.esp = nums[3];
+    if (resto.length && /CIVIL|A572|ASTM|ZAR|GALV|SAE|INOX|ALUM/.test(resto[0].toUpperCase())) r.material = resto[0];
+    if (r.esp === null && idx_id >= 6) r.esp = _esp_do_nome(campos[idx_id - 3]);
+    return r;
+  }
+
+  // ------------------------------------------------------------------ leitura do relatório do Focco
+  const NA_TEXTOS = new Set(["", "#N/A", "#N/A N/A", "#NA", "-1.#IND", "-1.#QNAN", "-NaN", "-nan", "1.#IND", "1.#QNAN", "<NA>",
+    "N/A", "NA", "NULL", "NaN", "None", "n/a", "nan", "null"]);
+  function _sniff_formato(b) {
+    const cab = b.subarray(0, 8192);
+    if (cab[0] === 0x50 && cab[1] === 0x4b && cab[2] === 3 && cab[3] === 4) return "xlsx";
+    const ole = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+    if (ole.every((x, i) => cab[i] === x)) {
+      const alvo = "Encrypt".split("").flatMap(ch => [ch.charCodeAt(0), 0]);
+      outer: for (let i = 0; i + alvo.length <= cab.length; i++) { for (let k = 0; k < alvo.length; k++) if (cab[i + k] !== alvo[k]) continue outer; return "protegido"; }
+      return "xls";
+    }
+    const bom16 = (cab[0] === 0xff && cab[1] === 0xfe) || (cab[0] === 0xfe && cab[1] === 0xff);
+    if (cab.includes(0) && !bom16) return "desconhecido";
+    let baixo = ""; for (let i = 0; i < cab.length; i++) { const c = cab[i]; baixo += String.fromCharCode(c >= 65 && c <= 90 ? c + 32 : c); }
+    let ini = baixo.replace(/^[\xef\xbb\xbf \t\r\n]+/, "").slice(0, 100);
+    if (ini.startsWith("<?xml") && baixo.includes("urn:schemas-microsoft-com:office:spreadsheet")) return "xml2003";
+    if (["<html", "<!doctype", "<table", "<?xml", "<meta", "<head", "<body"].some(p => ini.startsWith(p)) || baixo.includes("<table")) return "html";
+    return "texto";
+  }
+  function _ler_texto_arquivo(b) {
+    const tenta = (enc, dados) => { try { return new TextDecoder(enc, { fatal: true }).decode(dados); } catch (e) { return null; } };
+    let t = tenta("utf-8", b);
+    if (t !== null) return t.replace(/^\ufeff/, "");
+    if (b.length % 2 === 0) {
+      let enc = "utf-16le", dados = b;
+      if (b[0] === 0xfe && b[1] === 0xff) { enc = "utf-16be"; dados = b.subarray(2); }
+      else if (b[0] === 0xff && b[1] === 0xfe) dados = b.subarray(2);
+      t = tenta(enc, dados);
+      if (t !== null && !/[\ud800-\udfff]/.test(t.replace(/[\ud800-\udbff][\udc00-\udfff]/g, ""))) return t;
+    }
+    const indef = [0x81, 0x8d, 0x8f, 0x90, 0x9d];
+    if (!Array.prototype.some.call(b, x => indef.includes(x))) return new TextDecoder("windows-1252").decode(b);
+    let s = ""; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);   // latin-1
+    return s;
+  }
+  const ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\xa0", iexcl: "¡", cent: "¢", pound: "£", curren: "¤", yen: "¥",
+    brvbar: "¦", sect: "§", uml: "¨", copy: "©", ordf: "ª", laquo: "«", not: "¬", shy: "\xad", reg: "®", macr: "¯", deg: "°",
+    plusmn: "±", sup2: "²", sup3: "³", acute: "´", micro: "µ", para: "¶", middot: "·", cedil: "¸", sup1: "¹", ordm: "º", raquo: "»",
+    frac14: "¼", frac12: "½", frac34: "¾", iquest: "¿", times: "×", divide: "÷", szlig: "ß", euro: "€", ndash: "–", mdash: "—",
+    lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”", bull: "•", hellip: "…", trade: "™" };
+  ("Agrave À Aacute Á Acirc Â Atilde Ã Auml Ä Aring Å AElig Æ Ccedil Ç Egrave È Eacute É Ecirc Ê Euml Ë Igrave Ì Iacute Í Icirc Î Iuml Ï ETH Ð " +
+   "Ntilde Ñ Ograve Ò Oacute Ó Ocirc Ô Otilde Õ Ouml Ö Oslash Ø Ugrave Ù Uacute Ú Ucirc Û Uuml Ü Yacute Ý THORN Þ agrave à aacute á acirc â " +
+   "atilde ã auml ä aring å aelig æ ccedil ç egrave è eacute é ecirc ê euml ë igrave ì iacute í icirc î iuml ï eth ð ntilde ñ ograve ò oacute ó " +
+   "ocirc ô otilde õ ouml ö oslash ø ugrave ù uacute ú ucirc û uuml ü yacute ý thorn þ yuml ÿ")
+    .split(" ").forEach((x, i, arr) => { if (i % 2 === 0) ENT[x] = arr[i + 1]; });
+  function unescapeHtml(s) {
+    return s.replace(/&(#[xX][0-9a-fA-F]+|#\d+|[A-Za-z][A-Za-z0-9]*);?/g, (todo, n) => {
+      if (n[0] === "#") {
+        const cp = n[1] === "x" || n[1] === "X" ? parseInt(n.slice(2), 16) : parseInt(n.slice(1), 10);
+        if (!cp || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff)) return "\ufffd";
+        return String.fromCodePoint(cp);
+      }
+      const v = ENT[n];
+      return v !== undefined && (todo.endsWith(";") || ["amp", "lt", "gt", "quot", "nbsp"].includes(n)) ? v : todo;
+    });
+  }
+  function _tabelas_html(texto) {
+    // mesmo comportamento do HTMLParser usado no Python: <table>/<tr>/<td>/<th>, sem fechar tags sozinho
+    const tabelas = [], pilha = []; let linha = null, celula = null;
+    const re = /<[!]--[\s\S]*?(?:--[>]|$)|<!\[CDATA\[[\s\S]*?\]\]>|<![^>]*>|<\?[^>]*>|<\/\s*([a-zA-Z][^\s>\/]*)[^>]*>|<([a-zA-Z][^\s>\/]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g;
+    let pos = 0, m;
+    const dado = txt => { if (celula !== null && txt) celula.push(unescapeHtml(txt)); };
+    const abre = tag => {
+      if (tag === "table") pilha.push([]);
+      else if (tag === "tr" && pilha.length) linha = [];
+      else if ((tag === "td" || tag === "th") && linha !== null) celula = [];
+    };
+    const fecha = tag => {
+      if ((tag === "td" || tag === "th") && celula !== null && linha !== null) { linha.push(strip(celula.join(""))); celula = null; }
+      else if (tag === "tr" && linha !== null && pilha.length) { pilha[pilha.length - 1].push(linha); linha = null; }
+      else if (tag === "table" && pilha.length) tabelas.push(pilha.pop());
+    };
+    let cdata = null;                                    // conteúdo de <script>/<style> é texto
+    while ((m = re.exec(texto))) {
+      if (cdata) {
+        if (m[1] && m[1].toLowerCase() === cdata) { dado(texto.slice(pos, m.index)); fecha(cdata); cdata = null; pos = re.lastIndex; }
+        continue;
+      }
+      dado(texto.slice(pos, m.index)); pos = re.lastIndex;
+      if (m[1]) fecha(m[1].toLowerCase());
+      else if (m[2]) {
+        const tag = m[2].toLowerCase(), auto = /\/\s*$/.test(m[3] || "");
+        abre(tag);
+        if (auto) fecha(tag);
+        else if (tag === "script" || tag === "style") cdata = tag;
+      }
+    }
+    dado(texto.slice(pos));
+    const saida = [];
+    for (const tab of tabelas) {
+      if (tab.length < 2) continue;
+      const larg = Math.max(...tab.map(l => l.length));
+      saida.push(tab.map(l => l.concat(Array(larg - l.length).fill(""))));
+    }
+    return saida;
+  }
+  function _tabelas_xml2003(texto) {
+    const NS = "urn:schemas-microsoft-com:office:spreadsheet";
+    const pre = {}; texto.replace(/xmlns:([A-Za-z_][\w.-]*)\s*=\s*["']([^"']*)["']/g, (t, p, u) => { pre[p] = u; return t; });
+    const ok = p => p ? pre[p] === NS : true;
+    const attr = (s, nome) => {
+      const re = new RegExp("(?:^|\\s)(?:([A-Za-z_][\\w.-]*):)?" + nome + "\\s*=\\s*(\"([^\"]*)\"|'([^']*)')", "g"); let m;
+      while ((m = re.exec(s))) if (m[1] && pre[m[1]] === NS) return unescapeHtml(m[3] !== undefined ? m[3] : m[4]);
+      return null;
+    };
+    const saida = {}; let k = 0;
+    const reWs = /<(?:(\w+):)?Worksheet\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?Worksheet>/g; let w;
+    while ((w = reWs.exec(texto))) {
+      if (!ok(w[1])) continue;
+      k++;
+      const nome = attr(w[2], "Name") || `Plan${k}`;
+      const linhas = [];
+      const reRow = /<(?:(\w+):)?Row\b([^>]*?)(\/>|>([\s\S]*?)<\/(?:\w+:)?Row>)/g; let r;
+      while ((r = reRow.exec(w[3]))) {
+        const cel = []; let col = 0;
+        const reCell = /<(?:(\w+):)?Cell\b([^>]*?)(\/>|>([\s\S]*?)<\/(?:\w+:)?Cell>)/g; let c;
+        while ((c = reCell.exec(r[4] || ""))) {
+          const idx = attr(c[2], "Index");
+          if (idx) while (col < parseInt(idx, 10) - 1) { cel.push(null); col++; }
+          const d = (c[4] || "").match(/<(?:\w+:)?Data\b[^>]*?(?:\/>|>([^<]*))/);
+          cel.push(d ? (d[1] ? unescapeHtml(d[1]) : null) : null);
+          col++;
+        }
+        linhas.push(cel);
+      }
+      if (linhas.length) { const larg = Math.max(...linhas.map(l => l.length)); saida[nome] = linhas.map(l => l.concat(Array(larg - l.length).fill(null))); }
+    }
+    return saida;
+  }
+  function _tabela_texto(texto) {                        // CSV/TSV (aproximação do csv.Sniffer)
+    const linhas = texto.split(/\r\n|\r|\n/);
+    const primeira = linhas.find(l => l.trim()) || "";
+    let sep = null, melhor = 0;
+    for (const s of [",", "\t", ";", "|", ":", " "]) { const n = primeira.split(s).length - 1; if (n > melhor) { melhor = n; sep = s; } }
+    if (!sep) return null;
+    const tab = [];
+    for (const l of linhas) {
+      if (!l.length) continue;
+      const cel = []; let atual = "", aspas = false;
+      for (let i = 0; i < l.length; i++) {
+        const ch = l[i];
+        if (aspas) { if (ch === '"') { if (l[i + 1] === '"') { atual += '"'; i++; } else aspas = false; } else atual += ch; }
+        else if (ch === '"' && atual === "") aspas = true;
+        else if (ch === sep) { cel.push(atual); atual = ""; }
+        else atual += ch;
+      }
+      cel.push(atual); tab.push(cel);
+    }
+    const larg = Math.max(...tab.map(l => l.length));
+    if (larg <= 1) return null;
+    return tab.map(l => l.concat(Array(larg - l.length).fill(null)).map(v => v === null || NA_TEXTOS.has(v) ? NaN : v));
+  }
+  function _planilha_para_linhas(ws, date1904) {        // igual ao pandas.read_excel(header=None, dtype=object)
+    const XLSX = RO.XLSX;
+    const linhas = [];
+    for (const ref of Object.keys(ws)) {
+      if (ref[0] === "!") continue;
+      const c = ws[ref], a = XLSX.utils.decode_cell(ref);
+      let v;
+      if (c.t === "n") {
+        if (c.z && XLSX.SSF.is_date(c.z)) {
+          const p = XLSX.SSF.parse_date_code(c.v, { date1904 });
+          v = p ? new PyDate(p.y, p.m, p.d, p.H, p.M, Math.round(p.S)) : c.v;
+        } else v = c.v;
+      } else if (c.t === "s" || c.t === "str") v = NA_TEXTOS.has(c.v) ? (c.v === "" ? "" : NaN) : c.v;
+      else if (c.t === "b") v = c.v;
+      else if (c.t === "e") v = NaN;
+      else if (c.t === "d") { const d = c.v; v = new PyDate(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()); }
+      else v = "";
+      if (v === undefined || v === null) v = "";
+      (linhas[a.r] = linhas[a.r] || [])[a.c] = v;
+    }
+    let ultima = -1;
+    const dados = [];
+    for (let r = 0; r < linhas.length; r++) {
+      const l = linhas[r] || [];
+      const conv = []; for (let c = 0; c < l.length; c++) conv.push(l[c] === undefined ? "" : l[c]);
+      while (conv.length && conv[conv.length - 1] === "") conv.pop();
+      if (conv.length) ultima = r;
+      dados.push(conv);
+    }
+    const d2 = dados.slice(0, ultima + 1);
+    if (!d2.length) return [];
+    const larg = Math.max(...d2.map(l => l.length));
+    return d2.map(l => l.concat(Array(larg - l.length).fill("")).map(v => (v === "" || ehNaN(v)) ? NaN : v));   // vazio = NaN (pandas)
+  }
+  function _abrir_tabelas_focco(nome, bytes) {
+    const fmt = _sniff_formato(bytes);
+    try {
+      if (fmt === "xlsx" || fmt === "xls") {
+        const wb = RO.XLSX.read(bytes, { type: "array", cellDates: false, cellNF: true, cellText: false, cellFormula: false, sheetStubs: false, dense: false });
+        const d1904 = !!(wb.Workbook && wb.Workbook.WBProps && wb.Workbook.WBProps.date1904);
+        const out = {};
+        for (const n of wb.SheetNames) out[n] = _planilha_para_linhas(wb.Sheets[n], d1904);
+        return out;
+      }
+      if (fmt === "protegido") throw new ErroFocco(`'${nome}' está protegido por senha. Abra no Excel, remova a senha e salve de novo.`);
+      if (fmt === "desconhecido") throw new ErroFocco(`Não consegui entender o formato de '${nome}'. Salve o relatório do Focco como .xlsx e tente de novo.`);
+      const texto = _ler_texto_arquivo(bytes);
+      if (fmt === "xml2003") { const t = _tabelas_xml2003(texto); if (Object.keys(t).length) return t; }
+      if (fmt === "html" || fmt === "xml2003") {
+        const tabs = _tabelas_html(texto);
+        if (tabs.length) { const out = {}; ordenar(tabs, t => -t.length).forEach((t, i) => { out[`tabela_${i + 1}`] = t; }); return out; }
+      }
+      const csv = _tabela_texto(texto);
+      if (csv) return { texto: csv };
+    } catch (ex) {
+      if (ex instanceof ErroFocco) throw ex;
+      throw new ErroFocco(`Não consegui ler '${nome}' (formato ${fmt}): ${ex.message || ex}`);
+    }
+    throw new ErroFocco(`Não consegui entender o formato de '${nome}'. Salve o relatório do Focco como .xlsx e tente de novo.`);
+  }
+  class ErroFocco extends Error {}
+  function _carregar_aba_focco(nome, bytes) {
+    let melhor = null;
+    const tabs = _abrir_tabelas_focco(nome, bytes);
+    for (const n of Object.keys(tabs)) {
+      const achado = _achar_cabecalho_focco(tabs[n]);
+      if (achado && (melhor === null || achado[2] > melhor[3])) melhor = [tabs[n], achado[0], achado[1], achado[2]];
+    }
+    if (melhor === null) throw new ErroFocco("Não encontrei, no relatório do Focco, as colunas OBRA, POSICAO e ORDEM " +
+      "(nenhuma aba/tabela tem esse cabeçalho). Confira se é o relatório de ordens x demanda.");
+    return melhor;
+  }
+  function ler_relatorio_focco(melhor) {
+    const [bruto, linha_cab, mapa] = melhor;
+    const ordens = [], vistos = new Map();
+    const conhecidos = mapa.sub_trecho !== undefined ? _trechos_conhecidos(bruto.slice(linha_cab + 1).map(l => l[mapa.sub_trecho])) : new Set();
+    for (let k = linha_cab + 1; k < bruto.length; k++) {
+      const linha = bruto[k];
+      const val = ch => { const ci = mapa[ch]; return (ci !== undefined && ci < linha.length) ? linha[ci] : null; };
+      const num_ordem = _foc_int(val("num_ordem"));
+      if (num_ordem === null) continue;
+      const obra = _foc_int(val("obra"));
+      let pos = _foc_texto(val("posicao"));
+      if (!pos && _foc_texto(val("cod_item")).includes("PS")) {
+        const cm = _foc_texto(val("mascara")).split("#");
+        pos = OU(_foc_texto(val("marca")), cm.length > 2 ? strip(cm[2]) : "", cm.length ? strip(cm[0]) : "");
+      }
+      const sub = _sub_trecho_texto(val("sub_trecho"), pos, conhecidos).split("_").join("-");
+      if (!pos && !_INCLUIR_ORDENS_SEM_POSICAO) continue;
+      const chave = chaveOrdem(num_ordem, obra, sub, pos);
+      const demanda = _foc_texto(val("desc_demanda"));
+      if (vistos.has(chave)) {
+        const o = vistos.get(chave);
+        if (demanda && !o.demandas.includes(demanda)) o.demandas.push(demanda);
+        continue;
+      }
+      const o = {
+        lote: _foc_int(val("lote")), num_ordem,
+        tp_ord: _tipo_ordem(_foc_texto(val("tp_ord")), _foc_texto(val("mascara")), "mascara" in mapa),
+        dt_emissao: _foc_data(val("dt_emissao")), obra, sub_trecho: sub,
+        of: (T(obra) && T(sub)) ? `${obra}-${sub}` : "", pos,
+        marca: _foc_texto(val("marca")), cod_item: _foc_texto(val("cod_item")), desc_item: _foc_texto(val("desc_item")),
+        grupo_lic: _foc_texto(val("grupo_lic")), planejador: _foc_texto(val("planejador")), qtde: _foc_float(val("qtde")),
+        esp: _foc_float(val("espessura")), material: _foc_texto(val("material")), comp: _foc_float(val("comp")),
+        larg: _foc_float(val("larg")), mascara: _foc_texto(val("mascara")), nome_perfil: _foc_texto(val("nome_perfil")),
+        demandas: demanda ? [demanda] : [], tem_col_demanda: "desc_demanda" in mapa,
+      };
+      ordens.push(o); vistos.set(chave, o);
+    }
+    return ordens;
+  }
+  function ler_focco_linhas(melhor) {
+    const [bruto, linha_cab, mapa] = melhor;
+    const cab_raw = bruto[linha_cab].map(_foc_texto);
+    const cols = []; cab_raw.forEach((h, i) => { if (h) cols.push(i); });
+    const ci = mapa.num_ordem, linhas = [];
+    for (let k = linha_cab + 1; k < bruto.length; k++) { const l = bruto[k]; if (ci < l.length && _foc_int(l[ci]) !== null) linhas.push(l); }
+    return { cab_raw, cols, linhas, mapa };
+  }
+
+  // ------------------------------------------------------------------ DXF (mesmo que o ezdxf considera)
+  function lerDxf(bytes) {
+    let texto;
+    try { texto = new TextDecoder("utf-8", { fatal: false }).decode(bytes); } catch (e) { return null; }
+    if (texto.startsWith("AutoCAD Binary DXF")) return null;
+    const ls = texto.split(/\r\n|\r|\n/);
+    const tags = [];
+    for (let i = 0; i + 1 < ls.length; i += 2) {
+      const cod = parseInt(ls[i].trim(), 10);
+      if (Number.isNaN(cod)) { if (!tags.length) return null; break; }
+      tags.push([cod, ls[i + 1]]);
+    }
+    let ehDxf = false;                                   // is_dxf_stream do ezdxf
+    for (const [c, v] of tags) { if (c === 0 && v.trim() === "SECTION") { ehDxf = true; break; } if (c === 0) break; }
+    if (!ehDxf) return null;
+    const papel = new Set();                             // BLOCK_RECORD do papel (*Paper_Space)
+    let secao = null, i = 0;
+    const ents = [];
+    while (i < tags.length) {
+      const [c, v0] = tags[i]; const v = v0.trim();
+      if (c === 0 && v === "SECTION") { secao = (tags[i + 1] && tags[i + 1][0] === 2) ? tags[i + 1][1].trim() : null; i += 2; continue; }
+      if (c === 0 && v === "ENDSEC") { secao = null; i++; continue; }
+      if (c === 0 && (secao === "TABLES" || secao === "ENTITIES")) {
+        const tipo = v, grupo = []; i++;
+        while (i < tags.length && tags[i][0] !== 0) { grupo.push(tags[i]); i++; }
+        if (secao === "TABLES") {
+          if (tipo === "BLOCK_RECORD") {
+            const h = grupo.find(t => t[0] === 5), n = grupo.find(t => t[0] === 2);
+            if (h && n && /^\*paper_space/i.test(n[1].trim())) papel.add(h[1].trim().toUpperCase());
+          }
+        } else ents.push([tipo, grupo]);
+        continue;
+      }
+      i++;
+    }
+    const num = s => { const f = parseFloat(String(s).trim()); return Number.isNaN(f) ? 0 : f; };
+    const doc = [];
+    for (const [tipo, g] of ents) {
+      const f67 = g.find(t => t[0] === 67), dono = g.find(t => t[0] === 330);
+      if ((f67 && parseInt(f67[1], 10) === 1) || (dono && papel.has(dono[1].trim().toUpperCase()))) continue;
+      const pega = cod => { const t = g.find(x => x[0] === cod); return t ? num(t[1]) : 0; };
+      const e = { tipo };
+      if (tipo === "LWPOLYLINE") {
+        e.pontos = [];
+        for (const [c, v] of g) { if (c === 10) e.pontos.push([num(v), 0]); else if (c === 20 && e.pontos.length) e.pontos[e.pontos.length - 1][1] = num(v); }
+      } else {
+        e.p10 = [pega(10), pega(20)]; e.p11 = [pega(11), pega(21)];
+      }
+      doc.push(e);
+    }
+    return doc;
+  }
+  function obter_dimensoes_dxf(doc) {
+    if (!doc) return [null, null];
+    const xs = [], ys = [];
+    for (const e of doc) {
+      if (e.tipo === "LINE" || e.tipo === "XLINE" || e.tipo === "RAY") { xs.push(e.p10[0]); ys.push(e.p10[1]); }
+      if (e.tipo === "LINE") { xs.push(e.p11[0]); ys.push(e.p11[1]); }
+      if (["ARC", "CIRCLE", "ELLIPSE", "VIEWPORT"].includes(e.tipo)) { xs.push(e.p10[0]); ys.push(e.p10[1]); }
+      if (e.tipo === "LWPOLYLINE") for (const p of e.pontos) { xs.push(p[0]); ys.push(p[1]); }
+    }
+    if (!xs.length) return [null, null];
+    return [Math.abs(Math.max(...xs) - Math.min(...xs)), Math.abs(Math.max(...ys) - Math.min(...ys))];
+  }
+  // A contagem de furos do Roteirizador soma CIRCLE + ELLIPSE (o ramo de LWPOLYLINE depende de get_bulge, que o ezdxf não tem).
+  const quantidade_furos_dxf = doc => doc ? doc.filter(e => e.tipo === "CIRCLE" || e.tipo === "ELLIPSE").length : 0;
+
+  function _detectar_pasta(relPartes) {                  // _detectar_pasta_por_caminho: partes da pasta do arquivo (sem a raiz)
+    if (!relPartes.length) return null;
+    const ultima = relPartes[relPartes.length - 1];
+    if (_SUBPASTAS_AUXILIARES_FLUXO.has(strip(ultima).toLowerCase()) && relPartes.length >= 2) return relPartes[relPartes.length - 2];
+    return ultima;
+  }
+  const chaveNome = n => [n.toUpperCase(), n];
+  function ordemWalk(arquivos) {                         // mesma ordem do os.walk (pasta: arquivos, depois subpastas)
+    const raiz = { dirs: new Map(), files: [] };
+    for (const a of arquivos) {
+      let no = raiz;
+      for (const p of a.partes) { if (!no.dirs.has(p)) no.dirs.set(p, { dirs: new Map(), files: [] }); no = no.dirs.get(p); }
+      no.files.push(a);
+    }
+    const out = [];
+    (function rec(no) {
+      ordenar(no.files, f => chaveNome(f.nome)).forEach(f => out.push(f));
+      ordenar(Array.from(no.dirs.keys()), chaveNome).forEach(d => rec(no.dirs.get(d)));
+    })(raiz);
+    return out;
+  }
+  async function coletar_registros_das_pastas(pastas, log, progresso) {
+    // pastas: [{nome, arquivos:[{partes:[subpastas...], nome, ler: async () => Uint8Array}]}]
+    const arquivos = [];
+    for (const pasta of pastas) for (const a of ordemWalk(pasta.arquivos)) if (a.nome.toUpperCase().endsWith(".DXF")) arquivos.push([pasta, a]);
+    log(`📁 ${arquivos.length} arquivo(s) DXF encontrado(s) nas pastas informadas`);
+    const registros = []; let fora_padrao = 0;
+    for (let i = 1; i <= arquivos.length; i++) {
+      const [pasta, a] = arquivos[i - 1];
+      const [of_, pos] = extrair_nome(a.nome);
+      if (!T(of_)) { fora_padrao++; continue; }
+      const pasta_nome = _detectar_pasta(a.partes);
+      const fluxo = _nome_parece_fluxo(pasta_nome) ? extrair_fluxo_base(pasta_nome) : null;
+      let esp = null, material = "";
+      for (const nivel of [pasta.nome].concat(a.partes)) {
+        const [e, mat] = _extrair_esp_material_pasta(nivel);
+        if (e !== null) { esp = e; material = mat; break; }
+      }
+      if (esp === null) { const m = String(pasta_nome || "").match(/\[(\d+(?:,\d+)?)\]/); esp = m ? parseFloat(m[1].split(",").join(".")) : null; }
+      let doc = null;
+      try {
+        doc = lerDxf(await a.ler());
+        if (doc === null) log(`⚠️  Não é um DXF válido (medidas e furos ficam em branco): ${a.nome}`);
+      } catch (e) {
+        doc = null;
+        log(`⚠️  Não consegui abrir o arquivo (medidas e furos ficam em branco): ${a.nome}`);
+      }
+      const [largura, altura] = obter_dimensoes_dxf(doc);
+      registros.push({ of: of_, pos, identificador: "", arquivo: a.nome, fluxo, fluxo_final: fluxo,
+        fluxo_pasta: fluxo ? pasta_nome : null, esp, largura_dxf: largura, altura_dxf: altura, parte: extrair_parte_nome(a.nome),
+        qtd_dxf: extrair_quantidade_arquivo(a.nome), qtd_planilha: null, quantidade_furos: quantidade_furos_dxf(doc) || 0,
+        material: material || "" });
+      if (i % 25 === 0) log(`   ... ${i}/${arquivos.length} arquivos lidos`);
+      if (progresso) progresso(i, arquivos.length);
+    }
+    if (fora_padrao) log(`⚠️  ${fora_padrao} arquivo(s) com nome fora do padrão (sem OF) foram ignorados`);
+    return registros;
+  }
+
+  // ------------------------------------------------------------------ regras (planilha PCP + HTML)
+  function _pos_variantes(pos) {
+    const base = strip(String(pos || "").toUpperCase()).split("@").join("_");
+    const c = [base];
+    const sem_trecho = base.replace(/^\d+[-_]\d+_[-]?/, "");
+    if (sem_trecho && sem_trecho !== base) c.push(sem_trecho);
+    for (const x of c.slice()) { const sl = x.replace(/_[A-Z]{1,2}$/, ""); if (sl && sl !== x) c.push(sl); }
+    return unicos(c);
+  }
+  function _num_limpo(v, casas) {
+    if (v === null || v === undefined) return "-";
+    return pyRound(Number(v), casas === undefined ? 1 : casas);
+  }
+  function _sequencia_e_maquinas(fluxo_base, tem_furo, dobra) {
+    const cfg = Object.prototype.hasOwnProperty.call(_MAQUINAS_POR_FLUXO, _norm_cab(fluxo_base)) ? _MAQUINAS_POR_FLUXO[_norm_cab(fluxo_base)] : null;
+    if (!cfg) return ["-", "-", "-", "-", OU(fluxo_base, "SEM ROTEIRIZAÇÃO")];
+    const dobra_final = cfg.dobra ? cfg.dobra : ((T(dobra) && dobra !== "NÃO") ? dobra : "-");
+    const furo_final = (cfg.furo_sempre || tem_furo) ? cfg.furo : "-";
+    let seq = cfg.corte;
+    if (!cfg.furo_sempre && tem_furo) seq += " > " + cfg.furo;
+    if (dobra_final !== "-" && !cfg.dobra) seq += " > " + dobra_final;
+    return [cfg.centro, cfg.corte, furo_final, dobra_final, seq];
+  }
+  function _regra_dobra(mk, comp) {
+    if (!mk.dobrado || comp === null || comp === undefined) return "NÃO";
+    if (comp <= 400) return "DOBRADEIRA PQ";
+    if (comp <= 3000) return "DOBRADEIRA 3M";
+    return "DOBRADEIRA 6M";
+  }
+  function _fluxo_perfilado_do_planejador(o) {
+    if (!o || !(o.planejador || "").toUpperCase().includes("PERFILADEIRA")) return null;
+    let letra = strip((o.cod_item || "").toUpperCase()).slice(0, 1);
+    if (!["L", "U", "C", "Z"].includes(letra)) {
+      const campos = (o.mascara || "").split("#");
+      letra = campos.length > 3 ? strip(campos[3]).toUpperCase().slice(0, 1) : "";
+    }
+    if (letra === "L") return `Perfiladeira ${destino_perfiladeira_L(OU(o.nome_perfil, o.desc_item), o.comp)}`;
+    if (letra === "U" || letra === "C") return "Perfiladeira U e C";
+    return "Perfiladeira";
+  }
+  const _descricao_e_chapa = d => strip(String(d || "")).toUpperCase().startsWith("CHAPA");
+  const _item_e_chapa = o => _descricao_e_chapa(OU((o || {}).nome_perfil, (o || {}).desc_item));
+  function _flags_pcp(desc_demanda, cod_item) {
+    const d = desc_demanda || "", cod = cod_item || "";
+    const arm = d.includes("XP1") || d.includes("PREPARACAO");
+    const pint = ["TINTA", "INTERMEDI", "TERCEIRIZADO", "ZINCO", "DILUENTE", "CATALISADOR"].some(t => d.includes(t)) || cod.includes("LANT_EXT");
+    const ps = cod.includes("PS");
+    const csc = d.includes("CHAPA GALV") || d.includes("CHAPA ALUM");
+    return [arm, pint, ps, csc, arm || pint];
+  }
+  function _rota_chapa_so_pintura(rota, desc, cod, descricao_item) {
+    const [arm, pint] = _flags_pcp(desc, cod);
+    return (pint && !arm && _descricao_e_chapa(descricao_item) && !_ROTAS_PREP.includes(rota)) ? "PREPARAÇÃO" : rota;
+  }
+  const _flag_desconsiderar = (desc, cod) => _flags_pcp(desc, cod)[4];
+  function _demanda_principal(livres) {
+    const itens = (livres || []).filter(d => strip(String(d || ""))).map(d => strip(String(d)));
+    if (!itens.length) return "-";
+    const rank = d => {
+      const u = d.toUpperCase();
+      if (["PARTE DE CONSTRU", "SUCATA", "ESTOQUE", "INTERMEDI", "TINTA", "ZINCO"].some(k => u.includes(k))) return 5;
+      if (u.startsWith("CHAPA CORTADA")) return 0;
+      if (u.startsWith("CHAPA")) return 1;
+      if (u.startsWith("BOBINA")) return 2;
+      return 3;
+    };
+    let melhor = itens[0], mk = [rank(itens[0]), 0];
+    itens.forEach(d => { const k = [rank(d), itens.indexOf(d)]; if (cmpVal(k, mk) < 0) { melhor = d; mk = k; } });
+    return melhor;
+  }
+  function _sequencia_pcp(fluxo_base, dobra, tem_furo) {
+    const f = _norm_cab(fluxo_base);
+    if (Object.prototype.hasOwnProperty.call(_SEQ_PCP, f)) {
+      const [corte, furo, dobra_ok] = _SEQ_PCP[f];
+      const base = corte + (tem_furo ? " > " + furo : "");
+      if (dobra === dobra_ok) return base + " > " + dobra_ok;
+      return dobra === "NÃO" ? base : "";
+    }
+    if (f === "FLUXO 3" || f === "LASER") {
+      const maq = f === "FLUXO 3" ? "PLASMA" : "LASER";
+      if (["DOBRADEIRA 6M", "DOBRADEIRA 3M", "DOBRADEIRA PQ"].includes(dobra)) return maq + " > " + dobra;
+      return dobra === "NÃO" ? maq : "";
+    }
+    return "";
+  }
+  const RE_TINTA = reB("\\bTINTA\\b", "i"), RE_CATDIL = reB("\\b(CATALISADOR|DILUENTE)\\b.*\\b(EPOXI|PU)\\b", "i"), RE_ZINCO = reB("\\bZINCO\\b", "i");
+  function classificar_rota_html(desc_demanda, grp_lic, nome_perfil, comp) {
+    const desc = strip(pyStr(OU(desc_demanda, ""))), du = desc.toUpperCase();
+    const grp = strip(pyStr(OU(grp_lic, ""))).toUpperCase();
+    const nome = strip(pyStr(OU(nome_perfil, ""))), nu = nome.toUpperCase();
+    if (comp === null || comp === undefined || comp === "") comp = null;
+    else { const f = floatPy(pyStr(comp).split(",").join(".")); comp = (f === undefined) ? null : f; }
+    const itr = /INTERMEDIARI/i.test(desc);
+    if (RE_TINTA.test(desc) || RE_CATDIL.test(desc)) return "PINTURA";
+    if (RE_ZINCO.test(desc)) return "GALVÂNICA";
+    if (/^CHAPA\s+(ASTM|CORTADA)/i.test(du)) return "PREPARAÇÃO";
+    if (_BARRAS_HTML.has(du)) return "BARRAS";
+    if (_ACESS_PADRAO_HTML.has(du)) return "ACESSÓRIO PADRÃO";
+    if (grp.includes("PERFIL Z") && !itr) return "PERFILADEIRA Z";
+    if ((grp.includes("BANZO JOIST") || grp.includes("BANZO PROJOIST")) && !itr) return "PERFILADEIRA BANZO JOIST";
+    if ((grp.includes("PERFIL U JOIST") || grp.includes("PERFIL U PROJOIST")) && !itr) return "PERFILADEIRA U JOIST";
+    if (["ACESSORIOS JOIST", "ACESSORIOS JOIST PRENSA", "ACESSORIOS PROJOIST PRENSA"].some(x => grp.includes(x)) && !itr) return "ACESSÓRIOS JOIST";
+    if (_CS_PERFIS_HTML.has(nu) || grp.includes("TELHAS") || grp.includes("BOBINA ZIPADA")) return "CENTRO DE SERVIÇO";
+    if (!itr) {
+      if (/^PERFIL\s+(W|HP|I|U)\s+ASTM/i.test(du)) return "LAMINADOS";
+      if (/^CANTONEIRA\s+(ASTM|PARA\s+LANTERNIM)/i.test(du)) return "LAMINADOS";
+      if (/^TUBO\s+(REDONDO|QUADRADO)/i.test(du)) return "LAMINADOS";
+      if (grp.includes("VIGA/PILAR LAMINADO") || grp.includes("PERFIL L JOIST") || grp.includes("PERFIL L PROJOIST")) return "LAMINADOS";
+    }
+    if (!itr && /^L\d/i.test(nu)) {
+      const m = nome.match(/^L(\d+\.?\d*)X(\d+\.?\d*)X([\d.]+)/i);
+      if (m && parseFloat(m[1]) === parseFloat(m[2]) && floatPy(m[3]) !== undefined && floatPy(m[3]) <= 3.0) return "PERFILADEIRA L";
+    }
+    if (!itr) {
+      if (/^U\d/i.test(nu)) {
+        const m = nome.match(/^U(\d+\.?\d*)X(\d+\.?\d*)X[\d.]+/i);
+        if (m) {
+          const alma = parseFloat(m[1]), aba = parseFloat(m[2]);
+          if (/^U150X81X3\.00/i.test(nome) && comp !== null && comp < 500) return "PREPARAÇÃO";
+          if (alma >= 100 && aba <= 106) { if (comp !== null && comp >= 800) return "PERFILADEIRA U/C"; if (comp !== null) return "PREPARAÇÃO (DOBRA)"; }
+        }
+      }
+      if (/^C\d/i.test(nu)) {
+        const m = nome.match(/^C(\d+\.?\d*)X(\d+\.?\d*)X(\d+\.?\d*)/i);
+        if (m) {
+          const alma = parseFloat(m[1]), a1 = parseFloat(m[2]), a2 = parseFloat(m[3]);
+          if (alma > 100 && a1 > 50 && a2 < 30) { if (comp !== null && comp >= 800) return "PERFILADEIRA U/C"; if (comp !== null) return "PREPARAÇÃO (DOBRA)"; }
+        }
+      }
+    }
+    return "ARMAÇÃO";
+  }
+  function _rota_da_ordem(o) {
+    if (!o.tem_col_demanda) return null;
+    const dem = T(o.demandas) ? o.demandas : [""];
+    const rotas = dem.map(d => [classificar_rota_html(d, o.grupo_lic, OU(o.nome_perfil, o.desc_item), o.comp), _flag_desconsiderar(d, o.cod_item)]);
+    const livres = rotas.filter(x => !x[1]).map(x => x[0]);
+    const base = livres.length ? livres : rotas.map(x => x[0]);
+    for (const r of base) if (_ROTAS_PREP.includes(r)) return r;
+    if (_item_e_chapa(o) && dem.every(d => _flags_pcp(d, o.cod_item)[1] && !_flags_pcp(d, o.cod_item)[0])) return "PREPARAÇÃO";
+    return base[0];
+  }
+  const _ordem_ps_prep = o => T(o) && _flags_pcp("", o.cod_item)[2];
+  const _setor_exibicao = (rota, nome_perfil, comp) => rota === "PERFILADEIRA L" ? `PERFILADEIRA ${destino_perfiladeira_L(nome_perfil, comp)}` : rota;
+  const _RE_MARCA_DESCONSIDERAR = /^(?:\d+-\d+_)?(?:SD1|SEZ[1-4])(?:-\d+)?(?:_U)?$/;
+  function _marca_pos_desconsiderar(valor) {
+    const partes = String(OU(valor, "")).toUpperCase().split(",").map(strip).filter(p => p && p !== "-");
+    return partes.length > 0 && partes.every(p => _RE_MARCA_DESCONSIDERAR.test(p));
+  }
+  function _item_estoque_acessorio(pos) {
+    const m = strip(String(pos || "")).toUpperCase().match(/^(?:\d+-\d+_)?(SD1|SEZ[1-4])(?:-\d+)?(?:_U)?$/);
+    if (!m) return null;
+    const desc = `${m[1]} ESTOQUE`;
+    return _ACESS_PADRAO_HTML.has(desc) ? [m[1], desc] : null;
+  }
+  function _ordem_de_pintura(o) {
+    if (!o || !o.tem_col_demanda || _item_e_chapa(o)) return false;
+    const dem = (o.demandas || []).filter(d => strip(String(d || "")));
+    return dem.length > 0 && dem.every(d => _flags_pcp(d, o.cod_item)[1]);
+  }
+  function _nome_fluxo_pcp(nome) {
+    if (T(nome) && _norm_cab(String(nome).replace(/\s*\[.*\]$/, "")) === "PERFILADEIRA U E C") return String(nome).replace(/^Perfiladeira U e C/i, "Perfiladeira U E C");
+    return nome;
+  }
+  function _foc_vazio(v) { return v === null || v === undefined || ehNaN(v) || (typeof v === "string" && !strip(v)); }
+  const _xl = v => _foc_vazio(v) ? null : v;
+
+  function montar_base_dados(fl, mapa_ordem, mapa_pintura) {
+    const mapa = fl.mapa, tem_demanda = "desc_demanda" in mapa;
+    const get = (linha, ch) => { const ci = mapa[ch]; return (ci !== undefined && ci < linha.length) ? linha[ci] : null; };
+    const norm_calc = new Set(_COLUNAS_CALC.concat(["ROTA (HTML)"]).map(_norm_cab));
+    const ci_obra = mapa.obra, ci_sub = mapa.sub_trecho;
+    const cols_saida = fl.cols.filter(i => !norm_calc.has(_norm_cab(fl.cab_raw[i])) && i !== ci_sub);
+    const cabecalho = cols_saida.map(i => i === ci_obra ? "OBRA E TRECHO" : fl.cab_raw[i]).concat(_COLUNAS_CALC_FIM);
+    const saida = [], calc = [];
+    const conhecidos = _trechos_conhecidos(fl.linhas.filter(l => ci_sub !== undefined && ci_sub < l.length).map(l => l[ci_sub]));
+    for (const linha of fl.linhas) {
+      const num = _foc_int(get(linha, "num_ordem"));
+      const obra = get(linha, "obra"), obra_i = _foc_int(obra);
+      const pos = _foc_texto(get(linha, "posicao"));
+      const sub_raw = _sub_trecho_texto(get(linha, "sub_trecho"), pos, conhecidos);
+      let fluxo_dxf = null, tem_furo = false;
+      if (pos) { const r = mapa_ordem.get(chaveOrdem(num, obra_i, sub_raw.split("_").join("-"), pos)); if (r) [fluxo_dxf, tem_furo] = r; }
+      const desc = _foc_texto(get(linha, "desc_demanda")), cod = _foc_texto(get(linha, "cod_item"));
+      const nome_perfil = _foc_texto(get(linha, "nome_perfil"));
+      const [arm, pint, ps, csc, desc_flag] = _flags_pcp(desc, cod);
+      const esp_raw = get(linha, "espessura");
+      const esp_calc = desc_flag ? null : (_foc_vazio(esp_raw) ? OU(nome_perfil, 0) : _xl(esp_raw));
+      const obra_txt = obra_i !== null ? String(obra_i) : _foc_texto(obra);
+      const obra_trecho = `${obra_txt}-${sub_raw}`.split("_").join("-");
+      const chave = `${obra_trecho}_${pos}`;
+      const comp_num = _foc_float(get(linha, "comp"));
+      const mascara = _foc_texto(get(linha, "mascara"));
+      let dobra;
+      if (mascara.includes("PERFIL DOBRADO")) { const c = OU(comp_num, 0); dobra = c <= 400 ? "DOBRADEIRA PQ" : (c <= 3000 ? "DOBRADEIRA 3M" : "DOBRADEIRA 6M"); }
+      else dobra = "NÃO";
+      let fluxo_txt, furo_txt, seq;
+      if (fluxo_dxf === null) fluxo_txt = furo_txt = seq = "SEM ROTEIRIZAÇÃO";
+      else { fluxo_txt = fluxo_dxf; furo_txt = tem_furo ? "SIM" : "NÃO"; seq = _sequencia_pcp(fluxo_dxf, dobra, tem_furo); }
+      const rota = tem_demanda ? _rota_chapa_so_pintura(classificar_rota_html(desc, get(linha, "grupo_lic"), nome_perfil, get(linha, "comp")), desc, cod, nome_perfil)
+        : "(sem coluna de demanda)";
+      saida.push(cols_saida.map(i => i === ci_obra ? obra_trecho : (i < linha.length ? _xl(linha[i]) : null)).concat([
+        esp_calc, chave, fluxo_txt, furo_txt, dobra, seq, arm ? "X" : null, pint ? "X" : null, ps ? "X" : null, csc ? "X" : null,
+        desc_flag ? "DESCONSIDERAR" : null, _setor_exibicao(rota, nome_perfil, get(linha, "comp")),
+        tipo_pintura_da_ordem(mascara, obra_trecho, _foc_texto(get(linha, "marca")), mapa_pintura)]));
+      calc.push({ ordem: num, pos, chave, obra_trecho, fluxo: fluxo_txt, seq, planejador: _foc_texto(get(linha, "planejador")),
+        espessura: esp_calc, desconsidera: desc_flag, ps: ps ? "X" : "", csc: csc ? "X" : "", rota, desc,
+        cod_item_dem: _foc_texto(get(linha, "cod_item_demanda")), qtde_dem: OU(_foc_float(get(linha, "qtde_demanda")), 0.0) });
+    }
+    return [cabecalho, saida, calc];
+  }
+  const chaveOrdem = (num, obra, sub, pos) => [num === null ? "N" : String(num), obra === null ? "N" : String(obra), sub, pos].join("\u0000");
+
+  // ------------------------------------------------------------------ geração do relatório
+  async function gerar_relatorio_ordens_fluxos(focco, registros, log) {
+    log = log || function () {};
+    log(`📋 Lendo o relatório do Focco: ${focco.nome}`);
+    const melhor = _carregar_aba_focco(focco.nome, focco.bytes);
+    const ordens = ler_relatorio_focco(melhor);
+    const focco_linhas = ler_focco_linhas(melhor);
+    const mapa_pintura = mapa_pintura_por_marca(focco_linhas);
+    log(`📋 Relatório do Focco lido: ${ordens.length} ordem(ns) com posição, ${focco_linhas.linhas.length} linha(s) no total`);
+
+    const indice = new Map();
+    for (const r of registros) {
+      const of_n = String(OU(r.of, "")).toUpperCase().split("_").join("-");
+      for (const v of _pos_variantes(r.pos)) {
+        const k = of_n + "\u0000" + v;
+        if (!indice.has(k)) indice.set(k, []);
+        if (!indice.get(k).includes(r)) indice.get(k).push(r);
+      }
+    }
+    const usados = new Set(), linhas = [];
+    for (const o of ordens) {
+      let achados = [];
+      for (const v of _pos_variantes(o.pos)) { achados = indice.get(o.of.toUpperCase() + "\u0000" + v) || []; if (achados.length) break; }
+      achados.forEach(r => usados.add(r));
+      linhas.push([o, achados]);
+    }
+    const sem_ordem = registros.filter(r => !usados.has(r));
+    const lote_ref = (ordens.find(o => T(o.lote)) || {}).lote || null;
+
+    const cabecalho = ["LOTE OF", "NUM ORDEM", "TP ORD", "DT EMISSAO", "OBRA", "SUB TRECHO", "OF-TRECHO", "POSIÇÃO",
+      "FLUXO", "CENTRO DE CUSTO", "CORTE", "FURO", "DOBRA", "MATERIAL", "ESPESSURA (mm)",
+      "LARGURA (mm)", "ALTURA (mm)", "PESO UNITÁRIO (kg)", "PESO TOTAL (kg)", "ARQUIVO(S) DXF",
+      "STATUS", "QTDE (ORDEM)", "MARCA", "COD ITEM", "DESCRIÇÃO DO ITEM", "GRUPO LIC",
+      "PLANEJADOR", "SEQUÊNCIA DE ROTEIRO", "TEM FURO?", "OBSERVAÇÃO", "SETOR", "TIPO DE PINTURA"];
+
+    function montar_linha(o, achados) {
+      const mk = o ? parse_mascara_focco(o.mascara) : { dobrado: false };
+      const g = k => (mk[k] === undefined ? null : mk[k]);
+      const r = achados.length ? achados[0] : null;
+      const tem_dxf = r !== null;
+      const partes_a = achados.filter(a => T(a.parte));
+      const letras = Array.from(new Set(partes_a.map(a => a.parte))).sort(cmpStr);
+      const dividida = letras.length >= 2 && partes_a.every(a => a.largura_dxf !== null && a.altura_dxf !== null);
+      const rota = o ? _rota_da_ordem(o) : null;
+      let fluxo_perf;
+      if (tem_dxf) fluxo_perf = null;
+      else if (T(rota)) fluxo_perf = _ROTA_PARA_FLUXO[rota] || null;
+      else fluxo_perf = _fluxo_perfilado_do_planejador(o);
+      const esp = OU((tem_dxf && T(r.esp)) ? r.esp : null, o ? o.esp : null, g("esp"),
+        o ? OU(_esp_do_nome(o.nome_perfil), _esp_do_nome(o.desc_item)) : null);
+      const material = OU((o && T(o.material)) ? o.material : "", (tem_dxf && T(r.material)) ? r.material : "", g("material"), "-");
+      let larg, alt, peso_unit;
+      if (tem_dxf && dividida) {
+        larg = partes_a.reduce((s, a) => s + Math.max(a.largura_dxf, a.altura_dxf), 0);
+        alt = Math.max(...partes_a.map(a => Math.min(a.largura_dxf, a.altura_dxf)));
+        peso_unit = T(esp) ? partes_a.reduce((s, a) => s + calcular_peso(a.largura_dxf, a.altura_dxf, esp), 0) : null;
+      } else if (tem_dxf && r.largura_dxf !== null && r.altura_dxf !== null) {
+        larg = Math.max(r.largura_dxf, r.altura_dxf); alt = Math.min(r.largura_dxf, r.altura_dxf);
+        peso_unit = T(esp) ? calcular_peso(r.largura_dxf, r.altura_dxf, esp) : null;
+      } else {
+        larg = OU((o && T(o.comp)) ? o.comp : null, g("comp"));
+        alt = OU((o && T(o.larg)) ? o.larg : null, g("larg"));
+        peso_unit = g("peso");
+      }
+      const qtde_ordem = o ? o.qtde : null;
+      const qtd = tem_dxf ? (r.qtd_dxf !== null ? r.qtd_dxf : OU(qtde_ordem, r.qtd_planilha, 1)) : qtde_ordem;
+      const peso_total = (peso_unit !== null && peso_unit !== undefined && qtd !== null && qtd !== undefined) ? peso_unit * qtd : null;
+      let fluxo, centro, corte, furo, dobra, seq, tem_furo_txt, status;
+      if (tem_dxf) {
+        fluxo = OU(r.fluxo_final, "SEM FLUXO");
+        const tem_furo = achados.some(a => OU(a.quantidade_furos, 0) > 0);
+        const comp_dobra = OU((o && T(o.comp)) ? o.comp : null, g("comp"), larg);
+        if (T(r.fluxo_final)) [centro, corte, furo, dobra, seq] = _sequencia_e_maquinas(fluxo, tem_furo, _regra_dobra(mk, comp_dobra));
+        else [centro, corte, furo, dobra, seq] = ["-", "-", "-", "-", "SEM ROTEIRIZAÇÃO"];
+        tem_furo_txt = tem_furo ? "SIM" : "NÃO"; status = "✅ Tem DXF";
+      } else if (T(fluxo_perf)) {
+        fluxo = fluxo_perf; [centro, corte, furo, dobra, seq] = _sequencia_e_maquinas(fluxo, false, "NÃO");
+        tem_furo_txt = "-"; status = "🔷 Rota automática (sem DXF)";
+      } else if (T(rota) && !_ROTAS_PREP.includes(rota)) {
+        fluxo = centro = corte = furo = dobra = seq = tem_furo_txt = "-"; status = "🔷 Rota automática (sem DXF)";
+      } else {
+        fluxo = centro = corte = furo = dobra = seq = tem_furo_txt = "-"; status = "❌ Sem DXF ainda";
+      }
+      const arquivos = achados.length ? unicos(achados.map(a => a.arquivo)).join(", ") : "-";
+      let ident, extra, obs;
+      if (o) {
+        ident = [OU(o.lote, "-"), o.num_ordem, o.tp_ord, o.dt_emissao, OU(o.obra, "-"), OU(o.sub_trecho, "-"), OU(o.of, "-"), o.pos];
+        extra = [qtde_ordem !== null ? qtde_ordem : "-", OU(o.marca, "-"), OU(o.cod_item, "-"), OU(o.desc_item, "-"), OU(o.grupo_lic, "-"), OU(o.planejador, "-")];
+        obs = "";
+      } else {
+        const partes = splitN(String(r.of), "-", 1);
+        ident = [OU(lote_ref, "-"), "-", "-", "-", partes[0], partes.length > 1 ? partes[1] : "-", r.of, r.pos];
+        const est = _item_estoque_acessorio(r.pos) || ["-", "-"];
+        extra = ["-", "-", est[0], est[1], "-", "-"];
+        obs = "Sem ordem no relatório do Focco";
+      }
+      if (dividida) {
+        let nota = `Peça dividida em partes [${letras.join("+")}]: comprimento e peso somados`;
+        const fp = new Set(partes_a.filter(a => T(a.fluxo_final)).map(a => a.fluxo_final));
+        if (fp.size > 1 || partes_a.some(a => !T(a.fluxo_final)))
+          nota += " | partes em fluxos diferentes: " + partes_a.map(a => `[${a.parte}]=${OU(a.fluxo_final, "SEM FLUXO")}`).join(", ");
+        obs = (obs ? obs + " | " : "") + nota;
+      } else if (letras.length === 1) {
+        obs = (obs ? obs + " | " : "") + `Só a parte [${letras[0]}] foi encontrada - confira se falta a outra parte (ex: [B])`;
+      }
+      const esp_txt = T(esp) ? fixo(esp, 2).split(".").join(",") : "-";
+      return ident.concat([fluxo, centro, corte, furo, dobra, material, esp_txt, _num_limpo(larg), _num_limpo(alt),
+        _num_limpo(peso_unit, 4), _num_limpo(peso_total, 4), arquivos, status], extra,
+        [seq, tem_furo_txt, obs, OU(_setor_exibicao(rota, o ? OU(o.nome_perfil, o.desc_item) : "", o ? o.comp : null), "-"),
+          o ? tipo_pintura_da_ordem(o.mascara, o.of, o.marca, mapa_pintura) : "-"]);
+    }
+    const numOu0 = v => ehNum(v) ? v : 0;
+    let pares = ordenar(linhas.map(([o, a]) => [montar_linha(o, a), o, a]), p => [numOu0(p[0][1]), pyStr(p[0][6]), pyStr(p[0][7])]);
+    pares = pares.concat(ordenar(sem_ordem, x => [pyStr(x.of), pyStr(x.pos)]).map(r => [montar_linha(null, [r]), null, [r]]));
+    const dados = pares.map(p => p[0]), ordens_da_linha = pares.map(p => p[1]);
+    const i_pos_d = cabecalho.indexOf("POSIÇÃO"), i_marca_d = cabecalho.indexOf("MARCA");
+    const flags_marca = dados.map(l => _marca_pos_desconsiderar(l[i_pos_d]) || _marca_pos_desconsiderar(l[i_marca_d]));
+    const flags_pintura = ordens_da_linha.map((o, i) => _ordem_de_pintura(o) || flags_marca[i]);
+    const dados_pintura = dados.filter((l, i) => flags_pintura[i]);
+    const flags_ps = ordens_da_linha.map((o, i) => !flags_pintura[i] && _ordem_ps_prep(o));
+    let dados_ps = dados.filter((l, i) => flags_ps[i]);
+    const dados_resumo = dados.filter((l, i) => !flags_pintura[i] && !flags_ps[i]);
+    const ordem_fluxos = { "FLUXO 1": 1, "FLUXO 2": 2, "FLUXO 3": 3, "FLUXO 4": 4, "LASER": 5 };
+    function classe_da_linha(l) {
+      const fluxo = _norm_cab(l[8]);
+      if (Object.prototype.hasOwnProperty.call(ordem_fluxos, fluxo)) return "fluxos";
+      const rota = l[30];
+      if (rota !== null && rota !== "-") return _ROTAS_PREP.includes(rota) ? "prep_pendente" : "nao_prep";
+      if (l[9] !== "-" && l[9] !== "PREPARAÇÃO") return "nao_prep";
+      const planej = _norm_cab(l[26]), cod = String(OU(l[23], "")).toUpperCase();
+      if (planej.includes("PREPARACAO") || cod.includes("_PREP") || (l[26] === "-" && l[20].startsWith("✅"))) return "prep_pendente";
+      return "nao_prep";
+    }
+    const classes = dados.map(classe_da_linha);
+    const sel = c => dados.filter((l, i) => classes[i] === c && !flags_pintura[i] && !flags_ps[i]);
+    let dados_fluxos = ordenar(sel("fluxos"), l => [ordem_fluxos[_norm_cab(l[8])], numOu0(l[1]), pyStr(l[7])]);
+    let dados_nao_prep = ordenar(sel("nao_prep"), l => [pyStr(l[8]), numOu0(l[1]), pyStr(l[7])]);
+    dados_ps = ordenar(dados_ps, l => [pyStr(l[8]), numOu0(l[1]), pyStr(l[7])]);
+    const rotular_estoque = l => { if (l[1] === "-") { const nl = l.slice(); nl[1] = "ORDEM MANUAL"; if (nl[30] === null || nl[30] === "-") nl[30] = "ESTOQUE"; return nl; } return l; };
+    dados_fluxos = dados_fluxos.map(rotular_estoque);
+    dados_nao_prep = dados_nao_prep.map(rotular_estoque);
+    const n_pendentes = classes.filter((c, i) => c === "prep_pendente" && !flags_pintura[i] && !flags_ps[i]).length;
+
+    const tem_demanda = ordens_da_linha.some(o => o !== null && o.tem_col_demanda);
+    const lista_focco = [], contagem_sit = new Map();
+    const conta = (k, n) => contagem_sit.set(k, (contagem_sit.get(k) || 0) + (n === undefined ? 1 : n));
+    let contagem_rota_auto = 0, n_conferencia = 0;
+    dados.forEach((linha, idx) => {
+      const o = ordens_da_linha[idx], classe = classes[idx], fm = flags_marca[idx];
+      if (o === null) return;
+      const fluxo = linha[8];
+      const rota = linha[30] !== null ? pyStr(linha[30]).replace(/^(PERFILADEIRA L)[12]$/, "$1") : null;
+      const dem = o.demandas;
+      const livres = dem.filter(d => !_flag_desconsiderar(d, o.cod_item));
+      const desconsidera = (dem.length ? !livres.length : _flag_desconsiderar("", o.cod_item)) || fm;
+      if (desconsidera) { conta("➖ Desconsideradas (armação/limpeza, pintura/lanternim ou marcas SD1/SEZ)"); return; }
+      const tem_furo = linha[28] === "SIM";
+      const dobra = pyStr(linha[12]).startsWith("DOBRADEIRA") ? linha[12] : "NÃO";
+      const tem_dxf_fluxo = fluxo !== "-" && fluxo !== "SEM FLUXO" && pyStr(linha[20]).startsWith("✅");
+      const seq = !tem_dxf_fluxo ? "SEM ROTEIRIZAÇÃO" : _sequencia_pcp(fluxo, dobra, tem_furo);
+      if (seq !== "" && seq !== "SEM ROTEIRIZAÇÃO") {
+        conta("✅ Roteirizado (sequência válida)");
+        lista_focco.push([seq, o.num_ordem, o.pos, _demanda_principal(livres), OU(o.planejador, "-"), o.of, fluxo]);
+      }
+      const problemas = [];
+      const esp_n = _foc_float(linha[14]), maior_dim = _foc_float(linha[15]);
+      if (_ROTAS_PREP.includes(rota)) {
+        if (!tem_dxf_fluxo) problemas.push("❌ Sem roteirização");
+        else if (!_FLUXOS_PREP_NORM.has(_norm_cab(fluxo))) problemas.push("⚠️ Rota diferente do HTML");
+        else if (seq === "") problemas.push("⚠️ Sequência sem regra");
+      } else if (rota !== null && Object.prototype.hasOwnProperty.call(_ROTA_PARA_FLUXO, rota)) {
+        const esperado = _ROTA_PARA_FLUXO[rota];
+        contagem_rota_auto++;
+        if (tem_dxf_fluxo && _norm_cab(fluxo).replace(/^(PERFILADEIRA L)[12]$/, "$1") !== _norm_cab(esperado)) {
+          const curta = _norm_cab(fluxo) === "FLUXO 4" && (rota === "PERFILADEIRA L" || rota === "PERFILADEIRA U/C") &&
+            maior_dim !== null && maior_dim < 700 && esp_n !== null && esp_n <= 3.00;
+          problemas.push(curta ? "ℹ️ Regra de máquina" : "⚠️ Rota diferente do HTML");
+        }
+      } else if (rota !== null) {
+        contagem_rota_auto++;
+        if (tem_dxf_fluxo) problemas.push("ℹ️ DXF em rota automática");
+      } else {
+        if (seq === "SEM ROTEIRIZAÇÃO" && classe === "prep_pendente") problemas.push("❌ Sem roteirização");
+        else if (seq === "" && _FLUXOS_PREP_NORM.has(_norm_cab(fluxo))) problemas.push("⚠️ Sequência sem regra");
+      }
+      if (pyStr(linha[29]).includes("partes em fluxos diferentes")) problemas.push("⚠️ Partes A/B em fluxos diferentes");
+      problemas.forEach(s => { conta(s); n_conferencia++; });
+    });
+    contagem_sit.set("🔷 Rota automática (não precisa roteirizar)", contagem_rota_auto);
+    const lista_ord = ordenar(lista_focco, t => [t[0], t[1], t[2], t[3]]);
+
+    // ---------------------------------------------------------------- planilha
+    const ExcelJS = RO.ExcelJS;
+    const wb = new ExcelJS.Workbook();
+    const abas = {};
+    for (const n of _ORDEM_ABAS_RELATORIO.concat([_ABA_AUX_CONCATENAR])) abas[n] = wb.addWorksheet(n);
+    const cor = h => ({ argb: "FF" + h });
+    const preenche = h => ({ type: "pattern", pattern: "solid", fgColor: cor(h) });
+    const fino = h => ({ style: "thin", color: cor(h) });
+    const larg9 = w => (w === 9 ? 9.0000001 : w);
+    const letra = n => { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+    const largMax = { };                                  // maior coluna/linha usada em cada aba (como o openpyxl)
+    const usa = (ws, r, c) => { const k = ws.name, a = largMax[k] || (largMax[k] = [0, 0]); a[0] = Math.max(a[0], r); a[1] = Math.max(a[1], c); };
+    const cel = (ws, r, c) => { usa(ws, r, c); return ws.getCell(r, c); };
+    const poe = (ws, r, c, v) => { const x = cel(ws, r, c); if (v !== null && v !== undefined) x.value = v instanceof PyDate ? v.toDateUTC() : v; if (v instanceof PyDate) x.numFmt = "yyyy-mm-dd h:mm:ss"; return x; };
+    const maxRow = ws => (largMax[ws.name] || [0, 0])[0];
+    const maxCol = ws => (largMax[ws.name] || [0, 0])[1];
+    const append = (ws, vals) => { const r = maxRow(ws) + 1; usa(ws, r, 1); vals.forEach((v, j) => poe(ws, r, j + 1, v)); if (!vals.length) usa(ws, r, 1); return r; };
+    const congela = (ws, linha, zoom) => { ws.views = [Object.assign({ state: "frozen", xSplit: 0, ySplit: linha - 1, topLeftCell: "A" + linha, activeCell: "A1" }, zoom ? { zoomScale: zoom } : {})]; };
+    const cores = { "✅": preenche("D9EAD3"), "🔷": preenche("DDEBF7"), "❌": preenche("F4CCCC") };
+    const larguras = [9, 11, 8, 12, 7, 12, 13, 14, 18, 18, 22, 22, 18, 22, 16, 14, 13, 20, 17, 44, 22, 13, 12, 18, 30, 24, 28, 44, 11, 30, 26, 34];
+    const COL_FORA = 3, idx_status = cabecalho.indexOf("STATUS");
+    const primeiro = s => Array.from(s)[0];
+
+    function escrever_aba(ws, linhas_aba, op) {
+      op = op || {};
+      let idxs = op.manter ? op.manter.filter(h => cabecalho.includes(h)).map(h => cabecalho.indexOf(h))
+        : cabecalho.map((h, i) => i).filter(i => i !== COL_FORA && !(op.excluir || []).includes(cabecalho[i]));
+      if (op.mover) for (const [col_m, antes_m] of op.mover) {
+        const ic = cabecalho.indexOf(col_m), ir = cabecalho.indexOf(antes_m);
+        if (idxs.includes(ic) && idxs.includes(ir)) { idxs.splice(idxs.indexOf(ic), 1); idxs.splice(idxs.indexOf(ir), 0, ic); }
+      }
+      const r1 = append(ws, idxs.map(i => (op.renomear || {})[cabecalho[i]] || cabecalho[i]));
+      idxs.forEach((i, j) => { const c = cel(ws, r1, j + 1); c.font = { bold: true, color: cor("FFFFFF") }; c.fill = preenche("003366"); });
+      const pos_status = idxs.includes(idx_status) ? idxs.indexOf(idx_status) + 1 : null;
+      for (const l of linhas_aba) {
+        const r = append(ws, idxs.map(i => l[i]));
+        if (pos_status) cel(ws, r, pos_status).fill = cores[primeiro(l[20])];
+      }
+      idxs.forEach((i, j) => { ws.getColumn(j + 1).width = larg9(larguras[i]); });
+      congela(ws, 2);
+      ws.autoFilter = `A1:${letra(idxs.length)}${Math.max(maxRow(ws), 2)}`;
+      return idxs.length;
+    }
+    function cabecalho_concatenar(ws, ref, texto) {
+      const c = ws.getCell(ref); usa(ws, c.row, c.col);
+      c.value = texto; c.font = { bold: true }; c.fill = preenche("9DC3E6");
+      const l = fino("000000"); c.border = { left: l, right: l, top: l, bottom: l };
+    }
+    function moldura_quadro(ws, faixa) {
+      const [a, b] = faixa.split(":").map(x => ws.getCell(x));
+      const l = fino("000000");
+      for (let r = a.row; r <= b.row; r++) for (let c = a.col; c <= b.col; c++) {
+        const bd = {};
+        if (r === a.row) bd.top = l; if (r === b.row) bd.bottom = l; if (c === a.col) bd.left = l; if (c === b.col) bd.right = l;
+        cel(ws, r, c).border = bd;
+      }
+    }
+    function linhas_topo_brancas(ws) { for (let r = 1; r <= 5; r++) ws.getRow(r).fill = preenche("FFFFFF"); }
+    function topo_sem_linhas(ws) {
+      for (let r = 1; r <= 5; r++) for (let c = 1; c <= 40; c++) { const x = cel(ws, r, c); if (!x.fill || !x.fill.type) x.fill = preenche("FFFFFF"); }
+    }
+    function moldura_painel(ws, ultCol, cor_l) {
+      const l = fino(cor_l);
+      for (let r = 1; r <= 5; r++) for (let c = 1; c <= ultCol; c++) {
+        const bd = {}; if (r === 1) bd.top = l; if (r === 5) bd.bottom = l; if (c === 1) bd.left = l; if (c === ultCol) bd.right = l;
+        cel(ws, r, c).border = bd;
+      }
+    }
+    const aux = abas[_ABA_AUX_CONCATENAR];
+    function painel_estilo_focco(ws, nome_aba, linhas_aba, col_aux) {
+      // mesma aba do escrever_aba(manter=_COLUNAS_NAO_PREPARACAO), já com as 5 linhas do topo abertas
+      largMax[ws.name] = [5, 0];
+      const n = escrever_aba(ws, linhas_aba, { manter: _COLUNAS_NAO_PREPARACAO, renomear: { "LOTE OF": "LOTE" } });
+      linhas_topo_brancas(ws);
+      const ultima_p = Math.max(7, 6 + linhas_aba.length);
+      const cab_p = []; for (let c = 1; c <= n; c++) cab_p.push(ws.getCell(6, c).value);
+      const col_ordem = letra(cab_p.indexOf("NUM ORDEM") + 1);
+      for (let c = 1; c <= n; c++) { const x = ws.getCell(6, c); x.fill = preenche("BDE0F4"); x.font = { bold: true }; x.border = { bottom: fino("9DC3E6") }; }
+      ws.getRow(6).height = 30;
+      ws.mergeCellsWithoutStyle("A1:D5");
+      moldura_painel(ws, 4, "9DC3E6");
+      const ref = `'${nome_aba}'!`, la = letra(col_aux);
+      for (let k = 7; k <= ultima_p; k++) {
+        const d = `${ref}${col_ordem}${k}`;
+        poe(aux, k, col_aux, { formula: k === 7 ? `IF(AND(SUBTOTAL(103,${d})=1,ISNUMBER(${d})),${d}&"","")`
+          : `${la}${k - 1}&IF(AND(SUBTOTAL(103,${d})=1,ISNUMBER(${d})),IF(${la}${k - 1}="","",",")&${d},"")` });
+      }
+      poe(aux, 1, col_aux, `${nome_aba} (ordens visíveis, acumuladas)`);
+      const faixa = `${col_ordem}7:${col_ordem}${ultima_p}`;
+      cabecalho_concatenar(ws, "E1", "FÓRMULA DE CONCATENAR (FILTRO)");
+      ws.mergeCellsWithoutStyle("E1:G1"); ws.mergeCellsWithoutStyle("E2:G2");
+      poe(ws, 2, 5, { formula: `IF(SUBTOTAL(103,${faixa})=COUNTA(${faixa}),"",'${_ABA_AUX_CONCATENAR}'!${la}${ultima_p})` });
+      cabecalho_concatenar(ws, "I1", "FÓRMULA DE CONCATENAR (TODAS)");
+      ws.mergeCellsWithoutStyle("I1:K1"); ws.mergeCellsWithoutStyle("I2:K2");
+      poe(ws, 2, 9, { formula: `'${_ABA_AUX_CONCATENAR}'!${la}${ultima_p}` });
+      for (const r of ["E2", "I2"]) ws.getCell(r).alignment = { wrapText: true, horizontal: "center", vertical: "top" };
+      ws.getRow(2).height = 48;
+      ["E1:G1", "E2:G2", "I1:K1", "I2:K2"].forEach(f => moldura_quadro(ws, f));
+      topo_sem_linhas(ws);
+      congela(ws, 7, 110);
+      ws.autoFilter = `A6:${letra(maxCol(ws))}${ultima_p}`;
+    }
+
+    // ROTEIRIZAÇÃO FOCCO
+    const rf = abas["ROTEIRIZAÇÃO FOCCO"];
+    const ultima = Math.max(7, 6 + lista_ord.length);
+    // Ordens x DXF / Preparação / Não Preparação / PS PREP primeiro (a aba auxiliar é preenchida por elas, como no Python)
+    const i_desc = cabecalho.indexOf("DESCRIÇÃO DO ITEM");
+    const chave_ordens_dxf = l => {
+      const fn = _norm_cab(l[8]), num = numOu0(l[1]);
+      if (Object.prototype.hasOwnProperty.call(ordem_fluxos, fn)) return [0, ordem_fluxos[fn], "", "", num, pyStr(l[7])];
+      const desc = strip(pyStr(OU(l[i_desc], "-"))).toUpperCase();
+      return [1, 0, (desc === "" || desc === "-") ? "~" : desc, pyStr(l[8]), pyStr(l[6]), pyStr(l[7]), num];
+    };
+    escrever_aba(abas["Ordens x DXF"], ordenar(dados, chave_ordens_dxf), { mover: [["ESPESSURA (mm)", "FLUXO"]] });
+    escrever_aba(abas["Preparação"], dados_fluxos, { excluir: _COLUNAS_FORA_PREPARACAO, renomear: { "LOTE OF": "LOTE" },
+      mover: [["SEQUÊNCIA DE ROTEIRO", "NUM ORDEM"], ["FLUXO", "SEQUÊNCIA DE ROTEIRO"], ["ESPESSURA (mm)", "CENTRO DE CUSTO"], ["OF-TRECHO", "FLUXO"]] });
+    painel_estilo_focco(abas["Não Preparação"], "Não Preparação", dados_nao_prep, 3);
+    painel_estilo_focco(abas[_ABA_PS_PREP], _ABA_PS_PREP, dados_ps, 4);
+
+    // ORDENS PARA DESCONSIDERAR
+    const wp = abas[_ABA_PINTURA];
+    wp.properties.tabColor = cor("C00000");
+    const cols_pint = ["LOTE OF", "OF-TRECHO", "NUM ORDEM", "POSIÇÃO", "GRUPO LIC", "COD ITEM", "DESCRIÇÃO DO ITEM", "MATERIAL",
+      "ESPESSURA (mm)", "QTDE (ORDEM)", "PESO UNITÁRIO (kg)", "PESO TOTAL (kg)", "TIPO DE PINTURA", "PLANEJADOR"];
+    const cab_p = cols_pint.map(h => h === "LOTE OF" ? "LOTE" : h).concat(["DEMANDA DA ORDEM (TINTA / ZINCO...)", "MOTIVO"]);
+    append(wp, cab_p);
+    cab_p.forEach((h, j) => { const c = cel(wp, 1, j + 1); c.font = { bold: true, color: cor("FFFFFF") }; c.fill = preenche("C00000"); });
+    const idx_pint = cols_pint.map(h => cabecalho.indexOf(h));
+    let linhas_pint = [];
+    dados.forEach((l, i) => {
+      if (!flags_pintura[i]) return;
+      const o = ordens_da_linha[i];
+      let dem = unicos(((o || {}).demandas || []).filter(d => strip(String(d || ""))).map(d => strip(String(d)))).join(" | ");
+      if (!o && !dem && l[i_desc] !== null && l[i_desc] !== "-") dem = pyStr(l[i_desc]);
+      const motivo = _ordem_de_pintura(o) ? "ORDEM DE PINTURA / GALVÂNICA" : "MARCA / POSIÇÃO SD1 / SEZ1-SEZ4";
+      const lp = idx_pint.map(k => l[k]).concat([OU(dem, "-"), motivo]);
+      if (!o) lp[cols_pint.indexOf("NUM ORDEM")] = "ORDEM MANUAL";
+      linhas_pint.push(lp);
+    });
+    linhas_pint = ordenar(linhas_pint, r => [pyStr(r[1]), pyStr(r[3]), numOu0(r[2])]);
+    linhas_pint.forEach(r => append(wp, r));
+    [9, 14, 12, 22, 20, 16, 30, 16, 14, 13, 16, 16, 34, 36, 60, 34].forEach((w, j) => { wp.getColumn(j + 1).width = larg9(w); });
+    congela(wp, 2);
+    wp.autoFilter = `A1:${letra(cols_pint.length + 2)}${Math.max(maxRow(wp), 2)}`;
+
+    // ROTEIRIZAÇÃO FOCCO (painel)
+    linhas_topo_brancas(rf);
+    rf.mergeCellsWithoutStyle("A1:C5");
+    moldura_painel(rf, 3, "9DC3E6");
+    cabecalho_concatenar(rf, "D1", "FÓRMULA DE CONCATENAR (FILTRO)");
+    rf.mergeCellsWithoutStyle("D1:F1"); rf.mergeCellsWithoutStyle("D2:F2");
+    poe(rf, 2, 4, { formula: `IF(SUBTOTAL(103,D7:D${ultima})=COUNTA(D7:D${ultima}),"",'${_ABA_AUX_CONCATENAR}'!A${ultima})` });
+    rf.getCell("D2").alignment = { wrapText: true, horizontal: "center", vertical: "top" };
+    rf.getRow(2).height = 48;
+    poe(aux, 1, 1, "ROTEIRIZAÇÃO FOCCO (ordens visíveis, acumuladas)");
+    for (let k = 7; k <= ultima; k++) {
+      const d = `'ROTEIRIZAÇÃO FOCCO'!D${k}`;
+      poe(aux, k, 1, { formula: k === 7 ? `IF(SUBTOTAL(103,${d})=1,${d}&"","")` : `A${k - 1}&IF(SUBTOTAL(103,${d})=1,IF(A${k - 1}="","",",")&${d},"")` });
+    }
+    cabecalho_concatenar(rf, "H1", "FÓRMULA DE CONCATENAR (TODAS)");
+    rf.mergeCellsWithoutStyle("H1:I1"); rf.mergeCellsWithoutStyle("H2:I2");
+    poe(rf, 2, 8, { formula: `'${_ABA_AUX_CONCATENAR}'!A${ultima}` });
+    rf.getCell("H2").alignment = { wrapText: true, horizontal: "center", vertical: "top" };
+    rf.getColumn(8).width = 38; rf.getColumn(9).width = 38;
+    ["D1:F1", "D2:F2", "H1:I1", "H2:I2"].forEach(f => moldura_quadro(rf, f));
+    topo_sem_linhas(rf);
+    ["SEQUÊNCIA DE ROTEIRO", "OBRA E TRECHO", "POSIÇÃO", "ORDEM", "FLUXO DE PRODUÇÃO", "DESC TECNICA DEMANDA", "PLANEJADOR"].forEach((h, j) => {
+      const c = poe(rf, 6, j + 1, h); c.font = { bold: true }; c.fill = preenche("BDE0F4"); c.border = { bottom: fino("9DC3E6") };
+    });
+    rf.getRow(6).height = 30;
+    lista_ord.forEach((t, k) => [t[0], t[5], t[2], t[1], t[6], t[3], t[4]].forEach((v, j) => poe(rf, 7 + k, j + 1, v)));
+    _LARGURAS_ROTEIRIZACAO_FOCCO.forEach((w, i) => { rf.getColumn(i + 1).width = w; });
+    congela(rf, 7, 110);
+    rf.autoFilter = `A6:G${ultima}`;
+
+    // BASE DE DADOS
+    const mapa_ordem = new Map();
+    for (const [, o_p, ach] of pares) {
+      if (o_p === null) continue;
+      const fl_p = (ach.length && T(ach[0].fluxo_final)) ? _nome_fluxo_pcp(ach[0].fluxo_final) : null;
+      const furo_p = ach.some(x => OU(x.quantidade_furos, 0) > 0);
+      mapa_ordem.set(chaveOrdem(o_p.num_ordem, o_p.obra, o_p.sub_trecho, o_p.pos), [fl_p, furo_p]);
+    }
+    const [cab_base, linhas_base, calc_base] = montar_base_dados(focco_linhas, mapa_ordem, mapa_pintura);
+    const wsb = abas["BASE DE DADOS"];
+    append(wsb, cab_base);
+    cab_base.forEach((h, j) => { const c = cel(wsb, 1, j + 1); c.font = { bold: true, color: cor("FFFFFF") };
+      c.fill = preenche(_COLUNAS_CALC.includes(pyStr(h)) ? "1F6F5C" : "003366"); c.alignment = { horizontal: "center", wrapText: true }; });
+    linhas_base.forEach(l => append(wsb, l));
+    cab_base.forEach((h, j) => { wsb.getColumn(j + 1).width = Math.min(Math.max(Array.from(pyStr(h)).length + 4, 10), 40); });
+    congela(wsb, 2);
+    wsb.autoFilter = `A1:${letra(cab_base.length)}${Math.max(maxRow(wsb), 2)}`;
+
+    // Relatório Consolidado (FLuxos)
+    const wsc = abas["Relatório Consolidado (FLuxos)"];
+    const cab_cons = ["OF", "Posição", "Quantidade", "Fluxo", "Material", "Espessura (mm)", "Máquina", "Largura (mm)",
+      "Altura (mm)", "Peso Unitário (kg)", "Peso Total (kg)", "TEM FURO?", "OBRA E TRECHO_POSIÇÃO", "FLUXO DE PRODUÇÃO", "FURAÇÃO"];
+    append(wsc, cab_cons);
+    cab_cons.forEach((h, j) => { const c = cel(wsc, 1, j + 1); c.font = { bold: true, color: cor("FFFFFF") }; c.fill = preenche(j < 12 ? "003366" : "1F6F5C"); c.alignment = { horizontal: "center" }; });
+    for (const r of ordenar(registros.filter(x => T(x.fluxo_final)), x => [pyStr(x.of), pyStr(x.pos)])) {
+      const esp_r = r.esp;
+      const larg_r = (r.largura_dxf !== null && r.altura_dxf !== null) ? Math.max(r.largura_dxf, r.altura_dxf) : null;
+      const alt_r = larg_r !== null ? Math.min(r.largura_dxf, r.altura_dxf) : null;
+      const pu = (larg_r !== null && T(esp_r)) ? calcular_peso(r.largura_dxf, r.altura_dxf, esp_r) : null;
+      const qtd_r = OU(r.qtd_dxf, 1), base_fl = r.fluxo_final;
+      const fluxo_nome = _nome_fluxo_pcp(OU(r.fluxo_pasta, T(esp_r) ? `${base_fl} [${floatStr(esp_r).split(".").join(",")}]` : base_fl));
+      const furo_r = OU(r.quantidade_furos, 0) > 0 ? "SIM" : "NÃO";
+      append(wsc, [r.of, r.pos, qtd_r, fluxo_nome, OU(r.material, "-"), T(esp_r) ? floatStr(esp_r).split(".").join(",") : "-",
+        _MAQUINA_CONSOLIDADO[_norm_cab(base_fl)] || "INDEFINIDO", _num_limpo(larg_r), _num_limpo(alt_r), _num_limpo(pu, 4),
+        _num_limpo(pu !== null ? pu * qtd_r : null, 4), furo_r, `${r.of}_${r.pos}`.split("@").join("_"), _nome_fluxo_pcp(base_fl), furo_r]);
+    }
+    [14, 12, 11, 26, 18, 14, 24, 14, 12, 16, 16, 11, 26, 22, 11].forEach((w, j) => { wsc.getColumn(j + 1).width = larg9(w); });
+    congela(wsc, 2);
+    wsc.autoFilter = `A1:O${Math.max(maxRow(wsc), 2)}`;
+
+    // CSC
+    const csc = abas["CSC"];
+    poe(csc, 1, 1, "CSC").font = { bold: true }; poe(csc, 1, 2, "X");
+    cabecalho_concatenar(csc, "F1", "FÓRMULA DE CONCATENAR");
+    const grupos = new Map();
+    for (const c of calc_base) if (c.csc === "X") { const k = JSON.stringify([c.cod_item_dem, c.desc]); grupos.set(k, (grupos.get(k) || 0) + c.qtde_dem); }
+    ["COD ITEM DEMANDA", "DESC TECNICA DEMANDA", "SAL ESTOQUE", "N° DA ORDEM"].forEach((h, j) => {
+      const c = poe(csc, 3, j + 1, h); c.font = { bold: true, color: cor("FFFFFF") }; c.fill = preenche("003366"); c.alignment = { horizontal: "center" };
+    });
+    let k = 4;
+    for (const [chave, tot] of ordenar(Array.from(grupos.entries()), e => JSON.parse(e[0]))) {
+      const [cod_i, desc_i] = JSON.parse(chave);
+      poe(csc, k, 1, /^\d+$/.test(pyStr(cod_i)) ? parseInt(cod_i, 10) : _xl(cod_i));
+      poe(csc, k, 2, desc_i); poe(csc, k, 3, pyRound(tot, 4)); k++;
+    }
+    let soma_csc = 0; for (const v of grupos.values()) soma_csc += v;
+    poe(csc, k, 1, "Total Geral").font = { bold: true };
+    poe(csc, k, 3, pyRound(soma_csc, 4)).font = { bold: true };
+    poe(csc, 2, 6, { formula: `_xlfn.TEXTJOIN(",",TRUE,D4:D${Math.max(k, 4)})` });
+    [["A", 20], ["B", 56], ["C", 16], ["D", 16], ["F", 30]].forEach(([c, w]) => { csc.getColumn(c).width = larg9(w); });
+
+    // Resumo
+    const rs = abas["Resumo"];
+    const titulo_resumo = (vals, extra4) => {
+      const r = append(rs, vals);
+      vals.forEach((v, j) => { const c = cel(rs, r, j + 1); c.font = { bold: true, color: cor("FFFFFF") }; c.fill = preenche("003366"); c.alignment = { horizontal: "center" }; });
+      return r;
+    };
+    titulo_resumo(["FLUXO", "ORDENS", "PESO TOTAL (kg)"]);
+    const resumo = new Map(), nomes_resumo = new Map();
+    for (const l of dados_resumo) {
+      if (l[8] !== "-" && l[8] !== "SEM FLUXO") {
+        const kk = _norm_cab(l[8]);
+        if (!nomes_resumo.has(kk)) nomes_resumo.set(kk, l[8]);
+        if (!resumo.has(kk)) resumo.set(kk, [0, 0.0]);
+        resumo.get(kk)[0] += 1;
+        if (ehNum(l[18])) resumo.get(kk)[1] += l[18];
+      }
+    }
+    for (const kk of ordenar(Array.from(resumo.keys()), x => pyStr(nomes_resumo.get(x)))) append(rs, [nomes_resumo.get(kk), resumo.get(kk)[0], pyRound(resumo.get(kk)[1], 2)]);
+    let s0 = 0, s1 = 0; for (const v of resumo.values()) { s0 += v[0]; s1 += v[1]; }
+    append(rs, ["TOTAL ROTEIRIZADO", s0, pyRound(s1, 2)]);
+    append(rs, ["SEM DXF AINDA", dados_resumo.filter(l => l[20].startsWith("❌")).length, ""]);
+    append(rs, ["DXF FORA DE PASTA DE FLUXO", dados_resumo.filter(l => l[8] === "SEM FLUXO").length, ""]);
+    append(rs, []);
+    titulo_resumo(["ABAS", "LINHAS", ""]);
+    append(rs, ["Ordens x DXF (completo)", dados.length, ""]);
+    append(rs, ["Preparação", dados_fluxos.length, ""]);
+    append(rs, ["Não Preparação", dados_nao_prep.length, ""]);
+    append(rs, ["PS PREP", dados_ps.length, ""]);
+    append(rs, ["Ordens para desconsiderar", dados_pintura.length, ""]);
+    append(rs, ["Preparação ainda sem fluxo (só na aba completa)", n_pendentes, ""]);
+    append(rs, []);
+    titulo_resumo(["CONFERÊNCIA DA ROTEIRIZAÇÃO (ordens)", "QTDE", ""]);
+    for (const sit of ordenar(Array.from(contagem_sit.keys()), x => x)) append(rs, [sit, contagem_sit.get(sit), ""]);
+    append(rs, []);
+    const rr = titulo_resumo(["ROTAS (HTML)", "LINHAS", "ORDENS"]);
+    const c4 = poe(rs, rr, 4, "CRITÉRIOS"); c4.font = { bold: true, color: cor("FFFFFF") }; c4.fill = preenche("003366");
+    const linhas_rota = new Map(), ordens_rota = new Map();
+    for (const c of calc_base) {
+      linhas_rota.set(c.rota, (linhas_rota.get(c.rota) || 0) + 1);
+      if (!ordens_rota.has(c.rota)) ordens_rota.set(c.rota, new Set());
+      ordens_rota.get(c.rota).add(c.ordem);
+    }
+    const extras = ordenar(Array.from(linhas_rota.keys()).filter(r => !_ROTAS_ORDEM.includes(r)), x => pyStr(x));
+    for (const rota_n of _ROTAS_ORDEM.concat(extras)) if (linhas_rota.get(rota_n)) append(rs, [rota_n, linhas_rota.get(rota_n), ordens_rota.get(rota_n).size, _OBS_ROTA[rota_n] || ""]);
+    rs.getColumn(4).width = 80;
+    [46, 14, 18].forEach((w, i) => { rs.getColumn(i + 1).width = w; });
+
+    // acabamento: aba auxiliar oculta, tudo centralizado e larguras do arquivo tratado
+    aux.state = "hidden";
+    wsb.getRow(1).height = 28.8;
+    const linha_cab_aba = { "CSC": 3, "ROTEIRIZAÇÃO FOCCO": 6, "Não Preparação": 6, "PS PREP": 6 };
+    for (const nome of _ORDEM_ABAS_RELATORIO.concat([_ABA_AUX_CONCATENAR])) {
+      const ws = abas[nome];
+      ws.eachRow({ includeEmpty: false }, row => row.eachCell({ includeEmpty: false }, c => {
+        if (c.value === null || c.value === undefined) return;
+        if (c.isMerged && c.master !== c) return;
+        if (nome === "ROTEIRIZAÇÃO FOCCO" && (c.address === "D2" || c.address === "H2")) return;
+        if ((nome === "Não Preparação" || nome === "PS PREP") && (c.address === "E2" || c.address === "I2")) return;
+        const wrap = c.alignment && c.alignment.wrapText;
+        c.alignment = Object.assign({ horizontal: "center", vertical: "middle" }, wrap ? { wrapText: true } : {});
+      }));
+      const larg = _LARGURAS_USUARIO[nome] || {};
+      const lc = linha_cab_aba[nome] || 1;
+      for (let c = 1; c <= maxCol(ws); c++) {
+        const v = ws.getCell(lc, c).value;
+        if (v !== null && v !== undefined && pyStr(v) in larg) ws.getColumn(c).width = larg9(larg[pyStr(v)]);
+      }
+    }
+    wb.views = [{ activeTab: 0, firstSheet: 0, visibility: "visible" }];
+    if (RO.LOGO_PNG_B64) {                                 // logo da Projeart no painel do topo
+      const img = wb.addImage({ base64: RO.LOGO_PNG_B64, extension: "png" });
+      for (const nome of ["ROTEIRIZAÇÃO FOCCO", "Não Preparação", "PS PREP"])
+        abas[nome].addImage(img, { tl: { nativeCol: 0, nativeColOff: 14 * 9525, nativeRow: 0, nativeRowOff: 13 * 9525 }, ext: { width: 532, height: 118 } });
+    }
+    const nome = lote_ref ? `Relatorio_Ordens_Fluxos_LOTE_${lote_ref}.xlsx` : "Relatorio_Ordens_Fluxos.xlsx";
+    const n_dxf = dados.filter(l => l[20].startsWith("✅")).length, n_perf = dados.filter(l => l[20].startsWith("🔷")).length;
+    log(`📋 Relatório: ${dados.length} linha(s) - ${n_dxf} com DXF, ${n_perf} perfilados sem DXF, ${dados.length - n_dxf - n_perf} sem DXF (${sem_ordem.length} DXF(s) sem ordem no Focco)`);
+    if (!tem_demanda) log("⚠️  O relatório do Focco não tem a coluna 'DESC TECNICA DEMANDA': as regras de desconsiderar (armação/limpeza, pintura/lanternim) só puderam usar o código do item.");
+    log(`📋 ROTEIRIZAÇÃO FOCCO: ${lista_ord.length} linha(s) | conferência: ${n_conferencia} ordem(ns) para revisar`);
+    log(`📑 Abas: ${dados_fluxos.length} em Preparação, ${dados_nao_prep.length} em Não Preparação, ${dados_ps.length} em PS PREP, ${dados_pintura.length} ordem(ns) para desconsiderar (aba própria), ${n_pendentes} de preparação ainda sem fluxo`);
+    let buffer = await wb.xlsx.writeBuffer();
+    if (RO.JSZip) {                                       // a âncora da logo fica igual à do Python (sem o editAs do ExcelJS)
+      const zip = await RO.JSZip.loadAsync(buffer);
+      for (const n of Object.keys(zip.files).filter(n => /^xl\/drawings\/drawing\d+\.xml$/.test(n))) {
+        const xml = await zip.file(n).async("string");
+        zip.file(n, xml.split('<xdr:oneCellAnchor editAs="oneCell">').join("<xdr:oneCellAnchor>"));
+      }
+      buffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+    }
+    return { nome, buffer, resumo: { linhas: dados.length, com_dxf: n_dxf, rota_auto: n_perf, sem_dxf: dados.length - n_dxf - n_perf,
+      sem_ordem: sem_ordem.length, preparacao: dados_fluxos.length, nao_preparacao: dados_nao_prep.length, ps_prep: dados_ps.length,
+      desconsiderar: dados_pintura.length, pendentes: n_pendentes, roteirizacao_focco: lista_ord.length, revisar: n_conferencia, lote: lote_ref } };
+  }
+
+  return { gerar_relatorio_ordens_fluxos, coletar_registros_das_pastas, lerDxf, obter_dimensoes_dxf, quantidade_furos_dxf,
+    _sniff_formato, ErroFocco, PyDate, _testes: { fixo, pyRound, reprFloat, pyStr, cmpStr, _pos_variantes, extrair_nome, classificar_rota_html } };
+})();
+if (typeof module !== "undefined") module.exports = RO;
+RO.LOGO_PNG_B64 = "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";
+<\/script>
+<script>
+(function () {
+  "use strict";
+  RO.XLSX = window.XLSX; RO.ExcelJS = window.ExcelJS; RO.JSZip = window.JSZip;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  let focco = null;                 // { nome, bytes }
+  let pastas = [];                  // [{ nome, arquivos:[{partes, nome, ler}] }]
+  let resultado = null;
+  let gerando = false;
+
+  // ---------------- 1. relatório do Focco
+  async function escolherFocco(file) {
+    if (!file) return;
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    focco = { nome: file.name, bytes };
+    $("nome-focco").textContent = file.name;
+    atualizar();
+  }
+  $("in-focco").addEventListener("change", e => { escolherFocco(e.target.files[0]); });
+  $("limpar-focco").addEventListener("click", () => { focco = null; $("in-focco").value = ""; $("nome-focco").textContent = "Nenhum arquivo escolhido"; atualizar(); });
+
+  // ---------------- 2. pastas dos DXF
+  const ehDxf = n => /\.dxf$/i.test(n);
+  function adicionarPasta(nome, arquivos) {
+    const dxf = arquivos.filter(a => ehDxf(a.nome));
+    const igual = pastas.find(p => p.nome === nome && p.arquivos.length === dxf.length);
+    if (igual) { alert(`A pasta "${nome}" já está na lista.`); return; }
+    pastas.push({ nome, arquivos: dxf });
+    desenharPastas(); atualizar();
+  }
+  function desenharPastas() {
+    const ul = $("lista-pastas");
+    if (!pastas.length) { ul.innerHTML = '<li class="vazio">Nenhuma pasta adicionada</li>'; return; }
+    ul.innerHTML = pastas.map((p, i) => `<li><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0b5cad" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>` +
+      `<span class="n" title="${esc(p.nome)}">${esc(p.nome)}</span><span class="q">${p.arquivos.length} DXF</span>` +
+      `<button type="button" data-i="${i}" title="Remover esta pasta" aria-label="Remover ${esc(p.nome)}">×</button></li>`).join("");
+  }
+  $("lista-pastas").addEventListener("click", e => {
+    const b = e.target.closest("button[data-i]"); if (!b) return;
+    pastas.splice(+b.dataset.i, 1); desenharPastas(); atualizar();
+  });
+  $("limpar-pastas").addEventListener("click", () => { pastas = []; desenharPastas(); atualizar(); });
+  $("in-pasta").addEventListener("change", e => {
+    const porRaiz = new Map();
+    for (const f of e.target.files) {
+      const partes = (f.webkitRelativePath || f.name).split("/");
+      const raiz = partes.length > 1 ? partes[0] : "Arquivos avulsos";
+      if (!porRaiz.has(raiz)) porRaiz.set(raiz, []);
+      porRaiz.get(raiz).push({ partes: partes.slice(1, -1), nome: f.name, ler: () => f.arrayBuffer().then(b => new Uint8Array(b)) });
+    }
+    for (const [raiz, arqs] of porRaiz) adicionarPasta(raiz, arqs);
+    e.target.value = "";
+  });
+  // arrastar pastas: lê a árvore inteira (FileSystemEntry)
+  const lerEntradas = leitor => new Promise((ok, erro) => leitor.readEntries(ok, erro));
+  async function percorrer(dir, partes, saida) {
+    const leitor = dir.createReader();
+    for (;;) {
+      const lote = await lerEntradas(leitor);
+      if (!lote.length) break;
+      for (const ent of lote) {
+        if (ent.isDirectory) await percorrer(ent, partes.concat([ent.name]), saida);
+        else if (ehDxf(ent.name)) saida.push({ partes, nome: ent.name, ler: () => new Promise((ok, erro) => ent.file(f => f.arrayBuffer().then(b => ok(new Uint8Array(b)), erro), erro)) });
+      }
+    }
+  }
+  function prepararSoltar(dz, aoSoltar) {
+    dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("drag-over"); });
+    dz.addEventListener("dragleave", () => dz.classList.remove("drag-over"));
+    dz.addEventListener("drop", e => { e.preventDefault(); dz.classList.remove("drag-over"); aoSoltar(e.dataTransfer); });
+  }
+  prepararSoltar($("dz-focco"), dt => {
+    const f = Array.from(dt.files).find(x => !ehDxf(x.name)) || dt.files[0];
+    if (f) escolherFocco(f);
+  });
+  prepararSoltar($("dz-pastas"), async dt => {
+    const entradas = Array.from(dt.items || []).map(it => it.webkitGetAsEntry && it.webkitGetAsEntry()).filter(Boolean);
+    const soltos = [];
+    $("status").textContent = "Lendo as pastas...";
+    for (const ent of entradas) {
+      if (ent.isDirectory) { const arqs = []; await percorrer(ent, [], arqs); adicionarPasta(ent.name, arqs); }
+      else if (ehDxf(ent.name)) soltos.push({ partes: [], nome: ent.name, ler: () => new Promise((ok, erro) => ent.file(f => f.arrayBuffer().then(b => ok(new Uint8Array(b)), erro), erro)) });
+      else if (!focco) { ent.file(f => escolherFocco(f)); }
+    }
+    if (soltos.length) adicionarPasta("Arquivos avulsos", soltos);
+    atualizar();
+  });
+
+  // ---------------- 3. gerar
+  function atualizar() {
+    const pronto = !!focco && pastas.length > 0;
+    $("btn-gerar").disabled = !pronto || gerando;
+    if (gerando) return;
+    const st = $("status"); st.className = "";
+    if (!focco && !pastas.length) st.textContent = "Escolha o relatório do Focco e ao menos uma pasta de DXF.";
+    else if (!focco) st.textContent = "Falta o relatório do Focco.";
+    else if (!pastas.length) st.textContent = "Adicione ao menos uma pasta com os DXF roteirizados.";
+    else { const n = pastas.reduce((s, p) => s + p.arquivos.length, 0); st.textContent = `Pronto: ${n} DXF em ${pastas.length} pasta(s).`; }
+  }
+  function escreverLog(texto) {
+    const div = $("log"); div.style.display = "block";
+    const cls = /^\s*(✅)/.test(texto) ? "ok" : /^\s*(❌)/.test(texto) ? "erro" : /^\s*(⚠)/.test(texto) ? "aviso" : "";
+    const ln = document.createElement("div"); if (cls) ln.className = cls; ln.textContent = texto;
+    div.appendChild(ln); div.scrollTop = div.scrollHeight;
+  }
+  const progresso = pct => { $("barra").style.display = "block"; $("barra-fill").style.width = pct + "%"; };
+  $("btn-gerar").addEventListener("click", async () => {
+    if (gerando) return;
+    if (!focco) { alert("Selecione ou arraste o arquivo do relatório do Focco (Relatório de Ordens Liberadas x Demandas)."); return; }
+    if (!pastas.length) { alert("Adicione ao menos uma pasta com os DXF roteirizados."); return; }
+    gerando = true; resultado = null; atualizar();
+    $("log").innerHTML = ""; $("error-msg").style.display = "none"; $("resultado").style.display = "none";
+    const st = $("status"); st.className = ""; st.textContent = "⚙️ Gerando relatório, aguarde...";
+    progresso(2);
+    try {
+      const registros = await RO.coletar_registros_das_pastas(pastas, escreverLog, (i, n) => progresso(2 + Math.round(78 * i / n)));
+      progresso(85);
+      resultado = await RO.gerar_relatorio_ordens_fluxos(focco, registros, escreverLog);
+      progresso(100);
+      escreverLog(`✅ Relatório gerado: ${resultado.nome}`);
+      st.className = "ok"; st.textContent = `✅ Relatório gerado: ${resultado.nome}`;
+      mostrarResultado(resultado);
+    } catch (ex) {
+      console.error(ex);
+      const msg = ex && ex.message ? ex.message : String(ex);
+      escreverLog(`❌ Erro ao gerar o relatório: ${msg}`);
+      st.className = "erro"; st.textContent = "❌ Erro ao gerar o relatório.";
+      const box = $("error-msg"); box.textContent = "⚠ " + msg; box.style.display = "block";
+      alert(msg);
+    } finally {
+      gerando = false; $("btn-gerar").disabled = !(focco && pastas.length);
+      setTimeout(() => { $("barra").style.display = "none"; }, 600);
+    }
+  });
+  function mostrarResultado(r) {
+    const s = r.resumo;
+    $("badge-lote").textContent = s.lote ? `LOTE ${s.lote}` : "LOTE —";
+    const linha = (rot, q, cor) => `<tr><td>${cor ? `<span class="dot" style="background:${cor}"></span>` : ""}${rot}</td><td class="q">${Number(q).toLocaleString("pt-BR")}</td></tr>`;
+    $("tb-ordens").innerHTML = linha("Com DXF", s.com_dxf, "#22c55e") + linha("Rota automática (sem DXF)", s.rota_auto, "#3b82f6") +
+      linha("Sem DXF ainda", s.sem_dxf, "#ef4444") + linha("DXF sem ordem no Focco", s.sem_ordem, "#94a3b8") +
+      linha("Ordens para revisar (conferência)", s.revisar, "#f59e0b") + `<tr><td><b>Total (Ordens x DXF)</b></td><td class="q">${s.linhas.toLocaleString("pt-BR")}</td></tr>`;
+    $("tb-abas").innerHTML = linha("ROTEIRIZAÇÃO FOCCO", s.roteirizacao_focco) + linha("Preparação", s.preparacao) + linha("Não Preparação", s.nao_preparacao) +
+      linha("PS PREP", s.ps_prep) + linha("Ordens para desconsiderar", s.desconsiderar) + linha("Preparação ainda sem fluxo", s.pendentes);
+    $("nome-saida").textContent = r.nome;
+    $("resultado").style.display = "block";
+    $("resultado").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  $("btn-download").addEventListener("click", () => {
+    if (!resultado) return;
+    const blob = new Blob([resultado.buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = resultado.nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  });
+  if (!window.XLSX || !window.ExcelJS || !window.JSZip) {
+    const box = $("error-msg"); box.style.display = "block";
+    box.textContent = "⚠ Não foi possível carregar os componentes de planilha (internet bloqueada?). Recarregue a página.";
+  }
+  atualizar();
+})();
+<\/script>
+<script>
+/* ===== TEMA CINZA – troca o branco das telas por cinza claro ===== */
+(function () {
+  var CORES = { pagina: "#d9dee5", quadro: "#e8ebef", dentro: "#eef0f3", campo: "#f2f4f6", borda: "#c9d0d9" };
+  function quaseBranco(cor, minimo) {
+    minimo = minimo || 244;
+    var m = cor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+    if (!m) return false;
+    if (m[4] !== undefined && parseFloat(m[4]) < 0.9) return false;
+    var r = +m[1], g = +m[2], b = +m[3];
+    return Math.min(r, g, b) >= minimo && Math.max(r, g, b) - Math.min(r, g, b) <= 20;
+  }
+  function aplicar(raiz) {
+    document.body.style.setProperty("background-color", CORES.pagina, "important");
+    document.documentElement.style.setProperty("background-color", CORES.pagina, "important");
+    var todos = (raiz || document.body).querySelectorAll("*");
+    for (var i = 0; i < todos.length; i++) {
+      var el = todos[i];
+      if (el.dataset.temaCinza) continue;
+      var cs = getComputedStyle(el);
+      if (!quaseBranco(cs.backgroundColor)) continue;
+      var tag = el.tagName, cor;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") {
+        cor = CORES.campo;
+      } else {
+        var pai = el.parentElement, dentroDeQuadro = false;
+        while (pai && pai !== document.body) {
+          if (pai.dataset.temaCinza === "quadro") { dentroDeQuadro = true; break; }
+          pai = pai.parentElement;
+        }
+        cor = dentroDeQuadro ? CORES.dentro : CORES.quadro;
+        el.dataset.temaCinza = "quadro";
+      }
+      el.style.setProperty("background-color", cor, "important");
+      if (!el.dataset.temaCinza) el.dataset.temaCinza = "campo";
+      if (parseFloat(cs.borderTopWidth) > 0 && quaseBranco(cs.borderTopColor, 215)) {
+        el.style.setProperty("border-color", CORES.borda, "important");
+      }
+    }
+  }
+  function iniciar() {
+    aplicar();
+    var espera;
+    new MutationObserver(function () { clearTimeout(espera); espera = setTimeout(aplicar, 60); })
+      .observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
+  else iniciar();
+})();
+<\/script>
+</body>
+</html>

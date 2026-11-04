@@ -18,6 +18,7 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | Produção › Impressão Grupo - LIC | `pg6.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
 | Produção › Impressão - FLUXO 04 | `pg7.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
 | Processo de validação › Análise da DBF X Focco - ERP | `pg1.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, lxml, pypdf, pdfplumber |
+| Produção › Relatórios dos fluxos | `pg13.txt` | pandas, openpyxl, XlsxWriter, xlrd, lxml, ezdxf |
 | Gerenciador de Roteiros › Alteração de Roteiros | `pg10.txt` | pandas, openpyxl, XlsxWriter, xlrd |
 | Gerenciador de Roteiros › Acesso ao Intranet | `pg11.txt` | requests |
 | Área de impressão › Impressão de Etiquetas | `pg12.txt` | pandas, openpyxl, xlrd, dbfread, reportlab, pywin32 |
@@ -39,5 +40,6 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | `pdfplumber` | Ler texto e tabelas de dentro do PDF (conferência do PDF gerado) |
 | `reportlab` | Gerar PDF (etiquetas centralizadas, relatórios) |
 | `lxml` | Ler o export do FOCCO que vem como .xls em HTML |
+| `ezdxf` | Ler os arquivos DXF roteirizados (peças, medidas) direto no Python |
 | `requests` | Enviar arquivos para a Intranet PCP |
 | `pywin32` | Imprimir direto na Zebra ZD220 (ZPL) e listar impressoras do Windows |
