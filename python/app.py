@@ -105,6 +105,8 @@ class Sistema(BaseHTTPRequestHandler):
                 return self._enviar(200, bruta, "text/html; charset=utf-8", compactado=comp)
             if caminho == "/versao.json":   # usado pelo aviso "Nova versão disponível"
                 return self._json({"versao": versao()})
+            if caminho == "/pc/icone.ico":
+                return self._enviar(200, (PONTE_JS.parent / "icone.ico").read_bytes(), "image/x-icon", sem_cache=False)
             if caminho == "/pc/ponte.js":
                 return self._enviar(200, PONTE_JS.read_bytes(), "text/javascript; charset=utf-8")
             if caminho == "/api/status":

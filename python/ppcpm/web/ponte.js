@@ -116,9 +116,10 @@
   }
 
   /* ---------- visual (padrão do sistema: Arial negrito, #0b5cad) ---------- */
-  function estilo() {
-    if (document.getElementById('ppcpm-pc-css')) return;
-    var c = el('style'); c.id = 'ppcpm-pc-css';
+  function estilo(D) {
+    D = D || document;
+    if (D.getElementById('ppcpm-pc-css')) return;
+    var c = D.createElement('style'); c.id = 'ppcpm-pc-css';
     c.textContent = [
       '#ppcpm-pc{position:fixed;inset:0;z-index:2147483000;background:rgba(5,10,25,.55);font:600 13px Arial,Helvetica,sans-serif;color:#1a2233}',
       '#ppcpm-pc *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}',
@@ -188,6 +189,10 @@
       '#ppcpm-pc .pc-card.estreita .pc-barra .pc-tx{display:none}',
       '#ppcpm-pc .pc-card.estreita .pc-top .pc-l{display:none}',
       '#ppcpm-pc.arrastando,#ppcpm-pc.arrastando *{user-select:none!important}',
+      '#ppcpm-pc.janela{background:#fff}',
+      '#ppcpm-pc.janela .pc-card{left:0!important;top:0!important;width:100%!important;height:100%!important;border:0;border-radius:0;box-shadow:none;min-width:0;min-height:0}',
+      '#ppcpm-pc.janela .pc-h,#ppcpm-pc.janela .pc-grip{display:none}',
+      '#ppcpm-pc.janela .pc-top{cursor:default}',
       /* cores fixas: alguns programas forçam cor preta em tudo; aqui a janela mantém as suas */
       '#ppcpm-pc .pc-top,#ppcpm-pc .pc-top *,#ppcpm-pc .pc-top svg{color:#fff!important}',
       '#ppcpm-pc .pc-top .pc-l{color:#fff!important;opacity:.92}',
@@ -197,8 +202,29 @@
       '#ppcpm-pc .pc-loc .pc-x,#ppcpm-pc .pc-loc .pc-x svg{color:#b42318!important}',
       '#ppcpm-pc .pc-sv svg{stroke:currentColor}'
     ].join('\n');
-    (document.head || document.documentElement).appendChild(c);
+    (D.head || D.documentElement).appendChild(c);
   }
+
+  /* ---------- janela separada do Windows (pode ir para o outro monitor) ---------- */
+  var JANELA = null, CHAVE_SO = 'ppcpm:pc:janela-so';
+  function abrirJanela() {
+    if (lsGet('ppcpm:pc:modo') === 'dentro') return null;
+    var g = null; try { g = JSON.parse(lsGet(CHAVE_SO) || 'null'); } catch (e) { }
+    var w = (g && g.w) || 1040, h = (g && g.h) || 640;
+    var x = g && g.x != null ? g.x : Math.round((screen.availWidth - w) / 2), y = g && g.y != null ? g.y : Math.round((screen.availHeight - h) / 2);
+    var J = null;
+    try { J = window.open('', 'ppcpm_arquivos', 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y); } catch (e) { J = null; }
+    if (!J) return null;
+    try {
+      J.document.open();
+      J.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>PPCPM - ARQUIVOS</title>'
+        + '<link rel="icon" href="/pc/icone.ico"><style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}</style></head><body></body></html>');
+      J.document.close();
+    } catch (e) { try { J.close(); } catch (x) { } return null; }
+    return J;
+  }
+  // se o programa sair da tela (troca de aba do sistema), fecha a janela junto
+  window.addEventListener('pagehide', function () { if (JANELA && !JANELA.closed) try { JANELA.close(); } catch (e) { } });
 
   /* ---------- seletor ---------- */
   function abrirSeletor(op) {
@@ -206,14 +232,17 @@
     var filtro = filtroDe(op.accept);
     var chave = 'ppcpm:pc:ultima:' + (filtro || '*');
     return new Promise(function (resolve) {
-      estilo(); aberto = true;
+      var J = abrirJanela(), D = J ? J.document : document, W = J || window;
+      JANELA = J;
+      estilo(D); aberto = true;
       var estado = { caminho: '', pai: '', itens: [], sel: [], ordem: lsGet('ppcpm:pc:ordem') || 'nome', soAceitos: !!filtro, busca: null };
 
       var fundo = el('div'); fundo.id = 'ppcpm-pc'; fundo.setAttribute('role', 'dialog'); fundo.setAttribute('aria-modal', 'true');
+      if (J) fundo.classList.add('janela');
       var card = el('div', 'pc-card'); fundo.appendChild(card);
 
       var top = el('div', 'pc-top');
-      var tit = el('b'); tit.appendChild(svg('arquivos', 18)); tit.appendChild(document.createTextNode('PPCPM - ARQUIVOS'));
+      var tit = el('b'); tit.appendChild(svg('arquivos', 18)); tit.appendChild(D.createTextNode('PPCPM - ARQUIVOS'));
       top.appendChild(tit);
       top.appendChild(el('span', 'pc-l', filtro ? 'Tipos aceitos: ' + filtro.split(',').join(', ') : 'Qualquer arquivo'));
       var ctl = el('div', 'pc-r');
@@ -240,7 +269,7 @@
       var busca = el('input'); busca.type = 'text'; busca.placeholder = 'Filtrar nesta pasta… (Enter procura também nas subpastas)';
       var bw = el('div', 'pc-bw'); bw.appendChild(svg('busca')); bw.appendChild(busca);
       var lbl = el('label'); var chk = el('input'); chk.type = 'checkbox'; chk.checked = estado.soAceitos; chk.disabled = !filtro;
-      lbl.appendChild(chk); lbl.appendChild(document.createTextNode('Só tipos aceitos'));
+      lbl.appendChild(chk); lbl.appendChild(D.createTextNode('Só tipos aceitos'));
       ferr.appendChild(bw); ferr.appendChild(lbl); main.appendChild(ferr);
       var cab = el('div', 'pc-cab');
       cab.appendChild(el('span'));
@@ -257,7 +286,16 @@
       card.appendChild(rod);
 
       function fechar(resultado) {
-        aberto = false; document.removeEventListener('keydown', tecla, true); window.removeEventListener('resize', ajustarTela); fundo.remove(); resolve(resultado);
+        if (!aberto) return;
+        aberto = false; clearInterval(vigia);
+        D.removeEventListener('keydown', tecla, true); W.removeEventListener('resize', ajustarTela);
+        if (J) {
+          try { if (!J.closed) lsSet(CHAVE_SO, JSON.stringify({ x: J.screenX, y: J.screenY, w: J.innerWidth, h: J.innerHeight })); } catch (e) { }
+          try { if (!J.closed) J.close(); } catch (e) { }
+          JANELA = null;
+          try { window.focus(); } catch (e) { }
+        } else fundo.remove();
+        resolve(resultado);
       }
 
       /* ----- painel da esquerda ----- */
@@ -377,7 +415,7 @@
             return r.blob().then(function (b) { var f = new File([b], nome, { type: b.type, lastModified: mod }); try { Object.defineProperty(f, 'ppcpmCaminho', { value: c }); } catch (e) { } return f; });
           });
         })).then(function (files) { fechar({ files: files }); })
-          .catch(function (e) { bOk.disabled = false; info.textContent = ''; window.alert('Não foi possível abrir o arquivo.\n' + e.message); });
+          .catch(function (e) { bOk.disabled = false; info.textContent = ''; W.alert('Não foi possível abrir o arquivo.\n' + e.message); });
       }
 
       /* ----- botões e teclado ----- */
@@ -391,16 +429,18 @@
       chk.onchange = function () { estado.soAceitos = chk.checked; desenhar(); };
       [[hN, 'nome'], [hD, 'data'], [hT, 'tam']].forEach(function (p) { p[0].onclick = function () { estado.ordem = p[1]; lsSet('ppcpm:pc:ordem', p[1]); desenhar(); }; });
       bCan.onclick = function () { fechar(null); };
-      bWin.onclick = function () { fechar({ windows: true }); };
+      bWin.onclick = function () { fechar({ windows: true, deJanela: !!J }); };
       bOk.onclick = confirmar;
       function tecla(e) {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fechar(null); }
-        else if (e.key === 'Enter' && document.activeElement !== cam && document.activeElement !== busca && estado.sel.length) { e.preventDefault(); confirmar(); }
-        else if (e.key === 'Backspace' && document.activeElement !== cam && document.activeElement !== busca && estado.pai) { e.preventDefault(); ir(estado.pai); }
+        else if (e.key === 'Enter' && D.activeElement !== cam && D.activeElement !== busca && estado.sel.length) { e.preventDefault(); confirmar(); }
+        else if (e.key === 'Backspace' && D.activeElement !== cam && D.activeElement !== busca && estado.pai) { e.preventDefault(); ir(estado.pai); }
       }
-      document.addEventListener('keydown', tecla, true);
+      D.addEventListener('keydown', tecla, true);
 
-      (document.body || document.documentElement).appendChild(fundo);
+      (D.body || D.documentElement).appendChild(fundo);
+      // fechou a janela pelo X do Windows: cancela
+      var vigia = setInterval(function () { if (J && J.closed) fechar(null); }, 400);
 
       /* ----- tamanho e posição: a janela abre no tamanho que o usuário deixou da última vez ----- */
       var MINW = 560, MINH = 380, CHAVE_JANELA = 'ppcpm:pc:janela', geo, maxi = false;
@@ -418,9 +458,10 @@
       }
       function guardar() { lsSet(CHAVE_JANELA, JSON.stringify({ w: geo.w, h: geo.h, x: geo.x, y: geo.y, max: maxi })); }
       try { var g0 = JSON.parse(lsGet(CHAVE_JANELA) || 'null'); geo = g0 && g0.w ? g0 : padrao(); maxi = !!(g0 && g0.max); } catch (e) { geo = padrao(); }
+      if (J) maxi = true;   // janela separada: ocupa a janela toda; tamanho e posição são da própria janela do Windows
       aplicar();
       function arrastar(e, modo) {
-        if (e.button !== 0 || (maxi && modo !== 'mover')) return;
+        if (J || e.button !== 0 || (maxi && modo !== 'mover')) return;
         e.preventDefault();
         if (maxi) { maxi = false; geo.x = e.clientX - geo.w / 2; geo.y = e.clientY - 20; aplicar(); }
         var x0 = e.clientX, y0 = e.clientY, g = { x: geo.x, y: geo.y, w: geo.w, h: geo.h };
@@ -436,16 +477,17 @@
           }
           aplicar();
         }
-        function soltar() { document.removeEventListener('pointermove', mover); document.removeEventListener('pointerup', soltar); fundo.classList.remove('arrastando'); guardar(); }
-        document.addEventListener('pointermove', mover); document.addEventListener('pointerup', soltar);
+        function soltar() { D.removeEventListener('pointermove', mover); D.removeEventListener('pointerup', soltar); fundo.classList.remove('arrastando'); guardar(); }
+        D.addEventListener('pointermove', mover); D.addEventListener('pointerup', soltar);
       }
       top.addEventListener('pointerdown', function (e) { if (!e.target.closest('button')) arrastar(e, 'mover'); });
-      top.addEventListener('dblclick', function (e) { if (!e.target.closest('button')) { maxi = !maxi; aplicar(); guardar(); } });
+      top.addEventListener('dblclick', function (e) { if (!J && !e.target.closest('button')) { maxi = !maxi; aplicar(); guardar(); } });
       Array.prototype.forEach.call(card.querySelectorAll('.pc-h'), function (h) { h.addEventListener('pointerdown', function (e) { arrastar(e, h.dataset.d); }); });
       bMax.onclick = function () { maxi = !maxi; aplicar(); guardar(); };
       bX.onclick = function () { fechar(null); };
       function ajustarTela() { aplicar(); }
-      window.addEventListener('resize', ajustarTela);
+      W.addEventListener('resize', ajustarTela);
+      if (J) { bMax.style.display = 'none'; try { J.focus(); } catch (e) { } }
 
       montarLado();
       var inicio = lsGet(chave) || lsGet('ppcpm:pc:ultima:*') || (LOCAIS && LOCAIS.pastas[0] && LOCAIS.pastas[0].caminho) || (LOCAIS && LOCAIS.unidades[0] && LOCAIS.unidades[0].caminho) || '';
@@ -465,13 +507,26 @@
     input.dispatchEvent(new Event('change', { bubbles: true }));
   }
   function janelaWindows(input) { bypass = true; try { origClick.call(input); } finally { bypass = false; } }
+  /* O Chrome só abre a janela do Windows com um clique NESTA tela. Vindo da janela separada,
+     mostra um botão para o usuário confirmar com um clique. */
+  function comClique(acao) {
+    estilo(document);
+    var f = el('div'); f.id = 'ppcpm-pc';
+    var c = el('div'); c.style.cssText = 'position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);background:#fff;border:1px solid #0b2150;border-radius:10px;box-shadow:0 18px 55px rgba(0,0,0,.45);padding:18px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;min-width:320px';
+    c.appendChild(el('b', null, 'Abrir a janela comum do Windows?'));
+    var r = el('div'); r.style.cssText = 'display:flex;gap:8px';
+    var ok = el('button', 'pc-pri'); ok.appendChild(svg('janela')); ok.appendChild(el('span', null, 'Abrir janela do Windows'));
+    var nao = el('button', null, 'Cancelar');
+    ok.onclick = function () { f.remove(); acao(); }; nao.onclick = function () { f.remove(); };
+    r.appendChild(nao); r.appendChild(ok); c.appendChild(r); f.appendChild(c); document.body.appendChild(f); ok.focus();
+  }
   function usarSeletor(input) {
     return ativo && !aberto && !bypass && input && input.type === 'file' && !input.disabled && !input.webkitdirectory && !input.hasAttribute('webkitdirectory') && !input.hasAttribute('data-ppcpm-windows');
   }
   function viaSeletor(input) {
     abrirSeletor({ accept: input.accept, multiple: input.multiple }).then(function (r) {
       if (!r) return;
-      if (r.windows) return janelaWindows(input);
+      if (r.windows) return r.deJanela ? comClique(function () { janelaWindows(input); }) : janelaWindows(input);
       entregar(input, r.files);
     });
   }
@@ -479,6 +534,7 @@
   // 1) programas que abrem a janela com input.click() (a maioria)
   var origClick = HTMLInputElement.prototype.click;
   HTMLInputElement.prototype.click = function () {
+    if (ativo && aberto && !bypass && JANELA && !JANELA.closed && this.type === 'file' && !this.webkitdirectory) { try { JANELA.focus(); } catch (e) { } return; }
     if (usarSeletor(this)) { viaSeletor(this); return; }
     return origClick.apply(this, arguments);
   };
@@ -500,7 +556,7 @@
       (o.types || []).forEach(function (t) { Object.keys(t.accept || {}).forEach(function (m) { accept = accept.concat(t.accept[m]); }); });
       return abrirSeletor({ accept: accept.join(','), multiple: !!o.multiple }).then(function (r) {
         if (!r) throw new DOMException('Cancelado', 'AbortError');
-        if (r.windows) return origPicker(o);
+        if (r.windows) return r.deJanela ? new Promise(function (ok, erro) { comClique(function () { origPicker(o).then(ok, erro); }); }) : origPicker(o);
         return r.files.map(function (f) {
           return { kind: 'file', name: f.name, getFile: function () { return Promise.resolve(f); },
             queryPermission: function () { return Promise.resolve('granted'); }, requestPermission: function () { return Promise.resolve('granted'); },
