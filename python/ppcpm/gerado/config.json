@@ -1,5 +1,5 @@
 {
-  "versao": "Versão 112",
+  "versao": "Versão 113",
   "pacote_atual": 694,
   "obra_impressao": "2139-5-01",
   "supabase_url": "https://zlbgiodxpywrqapjlldg.supabase.co",
@@ -48,12 +48,6 @@
       "arquivo": "modulos/pg7.html"
     },
     {
-      "id": "pg8",
-      "nome": "Validação de Peso | Análise",
-      "titulo": "PPCPM - VALIDAÇÃO DE PESO | ANÁLISE",
-      "arquivo": "modulos/pg8.html"
-    },
-    {
       "id": "pg10",
       "nome": "Alteração de Roteiros",
       "titulo": "PPCPM - ALTERAÇÃO DE ROTEIROS",
@@ -80,7 +74,6 @@
     "pg5",
     "pg6",
     "pg7",
-    "pg8",
     "pg10",
     "pg11",
     "pg12"

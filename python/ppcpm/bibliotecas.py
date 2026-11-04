@@ -38,14 +38,13 @@ PDF = ["pypdf", "pdfplumber"]
 # (arquivo, nome da seção no sistema, bibliotecas da seção, opcionais)
 SECOES = [
     ("nucleo", "Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas e compactados) e atualização automática", [], ["py7zr", "rarfile", "waitress"]),
-    ("pg1", "Produção › Análise da DBF X Focco - ERP", PLANILHAS + ["lxml"] + PDF, []),
     ("pg2", "Produção › Agrupador | Base", PLANILHAS + PDF, []),
     ("pg3", "Produção › Roteirização produção", ["pandas", "openpyxl", "XlsxWriter"], []),
     ("pg4", "Produção › Impressão Casada - ERP", PLANILHAS + PDF + ["reportlab"], []),
     ("pg5", "Produção › Impressão Casada | Multi obra", PLANILHAS + PDF + ["reportlab"], []),
     ("pg6", "Produção › Impressão Grupo - LIC", PLANILHAS + PDF + ["reportlab"], []),
     ("pg7", "Produção › Impressão - FLUXO 04", PLANILHAS + PDF + ["reportlab"], []),
-    ("pg8", "Processo de validação › Validação de Peso | Análise", PLANILHAS + ["lxml"], []),
+    ("pg1", "Processo de validação › Análise da DBF X Focco - ERP", PLANILHAS + ["lxml"] + PDF, []),
     ("pg10", "Gerenciador de Roteiros › Alteração de Roteiros", ["pandas", "openpyxl", "XlsxWriter", "xlrd"], []),
     ("pg11", "Gerenciador de Roteiros › Acesso ao Intranet", ["requests"], []),
     ("pg12", "Área de impressão › Impressão de Etiquetas", ["pandas", "openpyxl", "xlrd", "dbfread", "reportlab", "pywin32"], []),

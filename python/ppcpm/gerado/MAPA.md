@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 112
+# Mapa do sistema — Versão 113
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -13,7 +13,6 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `modulos/pg5.html` | 167 KB |
 | `modulos/pg6.html` | 130 KB |
 | `modulos/pg7.html` | 132 KB |
-| `modulos/pg8.html` | 61 KB |
 | `modulos/pg10.html` | 291 KB |
 | `modulos/pg11.html` | 106 KB |
 | `modulos/pg12.html` | 1.047 KB |
@@ -32,7 +31,6 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | pg5 | Impressão Casada \| Multi obra | PPCPM - IMPRESSÃO CASADA \| MULTI OBRA |
 | pg6 | Impressão Grupo - LIC | PPCPM - IMPRESSÃO GRUPO - LIC |
 | pg7 | Impressão - FLUXO 04 | PPCPM - IMPRESSÃO - FLUXO 04 |
-| pg8 | Validação de Peso \| Análise | PPCPM - VALIDAÇÃO DE PESO \| ANÁLISE |
 | pg10 | Alteração de Roteiros | PPCPM - ALTERAÇÃO DE ROTEIROS |
 | pg11 | Acesso ao Intranet | PPCPM - ACESSO AO INTRANET |
 | pg12 | Impressão de Etiquetas | PPCPM - IMPRESSÃO DE ETIQUETAS |
