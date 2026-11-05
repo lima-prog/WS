@@ -52,6 +52,7 @@
   .chip { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; background:#eef2f7; color:#334155; }
   .chip.zip { background:#ede9fe; color:#5b21b6; }
   .chip.rede { background:#e0f2fe; color:#075985; }
+  .chip.cam { background:#fff1e6; color:#c2410c; font-size:10.5px; padding:1px 6px; vertical-align:1px; }
   .vazio { padding:40px; text-align:center; color:var(--fraco); }
   .tot { color:var(--fraco); font-size:12px; }
   #ver { position:fixed; inset:0; background:rgba(5,10,25,.6); display:none; align-items:center; justify-content:center; padding:18px; z-index:50; }
@@ -72,19 +73,19 @@
 
 <div class="grade" id="grade">
   <div class="card">
-    <div class="ch"><span class="nb">1</span><h2>Desenhos da engenharia (PDF)</h2></div>
-    <p class="obs">Pastas comuns, arquivos .zip (também zip dentro de zip) ou os próprios PDFs</p>
+    <div class="ch"><span class="nb">1</span><h2>Desenhos da engenharia (PDF e CAM)</h2></div>
+    <p class="obs">Pastas comuns, arquivos .zip (também zip dentro de zip), os próprios PDFs e os arquivos .CAM da máquina</p>
     <div class="linha">
-      <button class="pri" id="b-arq"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>Adicionar PDF / ZIP</button>
+      <button class="pri" id="b-arq"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>Adicionar PDF / CAM / ZIP</button>
       <button id="b-pasta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg>Adicionar pasta</button>
       <span class="esp"></span>
       <button id="b-limpar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Limpar</button>
     </div>
-    <input type="file" id="in-arq" accept=".pdf,.zip" multiple hidden>
+    <input type="file" id="in-arq" accept=".pdf,.cam,.zip" multiple hidden>
     <input type="file" id="in-pasta" webkitdirectory directory multiple hidden>
     <div class="drop" id="drop">
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-      <div class="t1">Arraste aqui PDFs, pastas ou arquivos .zip</div>
+      <div class="t1">Arraste aqui PDFs, arquivos .CAM, pastas ou .zip</div>
       <div class="t2">os PDFs de dentro dos .zip são lidos sem extrair nada no disco</div>
     </div>
     <div class="msg" id="msg1"></div>
@@ -92,7 +93,7 @@
 
   <div class="card" id="card-busca" hidden>
     <div class="ch"><span class="nb">2</span><h2>Buscar na pasta da engenharia</h2></div>
-    <p class="obs">Procura os PDFs da obra nesta pasta, nas subpastas e dentro dos .zip</p>
+    <p class="obs">Procura os PDFs e .CAM da obra nesta pasta, nas subpastas e dentro dos .zip</p>
     <div class="campo-l">Pasta da engenharia
       <div class="linha"><input type="text" id="raiz" style="flex:1" placeholder="ex.: \\172.25.0.7\lib-eng\LIBERAÇÕES ENGENHARIA"></div>
     </div>
@@ -368,8 +369,10 @@ function criarVisualizador3D(container, parametros) {
   }
 
   // placa plana (lu × lv, espessura esp) com furos [u, v, Ø], no plano U-V, centrada em 'centro'
-  function placaFuros(lu, lv, esp, furos, U, V, centro, mat, nome, marca, chaveFuro) {
-    const s = new THREE.Shape(); s.moveTo(-lu / 2, -lv / 2); s.lineTo(lu / 2, -lv / 2); s.lineTo(lu / 2, lv / 2); s.lineTo(-lu / 2, lv / 2); s.lineTo(-lu / 2, -lv / 2);
+  function placaFuros(lu, lv, esp, furos, U, V, centro, mat, nome, marca, chaveFuro, contorno) {
+    const s = new THREE.Shape();
+    if (contorno && contorno.length >= 3) contorno.forEach((q, i) => i ? s.lineTo(q[0], q[1]) : s.moveTo(q[0], q[1]));   // contorno real da peça (arquivo CAM)
+    else { s.moveTo(-lu / 2, -lv / 2); s.lineTo(lu / 2, -lv / 2); s.lineTo(lu / 2, lv / 2); s.lineTo(-lu / 2, lv / 2); s.lineTo(-lu / 2, -lv / 2); }
     (furos || []).forEach((f) => { const h = new THREE.Path(); h.absarc(f[0], f[1], f[2] / 2, 0, Math.PI * 2, true); s.holes.push(h); });
     const geo = new THREE.ExtrudeGeometry(s, { depth: esp, bevelEnabled: false, curveSegments: 20 }); geo.translate(0, 0, -esp / 2); ajustarUV(geo, false);
     const N = U.clone().cross(V).normalize(), m = new THREE.Mesh(geo, mat);
@@ -465,6 +468,7 @@ function criarVisualizador3D(container, parametros) {
     const mat = materiais.principal = material(acab, par.cor);
     grupo = new THREE.Group(); grupo.userData.pecas = [];
     if (par.barras) return montarEstrutura(par, mat);
+    if (par.cam) return montarCAM(par, mat);
     const perfil = par.perfil, sec = secao(perfil), L = par.comprimento, segs = par.segmentos && par.segmentos.length ? par.segmentos : [L];
 
     // perfil principal, um pedaço por trecho (as emendas aparecem como uma linha fina)
@@ -511,6 +515,31 @@ function criarVisualizador3D(container, parametros) {
     return finalizar();
   }
 
+  // peça de arquivo CAM: chapa com o contorno e os furos da máquina, ou perfil com os furos marcados
+  function montarCAM(par, mat) {
+    grupo.userData.aneis = [];
+    const guardar = (m) => { grupo.add(m); grupo.userData.pecas.push(m); if (m.userData.furo) { grupo.userData.aneis.push(m); m.visible = par.verFuros !== false; } };
+    const f1 = par.faces.find((f) => f.face === 'LIV1') || { contorno: [], furos: [] }, nome = par.nomePeca;
+    if (par.chapa) {
+      const xs = f1.contorno.map((q) => q[0]), ys = f1.contorno.map((q) => q[1]);
+      const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+      const o = placaFuros(0, 0, par.esp, f1.furos.map((h) => [h.x - cx, h.y - cy, h.d]), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 0), mat, nome, par.marca, 'F:cam', f1.contorno.map((q) => [q[0] - cx, q[1] - cy]));
+      guardar(o.malha); o.aneis.forEach(guardar);
+    } else {
+      const p = par.perfil, h = p.h, b = p.b || h, L = par.comprimento;
+      const g = barra({ perfil: p, p0: [0, 0, 0], p1: [L, 0, 0], z: 0, giro: 'em pe', nome, marca: par.marca, larg: h }, mat);
+      g.children.slice().forEach(guardar);
+      // furos: LIV1 = alma (frente) · LIV2 / LIV3 = mesas (em cima / embaixo) — posição aproximada
+      par.faces.forEach((f) => f.furos.forEach((fu) => {
+        let pos, N;
+        if (f.face === 'LIV1') { pos = new THREE.Vector3(fu.x, h / 2 + fu.y, 0); N = new THREE.Vector3(0, 0, 1); }
+        else { const k = f.face === 'LIV2' ? 1 : -1; pos = new THREE.Vector3(fu.x, k * (h / 2 - (p.tf || p.t || 3) / 2), b / 2 + fu.y); N = new THREE.Vector3(0, 1, 0); }
+        guardar(anel(fu.d, (p.tw || p.tf || p.t || 3), pos, N, `Furo Ø${fu.d} mm · ${f.face}`, 'F:cam'));
+      }));
+    }
+    return finalizar();
+  }
+
   function montarEstrutura(par, mat) {
     grupo.userData.aneis = [];
     const guardar = (m) => { grupo.add(m); grupo.userData.pecas.push(m); if (m.userData.furo) { grupo.userData.aneis.push(m); m.visible = par.verFuros !== false; } };
@@ -552,7 +581,7 @@ function criarVisualizador3D(container, parametros) {
   }
 
   function vistaInicial(tam) {
-    if (P && P.barras) {   // estrutura comprida: enquadra pela largura da tela, vista quase de frente
+    if (P && (P.barras || P.cam)) {   // peça/estrutura comprida: enquadra pela largura da tela, vista quase de frente
       const tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), th = tv * Math.max(0.6, camera.aspect || 1.6);
       const d = Math.max(tam.x * 0.68 / th, tam.y * 0.8 / tv) + tam.z;
       return { pos: new THREE.Vector3(0.32, 0.24, 1).normalize().multiplyScalar(d), alvo: new THREE.Vector3(0, 0, 0) };
@@ -703,6 +732,13 @@ if (MODELO.catalogo) {
   const z = CAT_Z.Z290;
   PAR = { catalogo: true, perfil: { tipo: 'Z', h: z.h, b: z.d1, d: z.d2, t: 1.95 }, nomeZ: 'Z290', comprimento: 1500, segmentos: [1500], placas: [], comFuro: true, acabamento: 'natural', nomePrincipal: 'Perfil Z290 #1,95' };
   $('#titulo').textContent = 'PPCPM - PERFIL Z ENRIJECIDO'; $('#b-pdf').style.display = 'none';
+} else if (MODELO.tipo === 'cam') {
+  const M = MODELO;
+  PAR = { cam: true, faces: M.faces, chapa: M.chapa, perfil: M.chapa ? { tipo: 'CHAPA', h: M.larg, b: M.comp, t: M.esp } : M.perfil, esp: M.esp, comprimento: M.comp, marca: M.marca, acabamento: 'natural',
+    nomePeca: `${M.marca || M.arquivo} · ${M.perfilNome}${M.chapa ? '' : ' × ' + Math.round(M.comp)}`, nomePrincipal: M.perfilNome };
+  $('#titulo').textContent = 'PPCPM - 3D · ' + (M.arquivo || M.marca) + '.CAM';
+  document.title = 'PPCPM - 3D · ' + (M.arquivo || '');
+  $('#b-pdf').textContent = 'Ver arquivo CAM';
 } else if (MODELO.tipo === 'estrutura') {
   PAR = { estrutura: true, barras: MODELO.barras, placas3d: MODELO.placas3d, soldas: MODELO.soldas, perfil: MODELO.perfil, comprimento: MODELO.comprimento, acabamento: 'natural', nomePrincipal: 'Banzo ' + MODELO.banzo.descricao.replace(/\s+x\s+[\d.]+$/, '') };
   $('#titulo').textContent = 'PPCPM - 3D · ' + (MODELO.arquivo || MODELO.objeto || 'DESENHO');
@@ -728,6 +764,34 @@ function ficha() {
     h += `<h3>Dimensões</h3><div class="botoes">${Object.keys(CAT_Z).map((k) => `<button data-z="${k}" class="${PAR.nomeZ === k ? 'on' : ''}">${k}</button>`).join('')}</div>`;
     h += `<h3>Aço estrutural ZAR 400</h3><div class="botoes">${ESPESSURAS.map((e) => `<button data-e="${e}" class="${PAR.perfil.t === e ? 'on' : ''}">#${fmt(e)}mm</button>`).join('')}</div>`;
     h += `<h3>Com ou sem furo</h3><div class="botoes"><button data-f="1" class="${PAR.comFuro ? 'on' : ''}">Com furo</button><button data-f="0" class="${!PAR.comFuro ? 'on' : ''}">Sem furo</button></div>`;
+  } else if (PAR.cam) {
+    const M = MODELO, kg = M.peso_unit;
+    h += `<h3>Arquivo CAM</h3><div class="kv"><span>Formato</span><span>${esc(M.formato)}</span><span>Arquivo</span><span>${esc(M.arquivo)}.CAM</span>`;
+    if (M.desenho) h += `<span>Desenho</span><span>${esc(M.desenho)}</span>`;
+    h += `<span>Marca</span><span>${esc(M.marca || '—')}${M.posicao && M.posicao !== M.marca ? ' <small style="color:#5b6474">(' + esc(M.posicao) + ')</small>' : ''}</span>`;
+    if (M.obra) h += `<span>Obra</span><span>${esc(M.obra)}</span>`;
+    if (M.descricao) h += `<span>Descrição</span><span>${esc(M.descricao)}</span>`;
+    h += `<span>Quantidade</span><span>${M.qtd} peça${M.qtd > 1 ? 's' : ''}</span></div>`;
+    h += `<h3>Peça em 3D</h3><div class="kv"><span>${M.chapa ? 'Chapa' : 'Perfil'}</span><span>${esc(M.perfilNome || '—')}${M.material ? ' · ' + esc(M.material) : ''}</span>`;
+    h += `<span>Comprimento</span><span>${fmt(M.comp, 1)} mm</span>`;
+    if (M.chapa) h += `<span>Largura</span><span>${fmt(M.larg, 1)} mm</span><span>Espessura</span><span>${fmt(M.esp)} mm</span>`;
+    if (kg) h += `<span>Peso</span><span>${fmt(kg, 2)} kg/peça${M.qtd > 1 ? ' · ' + fmt(kg * M.qtd, 2) + ' kg no total' : ''}</span>`;
+    if (M.area_unit) h += `<span>Área</span><span>${fmt(M.area_unit, 2)} m²/peça</span>`;
+    const f1 = (M.faces || []).find((f) => f.face === 'LIV1');
+    if (M.chapa && f1 && f1.contorno.length) h += `<span>Contorno</span><span>${f1.contorno.length} pontos${f1.contorno.length === 4 ? ' (retangular)' : ''}</span>`;
+    if (M.dobras) h += `<span>Dobras</span><span>${M.dobras}</span>`;
+    h += `</div>`;
+    if (M.totalFuros) {
+      h += `<h3>Furações</h3><div class="furos">`;
+      M.furacoes.forEach((f) => { h += `<button class="furo" data-furo="F:cam"><span class="bola"></span><span><b>${f.n} furos Ø${fmt(f.d)} mm${f.oblongo ? ' oblongos' : ''}</b><br>${f.faces.map((x) => ({ LIV1: M.chapa ? 'face da chapa' : 'alma', LIV2: 'mesa / aba 1', LIV3: 'mesa / aba 2', LIV4: 'face 4' }[x] || x)).join(', ')}</span></button>`; });
+      const lf = M.linhasFuros;
+      if (lf && lf.colunas.length > 1) {
+        const dist = lf.colunas.slice(1).map((x, i) => x - lf.colunas[i]);
+        h += `<div class="regra" style="margin:2px 0 0">Posições ao longo da peça: ${lf.colunas.map((x) => fmt(x, 0)).join(' · ')} mm<br>Distâncias entre furos: ${dist.map((x) => fmt(x, 0)).join(' · ')} mm${lf.linhas.length > 1 ? `<br>Entre linhas de furo: ${lf.linhas.slice(1).map((y, i) => fmt(y - lf.linhas[i], 0)).join(' · ')} mm` : ''}</div>`;
+      }
+      h += `<div class="botoes" style="margin-top:6px"><button data-verfuros="1" class="${PAR.verFuros !== false ? 'on' : ''}">Furos em destaque</button><button data-verfuros="0" class="${PAR.verFuros === false ? 'on' : ''}">Só o aço</button></div></div>`;
+    }
+    if ((M.avisos || []).length) h += `<h3 class="alerta">Atenção</h3><ul class="avisos">${M.avisos.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`;
   } else if (PAR.estrutura) {
     const M = MODELO, c = M.conferencia || {}, conj = M.conjunto || {}, r = M.resumo || {};
     const ok = (v) => v ? ` <span class="ok">✓ cota ${fmt(v, 0)}</span>` : '';
@@ -784,6 +848,7 @@ function ficha() {
   h += `<h3>Acabamento</h3><div class="botoes"><button data-a="natural" class="${PAR.acabamento === 'natural' ? 'on' : ''}">Natural</button><button data-a="pintura" class="${PAR.acabamento === 'pintura' ? 'on' : ''}">Pintura eletrostática</button><button data-a="galv" class="${PAR.acabamento === 'galv' ? 'on' : ''}">Galvanizado a fogo</button></div>`;
   h += PAR.catalogo
     ? `<div class="obs"><b>Obs:</b><br>• Z170 | Z230 | Z290 | Z360 — comprimento até 12 m.<br>• Para comprimentos especiais, consultar o setor técnico Projeart.<br>• Cores: Natural | Pintura eletrostática | Galvanizado a fogo.</div>`
+    : PAR.cam ? `<div class="obs"><b>Obs:</b> 3D montado direto do arquivo CAM da máquina: contorno e furos com as medidas exatas do arquivo (mesma informação que vai para o corte/furação).${MODELO.chapa ? '' : ' Nos perfis, a posição dos furos nas mesas é aproximada.'}</div>`
     : PAR.estrutura ? `<div class="obs"><b>Obs:</b> 3D montado automaticamente: os textos do desenho (lista de materiais) e as linhas da vista em elevação, em escala. Banzos, diagonais, montantes e chapas de topo ficam na posição do desenho; chapas pequenas (calços, ligações) aparecem só na lista. Soldas e furos não são desenhados — confira sempre o PDF.</div>`
     : `<div class="obs"><b>Obs:</b> 3D montado automaticamente a partir do desenho (lista de materiais, seções e cotas). Detalhes como soldas e posição exata de cada furo podem ser simplificados — confira sempre o PDF.</div>`;
   f.innerHTML = h;
@@ -801,10 +866,29 @@ function ficha() {
 function legenda() {
   const p = PAR.perfil;
   if (PAR.catalogo) return `<b>${PAR.nomeZ}</b> · Z = ${p.h} mm · D1 = ${p.b} mm · D2 = ${p.d} mm · enrijecedor a 45°<br>Chapa #${fmt(p.t)} mm · ZAR 400 · ${PAR.comFuro ? 'com furos Ø14 a cada 500 mm' : 'sem furo'}`;
+  if (PAR.cam) return `<b>Seção do perfil</b><br>${esc(PAR.nomePeca)}<br>Furos lidos do arquivo CAM (posição nas mesas aproximada).`;
   if (PAR.estrutura) return `<b>Seção dos banzos</b><br>${esc(PAR.nomePrincipal)}<br>Mesas de ${fmt(PAR.perfil.b, 0)} mm na vertical (vista do desenho) e altura ${fmt(PAR.perfil.h, 0)} mm na espessura da estrutura.<br>Passe o mouse numa linha da lista para ver a peça no 3D.`;
   return `<b>Seção do perfil principal</b><br>${esc(PAR.nomePrincipal)}`;
 }
-function secao2D() { $('#secao').innerHTML = desenho2D(PAR.perfil) + `<div class="leg">${legenda()}</div>`; }
+// vista de cima da chapa do CAM, com os furos e as cotas
+function desenhoCAM2D(M) {
+  const f1 = (M.faces || []).find((f) => f.face === 'LIV1'); if (!f1 || !f1.contorno.length) return '';
+  const xs = f1.contorno.map((q) => q[0]), ys = f1.contorno.map((q) => -q[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), W = x1 - x0, H = y1 - y0, m = Math.max(W, H) * 0.05;
+  const esc2 = W / 900, fs = 15 * esc2, sw = 1.4 * esc2;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x0 - m} ${y0 - m - fs * 2.2} ${W + 2 * m} ${H + 2 * m + fs * 4.4}" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:100%">`;
+  svg += `<path d="M${f1.contorno.map((q) => `${q[0]},${-q[1]}`).join('L')}Z" fill="#dbe4f3" stroke="#0b5cad" stroke-width="${sw}"/>`;
+  f1.furos.forEach((h) => { svg += `<circle cx="${h.x}" cy="${-h.y}" r="${Math.max(h.d / 2, 6 * esc2)}" fill="#fff" stroke="#ff7a1a" stroke-width="${sw * 1.6}"/>`; });
+  svg += `<g font-family="Arial" font-weight="700" font-size="${fs}" fill="#1a2233" text-anchor="middle">`;
+  svg += `<text x="${(x0 + x1) / 2}" y="${y0 - m * 0.4}">${fmt(W, 1)} mm</text><text x="${x1 + m * 0.5}" y="${(y0 + y1) / 2}" transform="rotate(90 ${x1 + m * 0.5} ${(y0 + y1) / 2})">${fmt(H, 1)}</text>`;
+  const cols = M.linhasFuros ? M.linhasFuros.colunas : [];
+  cols.forEach((x) => { svg += `<text x="${x}" y="${y1 + m * 0.4 + fs}" font-size="${fs * 0.8}" fill="#5b6474">${fmt(x, 0)}</text>`; });
+  return svg + '</g></svg>';
+}
+function secao2D() {
+  if (PAR.cam && PAR.chapa) { $('#secao').innerHTML = `<div style="flex:1;min-width:0;height:100%;display:flex;align-items:center">${desenhoCAM2D(MODELO)}</div><div class="leg"><b>Vista de cima da chapa</b><br>${esc(PAR.nomePeca)}<br>${MODELO.totalFuros || 0} furos (círculos laranja) · cotas das posições em mm</div>`; return; }
+  $('#secao').innerHTML = desenho2D(PAR.perfil) + `<div class="leg">${legenda()}</div>`;
+}
 function atualizar() {
   if (PAR.catalogo) PAR.nomePrincipal = `Perfil ${PAR.nomeZ} #${fmt(PAR.perfil.t)}`;
   viewer.atualizar(PAR); ficha(); secao2D();
@@ -818,7 +902,7 @@ ficha(); secao2D();
 $('#b-reset').onclick = () => viewer.resetar();
 const vistas = $('#vistas');
 if (!PAR.catalogo && PAR.comprimento > 2500) {
-  [['Vista geral', () => viewer.resetar()], ['◀ Ponta esquerda', () => viewer.focarPonta(-1)], ['Ponta direita ▶', () => viewer.focarPonta(1)]].concat((MODELO.soldas || []).length ? [['Ver soldas', () => viewer.focarSolda('S:' + MODELO.soldas[0].chave)]] : []).concat((MODELO.furacoes || []).length ? [['Ver furos', () => viewer.focarFuros(MODELO.furacoes[0].onde === 'Chapas de topo' ? 'F:topo' : 'F:' + MODELO.furacoes[0].marca)]] : []).forEach(([t, f]) => { const b = document.createElement('button'); b.textContent = t; b.onclick = f; vistas.appendChild(b); });
+  [['Vista geral', () => viewer.resetar()], ['◀ Ponta esquerda', () => viewer.focarPonta(-1)], ['Ponta direita ▶', () => viewer.focarPonta(1)]].concat((MODELO.soldas || []).length ? [['Ver soldas', () => viewer.focarSolda('S:' + MODELO.soldas[0].chave)]] : []).concat((MODELO.furacoes || []).length ? [['Ver furos', () => viewer.focarFuros(MODELO.tipo === 'cam' ? 'F:cam' : MODELO.furacoes[0].onde === 'Chapas de topo' ? 'F:topo' : 'F:' + MODELO.furacoes[0].marca)]] : []).forEach(([t, f]) => { const b = document.createElement('button'); b.textContent = t; b.onclick = f; vistas.appendChild(b); });
 }
 $('#b-pdf').onclick = () => { if (MODELO.pdfUrl) window.open(MODELO.pdfUrl, '_blank'); };
 document.addEventListener('ppcpm-transp', (e) => { PAR.transparente = e.detail; document.querySelectorAll('[data-transp]').forEach((b) => b.classList.toggle('on', !!e.detail)); });
@@ -1330,6 +1414,101 @@ function furosDoDesenho(caminhos) {
 
 
 /* =====================================================================
+   PPCPM — LEITOR DE ARQUIVO .CAM (formato [ENTITY4] das máquinas CNC)
+   Seções: [HEAD] dados da peça · [SHAPE] tipo e medidas · [OUTLINE]
+   contorno por face (LIV1..LIV4) · [HOLE] furos (H Ø x y) · [FOLD] dobras.
+   Devolve o mesmo tipo de "modelo" dos desenhos PDF, para o mesmo 3D.
+   ===================================================================== */
+function interpretarCAM(texto, nomeArquivo) {
+  'use strict';
+  var linhas = String(texto || '').replace(/\r/g, '').split('\n');
+  var head = {}, secoes = {}, sec = null, liv = null;
+  linhas.forEach(function (l) {
+    var t = l.trim();
+    var m = /^\[(\w+)\]$/.exec(t);
+    if (m) { sec = m[1].toUpperCase(); liv = null; secoes[sec] = secoes[sec] || { linhas: [], liv: {} }; return; }
+    if (!sec) return;
+    if (sec === 'HEAD') { var k = t.indexOf(':'); if (k > 0) head[t.slice(0, k).trim().toUpperCase()] = t.slice(k + 1).trim(); return; }
+    var lv = /^LIV(\d)$/i.exec(t);
+    if (lv) { liv = 'LIV' + lv[1]; secoes[sec].liv[liv] = secoes[sec].liv[liv] || []; return; }
+    if (!t) return;
+    if (liv) secoes[sec].liv[liv].push(t); else secoes[sec].linhas.push(t);
+  });
+  function num(v) { var x = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isNaN(x) ? 0 : x; }
+  function nums(t) { return t.trim().split(/\s+/).map(num); }
+
+  var tipo = (head.TIP_PRO || (secoes.SHAPE && secoes.SHAPE.linhas[0] || '').split(/\s+/)[0] || '').toUpperCase();
+  var comp = num(head.LUN_PRO), larg = num(head.LAR_PRO), esp = num(head.SPE_PRO);
+  var sh = secoes.SHAPE ? secoes.SHAPE.linhas.slice(1).map(nums) : [];
+  if (!comp && sh[2]) { comp = sh[2][0]; larg = larg || sh[2][1]; esp = esp || sh[2][2]; }
+
+  var M = {
+    tipo: 'cam', formato: 'CAM (ENTITY4)',
+    arquivo: String(nomeArquivo || '').replace(/\.cam$/i, ''),
+    desenho: head.NUM_DIS || '', marca: (head.MAR_PEZ || head.POS_PEZ || '').replace(/@\d+$/, ''), posicao: head.POS_PEZ || '',
+    obra: head.NUM_COM || '', cliente: head.CLI_COM || '', descricao: head.DES_PEZ || '', revisao: head.REV_DIS || '',
+    qtd: parseInt(head.QTA_PEZ, 10) || 1, perfilNome: head.NOM_PRO || '', tipoPerfil: tipo, material: head.MAT_PRO || '',
+    comp: comp, larg: larg, esp: esp,
+    peso_unit: num(head.PUN_LIS) || num(head.PES_PRO), area_unit: num(head.SUN_LIS) || num(head.SUP_PRO),
+    faces: [], dobras: 0, soldas: 0, avisos: []
+  };
+
+  // contorno e furos de cada face (LIV1..LIV4)
+  ['LIV1', 'LIV2', 'LIV3', 'LIV4'].forEach(function (lv) {
+    var cont = ((secoes.OUTLINE || { liv: {} }).liv[lv] || []).map(nums).filter(function (p) { return p.length >= 2; }).map(function (p) { return [p[0], p[1]]; });
+    var furos = [];
+    ((secoes.HOLE || { liv: {} }).liv[lv] || []).forEach(function (t) {
+      var p = t.trim().split(/\s+/), cod = p[0].toUpperCase(), v = p.slice(1).map(num);
+      if (/^[A-Z]$/.test(cod) && v.length >= 3) furos.push({ tipo: cod, d: v[0], x: v[1], y: v[2], oblongo: cod !== 'H' && v[6] ? v[6] : 0 });
+    });
+    if (cont.length >= 3 || furos.length) M.faces.push({ face: lv, contorno: cont, furos: furos });
+  });
+  ['FOLD', 'WELD'].forEach(function (s) {
+    var n = 0; if (secoes[s]) Object.keys(secoes[s].liv).forEach(function (k) { n += secoes[s].liv[k].length; });
+    if (s === 'FOLD') M.dobras = n; else M.soldas = n;
+  });
+  if (M.dobras) M.avisos.push('A peça tem ' + M.dobras + ' linha(s) de dobra: o 3D mostra a chapa aberta (planificada).');
+
+  // chapa (R) = contorno da face 1 · perfil = seção pelo nome (W, U, L, UE, CX...)
+  M.chapa = /^(R|PL|P|F|FL)$/.test(tipo) || /^(PL|CH|CHAPA|FL)\b/i.test(M.perfilNome);
+  if (!M.chapa) {
+    var nome = M.perfilNome.toUpperCase().replace(/\s+/g, ''), m, d;
+    if ((m = /^(W|HP|I|H|PS|VS|CS|IPE|HEA|HEB)(\d+(?:[.,]\d+)?)(?:X(\d+(?:[.,]\d+)?))?(?:X(\d+(?:[.,]\d+)?))?(?:X(\d+(?:[.,]\d+)?))?/.exec(nome))) {
+      d = [m[2], m[3], m[4], m[5]].map(num);
+      M.perfil = d[1] && d[2] && d[3] && (m[1] === 'PS' || m[1] === 'VS' || m[1] === 'CS') ? { tipo: 'W', h: d[0], b: d[1], tw: d[2], tf: d[3] }
+        : { tipo: 'W', h: d[0], b: sh[0] && sh[0][1] ? sh[0][1] : Math.round(d[0] * 0.5), tw: sh[0] && sh[0][2] ? sh[0][2] : Math.max(5, Math.round(d[0] / 40)), tf: sh[0] && sh[0][3] ? sh[0][3] : Math.max(6, Math.round(d[0] / 25)) };
+    } else if ((m = /^L(\d+(?:[.,]\d+)?)X(\d+(?:[.,]\d+)?)(?:X(\d+(?:[.,]\d+)?))?/.exec(nome))) {
+      d = [m[1], m[2], m[3]].map(num); M.perfil = d[2] ? { tipo: 'L', h: d[0], b: d[1], t: d[2] } : { tipo: 'L', h: d[0], b: d[0], t: d[1] };
+    } else if ((m = /^(UE|CE|U|C|Z|CX|TB)(\d+(?:[.,]\d+)?)X(\d+(?:[.,]\d+)?)(?:X(\d+(?:[.,]\d+)?))?(?:X(\d+(?:[.,]\d+)?))?/.exec(nome))) {
+      d = [m[2], m[3], m[4], m[5]].map(num); var tp = m[1] === 'CE' ? 'UE' : m[1] === 'C' ? 'U' : m[1] === 'TB' ? 'CX' : m[1];
+      M.perfil = tp === 'UE' || tp === 'Z' ? { tipo: tp, h: d[0], b: d[1], d: d[3] ? d[2] : 20, t: d[3] || d[2] || 2 } : { tipo: tp, h: d[0], b: d[1], t: d[2] || 3 };
+    } else {
+      M.perfil = { tipo: 'CX', h: larg || 100, b: esp || 100, t: 3 };
+      M.avisos.push('Perfil "' + M.perfilNome + '" não reconhecido: mostrado como caixa ' + (larg || 100) + ' × ' + (esp || 100) + '.');
+    }
+    if (M.faces.some(function (f) { return f.face !== 'LIV1' && f.furos.length; })) M.avisos.push('Furos das abas/mesas (faces LIV2 a LIV4) com posição aproximada — confira na máquina.');
+  }
+  var f1 = M.faces.find(function (f) { return f.face === 'LIV1'; });
+  if (M.chapa && (!f1 || f1.contorno.length < 3)) {
+    M.faces = M.faces.filter(function (f) { return f.face !== 'LIV1'; });
+    f1 = { face: 'LIV1', contorno: [[0, 0], [comp, 0], [comp, -larg], [0, -larg]], furos: f1 ? f1.furos : [] }; M.faces.unshift(f1);
+  }
+
+  // resumo das furações por diâmetro
+  var porD = {};
+  M.faces.forEach(function (f) { f.furos.forEach(function (h) { var k = h.d + (h.oblongo ? ' oblongo' : ''); porD[k] = porD[k] || { d: h.d, oblongo: h.oblongo, n: 0, faces: [] }; porD[k].n++; if (porD[k].faces.indexOf(f.face) < 0) porD[k].faces.push(f.face); }); });
+  M.furacoes = Object.keys(porD).map(function (k) { return porD[k]; }).sort(function (a, b) { return a.d - b.d; });
+  M.totalFuros = M.furacoes.reduce(function (t, f) { return t + f.n; }, 0);
+  if (f1 && f1.furos.length > 1) {
+    var xs = f1.furos.map(function (h) { return Math.round(h.x); }).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; });
+    var ys = f1.furos.map(function (h) { return Math.round(h.y); }).filter(function (v, i, a) { return !a.slice(0, i).some(function (o) { return Math.abs(o - v) < 2; }); }).sort(function (a, b) { return a - b; });
+    M.linhasFuros = { colunas: xs, linhas: ys };
+  }
+  if (!M.comp) M.avisos.push('Comprimento (LUN_PRO) não encontrado no arquivo.');
+  return M;
+}
+
+/* =====================================================================
    PPCPM — LEITOR DE DESENHO (PDF) PARA 3D
    Recebe as linhas de texto do PDF (já em ordem de leitura) e devolve
    o "modelo" da peça: perfil principal, comprimento, emendas, chapas
@@ -1485,6 +1664,8 @@ function linhasDoPdf(itens) {
   function obraDe(t) { var m = /(\d{4}-\d{1,3}-\d{1,3})/.exec(t || ''); return m ? m[1] : ''; }
   function msg(id, t, erro) { var e = $(id); e.textContent = t || ''; e.classList.toggle('erro', !!erro); }
   function ehPdf(n) { return /\.pdf$/i.test(n); }
+  function ehCam(n) { return /\.cam$/i.test(n); }                  // arquivo CNC (ENTITY4) — abre no VISUALIZAR 3D
+  function ehDesenho(n) { return ehPdf(n) || ehCam(n); }
   function ehZip(n) { return /\.zip$/i.test(n); }
 
   function adicionar(nome, origem, tipo, tamanho, obter, chave) {
@@ -1499,7 +1680,7 @@ function linhasDoPdf(itens) {
     z.forEach(function (caminho, ent) {
       if (ent.dir) return;
       var base = caminho.split('/').pop();
-      if (ehPdf(base)) { if (adicionar(base, origem + ' › ' + caminho.split('/').slice(0, -1).join(' › '), 'zip', ent._data && ent._data.uncompressedSize, function () { return ent.async('uint8array'); })) n++; }
+      if (ehDesenho(base)) { if (adicionar(base, origem + ' › ' + caminho.split('/').slice(0, -1).join(' › '), 'zip', ent._data && ent._data.uncompressedSize, function () { return ent.async('uint8array'); })) n++; }
       else if (ehZip(base) && nivel < 3) internos.push([ent, origem + ' › ' + caminho]);
     });
     for (var i = 0; i < internos.length; i++) n += await lerZip(await internos[i][0].async('uint8array'), internos[i][1], nivel + 1);
@@ -1511,12 +1692,12 @@ function linhasDoPdf(itens) {
     for (var i = 0; i < lista.length; i++) {
       var f = lista[i], pasta = (f.webkitRelativePath || f.caminho || '').split('/').slice(0, -1).join(' › ');
       try {
-        if (ehPdf(f.name)) { if (adicionar(f.name, pasta || 'arquivo', 'pasta', f.size, function (f) { return function () { return f.arrayBuffer().then(function (b) { return new Uint8Array(b); }); }; }(f))) n++; }
+        if (ehDesenho(f.name)) { if (adicionar(f.name, pasta || 'arquivo', 'pasta', f.size, function (f) { return function () { return f.arrayBuffer().then(function (b) { return new Uint8Array(b); }); }; }(f))) n++; }
         else if (ehZip(f.name)) n += await lerZip(await f.arrayBuffer(), (pasta ? pasta + ' › ' : '') + f.name, 1);
       } catch (e) { erros.push(f.name + ': ' + (e.message || e)); }
     }
     document.body.classList.remove('ocupado');
-    msg('#msg1', erros.length ? erros.join(' | ') : (n ? n + ' desenho(s) adicionado(s).' : 'Nenhum PDF novo encontrado.'), erros.length > 0);
+    msg('#msg1', erros.length ? erros.join(' | ') : (n ? n + ' desenho(s) adicionado(s).' : 'Nenhum PDF ou CAM novo encontrado.'), erros.length > 0);
     desenhar();
   }
 
@@ -1524,7 +1705,7 @@ function linhasDoPdf(itens) {
   $('#b-arq').onclick = function () { $('#in-arq').click(); };
   $('#b-pasta').onclick = function () { $('#in-pasta').click(); };
   $('#in-arq').onchange = function () { adicionarArquivos(Array.from(this.files)); this.value = ''; };
-  $('#in-pasta').onchange = function () { adicionarArquivos(Array.from(this.files).filter(function (f) { return ehPdf(f.name) || ehZip(f.name); })); this.value = ''; };
+  $('#in-pasta').onchange = function () { adicionarArquivos(Array.from(this.files).filter(function (f) { return ehDesenho(f.name) || ehZip(f.name); })); this.value = ''; };
   $('#drop').onclick = function () { $('#in-arq').click(); };
   var dz = $('#drop');
   dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('over'); });
@@ -1540,7 +1721,7 @@ function linhasDoPdf(itens) {
     }
     if (entradas.length) { for (var i = 0; i < entradas.length; i++) await andar(entradas[i], ''); }
     else arqs = Array.from(e.dataTransfer.files || []);
-    adicionarArquivos(arqs.filter(function (f) { return ehPdf(f.name) || ehZip(f.name); }));
+    adicionarArquivos(arqs.filter(function (f) { return ehDesenho(f.name) || ehZip(f.name); }));
   });
   $('#b-limpar').onclick = function () { ITENS = []; SEL.clear(); msg('#msg1', ''); msg('#msg2', ''); desenhar(); };
 
@@ -1559,11 +1740,11 @@ function linhasDoPdf(itens) {
     lsSet('ppcpm:eng:raiz', raiz);
     var b = this; b.disabled = true; msg('#msg2', 'Procurando "' + termo + '"… (pastas, subpastas e .zip)');
     try {
-      var r = await fetch('/api/pc/buscar?caminho=' + encodeURIComponent(raiz) + '&termo=' + encodeURIComponent(termo) + '&filtro=.pdf', { headers: CAB, cache: 'no-store' });
+      var r = await fetch('/api/pc/buscar?caminho=' + encodeURIComponent(raiz) + '&termo=' + encodeURIComponent(termo) + '&filtro=.pdf,.cam', { headers: CAB, cache: 'no-store' });
       var j = await r.json(); if (!r.ok) throw new Error(j.erro || 'Erro ' + r.status);
       var n = 0;
       j.itens.forEach(function (i) {
-        if (i.pasta || !ehPdf(i.nome)) return;
+        if (i.pasta || !ehDesenho(i.nome)) return;
         var origem = i.caminho.slice(0, i.caminho.length - i.nome.length).replace(/[\\\/]$/, '');
         if (adicionar(i.nome, origem, i.dentro_de ? 'zip' : 'rede', i.tamanho, function (c) { return function () {
           return fetch('/api/pc/arquivo?caminho=' + encodeURIComponent(c), { headers: CAB, cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('Não foi possível ler ' + c); return r.arrayBuffer(); }).then(function (b) { return new Uint8Array(b); });
@@ -1584,8 +1765,9 @@ function linhasDoPdf(itens) {
   }
   function desenhar() {
     var l = visiveis(), tab = $('#tab');
-    $('#tot').textContent = ITENS.length + (ITENS.length === 1 ? ' PDF' : ' PDFs');
-    if (!l.length) { tab.innerHTML = '<div class="vazio">' + (ITENS.length ? 'Nada com esse filtro.' : 'Nenhum desenho ainda. Adicione PDFs, pastas ou .zip.') + '</div>'; contar(); return; }
+    var nCam = ITENS.filter(function (i) { return ehCam(i.nome); }).length, nPdf = ITENS.length - nCam;
+    $('#tot').textContent = nPdf + (nPdf === 1 ? ' PDF' : ' PDFs') + (nCam ? ' · ' + nCam + ' CAM' : '');
+    if (!l.length) { tab.innerHTML = '<div class="vazio">' + (ITENS.length ? 'Nada com esse filtro.' : 'Nenhum desenho ainda. Adicione PDFs, arquivos .CAM, pastas ou .zip.') + '</div>'; contar(); return; }
     var t = document.createElement('table'), cab = document.createElement('tr');
     [['', ''], ['nome', 'Desenho'], ['obra', 'Obra'], ['tipo', 'Onde está'], ['origem', 'Pasta / ZIP'], ['tamanho', 'Tamanho']].forEach(function (c) {
       var th = document.createElement('th'); th.textContent = c[1] + (ORDEM.col === c[0] ? (ORDEM.asc ? ' ▲' : ' ▼') : '');
@@ -1600,6 +1782,7 @@ function linhasDoPdf(itens) {
       cb.onchange = function () { if (cb.checked) SEL.add(i.id); else SEL.delete(i.id); tr.className = cb.checked ? 'sel' : ''; contar(); };
       var td = document.createElement('td'); td.appendChild(cb); tr.appendChild(td);
       var tn = document.createElement('td'); tn.className = 'nome'; tn.textContent = i.nome; tr.appendChild(tn);
+      if (ehCam(i.nome)) { var tg2 = document.createElement('span'); tg2.className = 'chip cam'; tg2.textContent = 'CAM'; tg2.title = 'Arquivo da máquina CNC — duplo clique abre no 3D'; tn.appendChild(document.createTextNode(' ')); tn.appendChild(tg2); }
       var to = document.createElement('td'); to.textContent = i.obra; tr.appendChild(to);
       var tt = document.createElement('td'); tt.innerHTML = '<span class="chip ' + i.tipo + '">' + ({ zip: 'Dentro de .zip', rede: 'Pasta da rede', pasta: 'Pasta' }[i.tipo] || i.tipo) + '</span>'; tr.appendChild(tt);
       var tg = document.createElement('td'); tg.className = 'nome'; tg.style.color = '#5b6474'; tg.style.fontWeight = '500'; tg.textContent = i.origem; tr.appendChild(tg);
@@ -1624,9 +1807,12 @@ function linhasDoPdf(itens) {
     var f = $('#v-frame'); f.onload = imprimir ? function () { setTimeout(function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(urlAtual); } }, 400); } : null;
     f.src = urlAtual;
   }
-  async function abrir(i) { try { mostrar(await i.obter(), i.nome, false); } catch (e) { alert('Não foi possível abrir o desenho.\n' + (e.message || e)); } }
+  async function abrir(i) { if (ehCam(i.nome)) { abrir3D([i], $('#b-3d')); return; } try { mostrar(await i.obter(), i.nome, false); } catch (e) { alert('Não foi possível abrir o desenho.\n' + (e.message || e)); } }
   async function juntar() {
-    var l = visiveis().filter(function (i) { return SEL.has(i.id); });
+    var l = visiveis().filter(function (i) { return SEL.has(i.id); }), cams = l.filter(function (i) { return ehCam(i.nome); });
+    l = l.filter(function (i) { return ehPdf(i.nome); });
+    if (!l.length) throw new Error('Só há arquivos .CAM selecionados: eles não são PDF. Use VISUALIZAR 3D para ver a peça.');
+    if (cams.length) alert('Os arquivos .CAM selecionados (' + cams.length + ') ficam de fora: imprimir e baixar juntam só os PDFs.');
     if (l.length === 1) return { bytes: await l[0].obter(), nome: l[0].nome, n: 1 };
     if (typeof PDFLib === 'undefined') throw new Error('Componente de PDF não carregou (internet bloqueada?). Recarregue a página.');
     var doc = await PDFLib.PDFDocument.create(), pulados = [];
@@ -1668,6 +1854,7 @@ function linhasDoPdf(itens) {
   }
   // lê o PDF: texto normal + texto desenhado em traços (SHX); estrutura (treliça/viga mestra) ou peça única
   async function lerDesenho(bytes, nome) {
+    if (ehCam(nome)) { var txt; try { txt = new TextDecoder('windows-1252').decode(bytes); } catch (e) { txt = new TextDecoder().decode(bytes); } return interpretarCAM(txt, nome); }
     if (!window.pdfjsLib) throw new Error('Leitor de PDF não carregou (internet bloqueada?). Recarregue a página.');
     var doc = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise, itens = [];
     for (var i = 1; i <= Math.min(doc.numPages, 3); i++) { var pg = await doc.getPage(i); itens = itens.concat((await pg.getTextContent()).items); }
@@ -1685,12 +1872,12 @@ function linhasDoPdf(itens) {
     html = '<!doctype html>' + html.replace('<script type="importmap">', dados + '<script type="importmap">');
     J.document.open(); J.document.write(html); J.document.close();
   }
-  $('#b-3d').onclick = function () {
-    var sel = visiveis().filter(function (i) { return SEL.has(i.id); });
+  $('#b-3d').onclick = function () { abrir3D(visiveis().filter(function (i) { return SEL.has(i.id); }), this); };
+  function abrir3D(sel, b) {
     var w = Math.min(1500, screen.availWidth - 40), h = Math.min(900, screen.availHeight - 60);
     var J = window.open(PY ? '/pc/janela3d' : '', 'ppcpm_3d_' + Date.now(), 'popup=yes,width=' + w + ',height=' + h + ',left=' + Math.round((screen.availWidth - w) / 2) + ',top=' + Math.round((screen.availHeight - h) / 2));
     if (!J) { alert('O navegador bloqueou a janela do 3D.\nPermita pop-ups deste endereço e clique de novo.'); return; }
-    var b = this; b.disabled = true;
+    b.disabled = true;
     (async function () {
       try {
         var t0 = Date.now();
@@ -1698,7 +1885,7 @@ function linhasDoPdf(itens) {
         if (!sel.length) { escreverJanela(J, { catalogo: true }); return; }
         var it = sel[0], bytes = await it.obter(), M = await lerDesenho(bytes, it.nome);
         if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
-        M.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+        M.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: ehCam(it.nome) ? 'text/plain' : 'application/pdf' }));
         escreverJanela(J, M);
       } catch (e) { try { J.close(); } catch (x) { } alert('Não foi possível montar o 3D.\n' + (e.message || e)); }
       b.disabled = false;
