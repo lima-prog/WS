@@ -213,15 +213,22 @@
     var w = (g && g.w) || 1040, h = (g && g.h) || 640;
     var x = g && g.x != null ? g.x : Math.round((screen.availWidth - w) / 2), y = g && g.y != null ? g.y : Math.round((screen.availHeight - h) / 2);
     var J = null;
-    try { J = window.open('', 'ppcpm_arquivos', 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y); } catch (e) { J = null; }
-    if (!J) return null;
-    try {
-      J.document.open();
-      J.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>PPCPM - ARQUIVOS</title>'
-        + '<link rel="icon" href="/pc/icone.ico"><style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}</style></head><body></body></html>');
-      J.document.close();
-    } catch (e) { try { J.close(); } catch (x) { } return null; }
+    try { J = window.open('/pc/janela', 'ppcpm_arquivos', 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y); } catch (e) { J = null; }
     return J;
+  }
+  // espera a janela carregar a página do sistema; se não carregar, volta a abrir dentro da página
+  function janelaPronta(J) {
+    return new Promise(function (ok) {
+      if (!J) return ok(null);
+      var t0 = Date.now();
+      (function ver() {
+        var pronto = false;
+        try { pronto = J.location.pathname === '/pc/janela' && J.document.readyState === 'complete' && J.document.body; } catch (e) { }
+        if (pronto) return ok(J);
+        if (J.closed || Date.now() - t0 > 6000) { try { J.close(); } catch (e) { } return ok(null); }
+        setTimeout(ver, 40);
+      })();
+    });
   }
   // se o programa sair da tela (troca de aba do sistema), fecha a janela junto
   window.addEventListener('pagehide', function () { if (JANELA && !JANELA.closed) try { JANELA.close(); } catch (e) { } });
@@ -231,8 +238,10 @@
     op = op || {};
     var filtro = filtroDe(op.accept);
     var chave = 'ppcpm:pc:ultima:' + (filtro || '*');
-    return new Promise(function (resolve) {
-      var J = abrirJanela(), D = J ? J.document : document, W = J || window;
+    var J0 = abrirJanela();   // abre já no clique (o Chrome só permite janela nova dentro do clique)
+    aberto = true; JANELA = J0;
+    return janelaPronta(J0).then(function (J) { return new Promise(function (resolve) {
+      var D = J ? J.document : document, W = J || window;
       JANELA = J;
       estilo(D); aberto = true;
       var estado = { caminho: '', pai: '', itens: [], sel: [], ordem: lsGet('ppcpm:pc:ordem') || 'nome', soAceitos: !!filtro, busca: null };
@@ -495,7 +504,7 @@
       // atualiza unidades/favoritos (pendrive ou rede pode ter conectado agora)
       api('locais').then(function (j) { LOCAIS = j; montarLado(); }).catch(function () { });
       setTimeout(function () { lista.focus(); }, 0);
-    });
+    }); });
   }
 
   /* ---------- entrega os arquivos ao programa, como se viessem da janela do Windows ---------- */

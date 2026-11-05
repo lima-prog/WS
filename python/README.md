@@ -60,6 +60,8 @@ Opcional: **`INSTALAR_BIBLIOTECAS.bat`** prepara o PC para os programas em Pytho
 - Se o sistema já estiver aberto, ele só abre o navegador (não abre duas vezes).
 - Para deixar os colegas acessarem pela rede: `ABRIR_SISTEMA.bat --rede`. A janela mostra o endereço para eles, por exemplo `http://192.168.0.15:5000`. Eles não instalam nada e **não enxergam os arquivos do seu PC**: cada um escolhe os próprios arquivos pela janela comum do Windows.
 
+O sistema abre como **aplicativo** do Chrome (ou do Edge, se não houver Chrome): janela própria, sem barra de endereço e sem abas. Para abrir numa aba comum do navegador, use `ABRIR_SISTEMA.bat --navegador`.
+
 Outras opções: `--sem-navegador`, `--sem-atualizar`, `--verificar`.
 
 ## Outros PCs (rodar suave)

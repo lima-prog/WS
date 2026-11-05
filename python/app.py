@@ -11,7 +11,8 @@ Usa só o que já vem com o Python: não precisa de pip nem de administrador.
 
     python app.py                    -> abre neste computador
     python app.py --rede             -> outros PCs da rede também abrem (sem ver os arquivos deste PC)
-    python app.py --sem-navegador    -> não abre o navegador sozinho (ex.: ao ligar o Windows)
+    python app.py --sem-navegador    -> não abre a tela sozinho (ex.: ao ligar o Windows)
+    python app.py --navegador        -> abre numa aba comum do navegador (em vez da janela de aplicativo)
     python app.py --sem-atualizar    -> não procura versões novas
     python app.py --verificar        -> confere se o PC está pronto (Python, rede, pastas, bibliotecas)
 """
@@ -105,6 +106,11 @@ class Sistema(BaseHTTPRequestHandler):
                 return self._enviar(200, bruta, "text/html; charset=utf-8", compactado=comp)
             if caminho == "/versao.json":   # usado pelo aviso "Nova versão disponível"
                 return self._json({"versao": versao()})
+            if caminho == "/pc/janela":   # janela PPCPM - ARQUIVOS (a ponte desenha a tela dentro dela)
+                return self._enviar(200, '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
+                                    '<title>PPCPM - ARQUIVOS</title><link rel="icon" href="/pc/icone.ico">'
+                                    '<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}</style>'
+                                    '</head><body></body></html>', "text/html; charset=utf-8")
             if caminho == "/pc/icone.ico":
                 return self._enviar(200, (PONTE_JS.parent / "icone.ico").read_bytes(), "image/x-icon", sem_cache=False)
             if caminho == "/pc/ponte.js":
@@ -216,6 +222,43 @@ class Sistema(BaseHTTPRequestHandler):
 
 
 # ---------------- inicialização ----------------
+def _navegador_app() -> str | None:
+    """Chrome ou Edge deste PC, para abrir o sistema como aplicativo (sem barra de endereço e sem abas)."""
+    if not sys.platform.startswith("win"):
+        return None
+    import os
+    candidatos = []
+    try:
+        import winreg
+        for raiz in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
+            for exe in ("chrome.exe", "msedge.exe"):
+                try:
+                    with winreg.OpenKey(raiz, r"Software\Microsoft\Windows\CurrentVersion\App Paths" + "\\" + exe) as k:
+                        candidatos.append(winreg.QueryValueEx(k, "")[0])
+                except OSError:
+                    pass
+    except ImportError:
+        pass
+    for base in (os.environ.get("ProgramFiles", ""), os.environ.get("ProgramFiles(x86)", ""), os.environ.get("LOCALAPPDATA", "")):
+        candidatos += [os.path.join(base, "Google", "Chrome", "Application", "chrome.exe"),
+                       os.path.join(base, "Microsoft", "Edge", "Application", "msedge.exe")]
+    candidatos.sort(key=lambda c: "msedge" in c.lower())   # Chrome primeiro, Edge se não tiver Chrome
+    return next((c for c in candidatos if c and os.path.isfile(c)), None)
+
+
+def abrir_tela(endereco: str, como_app: bool = True) -> None:
+    """Abre o sistema: como aplicativo (janela própria, só a tela do sistema) ou, se não der, no navegador."""
+    nav = _navegador_app() if como_app else None
+    if nav:
+        import subprocess
+        try:
+            subprocess.Popen([nav, f"--app={endereco}"], close_fds=True)
+            return
+        except OSError:
+            pass
+    webbrowser.open(endereco)
+
+
 def _ja_aberto() -> int | None:
     """Se o sistema já está aberto neste PC, devolve a porta (para não abrir duas vezes)."""
     for porta in range(PORTA_PADRAO, PORTA_PADRAO + 20):
@@ -267,7 +310,7 @@ def main(args: list[str]) -> int:
     if porta_aberta:
         print(f"O sistema já está aberto neste PC (porta {porta_aberta}). Abrindo no navegador...")
         if abrir_navegador:
-            webbrowser.open(f"http://127.0.0.1:{porta_aberta}")
+            abrir_tela(f"http://127.0.0.1:{porta_aberta}", "--navegador" not in args)
         return 0
 
     na_rede = "--rede" in args
@@ -296,7 +339,7 @@ def main(args: list[str]) -> int:
 
     threading.Thread(target=pagina, daemon=True).start()   # já deixa a página pronta na memória
     if abrir_navegador:
-        threading.Timer(1.0, lambda: webbrowser.open(endereco)).start()
+        threading.Timer(1.0, lambda: abrir_tela(endereco, "--navegador" not in args)).start()
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:
