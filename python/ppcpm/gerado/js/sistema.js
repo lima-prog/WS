@@ -24,7 +24,7 @@ const DICT=[
 ["Salvar senha","Remember password","Recordar contraseña"],
 ["CADASTRE-SE","SIGN UP","REGÍSTRATE"],
 ["Criar cadastro para acessar o sistema","Create an account to access the system","Crear una cuenta para acceder al sistema"],
-["ENTRAR","SIGN IN","ENTRAR"],
+["ENTRAR","SIGN IN","ENTRAR"],["BEM-VINDO","WELCOME","BIENVENIDO"],
 ["ACESSO SEGURO · GRUPO PROJEART","SECURE ACCESS · GRUPO PROJEART","ACCESO SEGURO · GRUPO PROJEART"],
 ["Criar cadastro","Create account","Crear cuenta"],
 ["Solicite seu acesso ao sistema.","Request access to the system.","Solicita tu acceso al sistema."],
@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 117';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 118';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -431,7 +431,7 @@ $('#lf').onsubmit=async e=>{e.preventDefault();const l=$('#lu').value.trim().rep
  if(vazio.length)return loginErro('Preencha todos os campos.','Falta preencher: '+vazio.map(x=>({'#lu':'login','#lp':'senha','#le':'e-mail'})[x]).join(', ')+'.',vazio);
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m))return loginErro('E-mail inválido.','Digite um e-mail no formato nome@empresa.com.br.',['#le']);
  if(!SB)return loginErro('Sem conexão com o servidor.','Não foi possível iniciar a conexão. Atualize a página.',['#lu']);
- const bt=$('#lf .btn');if(bt)bt.disabled=true;
+ const bt=$('#lf .btn');if(bt)bt.disabled=true;LoginAnim.carregando();let entrou=false;
  const bad=()=>{FAL++;$('#lp').value='';loginErro('Erro no login.','Login, senha ou e-mail incorretos. Confira os dados e tente de novo.'+(FAL>1?' Tentativa '+FAL+'.':''),['#lu','#lp','#le'],'#lp')};
  try{const {data,error}=await SB.auth.signInWithPassword({email:m,password:s});
   if(error){if(/fetch|network|failed/i.test(error.message||''))return loginErro('Sem conexão com o servidor.','Confira a internet e tente de novo.',['#lu']);return bad()}
@@ -440,15 +440,21 @@ $('#lf').onsubmit=async e=>{e.preventDefault();const l=$('#lu').value.trim().rep
   if(!p.ativo){await SB.auth.signOut();return p.aprovado_em?loginErro('Acesso bloqueado.','Seu usuário está bloqueado. Fale com o administrador do sistema.',['#lu'],'#lu'):loginErro('Acesso ainda não ativado.','Use a chave de acesso enviada pelo administrador (CADASTRE-SE › Ativar acesso). Se já passaram 5 minutos, refaça o cadastro.',['#lu'],'#lu')}
   FAL=0;limpaErro();
   try{if($('#lr').checked)localStorage.setItem(RK,JSON.stringify({l:$('#lu').value.trim(),s,e:$('#le').value.trim()}));else localStorage.removeItem(RK)}catch(x){}
-  coverIntro();await enter(uObj(p),true)}
+  entrou=true;await LoginAnim.sucesso();coverIntro();await enter(uObj(p),true)}
  catch(x){console.error(x);const iv0=document.getElementById('intro');if(iv0&&!USER)iv0.remove();loginErro('Sem conexão com o servidor.','Confira a internet e tente de novo.',['#lu'])}
- finally{if(bt)bt.disabled=false}};
+ finally{if(bt)bt.disabled=false;if(entrou)setTimeout(()=>LoginAnim.limpar(),400);else LoginAnim.parar()}};
 function coverIntro(){if(!document.getElementById('intro')){document.body.insertAdjacentHTML('beforeend',introHTML());applyI18n($('#intro'))}}
 async function perfilDe(id){const r=await SB.from('perfis').select('*').eq('id',id).maybeSingle();return r.data}
 const RK='projeart_pcp:lembrar';let FAL=0;
 function lOk(t){const e=$('#lok');e.textContent=t?TX(t):'';e.classList.toggle('hide',!t)}
 function limpaErro(){lOk();$('#er').innerHTML='';document.querySelectorAll('#lf .in').forEach(x=>x.classList.remove('bad'))}
-function loginErro(t,m,campos,foco){limpaErro();t=TX(t);m=TX(m);$('#er').innerHTML=ico('warn')+'<span><b>'+t+'</b>'+m+'</span>';
+const LoginAnim={btn:()=>$('#lf .btn'),
+ carregando(){const b=this.btn();if(!b)return;b.dataset.txt=b.dataset.txt||b.textContent;b.classList.remove('btn-sucesso');b.classList.add('btn-carregando')},
+ parar(){const b=this.btn();if(b)b.classList.remove('btn-carregando')},
+ async sucesso(){const b=this.btn(),c=$('#lf');if(!b)return;b.classList.remove('btn-carregando');b.classList.add('btn-sucesso');b.textContent='✓ '+TX('BEM-VINDO');
+  const calmo=matchMedia('(prefers-reduced-motion: reduce)').matches;await new Promise(r=>setTimeout(r,calmo?150:500));c.classList.add('login-saindo');await new Promise(r=>setTimeout(r,calmo?50:600))},
+ limpar(){const b=this.btn(),c=$('#lf');if(c)c.classList.remove('login-saindo');if(b){b.classList.remove('btn-carregando','btn-sucesso');if(b.dataset.txt){b.textContent=b.dataset.txt;applyI18n($('#lf'))}}}};
+function loginErro(t,m,campos,foco){LoginAnim.parar();limpaErro();t=TX(t);m=TX(m);$('#er').innerHTML=ico('warn')+'<span><b>'+t+'</b>'+m+'</span>';
  campos.forEach(c=>$(c).closest('.in').classList.add('bad'));const c=$('#lf');c.classList.remove('shk');void c.offsetWidth;c.classList.add('shk');$(foco||campos[0]).focus()}
 $('#lf').addEventListener('input',e=>{const i=e.target.closest('.in');if(i)i.classList.remove('bad')});
 function fillRemember(){try{const r=JSON.parse(localStorage.getItem(RK));if(r){$('#lu').value=r.l||'';$('#lp').value=r.s||'';$('#le').value=r.e||'';$('#lr').checked=true;return true}}catch(e){}return false}

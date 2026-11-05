@@ -124,7 +124,18 @@ dialog{width:min(480px,94vw)}
 #er b{color:var(--erb);display:block;font-size:13px}
 .in.bad{border-color:#ef4444;box-shadow:0 0 0 1px #ef4444}
 @keyframes shk{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-#login .card.shk{animation:shk .35s}
+#login .card.shk{animation:loginShake .45s ease}
+/* V118: animação de login — erro (treme + campos vermelhos), carregando (spinner), sucesso (verde + card sumindo) */
+@keyframes loginShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+#login .in.bad{border-color:#e24b4a!important;box-shadow:0 0 0 2px rgba(226,75,74,.25)!important;transition:border-color .2s,box-shadow .2s}
+#login #er:not(:empty){animation:loginFadeIn .3s ease}
+@keyframes loginFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+#login .btn.btn-carregando{position:relative;color:transparent!important;pointer-events:none}
+#login .btn.btn-carregando::before{content:"";position:absolute;inset:0;margin:auto;width:20px;height:20px;border-radius:50%;border:3px solid #fff;border-top-color:transparent;animation:loginGirar .7s linear infinite}
+@keyframes loginGirar{to{transform:rotate(360deg)}}
+#login .btn.btn-sucesso{background:#1d9e75!important;border-color:#1d9e75!important;color:#fff!important;transition:background .3s}
+#login .card.login-saindo{opacity:0!important;transform:translateY(-20px) scale(.96)!important;transition:opacity .5s ease,transform .5s ease}
+@media(prefers-reduced-motion:reduce){#login #er:not(:empty),#login .btn.btn-carregando::before{animation:none}#login .card.login-saindo{transition:none}}
 @media(prefers-reduced-motion:reduce){#login .card.shk{animation:none}}
 
 /* Animação de abertura do Início */
