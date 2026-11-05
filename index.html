@@ -22153,11 +22153,37 @@ function criarVisualizador3D(container, parametros) {
     const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; m.userData.nome = nome; return m;
   }
 
+  // barra reta (perfil, cantoneira) de p0 a p1 — usada nas estruturas (treliças, vigas mestras)
+  function barra(b, mat) {
+    const p = b.perfil, Zw = new THREE.Vector3(0, 0, 1);
+    const A = new THREE.Vector3(...b.p0), B = new THREE.Vector3(...b.p1), dir = B.clone().sub(A), L = dir.length(); dir.normalize();
+    const n = Zw.clone().cross(dir).normalize();                    // perpendicular à barra, no plano do desenho
+    let forma, x, y, origem;
+    if (p.tipo === 'L') {
+      const a = p.h, c = p.b, t = p.t || 3, s = new THREE.Shape();
+      [[0, 0], [a, 0], [a, t], [t, t], [t, c], [0, c]].forEach((q, i) => i ? s.lineTo(q[0], q[1]) : s.moveTo(q[0], q[1]));
+      forma = [s]; x = n.clone(); y = b.lado ? Zw.clone().multiplyScalar(-Math.sign(b.lado)) : Zw.clone();   // aba encostada na mesa do banzo, a outra para dentro
+      origem = n.clone().multiplyScalar(-(b.larg || a) / 2).add(Zw.clone().multiplyScalar(b.z || 0));
+    } else {
+      forma = secao(p).pecas;
+      if (b.giro === 'em pe') { y = n.clone(); } else { y = Zw.clone(); }
+      x = y.clone().cross(dir); origem = Zw.clone().multiplyScalar(b.z || 0);
+    }
+    const z = x.clone().cross(y), inicio = z.dot(dir) >= 0 ? A : B;
+    const base = new THREE.Matrix4().makeBasis(x, y, z), g = new THREE.Group();
+    forma.forEach((sh) => {
+      const m = extrudar(sh, L, mat, b.nome); m.userData.marca = b.marca;
+      m.quaternion.setFromRotationMatrix(base); m.position.copy(inicio).add(origem); g.add(m);
+    });
+    return g;
+  }
+
   function montar(par) {
     P = par; descartar();
     const acab = par.acabamento || 'natural';
     const mat = materiais.principal = material(acab, par.cor);
     grupo = new THREE.Group(); grupo.userData.pecas = [];
+    if (par.barras) return montarEstrutura(par, mat);
     const perfil = par.perfil, sec = secao(perfil), L = par.comprimento, segs = par.segmentos && par.segmentos.length ? par.segmentos : [L];
 
     // perfil principal, um pedaço por trecho (as emendas aparecem como uma linha fina)
@@ -22201,6 +22227,20 @@ function criarVisualizador3D(container, parametros) {
     });
 
     grupo.rotation.y = Math.PI / 2;                    // comprimento ao longo do eixo X
+    return finalizar();
+  }
+
+  function montarEstrutura(par, mat) {
+    par.barras.forEach((b) => { const g = barra(b, mat); g.children.slice().forEach((m) => { grupo.add(m); grupo.userData.pecas.push(m); }); });
+    (par.placas3d || []).forEach((pl) => {
+      const geo = new THREE.BoxGeometry(pl.esp, pl.altY, pl.largZ); ajustarUV(geo, false);
+      const m = new THREE.Mesh(geo, mat); m.position.set(...pl.centro); m.castShadow = m.receiveShadow = true;
+      m.userData.nome = pl.nome; m.userData.marca = pl.marca; grupo.add(m); grupo.userData.pecas.push(m);
+    });
+    return finalizar();
+  }
+
+  function finalizar() {
     cena.add(grupo);
     // centraliza na origem (o giro fica em torno do meio da peça)
     const caixa = new THREE.Box3().setFromObject(grupo), centro = caixa.getCenter(new THREE.Vector3());
@@ -22221,6 +22261,11 @@ function criarVisualizador3D(container, parametros) {
   }
 
   function vistaInicial(tam) {
+    if (P && P.barras) {   // estrutura comprida: enquadra pela largura da tela, vista quase de frente
+      const tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), th = tv * Math.max(0.6, camera.aspect || 1.6);
+      const d = Math.max(tam.x * 0.68 / th, tam.y * 0.8 / tv) + tam.z;
+      return { pos: new THREE.Vector3(0.32, 0.24, 1).normalize().multiplyScalar(d), alvo: new THREE.Vector3(0, 0, 0) };
+    }
     const dist = raio / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.05;
     const dir = new THREE.Vector3(1, 0.62, 1.15).normalize();                 // vista 3/4 em diagonal
     return { pos: dir.multiplyScalar(dist), alvo: new THREE.Vector3(0, 0, 0) };
@@ -22238,7 +22283,7 @@ function criarVisualizador3D(container, parametros) {
   function focarPonta(lado) {
     const cx = new THREE.Box3().setFromObject(grupo), tam = cx.getSize(new THREE.Vector3());
     const alvo = new THREE.Vector3(lado < 0 ? cx.min.x + Math.min(tam.x * 0.15, 500) : cx.max.x - Math.min(tam.x * 0.15, 500), 0, 0);
-    const d = Math.max(tam.y, tam.z) * 3.2 + 200;
+    const d = Math.max(tam.y, tam.z) * (P && P.barras ? 1.5 : 3.2) + 200;
     irPara(alvo.clone().add(new THREE.Vector3(lado * d * 0.85, d * 0.45, d * 0.7)), alvo);   // olhando a ponta por fora (tampa e aba à vista)
   }
 
@@ -22285,8 +22330,9 @@ function criarVisualizador3D(container, parametros) {
     requestAnimationFrame(passo);
   }
 
+  redimensionar();
   const r = montar(parametros);
-  redimensionar(); camera.position.copy(inicio.pos); controles.target.copy(inicio.alvo); controles.update(); laco();
+  camera.position.copy(inicio.pos); controles.target.copy(inicio.alvo); controles.update(); laco();
   return {
     atualizar(novos, animar = true) { const antes = camera.position.clone(), alvo = controles.target.clone(); montar(novos); if (animar) { camera.position.copy(antes.multiplyScalar(0.92)); controles.target.copy(alvo); irPara(inicio.pos.clone(), inicio.alvo.clone(), 700); } },
     material(acab, cor) { P.acabamento = acab; P.cor = cor; const m = material(acab, cor); grupo.traverse((o) => { if (o.isMesh) o.material = m; }); if (materiais.principal) materiais.principal.dispose(); if (materiais.luz) { materiais.luz.dispose(); delete materiais.luz; } materiais.principal = m; },
@@ -22335,6 +22381,10 @@ if (MODELO.catalogo) {
   const z = CAT_Z.Z290;
   PAR = { catalogo: true, perfil: { tipo: 'Z', h: z.h, b: z.d1, d: z.d2, t: 1.95 }, nomeZ: 'Z290', comprimento: 1500, segmentos: [1500], placas: [], comFuro: true, acabamento: 'natural', nomePrincipal: 'Perfil Z290 #1,95' };
   $('#titulo').textContent = 'PPCPM - PERFIL Z ENRIJECIDO'; $('#b-pdf').style.display = 'none';
+} else if (MODELO.tipo === 'estrutura') {
+  PAR = { estrutura: true, barras: MODELO.barras, placas3d: MODELO.placas3d, perfil: MODELO.perfil, comprimento: MODELO.comprimento, acabamento: 'natural', nomePrincipal: 'Banzo ' + MODELO.banzo.descricao.replace(/\s+x\s+[\d.]+$/, '') };
+  $('#titulo').textContent = 'PPCPM - 3D · ' + (MODELO.arquivo || MODELO.objeto || 'DESENHO');
+  document.title = 'PPCPM - 3D · ' + (MODELO.arquivo || '');
 } else {
   const p = MODELO.perfil;
   PAR = { perfil: p, comprimento: MODELO.comprimento, segmentos: MODELO.segmentos, placas: MODELO.placas, furos: MODELO.furos, comFuro: false, acabamento: 'natural', nomePrincipal: `${nomeTipo[p.tipo] || 'Perfil'} ${p.h}${p.b ? ' × ' + p.b : ''}${p.t ? ' × ' + fmt(p.t) : ''}` };
@@ -22348,6 +22398,20 @@ function ficha() {
     h += `<h3>Dimensões</h3><div class="botoes">${Object.keys(CAT_Z).map((k) => `<button data-z="${k}" class="${PAR.nomeZ === k ? 'on' : ''}">${k}</button>`).join('')}</div>`;
     h += `<h3>Aço estrutural ZAR 400</h3><div class="botoes">${ESPESSURAS.map((e) => `<button data-e="${e}" class="${PAR.perfil.t === e ? 'on' : ''}">#${fmt(e)}mm</button>`).join('')}</div>`;
     h += `<h3>Com ou sem furo</h3><div class="botoes"><button data-f="1" class="${PAR.comFuro ? 'on' : ''}">Com furo</button><button data-f="0" class="${!PAR.comFuro ? 'on' : ''}">Sem furo</button></div>`;
+  } else if (PAR.estrutura) {
+    const M = MODELO, c = M.conferencia || {}, conj = M.conjunto || {}, r = M.resumo || {};
+    const ok = (v) => v ? ` <span class="ok">✓ cota ${fmt(v, 0)}</span>` : '';
+    h += `<h3>Desenho</h3><div class="kv"><span>Objeto</span><span>${esc(M.objeto || '—')}</span><span>Obra</span><span>${esc(M.obra || '—')}</span><span>Trecho</span><span>${esc(M.trecho || '—')}</span><span>Arquivo</span><span>${esc(M.arquivo || '—')}</span>`;
+    if (conj.nome) h += `<span>Conjunto</span><span>${esc(conj.marca)} · ${esc(conj.nome)} · ${conj.qtd} un.${conj.peso_unit ? ' · ' + fmt(conj.peso_unit, 1) + ' kg' : ''}</span>`;
+    h += `</div><h3>Estrutura em 3D</h3><div class="kv"><span>Banzos</span><span>${esc(M.banzo.descricao)}</span>`;
+    h += `<span>Vão</span><span>${fmt(c.banzo, 0)} mm${ok(c.ok_banzo)}</span>`;
+    if (c.ok_total || M.placas3d.length) h += `<span>Com chapas</span><span>${fmt(c.total, 0)} mm${ok(c.ok_total)}</span>`;
+    h += `<span>Altura</span><span>${fmt(c.altura, 0)} mm${ok(c.ok_altura)}</span><span>Espessura</span><span>${fmt(M.espessura, 0)} mm</span>`;
+    h += `<span>Barras</span><span>${r.diagonais || 0} diagonais · ${r.montantes || 0} montantes</span><span>Peças no 3D</span><span>${r.pecas || 0}</span></div>`;
+    h += `<h3>Lista de materiais</h3><table><thead><tr><th>Marca</th><th>Qtd</th><th>Descrição</th><th>No 3D</th></tr></thead><tbody>`;
+    M.itens.forEach((i) => { h += `<tr data-marca="${i.no3d ? esc(i.marca) : '-'}"><td>${esc(i.marca)}</td><td>${i.por_conjunto}</td><td>${esc(i.descricao)}</td><td>${i.no3d ? esc(i.papel3d) : '<span style="color:#9aa1ad">' + esc(i.papel3d) + '</span>'}</td></tr>`; });
+    h += `</tbody></table>`;
+    if ((M.avisos || []).length) h += `<h3 class="alerta">Atenção</h3><ul class="avisos">${M.avisos.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`;
   } else {
     const M = MODELO, c = M.conferencia || {}, conj = M.conjunto || {};
     h += `<h3>Desenho</h3><div class="kv"><span>Objeto</span><span>${esc(M.objeto || conj.nome || '—')}</span><span>Obra</span><span>${esc(M.obra || '—')}</span><span>Trecho</span><span>${esc(M.trecho || '—')}</span><span>Arquivo</span><span>${esc(M.arquivo || '—')}</span>`;
@@ -22370,6 +22434,7 @@ function ficha() {
   h += `<h3>Acabamento</h3><div class="botoes"><button data-a="natural" class="${PAR.acabamento === 'natural' ? 'on' : ''}">Natural</button><button data-a="pintura" class="${PAR.acabamento === 'pintura' ? 'on' : ''}">Pintura eletrostática</button><button data-a="galv" class="${PAR.acabamento === 'galv' ? 'on' : ''}">Galvanizado a fogo</button></div>`;
   h += PAR.catalogo
     ? `<div class="obs"><b>Obs:</b><br>• Z170 | Z230 | Z290 | Z360 — comprimento até 12 m.<br>• Para comprimentos especiais, consultar o setor técnico Projeart.<br>• Cores: Natural | Pintura eletrostática | Galvanizado a fogo.</div>`
+    : PAR.estrutura ? `<div class="obs"><b>Obs:</b> 3D montado automaticamente: os textos do desenho (lista de materiais) e as linhas da vista em elevação, em escala. Banzos, diagonais, montantes e chapas de topo ficam na posição do desenho; chapas pequenas (calços, ligações) aparecem só na lista. Soldas e furos não são desenhados — confira sempre o PDF.</div>`
     : `<div class="obs"><b>Obs:</b> 3D montado automaticamente a partir do desenho (lista de materiais, seções e cotas). Detalhes como soldas e posição exata de cada furo podem ser simplificados — confira sempre o PDF.</div>`;
   f.innerHTML = h;
   f.querySelectorAll('[data-z]').forEach((b) => b.onclick = () => { const z = CAT_Z[b.dataset.z]; PAR.nomeZ = b.dataset.z; Object.assign(PAR.perfil, { h: z.h, b: z.d1, d: z.d2 }); atualizar(); });
@@ -22381,6 +22446,7 @@ function ficha() {
 function legenda() {
   const p = PAR.perfil;
   if (PAR.catalogo) return `<b>${PAR.nomeZ}</b> · Z = ${p.h} mm · D1 = ${p.b} mm · D2 = ${p.d} mm · enrijecedor a 45°<br>Chapa #${fmt(p.t)} mm · ZAR 400 · ${PAR.comFuro ? 'com furos Ø14 a cada 500 mm' : 'sem furo'}`;
+  if (PAR.estrutura) return `<b>Seção dos banzos</b><br>${esc(PAR.nomePrincipal)}<br>Mesas de ${fmt(PAR.perfil.b, 0)} mm na vertical (vista do desenho) e altura ${fmt(PAR.perfil.h, 0)} mm na espessura da estrutura.<br>Passe o mouse numa linha da lista para ver a peça no 3D.`;
   return `<b>Seção do perfil principal</b><br>${esc(PAR.nomePrincipal)}`;
 }
 function secao2D() { $('#secao').innerHTML = desenho2D(PAR.perfil) + `<div class="leg">${legenda()}</div>`; }
@@ -22415,6 +22481,349 @@ window.PPCPM_3D = viewer;
 </div>
 
 <script>
+/* =====================================================================
+   PPCPM — LEITURA DE TEXTO VETORIAL (fontes SHX do AutoCAD)
+   Desenhos "DWG To PDF" escrevem os textos como traços (linhas), sem
+   texto selecionável. Aqui os traços viram letras de novo: cada letra é
+   comparada com modelos tirados dos desenhos da Projeart (lista de
+   materiais, carimbo, cotas). Devolve itens no mesmo formato do pdf.js.
+   ===================================================================== */
+async function segmentosDoPdf(pdfjs, pg) {
+  var ol = await pg.getOperatorList(), O = pdfjs.OPS, H = pg.view[3];
+  var ctm = [1, 0, 0, 1, 0, 0], pilha = [], cam = 0, segs = [];
+  function mul(a, b) { return [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]]; }
+  function P(x, y) { return [ctm[0] * x + ctm[2] * y + ctm[4], H - (ctm[1] * x + ctm[3] * y + ctm[5])]; }
+  function add(u, v) { segs.push([u[0], u[1], v[0], v[1], cam]); }
+  for (var i = 0; i < ol.fnArray.length; i++) {
+    var f = ol.fnArray[i], a = ol.argsArray[i];
+    if (f === O.save) pilha.push(ctm);
+    else if (f === O.restore) { var s = pilha.pop(); if (s) ctm = s; }
+    else if (f === O.transform) ctm = mul(ctm, a);
+    else if (f === O.constructPath) {
+      var ops = a[0], c = a[1], k = 0, cur = null, ini = null; cam++;
+      for (var j = 0; j < ops.length; j++) {
+        var op = ops[j], p;
+        if (op === O.moveTo) { cur = P(c[k], c[k + 1]); ini = cur; k += 2; }
+        else if (op === O.lineTo) { p = P(c[k], c[k + 1]); k += 2; if (cur) add(cur, p); cur = p; }
+        else if (op === O.curveTo) { p = P(c[k + 4], c[k + 5]); k += 6; if (cur) add(cur, p); cur = p; }
+        else if (op === O.curveTo2 || op === O.curveTo3) { p = P(c[k + 2], c[k + 3]); k += 4; if (cur) add(cur, p); cur = p; }
+        else if (op === O.closePath) { if (cur && ini) add(cur, ini); cur = ini; }
+        else if (op === O.rectangle) {
+          var x = c[k], y = c[k + 1], w = c[k + 2], h = c[k + 3]; k += 4;
+          var q = [P(x, y), P(x + w, y), P(x + w, y + h), P(x, y + h)];
+          for (var e = 0; e < 4; e++) add(q[e], q[(e + 1) % 4]);
+        }
+      }
+    }
+  }
+  return { segs: segs, largura: pg.view[2], altura: H };
+}
+
+function textoVetorial(segs, exportar) {
+  var GW = 8, GH = 14;
+  function bb(L) { var a = 1e9, b = 1e9, c = -1e9, d = -1e9; for (var i = 0; i < L.length; i++) { var s = L[i]; a = Math.min(a, s[0], s[2]); b = Math.min(b, s[1], s[3]); c = Math.max(c, s[0], s[2]); d = Math.max(d, s[1], s[3]); } return [a, b, c, d]; }
+  // 1) caminhos curtos -> caracteres (traços seguidos que se tocam = mesma letra)
+  var cams = [], at = null;
+  segs.forEach(function (s) { if (!at || at.id !== s[4]) { at = { id: s[4], segs: [] }; cams.push(at); } at.segs.push(s); });
+  var chars = [], ch = null;
+  function sob(p, q, t) { return p[0] <= q[2] + t && q[0] <= p[2] + t && p[1] <= q[3] + t && q[1] <= p[3] + t; }
+  cams.forEach(function (c) {
+    c.b = bb(c.segs); if (Math.max(c.b[2] - c.b[0], c.b[3] - c.b[1]) > 14 || c.segs.length > 40) { ch = null; return; }
+    if (ch && c.id - ch.ult <= 1 && sob(ch.b, c.b, 0.02)) {
+      ch.segs = ch.segs.concat(c.segs); ch.b = bb(ch.segs); ch.ult = c.id;
+      // traço que liga esta letra à anterior (ex.: travessão do "H" desenhado por último) -> mesma letra
+      var ant = chars[chars.length - 2];
+      if (ant && ant.ult === ch.ini - 1 && ch.ini === c.id - 1 && sob(ant.b, c.b, 0.02)) { ant.segs = ant.segs.concat(ch.segs); ant.b = bb(ant.segs); ant.ult = c.id; chars.pop(); ch = ant; }
+    }
+    else { ch = { segs: c.segs.slice(), b: c.b, ult: c.id, ini: c.id }; chars.push(ch); }
+  });
+  // 2) letras seguidas e do mesmo tamanho -> palavras/linhas
+  function cen(c) { return [(c.b[0] + c.b[2]) / 2, (c.b[1] + c.b[3]) / 2]; }
+  function tam(c) { return Math.max(c.b[2] - c.b[0], c.b[3] - c.b[1]); }
+  var runs = [], r = null;
+  chars.forEach(function (c) {
+    var C = cen(c), T = tam(c);
+    if (r) { var Pp = cen(r.chars[r.chars.length - 1]), d = Math.hypot(C[0] - Pp[0], C[1] - Pp[1]);
+      if (d < 2.6 * Math.max(r.S, T) && T <= r.S * 1.7 + 0.5 && T >= r.S * 0.12) { r.chars.push(c); r.S = Math.max(r.S, T); return; } }
+    r = { chars: [c], S: T }; runs.push(r);
+  });
+  var itens = [];
+  runs.forEach(function (run) {
+    var cs = run.chars, d = [1, 0];
+    if (cs.length >= 2) { var a = cen(cs[0]), z = cen(cs[cs.length - 1]), L = Math.hypot(z[0] - a[0], z[1] - a[1]); if (L > 1e-6) d = [(z[0] - a[0]) / L, (z[1] - a[1]) / L]; }
+    var ang = Math.atan2(d[1], d[0]), q = Math.round(ang / (Math.PI / 2)) * (Math.PI / 2);
+    if (Math.abs(ang - q) < 0.2) d = [Math.round(Math.cos(q)), Math.round(Math.sin(q))];
+    else return;   // texto inclinado (setas, símbolos) não interessa
+    var up = [d[1], -d[0]], o = cen(cs[0]);
+    function loc(x, y) { return [(x - o[0]) * d[0] + (y - o[1]) * d[1], (x - o[0]) * up[0] + (y - o[1]) * up[1]]; }
+    cs.forEach(function (c) { c.L = c.segs.map(function (s) { return loc(s[0], s[1]).concat(loc(s[2], s[3])); }); c.lb = bb(c.L); });
+    var h = Math.max.apply(null, cs.map(function (c) { return c.lb[3] - c.lb[1]; }));
+    if (!(h > 1.5 && h < 14) || cs.length > 200) return;
+    if (exportar) exportar.push(run);
+    var bases = cs.filter(function (c) { return c.lb[3] - c.lb[1] > 0.6 * h; }).map(function (c) { return c.lb[1]; }).sort(function (a, b) { return a - b; });
+    run.o = o; run.h = h; var base = bases[Math.floor(bases.length / 2)], txt = '', ruins = 0, ult = null, passo = 0.7 * h;
+    var esq = cs.map(function (c) { return c.lb[0]; }), dif = [];
+    for (var i = 1; i < esq.length; i++) if (esq[i] - esq[i - 1] > 0.2 * h && esq[i] - esq[i - 1] < 1.2 * h) dif.push(esq[i] - esq[i - 1]);
+    if (dif.length >= 2) { dif.sort(function (a, b) { return a - b; }); passo = dif[Math.floor(dif.length / 2)]; }
+    cs.forEach(function (c) {
+      var g = new Float32Array(GW * GH), cu = (c.lb[0] + c.lb[2]) / 2, u0 = cu - 0.42 * h, v0 = base - 0.3 * h, du = 0.84 * h / GW, dv = 1.5 * h / GH;
+      c.L.forEach(function (s) { var n = Math.min(400, Math.max(2, Math.ceil(Math.hypot(s[2] - s[0], s[3] - s[1]) / (0.03 * h))));
+        for (var k = 0; k <= n; k++) { var u = s[0] + (s[2] - s[0]) * k / n, v = s[1] + (s[3] - s[1]) * k / n, ii = Math.floor((u - u0) / du), jj = Math.floor((v - v0) / dv); if (ii >= 0 && ii < GW && jj >= 0 && jj < GH) g[jj * GW + ii] = 1; } });
+      c.g = g; var f = borrar(g), w = (c.lb[2] - c.lb[0]) / h, hh = (c.lb[3] - c.lb[1]) / h, vb = (c.lb[1] - base) / h, melhor = '?', md = 1e9;
+      MODELOS_LETRA().forEach(function (m) { var s = 0; for (var i = 0; i < f.length; i++) { var t = f[i] - m.f[i]; s += t * t; } var dd = Math.sqrt(s) + 3 * Math.abs(w - m.w) + 3 * Math.abs(hh - m.hh) + 3 * Math.abs(vb - m.vb); if (dd < md) { md = dd; melhor = m.l; } });
+      if (md > 3.2) { melhor = '?'; ruins++; }
+      if (ult !== null && c.lb[0] - ult > 1.6 * passo) txt += ' ';
+      txt += melhor; ult = c.lb[0]; c.w = w; c.hh = hh; c.vb = vb; c.lido = melhor;
+    });
+    if (ruins > cs.length / 2) return;
+    // posição no formato do pdf.js (y para cima); rot: texto vertical
+    itens.push({ str: txt, transform: d[1] !== 0 ? [0, 1, -1, 0, o[0], 0] : [1, 0, 0, 1, o[0], -(o[1] + base * up[1])], h: h, vetorial: true });
+  });
+  return itens;
+  function borrar(g) {
+    var b = new Float32Array(GW * GH);
+    for (var j = 0; j < GH; j++) for (var i = 0; i < GW; i++) { var s = 0; for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) { var a = i + di, bj = j + dj; if (a >= 0 && a < GW && bj >= 0 && bj < GH) s += g[bj * GW + a] * (di === 0 && dj === 0 ? 1 : 0.35); } b[j * GW + i] = s; }
+    return b;
+  }
+}
+var _MODELOS_LETRA = null;
+function MODELOS_LETRA() {
+  if (_MODELOS_LETRA) return _MODELOS_LETRA;
+  var GW = 8, GH = 14;
+  _MODELOS_LETRA = MODELOS_LETRA_DADOS.map(function (m) {
+    var bits = '', hx = m[1];
+    for (var i = 0; i < hx.length; i++) bits += ('000' + parseInt(hx[i], 16).toString(2)).slice(-4);
+    bits = bits.slice(bits.length - GW * GH);
+    var g = new Float32Array(GW * GH); for (var k = 0; k < g.length; k++) g[k] = bits[k] === '1' ? 1 : 0;
+    var b = new Float32Array(GW * GH);
+    for (var j = 0; j < GH; j++) for (var i2 = 0; i2 < GW; i2++) { var s = 0; for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) { var a = i2 + di, bj = j + dj; if (a >= 0 && a < GW && bj >= 0 && bj < GH) s += g[bj * GW + a] * (di === 0 && dj === 0 ? 1 : 0.35); } b[j * GW + i2] = s; }
+    return { l: m[0], f: b, w: m[2], hh: m[3], vb: m[4] };
+  });
+  return _MODELOS_LETRA;
+}
+var MODELOS_LETRA_DADOS = [["V","0000081818181834242424664200",0.458,1,0],["M","00004242424a5a5a7e6666664200",0.475,1,0],["9","000038080c06023e624242243c00",0.475,1,0],["1","00003c0808080808080838180800",0.237,1,0],["V","0000081818181824242424424200",0.475,1,0],["I","00003c0808080808080808083c00",0.22,1,0],["G","00003e2242424246404040203e00",0.475,1,0],["A","00004242427e6624243c18180800",0.475,1,0],["M","0000424242525a5a7e6666664200",0.475,1,0],["E","00007e4040404078404040407e00",0.475,1,0],["S","00003c2446040818302062243c00",0.458,1,0],["T","0000080808080808080808087e00",0.475,1,0],["R","000042464c48507c464242447c00",0.475,1,0],["A","00004242427e6624241c18180800",0.458,1,0],["0","00003c2442424242424242243c00",0.458,1,0],["8","00003c244242663c664242243c00",0.475,1,0],["3","00003c244202060c060242243c00",0.475,1,0],[".","0000080808000000000000000000",0,0.153,0],["6","00003c244242467c406030101c00",0.475,1,0],["5","00003c24420202067c4040407e00",0.475,1,0],["2","00007e404040603c060242243c00",0.475,1,0],["4","00000404047e642414140c0c0400",0.475,1,0],["C","00003c2442404040404042243c00",0.475,1,0],["h","00004242424262765c4040404000",0.458,1,0],["x","000042663c18183c660000000000",0.458,0.661,0],[".","0000101010000000000000000000",0,0.169,0],["7","00002030101808080c0404067e00",0.475,1,0],["9","000030080c06023e624242243c00",0.475,1,0],["7","00002030101008080c0404067e00",0.475,1,0],["3","00003c244202061c060242243c00",0.475,1,0],["6","00003c244242467c406030100c00",0.475,1,0],["4","00000404047e642434140c0c0400",0.475,1,0],["1","00003c1010101010101030101000",0.237,1,0],["P","000040404040407c464242447c00",0.475,1,0],["7","00002010101808080c0404067e00",0.458,1,0],["X","00004266243c1818183c24664200",0.475,1,0],["L","00007e4040404040404040404000",0.475,1,0],["h","0000424242426276544c40404000",0.458,1,0],["x","000042663c18183c664200000000",0.475,0.678,0],["5","00003c2442020206047c40407e00",0.475,1,0],["7","0000203010100808080404067e00",0.458,1,0],["R","000042464c58507c464242447c00",0.475,1,0],["I","00003c1010101010101010103c00",0.237,1,0],["-","000000000000007e000000000000",0.475,0,0.492],["L","00003c2020202020202020202000",0.389,1,0],["I","0000080808080808080808080800",0,1,0],["S","000018664202041c306042241800",0.463,1,0],["A","00004242663c24243c1818181000",0.537,1,0],["M","00004a5a5a5a7e66666666424200",0.526,1,0],["A","00004242663c24243c1818180800",0.526,1,0],["T","0000101010101010101010107e00",0.463,1,0],["R","00004246444c487c444242447800",0.463,1,0],["P","000040404040407c464246447800",0.465,1,0],["S","00003c664202041c304042661800",0.465,1,0],["O","0000182466424242424266241800",0.535,1,0],["O","0000183466424242424266341800",0.535,1,0],["S","00003c664202061c306042661800",0.465,1,0],["U","0000182466424242424242424200",0.465,1,0],["P","000040404040407c464242447800",0.465,1,0],["R","00004246444c487c464242447800",0.465,1,0],["F","0000404040404078404040407e00",0.437,1,0],["I","0000101010101010101010101000",0,1,0],["C","00001c3422424040404222341c00",0.493,1,0],["M","0000525a5a5a7e66666666424200",0.535,1,0],["S","000018664202061c304042661800",0.465,1,0],["Q","00021c3c6e424242426624180000",0.474,1,-0.09],["T","00001010101010101010107e0000",0.423,0.91,0],["D","0000784c4444424246444c780000",0.423,0.91,0],["E","00003c20202020382020203c0000",0.397,0.91,0],["D","0000382c24242424243800000000",0.347,0.747,0],["E","00003c2020203820203c00000000",0.316,0.747,0],["S","00001824040c1820243c00000000",0.347,0.747,0],["C","0000183424202020243c00000000",0.379,0.747,0],["R","000024242c283c24243c00000000",0.347,0.747,0],["I","0000080808080808080800000000",0,0.747,0],["Ç","1808183424202020243c00000000",0.379,1,-0.253],["e","0000183424203c243c0000000000",0.394,0.662,0],["s","00001834240c38243c0000000000",0.366,0.662,0],["o","0000183c246666243c0000000000",0.423,0.662,0],["o","0000183c244666243c0000000000",0.437,0.662,0],["t","00000c18101010103c1010101000",0.268,1,0],["O","00003c66c38181818181c3663c00",0.761,1,0],["B","0000fc86838183fe82838386fc00",0.662,1,0],["J","0000182446420202020202020200",0.479,1,0],["T","000010101010101010101010ff00",0.676,1,0],["O","00003c6643818181818143663c00",0.761,1,0],["B","0000fc86838183fe86838386fc00",0.662,1,0],["R","0000818286848cfc86838386fc00",0.662,1,0],["A","00008181c37e4224243c18180800",0.761,1,0],["T","000008080808080808080808ff00",0.686,1,0],["R","0000818386848cfc82818386fc00",0.686,1,0],["C","00003c66c3808080808143661c00",0.729,1,0],["H","00008181818181ff818181818100",0.671,1,0],["C","00003c6643818080808143661c00",0.718,1,0],["N","000081838785899991a1e1c18100",0.662,1,0],["C","00001c6643c1808080c143661c00",0.704,1,0],["P","0000404040407e42427e00000000",0.495,0.747,0],["R","0000424644487c42427e00000000",0.495,0.747,0],["O","00003c6642424242663c00000000",0.568,0.747,0],["J","0000182424240404040400000000",0.358,0.747,0],["E","00007e4040407840407e00000000",0.463,0.747,0],["T","0000080808080808087e00000000",0.495,0.747,0],["D","0000784c46424242467c00000000",0.495,0.747,0],["F","0000404040407840407e00000000",0.463,0.747,0],["A","00004242663c243c181800000000",0.568,0.747,0],["B","00007c4642467c42427e00000000",0.505,0.747,0],["I","0000101010101010101000000000",0,0.747,0],["C","00001c2662404040623c00000000",0.526,0.747,0],["Ç","1c0c1c2662404040623c00000000",0.537,1,-0.253],["2","0000ff6020100804064242663c00",0.662,1,0],["1","00000404040404040404341c0400",0.239,1,0],["3","00003c66c20103021e0804067e00",0.662,1,0],["9","0000386642023e664242427e1800",0.62,1,0],["-","000000000000ff00000000000000",0.859,0,0.423],["3","00003866c30101021e0c04067e00",0.676,1,0],["0","00001c6642c381818142427e1800",0.676,1,0],["2","0000ff6030180c04064242663c00",0.662,1,0],["M","0000919999bda5e7c3c3c3818100",0.761,1,0],["Z","0000ff406020101808040602ff00",0.662,1,0],["M","0000899999bda5e7c3c3c3818100",0.761,1,0],["S","00003ce78103061c60c081663c00",0.671,1,0],["R","00008183868488fc86818386fc00",0.671,1,0],["U","00001c6642818181818181818100",0.686,1,0],["U","00003c66c2818181818181818100",0.671,1,0],["A","00008181c37e4224243c18181000",0.771,1,0],["B","0000fc86838183fe82818386fc00",0.686,1,0],["X","000081c3662418183c2466c38100",0.671,1,0],["P","00008080808080fe83818386fc00",0.662,1,0],["R","0000818386848cfe82838386fc00",0.676,1,0],["D","0000f88e828281818182828cf800",0.662,1,0],["O","00003c66c28181818181c2663c00",0.761,1,0],["S","00003c668103023c60c0c3663c00",0.662,1,0],["D","0000f88e828281818182828ef800",0.662,1,0],["D","0000f88c828283818382828cf800",0.646,1,0],["A","00008181c37e6624243c18180800",0.75,1,0],["O","00001c6643c1818181c143661800",0.75,1,0],["R","0000818386848cfc82838386fc00",0.667,1,0],["G","00001c7643c1878080c143361c00",0.708,1,0],["S","00003c66c303063c60c0c3663c00",0.667,1,0],["R","00008182868488fe82838386fc00",0.646,1,0],["S","00003c668303063c60c0c3663c00",0.646,1,0],["2","0000ff6030100804064242661800",0.667,1,0],["0","000018664242c181c142427e1800",0.667,1,0],["9","0000386c42023e664242423c1800",0.625,1,0],["3","00003866c20103021e0c04067e00",0.667,1,0],["J","0000182462420202020202020200",0.489,1,0],["S","00003c668103021c70c081e73c00",0.681,1,0],["C","00001c6643c1808080c143761c00",0.708,1,0],["N","0000818387858999b1a1e1c18100",0.667,1,0],["1","0000080808080818080000000000",0.153,0.667,-0.042],["3","00003c6602040c0c3c0000000000",0.444,0.667,-0.042],["/","4060203010180c04060200000000",0.556,1,-0.25],["0","00003c24664266243c0000000000",0.431,0.667,-0.042],["2","00007e30180c04243c0000000000",0.444,0.667,-0.042],["6","00003c24242438243c0000000000",0.417,0.667,-0.042],["J","0000183c24040404040000000000",0.306,0.653,0],["E","00003c20202038203c0000000000",0.417,0.653,0],["F","00002020202038203c0000000000",0.403,0.653,0],["S","00003c66060c38607e0000000000",0.431,0.653,0],["O","00003824464242663c0000000000",0.5,0.653,0],["N","000042464e5a5272620000000000",0.444,0.653,0],["M","0000899999bda5a7c3c3c3818100",0.763,1,0],["D","0000f88e828381818182828cf800",0.678,1,0],["A","00008181c37e4624243c18181000",0.763,1,0],["S","00003c668103063c60c0c3663c00",0.661,1,0],["M","0000919999bda5e5c3c3c3818100",0.763,1,0],["V","00000818183c24264242c3818100",0.763,1,0],["S","00003ce78103063c60c081663c00",0.678,1,0],["R","00008182868488fc82818386fc00",0.661,1,0],["D","0000f88c828281818382828cf800",0.661,1,0],["A","00008181c37e6224243c18180800",0.763,1,0],["C","00003c6643c1808080c143661c00",0.729,1,0],["D","0000f886828381818182828cf800",0.661,1,0],["S","00003ce78103021c60c081663c00",0.671,1,0],["S","00003ce70101061c60c081663c00",0.681,1,0],["O","00003c66c38181818181c2663c00",0.766,1,0],["O","00003c66c3818181818143663c00",0.766,1,0],["G","00003c66c3818780808143663c00",0.723,1,0],["D","0000f88e828381818183828cf800",0.681,1,0],["E","0000ff80808080f880808080ff00",0.638,1,0],["S","00003ce70103061c60c081663c00",0.681,1,0],["C","00003c6741c0808080c143661c00",0.723,1,0],["R","00008183868488fc87818386fc00",0.681,1,0],["R","00008182868c88fc82818386fc00",0.66,1,0],["W","0000424666e6a7adb99918181000",0.957,1,0],["S","00003ce70103061c60c0c3663c00",0.66,1,0],["S","00003c668103021c60c0c3663c00",0.663,1,0],["6","00001866424242667c4042761800",0.621,1,0],["X","0000814266241818182466428100",0.663,1,0],["1","00000404040404040404340c0400",0.242,1,0],["7","000020301018080c04060203ff00",0.663,1,0],["5","00003866c20103027e4040407e00",0.663,1,0],["3","00003866c20103021e0804067e00",0.663,1,0],["4","0000040404ffc46424341c0c0400",0.705,1,0],["X","0000814366241818182466438100",0.663,1,0],["9","0000386e42023e664242427e1800",0.611,1,0],["0","00001866424283818342427e1800",0.663,1,0],["D","0000f88c828281818182868cf800",0.667,1,0],["A","000081c3427e24243c1818180000",0.692,0.91,0],["R","00004242444c487e4242467c0000",0.603,0.91,0],["Q","00023e6e4a83818181c2663c0000",0.692,1,-0.09],["U","0000186642424242424242420000",0.603,0.91,0],["I","0000080808080808080808080000",0,0.91,0],["V","00000818183c24244242c3810000",0.692,0.91,0],["O","00003c664283818181c2663c0000",0.692,0.91,0],["V","00000818183c24664242c3818100",0.766,1,0],["D","0000f88e828381818183828ef800",0.674,1,0],["S","00003ce78103021c70c081e73c00",0.674,1,0],["S","00003ce68103061c70c081e63c00",0.674,1,0],["J","0000182466420202020202020200",0.468,1,0],["G","00001c6643c1878080c143761c00",0.687,1,0],["O","00003866c28381818183c2661800",0.75,1,0],["S","00003c668103061c70c081663c00",0.639,1,0],["D","0000f88e828283818382828ef800",0.639,1,0],["C","00001c7643c1808080c143761c00",0.722,1,0],["O","00003c6642818181818142663c00",0.75,1,0],["S","00003cc78103061c60c081663c00",0.686,1,0],["O","00003c66c38181818181c2663800",0.771,1,0],["D","0000f886828381818183828cf800",0.686,1,0],["A","00008181c37e4664242c18181000",0.771,1,0],["D","0000f886828381818183828ef800",0.686,1,0],["S","00003c668103061c70c083663c00",0.667,1,0],["D","0000f88c828281818182828cf800",0.667,1,0],["M","0000919999ada5e5c3c3c3818100",0.771,1,0],["A","00008181c37e6226243418180800",0.771,1,0],["B","0000fc82838183fe82838386fc00",0.657,1,0],["A","00008181c3427e26243418180800",0.771,1,0],["S","00003c428103021c70c081663c00",0.657,1,0],["O","00003c62c38181818181c3663c00",0.771,1,0],["O","00003c62c38181818181c3661c00",0.771,1,0],["S","00003c428103021c60c0c3663c00",0.657,1,0],["O","00003c66c38181818181c3661800",0.771,1,0],["S","00003c668103021c70c0c3663c00",0.667,1,0],["U","0000186642838181818181818100",0.667,1,0],["P","00008080808080fe82818386fc00",0.646,1,0],["O","00003866c38181818181c2661800",0.75,1,0],["G","00001c6643c1878080c143661c00",0.711,1,0],["A","00008181c37e4226243418180800",0.784,1,0],["B","0000fc86818183fe82838386fc00",0.676,1,0],["R","0000818386848cfc83818187fc00",0.676,1,0],["D","0000f88c828281818182828ef800",0.658,1,0],["P","00008080808080fe83818186fc00",0.658,1,0],["J","0000182c66420202020202020200",0.474,1,0],["G","00003c6643818780808143663c00",0.738,1,0],["D","0000f88c828381818183868cf800",0.69,1,0],["U","0000186642818181818181818100",0.667,1,0],["8","00003c66c381c3667e4242663c00",0.661,1,0],["5","00003866c20101027e4040407e00",0.661,1,0],["5","00003c66c20101027e4040407e00",0.678,1,0],["5","00003866c20303027e4040407e00",0.661,1,0],["8","00003c66c381c37e7e4242663c00",0.661,1,0],["5","00003c66c20103027e4040407e00",0.678,1,0],["1","000004040404040404043c0c0400",0.233,1,0],["2","0000ff6030100804064242663c00",0.65,1,0],["2","0000ff4020100804064242663c00",0.667,1,0],["0","000018664242c381c342427e1800",0.667,1,0],["8","00003c66c381427e7c4242663c00",0.65,1,0],["2","0000ff6030100804024242663c00",0.661,1,0],["0","00001c664243c181c14342761800",0.661,1,0],["0","0000386642c2838183c2426e1800",0.661,1,0],["8","00003c66c381c3663c4242663c00",0.661,1,0],["2","00007e603010080c044464243800",0.468,1,0],["5","00003824420202060c080c043e00",0.468,1,0],["6","0000183c246666647c2024341800",0.447,1,0],["L","00003c2020202020200000000000",0.367,0.656,0],["3","0000382c46061c083c0000000000",0.433,0.656,0],["N","00004246464a5a72626200000000",0.511,0.745,0],["T","0000101010101010107e00000000",0.511,0.745,0],["D","0000784c464242447c0000000000",0.444,0.653,0],["T","00000808080808087e0000000000",0.444,0.653,0],["A","000042663c243c18180000000000",0.5,0.653,0],["H","0000424242427e42420000000000",0.431,0.653,0],["D","0000784c464242447c0000000000",0.444,0.653,0],["C","00001c26624040623c0000000000",0.472,0.653,0],["A","000042663c243c18180000000000",0.5,0.653,0],["G","181c1c24624040663c0000000000",0.472,0.875,-0.222],["a","00001e3642424242361a00000000",0.583,0.667,0],["m","0000101010101018ff6300000000",1.028,0.667,0],["m","0000080808080818d76300000000",1.028,0.667,0],["G","00001866424e4040663c00000000",0.52,0.76,0],["U","0000187e42424242424200000000",0.52,0.76,0],["S","00003c6602063c60427e00000000",0.508,0.746,0],["m","0000101010101018ff0000000000",1.042,0.662,0],["m","0000101010101018ff0000000000",1.042,0.662,0],["M","0000525a5a7e6666424200000000",0.57,0.747,0],["D","0000784c4242424242424c780000",0.596,0.904,0],["N","00004242464e4a52726242420000",0.596,0.904,0],["E","00007e40404040784040407e0000",0.558,0.904,0],["D","0000784c4242424242424c780000",0.596,0.904,0],["P","00004040407c46424e7800000000",0.444,0.667,0],["R","000042444c487c464c7800000000",0.431,0.667,0],["V","00001018183c2424424200000000",0.5,0.667,0],["C","181c1836624040623c1800000000",0.472,0.875,-0.208],["k","0000242c283830282c2020202000",0.366,1,0],["g","14041c34242424243c0000000000",0.394,1,-0.338]];
+
+/* =====================================================================
+   PPCPM — LEITOR DE ESTRUTURA (treliça / viga mestra) PARA 3D
+   Junta a LISTA DE MATERIAIS (perfis, cantoneiras e chapas) com o
+   DESENHO da vista em elevação (as linhas do PDF, em escala):
+     1) acha os banzos (as duas linhas longas paralelas de cada perfil);
+     2) a escala sai do comprimento do banzo da lista (ex.: 12208 mm);
+     3) cada par de linhas paralelas entre os banzos vira uma barra
+        (diagonal, montante), com largura e comprimento medidos;
+     4) cada barra é ligada ao item da lista com a mesma largura/compr.
+   Resultado em milímetros: X = ao longo do vão, Y = altura, Z = espessura.
+   ===================================================================== */
+function interpretarEstrutura(linhas, segs, nomeArquivo) {
+  'use strict';
+  var texto = linhas.join('\n');
+  function num(v) { return v == null ? NaN : parseFloat(String(v).replace(',', '.')); }
+  function campo(re) { var m = re.exec(texto); return m ? m[1].trim() : ''; }
+  var M = {
+    tipo: 'estrutura',
+    arquivo: String(nomeArquivo || '').replace(/\.pdf$/i, '') || (/\b(F\d{4}_[\w\-]+?_R\d+)\b/.exec(texto) || [])[1] || '',
+    objeto: campo(/OBJETO:?\s+([\w\-.\/]+)/), obra: campo(/(?:^|\s)(?:OF\/)?OBRA:?\s+([A-Z0-9ÇÃÕÁÉÍÓÚÂÊ\- ]+?)\s*(?=$|\s(?:TRECHO|CLIENTE|LOCAL|I I)\b)/m),
+    trecho: campo(/TRECHO:?\s+([A-Z0-9ÇÃÕÁÉÍÓÚÂÊ.\- ]+?)\s*(?=$|\s(?:CLIENTE|LOCAL)\b)/m), cliente: campo(/CLIENTE:?\s+([A-Z0-9ÇÃÕÁÉÍÓÚÂÊ.\- ]+?)\s*$/m),
+    conjunto: null, itens: [], barras: [], placas3d: [], avisos: [], cotas: []
+  };
+
+  /* ---------- 1) LISTA DE MATERIAIS ---------- */
+  var ini = linhas.findIndex(function (l) { return /LISTA\s+(DE\s+)?MATERIAIS/i.test(l); });
+  var RX_CH = /(\S+)\s+(\d{1,4})\s+Ch\.?\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*x\s*(\d+(?:[.,]\d+)?)\s*(\S*)/g;
+  var RX_PF = /(\S+)\s+(\d{1,4})\s+(PS|VS|CS|CVS|HP|W|UE|U|L|Z|CX|TB)\s*(\d+(?:[.,]\d+)?(?:\s*X\s*\d+(?:[.,]\d+)?)+)\s+x\s+(\d+(?:[.,]\d+)?)\s*(\S*)/g;
+  var RX_CJ = /(\S*\d\S*)\s+(\d{1,4})\s+((?:VIGA|TRELI\S*|TESOURA|PILAR|COLUNA|TER[ÇC]A|ESCADA|PLATAFORMA|CONTRAVENT\S*)(?:\s+[A-ZÇÃÕÉ]+)*)\s+(\d+(?:\.\d+)?)/;
+  var vistos = {};
+  if (ini >= 0) {
+    for (var i = ini + 1; i < linhas.length; i++) {
+      var l = linhas[i], m;
+      if (!M.conjunto && (m = RX_CJ.exec(l))) M.conjunto = { marca: m[1], qtd: parseInt(m[2], 10), nome: m[3], peso_unit: num(m[4]), tipo: 'conjunto', descricao: m[3] };
+      RX_CH.lastIndex = 0;
+      while ((m = RX_CH.exec(l))) if (!vistos[m[1]]) { vistos[m[1]] = 1; M.itens.push({ marca: m[1], qtd: parseInt(m[2], 10), tipo: 'chapa', esp: num(m[3]), larg: num(m[4]), comp: num(m[5]), material: m[6], descricao: 'Ch. ' + m[3] + ' x ' + m[4] + ' x ' + m[5] }); }
+      RX_PF.lastIndex = 0;
+      while ((m = RX_PF.exec(l))) if (!vistos[m[1]]) {
+        vistos[m[1]] = 1;
+        var d = m[4].split(/\s*X\s*/).map(num), t = m[3].toUpperCase(), p;
+        if (/^(PS|VS|CS|CVS|HP|W)$/.test(t)) p = { tipo: 'W', h: d[0], b: d[1], tw: d[2] || Math.max(5, d[0] / 40), tf: d[3] || Math.max(6, d[0] / 25) };
+        else if (t === 'L') p = { tipo: 'L', h: d[0], b: d[1], t: d[2] || 3 };
+        else if (t === 'CX' || t === 'TB') p = { tipo: 'CX', h: d[0], b: d[1], t: d[2] || 3 };
+        else p = { tipo: t, h: d[0], b: d[1], d: d.length > 3 ? d[2] : 0, t: d[d.length - 1] };
+        M.itens.push({ marca: m[1], qtd: parseInt(m[2], 10), tipo: 'perfil', perfil: p, comp: num(m[5]), material: m[6], descricao: m[3] + m[4].replace(/\s+/g, '') + ' x ' + m[5] });
+      }
+    }
+  }
+  var qConj = M.conjunto && M.conjunto.qtd ? M.conjunto.qtd : 1;
+  M.itens.forEach(function (it) { it.por_conjunto = Math.max(1, Math.round(it.qtd / qConj)); it.no3d = 0; });
+  linhas.forEach(function (l) { (l.match(/(?:^|\s)(\d{3,5})(?=\s|$)/g) || []).forEach(function (x) { var v = parseInt(x, 10); if (v >= 100 && M.cotas.indexOf(v) < 0) M.cotas.push(v); }); });
+
+  var perfis = M.itens.filter(function (it) { return it.tipo === 'perfil' && it.comp > 0; });
+  if (!perfis.length) return null;
+  var banzo = perfis.slice().sort(function (a, b) { return b.comp - a.comp; })[0];
+  if (banzo.comp < 2000) return null;
+
+  /* ---------- 2) VISTA EM ELEVAÇÃO: as linhas dos banzos ---------- */
+  var horiz = segs.filter(function (s) { return Math.abs(s[3] - s[1]) < 0.05 && Math.abs(s[2] - s[0]) > 150; }).map(function (s) { return { x0: Math.min(s[0], s[2]), x1: Math.max(s[0], s[2]), y: s[1] }; });
+  var grupos = {};
+  horiz.forEach(function (h) { var k = Math.round(h.x0) + '|' + Math.round(h.x1); (grupos[k] = grupos[k] || []).push(h); });
+  var dimsBanzo = [banzo.perfil.b, banzo.perfil.h].filter(function (v) { return v > 0; });
+  var vista = null;
+  Object.keys(grupos).forEach(function (k) {
+    var g = grupos[k]; if (g.length < 4) return;
+    var ys = g.map(function (h) { return h.y; }).sort(function (a, b) { return a - b; }).filter(function (y, i, a) { return !i || y - a[i - 1] > 0.3; });
+    var x0 = g[0].x0, x1 = g[0].x1, esc = banzo.comp / (x1 - x0);
+    var pares = [];
+    for (var i = 0; i < ys.length - 1; i++) {
+      var vis = (ys[i + 1] - ys[i]) * esc, dim = dimsBanzo.find(function (v) { return Math.abs(vis - v) / v < 0.05; });
+      if (dim) pares.push({ y0: ys[i], y1: ys[i + 1], vis: dim });
+    }
+    if (pares.length < 2) return;
+    var cima = pares[0], baixo = pares[pares.length - 1];
+    if (baixo.y0 - cima.y1 < 3 * (cima.y1 - cima.y0)) return;
+    if (!vista || (baixo.y1 - cima.y0) > (vista.yB1 - vista.yT0)) vista = { x0: x0, x1: x1, esc: esc, yT0: cima.y0, yT1: cima.y1, yB0: baixo.y0, yB1: baixo.y1, vis: cima.vis };
+  });
+  if (!vista) { M.avisos.push('Não achei a vista em elevação dos banzos no desenho.'); return null; }
+  var E = vista.esc;
+  function X(x) { return (x - vista.x0) * E; }
+  function Y(y) { return (vista.yB1 - y) * E; }
+  var altura = (vista.yB1 - vista.yT0) * E;
+
+  /* ---------- 3) BARRAS entre os banzos (pares de linhas paralelas) ---------- */
+  var vao = vista.yB0 - vista.yT1;
+  var cand = segs.filter(function (s) {
+    var dx = s[2] - s[0], dy = s[3] - s[1], L = Math.hypot(dx, dy);
+    if (L < 0.25 * vao || L * E > 0.7 * banzo.comp) return false;
+    if (Math.abs(dy) < Math.abs(dx) * 0.36) return false;      // quase horizontal: não é barra da alma
+    var xs = [s[0], s[2]], ys = [s[1], s[3]];
+    return Math.min.apply(null, xs) >= vista.x0 - 2 && Math.max.apply(null, xs) <= vista.x1 + 2 && Math.min.apply(null, ys) >= vista.yT0 - 8 && Math.max.apply(null, ys) <= vista.yB1 + 8;
+  }).map(function (s) {
+    var a = s[1] <= s[3] ? [s[0], s[1], s[2], s[3]] : [s[2], s[3], s[0], s[1]];   // sempre de cima para baixo
+    var L = Math.hypot(a[2] - a[0], a[3] - a[1]), u = [(a[2] - a[0]) / L, (a[3] - a[1]) / L], n = [-u[1], u[0]];
+    return { a: a, L: L, u: u, n: n, off: a[0] * n[0] + a[1] * n[1], t0: a[0] * u[0] + a[1] * u[1], t1: a[2] * u[0] + a[3] * u[1], usado: false };
+  });
+  // tira linhas repetidas
+  cand = cand.filter(function (c, i) { return !cand.slice(0, i).some(function (o) { return Math.abs(o.a[0] - c.a[0]) < 0.05 && Math.abs(o.a[1] - c.a[1]) < 0.05 && Math.abs(o.a[2] - c.a[2]) < 0.05 && Math.abs(o.a[3] - c.a[3]) < 0.05; }); });
+  var paresB = [];
+  cand.forEach(function (c, i) {
+    cand.forEach(function (o, j) {
+      if (j <= i) return;
+      if (c.u[0] * o.u[0] + c.u[1] * o.u[1] < 0.9998) return;
+      var dp = Math.abs(o.off - c.off) * E; if (dp < 20 || dp > 400) return;
+      var sobre = Math.min(c.t1, o.t1) - Math.max(c.t0, o.t0); if (sobre < 0.6 * Math.min(c.L, o.L)) return;
+      paresB.push({ c: c, o: o, dp: dp, sobre: sobre });
+    });
+  });
+  paresB.sort(function (a, b) { return a.dp - b.dp; });
+  var barrasDes = [];
+  paresB.forEach(function (p) {
+    if (p.c.usado || p.o.usado) return; p.c.usado = p.o.usado = true;
+    var u = p.c.u, n = p.c.n, off = (p.c.off + p.o.off) / 2, t0 = Math.max(p.c.t0, p.o.t0), t1 = Math.min(p.c.t1, p.o.t1);
+    var A = [u[0] * t0 + n[0] * off, u[1] * t0 + n[1] * off], B = [u[0] * t1 + n[0] * off, u[1] * t1 + n[1] * off];
+    barrasDes.push({ p0: [X(A[0]), Y(A[1])], p1: [X(B[0]), Y(B[1])], larg: p.dp, comp: (t1 - t0) * E });
+  });
+
+  /* ---------- 4) liga cada barra a um item da lista ----------
+     primeiro pela LARGURA vista (aba da cantoneira / mesa do perfil), depois,
+     dentro da mesma seção, pelo comprimento — respeitando as quantidades. */
+  var outros = perfis.filter(function (it) { return it !== banzo; });
+  // seções com largura quase igual (ex.: L78 e L79) ficam na mesma família: no desenho não dá para
+  // separar 1 mm de aba, então quem decide é o comprimento (a menor peça da lista vai na menor barra)
+  var secs = {}, nf = 0;
+  outros.forEach(function (it) {
+    var p = it.perfil, k = Object.keys(secs).find(function (k) { var q = secs[k].perfil; return q.tipo === p.tipo && Math.abs(q.h - p.h) / p.h < 0.04 && Math.abs(q.b - p.b) / p.b < 0.04; });
+    if (!k) { k = 'f' + (nf++); secs[k] = { perfil: p, itens: [], barras: [] }; }
+    secs[k].itens.push(it);
+  });
+  barrasDes.forEach(function (b) {
+    var melhor = null, md = 1e9;
+    Object.keys(secs).forEach(function (k) {
+      var p = secs[k].perfil, dims = p.tipo === 'L' ? [p.h, p.b] : [p.b, p.h];
+      dims.forEach(function (dv) {
+        var lmin = Math.min.apply(null, secs[k].itens.map(function (it) { return Math.abs(b.comp - it.comp) / it.comp; }));
+        var s = Math.abs(b.larg - dv) / dv + 0.001 * lmin;
+        if (lmin > 0.3) s += 1;                       // comprimento nada a ver
+        if (s < md) { md = s; melhor = k; }
+      });
+    });
+    if (melhor && md < 0.08) secs[melhor].barras.push(b);
+  });
+  Object.keys(secs).forEach(function (k) {
+    var S = secs[k], pcs = S.itens.reduce(function (t, it) { return t + it.por_conjunto; }, 0);
+    if (!S.barras.length) return;
+    var por = S.perfil.tipo === 'L' ? Math.max(1, Math.min(2, Math.round(pcs / S.barras.length))) : 1;
+    var cap = Math.floor(pcs / por);
+    if (S.barras.length > cap) S.barras = S.barras.slice().sort(function (a, b) { return a.larg - b.larg; }).slice(0, cap);   // sobra: não entra
+    var bs = S.barras.slice().sort(function (a, b) { return a.comp - b.comp; });
+    var its = S.itens.slice().sort(function (a, b) { return a.comp - b.comp; }), j = 0, usado = 0;
+    bs.forEach(function (b) {
+      if (por === 1) {   // perfil: o item de comprimento mais parecido que ainda tem quantidade
+        var cands = its.filter(function (it) { return it.no3d < it.por_conjunto && Math.abs(b.comp - it.comp) / it.comp < 0.3; });
+        cands.sort(function (x, y) { return Math.abs(b.comp - x.comp) - Math.abs(b.comp - y.comp); });
+        if (cands[0]) { b.item = cands[0]; b.por = 1; cands[0].no3d++; }
+        return;
+      }
+      while (j < its.length && usado + por > its[j].por_conjunto) { j++; usado = 0; }
+      if (j >= its.length) return;
+      b.item = its[j]; b.por = por; usado += por; its[j].no3d += por;
+    });
+  });
+  barrasDes = barrasDes.filter(function (b) { return b.item; });
+
+  /* ---------- 5) monta as barras em 3D ---------- */
+  var pb = banzo.perfil, deitado = Math.abs(vista.vis - pb.b) < Math.abs(vista.vis - pb.h);   // vê a mesa (perfil deitado)
+  var espZ = deitado ? pb.h : pb.b;                                                          // espessura da estrutura (eixo Z)
+  var zInt = deitado ? pb.h / 2 - pb.tf : pb.tw / 2;                                         // face interna das mesas
+  function nomeIt(it) { return it.marca + ' · ' + it.descricao; }
+  [[(vista.yT0 + vista.yT1) / 2, 'Banzo superior'], [(vista.yB0 + vista.yB1) / 2, 'Banzo inferior']].forEach(function (b) {
+    var y = Y(b[0]);
+    M.barras.push({ marca: banzo.marca, nome: b[1] + ' · ' + nomeIt(banzo), perfil: pb, p0: [0, y, 0], p1: [banzo.comp, y, 0], z: 0, giro: deitado ? 'deitado' : 'em pe' });
+  });
+  banzo.no3d = 2; banzo.papel3d = 'Banzos (superior e inferior)';
+  barrasDes.forEach(function (b) {
+    var it = b.item, p = it.perfil, n = b.por;
+    var dx = b.p1[0] - b.p0[0], dy = b.p1[1] - b.p0[1], L = Math.hypot(dx, dy), u = [dx / L, dy / L];
+    var Lr = Math.abs(it.comp - L) / L < 0.25 ? it.comp : L, mx = (b.p0[0] + b.p1[0]) / 2, my = (b.p0[1] + b.p1[1]) / 2;
+    var p0 = [mx - u[0] * Lr / 2, my - u[1] * Lr / 2, 0], p1 = [mx + u[0] * Lr / 2, my + u[1] * Lr / 2, 0];
+    var papel = Math.abs(u[0]) < 0.08 ? 'Montante' : 'Diagonal';
+    it.papeis = it.papeis || []; if (it.papeis.indexOf(papel) < 0) it.papeis.push(papel);
+    it.papel3d = it.papeis.join(' / ') + (n > 1 ? ' (par, um de cada lado)' : '');
+    if (p.tipo === 'L' && n >= 2) {
+      [1, -1].forEach(function (lado) { M.barras.push({ marca: it.marca, nome: papel + ' · ' + nomeIt(it), perfil: p, p0: p0, p1: p1, z: lado * zInt, lado: lado, giro: 'cantoneira', larg: b.larg }); });
+    } else if (p.tipo === 'L') {
+      M.barras.push({ marca: it.marca, nome: papel + ' · ' + nomeIt(it), perfil: p, p0: p0, p1: p1, z: 0, lado: 0, giro: 'cantoneira', larg: b.larg });
+    } else {
+      M.barras.push({ marca: it.marca, nome: papel + ' · ' + nomeIt(it), perfil: p, p0: p0, p1: p1, z: 0, giro: Math.abs(b.larg - p.b) <= Math.abs(b.larg - p.h) ? 'deitado' : 'em pe' });
+    }
+  });
+
+  /* ---------- 6) chapas de topo nas pontas dos banzos ---------- */
+  var hSec = deitado ? pb.b : pb.h, pontas = [];
+  M.barras.slice(0, 2).forEach(function (b) { pontas.push({ x: 0, y: b.p0[1], lado: -1 }); pontas.push({ x: banzo.comp, y: b.p0[1], lado: 1 }); });
+  var topo = M.itens.filter(function (it) {
+    if (it.tipo !== 'chapa' || it.esp < 6) return false;
+    var a = Math.min(it.larg, it.comp), c = Math.max(it.larg, it.comp);
+    return a >= 0.95 * Math.min(hSec, espZ) && c >= 0.95 * Math.max(hSec, espZ);
+  }).sort(function (a, b) { return (b.por_conjunto % 2 === 0) - (a.por_conjunto % 2 === 0) || a.marca.localeCompare(b.marca); });
+  var k = 0;
+  topo.forEach(function (it) {
+    for (var q = 0; q < it.por_conjunto && k < pontas.length; q++, k++) {
+      var pt = pontas[k], aZ = Math.abs(it.larg - espZ) < Math.abs(it.comp - espZ) ? it.larg : it.comp, aY = aZ === it.larg ? it.comp : it.larg;
+      M.placas3d.push({ marca: it.marca, nome: 'Chapa de topo · ' + nomeIt(it), centro: [pt.x + pt.lado * it.esp / 2, pt.y, 0], esp: it.esp, altY: aY, largZ: aZ });
+      it.no3d++; it.papel3d = 'Chapa de topo do banzo';
+    }
+  });
+  M.itens.forEach(function (it) { if (!it.no3d && !it.papel3d) it.papel3d = 'não posicionada no 3D'; });
+
+  /* ---------- 7) conferência com as cotas do desenho ---------- */
+  function perto(v) { return M.cotas.find(function (c) { return Math.abs(c - v) <= 3; }); }
+  var comTopo = banzo.comp + (M.placas3d.length ? 2 * M.placas3d[0].esp : 0);
+  M.perfil = pb; M.comprimento = Math.round(comTopo); M.altura = Math.round(altura); M.espessura = espZ; M.banzo = banzo;
+  M.conferencia = { banzo: banzo.comp, ok_banzo: perto(banzo.comp), total: Math.round(comTopo), ok_total: M.placas3d.length ? perto(comTopo) : null, altura: Math.round(altura), ok_altura: perto(altura) };
+  M.resumo = { diagonais: barrasDes.filter(function (b) { return Math.abs(b.p1[0] - b.p0[0]) > 0.08 * b.comp; }).length, montantes: barrasDes.filter(function (b) { return Math.abs(b.p1[0] - b.p0[0]) <= 0.08 * b.comp; }).length, pecas: M.barras.length + M.placas3d.length };
+  var semLugar = M.itens.filter(function (it) { return !it.no3d; });
+  if (semLugar.length) M.avisos.push('Itens da lista sem posição certa no desenho (aparecem só na lista): ' + semLugar.map(function (it) { return it.marca; }).join(', ') + '.');
+  if (!M.conjunto) M.avisos.push('Não achei a linha do conjunto (ex.: VIGA MESTRA) na lista.');
+  return M;
+}
+
 /* =====================================================================
    PPCPM — LEITOR DE DESENHO (PDF) PARA 3D
    Recebe as linhas de texto do PDF (já em ordem de leitura) e devolve
@@ -22752,6 +23161,19 @@ function linhasDoPdf(itens) {
     for (var i = 1; i <= Math.min(doc.numPages, 3); i++) { var pg = await doc.getPage(i); itens = itens.concat((await pg.getTextContent()).items); }
     return linhasDoPdf(itens);
   }
+  // lê o PDF: texto normal + texto desenhado em traços (SHX); estrutura (treliça/viga mestra) ou peça única
+  async function lerDesenho(bytes, nome) {
+    if (!window.pdfjsLib) throw new Error('Leitor de PDF não carregou (internet bloqueada?). Recarregue a página.');
+    var doc = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise, itens = [];
+    for (var i = 1; i <= Math.min(doc.numPages, 3); i++) { var pg = await doc.getPage(i); itens = itens.concat((await pg.getTextContent()).items); }
+    var linhas = linhasDoPdf(itens), r = null;
+    try { r = await segmentosDoPdf(pdfjsLib, await doc.getPage(1)); } catch (e) { }
+    if (r && !linhas.some(function (l) { return /LISTA\s+(DE\s+)?MATERIAIS/i.test(l); })) linhas = linhasDoPdf(itens.concat(textoVetorial(r.segs)));
+    var E = null;
+    if (r) { try { E = interpretarEstrutura(linhas, r.segs, nome); } catch (e) { E = null; } }
+    if (E && E.barras.length > 2) return E;
+    return interpretarDesenho(linhas, nome);
+  }
   function escreverJanela(J, modelo) {
     var html = $('#tpl-3d').innerHTML;
     var dados = '<script>window.MODELO = ' + JSON.stringify(modelo).replace(/</g, '\\u003c') + ';<' + '/script>';
@@ -22769,7 +23191,7 @@ function linhasDoPdf(itens) {
         var t0 = Date.now();
         while (PY && Date.now() - t0 < 6000) { try { if (J.location.pathname === '/pc/janela3d' && J.document.readyState === 'complete') break; } catch (e) { } await new Promise(function (r) { setTimeout(r, 40); }); }
         if (!sel.length) { escreverJanela(J, { catalogo: true }); return; }
-        var it = sel[0], bytes = await it.obter(), M = interpretarDesenho(await textoDoPdf(bytes), it.nome);
+        var it = sel[0], bytes = await it.obter(), M = await lerDesenho(bytes, it.nome);
         if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
         M.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
         escreverJanela(J, M);
@@ -23088,7 +23510,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 120';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 121';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
