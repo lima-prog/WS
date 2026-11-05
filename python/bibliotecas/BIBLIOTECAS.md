@@ -10,7 +10,7 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 
 | Seção do sistema | Arquivo | Bibliotecas |
 |---|---|---|
-| Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas e compactados) e atualização automática | `nucleo.txt` | nenhuma obrigatória (opcional: py7zr, rarfile, waitress) |
+| Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas, compactados e Acesso rápido do Windows) e atualização automática | `nucleo.txt` | nenhuma obrigatória (opcional: py7zr, rarfile, waitress, pywin32) |
 | Produção › Agrupador ¦ Base | `pg2.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber |
 | Produção › Roteirização produção | `pg3.txt` | pandas, openpyxl, XlsxWriter |
 | Produção › Impressão Casada - ERP | `pg4.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
@@ -31,6 +31,7 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | `py7zr` | Abrir arquivos compactados .7z como pasta |
 | `rarfile` | Abrir arquivos .rar como pasta (precisa do 7-Zip ou WinRAR no PC) |
 | `waitress` | Servidor mais forte quando muitos usuários acessam pela rede |
+| `pywin32` | Imprimir direto na Zebra ZD220 (ZPL), listar impressoras e ler/fixar pastas no Acesso rápido do Windows |
 | `pandas` | Tabelas: ler, cruzar, somar e filtrar planilhas e DBF com rapidez |
 | `openpyxl` | Ler e gravar Excel .xlsx (mantém abas e formatação) |
 | `XlsxWriter` | Gerar o Excel de saída com cores (verde/vermelho), larguras e filtros |
@@ -42,5 +43,4 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | `reportlab` | Gerar PDF (etiquetas centralizadas, relatórios) |
 | `lxml` | Ler o export do FOCCO que vem como .xls em HTML |
 | `ezdxf` | Ler os arquivos DXF roteirizados (peças, medidas) direto no Python |
-| `pywin32` | Imprimir direto na Zebra ZD220 (ZPL) e listar impressoras do Windows |
 | `requests` | Enviar arquivos para a Intranet PCP |

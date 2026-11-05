@@ -6,4 +6,4 @@ openpyxl>=3.1                              # Ler e gravar Excel .xlsx (mantém a
 xlrd>=2.0                                  # Ler Excel antigo .xls
 dbfread>=2.0.7                             # Ler arquivos .DBF (CNC/ERP)
 reportlab>=4.2                             # Gerar PDF (etiquetas centralizadas, relatórios)
-pywin32>=306; sys_platform == 'win32'      # Imprimir direto na Zebra ZD220 (ZPL) e listar impressoras do Windows
+pywin32>=306; sys_platform == 'win32'      # Imprimir direto na Zebra ZD220 (ZPL), listar impressoras e ler/fixar pastas no Acesso rápido do Windows

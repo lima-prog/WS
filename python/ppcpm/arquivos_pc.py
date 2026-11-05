@@ -19,7 +19,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import compactados
+from . import acesso_rapido, compactados
 from .config import PASTA_DADOS
 
 ARQ_PASTAS = PASTA_DADOS / "pastas.json"
@@ -108,6 +108,7 @@ def locais() -> dict:
         "pastas": pastas,
         "favoritos": [f for f in d["favoritos"] if isinstance(f, dict) and f.get("caminho")],
         "recentes": [r for r in d["recentes"] if isinstance(r, str)][:8],
+        "acesso_rapido": acesso_rapido.listar(),      # pastas fixadas no Explorador do Windows
         "separador": os.sep,
     }
 
@@ -120,6 +121,9 @@ def favoritar(caminho: str, nome: str | None = None, remover: bool = False) -> d
         if not os.path.isdir(caminho):
             raise FileNotFoundError("Pasta não encontrada: " + caminho)
         d["favoritos"].append({"nome": nome or os.path.basename(caminho.rstrip("\\/")) or caminho, "caminho": caminho})
+        acesso_rapido.fixar(caminho)          # também fixa no Acesso rápido do Explorador (se der)
+    else:
+        acesso_rapido.desafixar(caminho)
     _gravar_pastas(d)
     return locais()
 

@@ -25,7 +25,7 @@ LIBS = {
     "pypdf":      ("pypdf", "pypdf>=4.3", "Juntar, separar e reordenar páginas de PDF (ordens, impressão casada)"),
     "pdfplumber": ("pdfplumber", "pdfplumber>=0.11", "Ler texto e tabelas de dentro do PDF (conferência do PDF gerado)"),
     "reportlab":  ("reportlab", "reportlab>=4.2", "Gerar PDF (etiquetas centralizadas, relatórios)"),
-    "pywin32":    ("win32print", "pywin32>=306; sys_platform == 'win32'", "Imprimir direto na Zebra ZD220 (ZPL) e listar impressoras do Windows"),
+    "pywin32":    ("win32print", "pywin32>=306; sys_platform == 'win32'", "Imprimir direto na Zebra ZD220 (ZPL), listar impressoras e ler/fixar pastas no Acesso rápido do Windows"),
     "ezdxf":      ("ezdxf", "ezdxf>=1.3", "Ler os arquivos DXF roteirizados (peças, medidas) direto no Python"),
     "requests":   ("requests", "requests>=2.32", "Enviar arquivos para a Intranet PCP"),
     "waitress":   ("waitress", "waitress>=3.0", "Servidor mais forte quando muitos usuários acessam pela rede"),
@@ -38,7 +38,7 @@ PDF = ["pypdf", "pdfplumber"]
 
 # (arquivo, nome da seção no sistema, bibliotecas da seção, opcionais)
 SECOES = [
-    ("nucleo", "Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas e compactados) e atualização automática", [], ["py7zr", "rarfile", "waitress"]),
+    ("nucleo", "Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas, compactados e Acesso rápido do Windows) e atualização automática", [], ["py7zr", "rarfile", "waitress", "pywin32"]),
     ("pg2", "Produção › Agrupador | Base", PLANILHAS + PDF, []),
     ("pg3", "Produção › Roteirização produção", ["pandas", "openpyxl", "XlsxWriter"], []),
     ("pg4", "Produção › Impressão Casada - ERP", PLANILHAS + PDF + ["reportlab"], []),

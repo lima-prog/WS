@@ -187,9 +187,9 @@
       P + ' .pc-cmd .pc-ab{color:var(--acento)}',
       P + ' button{font:400 13px Arial,Helvetica,sans-serif;border-radius:4px;padding:7px 12px;cursor:pointer;border:1px solid var(--borda);background:var(--btn);color:var(--texto);white-space:nowrap;display:inline-flex;align-items:center;gap:7px}',
       P + ' button:hover{background:var(--hover)}',
-      P + ' button.pc-pri{background:var(--acento);border-color:var(--acento);color:#000}',
-      P + '.claro button.pc-pri{color:#fff}',
-      P + ' button.pc-pri:hover{filter:brightness(1.08)}',
+      P + ' button.pc-pri{background:#0b5cad;border-color:#0b5cad;color:#fff;font-weight:700}',
+      P + ' button.pc-pri:hover:not(:disabled){background:#1a6dc0;border-color:#1a6dc0}',
+      P + ' button.pc-pri:disabled{opacity:.55}',
       P + ' button:disabled{opacity:.45;cursor:default}',
       P + ' .pc-sv{display:inline-flex;align-items:center}',
       P + ' .pc-sv svg{stroke:currentColor}',
@@ -226,7 +226,19 @@
       P + ' .pc-cab span.on:after{content:"";position:absolute;left:50%;top:2px;width:7px;height:7px;border-left:1.5px solid var(--fraco);border-top:1.5px solid var(--fraco);transform:translateX(-50%) rotate(45deg)}',
       P + ' .pc-cab span.on.desc:after{top:-1px;transform:translateX(-50%) rotate(225deg)}',
       P + ' .pc-cab span.pc-tm{text-align:right}',
-      P + ' .pc-lista{flex:1;overflow:auto;outline:none;padding:2px 8px 8px}',
+      P + ' .pc-lista{position:relative;flex:1;overflow:auto;outline:none;padding:2px 8px 8px}',
+      P + ' .pc-laco{position:absolute;z-index:3;pointer-events:none;border:1px solid #0b5cad;background:rgba(11,92,173,.28)}',
+      P + ' .pc-cb{flex:none;width:16px;height:16px;border:1.5px solid var(--fraco);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;opacity:0;cursor:pointer;background:var(--campo)}',
+      P + ' .pc-cb.vz{visibility:hidden}',
+      P + ' .pc-row:hover .pc-cb,' + P + ' .pc-row.sel .pc-cb,' + P + '.com-sel .pc-cb{opacity:1}',
+      P + ' .pc-row.sel .pc-cb{background:#0b5cad;border-color:#0b5cad;color:#fff}',
+      P + ' .pc-cb svg{stroke:#fff!important}',
+      P + ' .pc-cbt{position:absolute;left:12px;top:50%;transform:translateY(-50%);padding:0!important;border:0!important}',
+      P + ' .pc-cbt:hover{background:transparent!important}',
+      P + ' .pc-cab span.pc-nm{padding-left:52px}',
+      P + ' .pc-qtd{display:none;align-items:center;gap:6px;padding:5px 10px;border-radius:14px;background:#0b5cad;color:#fff!important;font-weight:700;white-space:nowrap}',
+      P + '.com-sel .pc-qtd{display:inline-flex}',
+      P + ' .pc-qtd *{color:#fff!important}',
       P + ' .pc-grupo{display:flex;align-items:center;gap:6px;padding:10px 6px 4px;color:var(--texto);font-size:15px;cursor:pointer;user-select:none}',
       P + ' .pc-grupo .pc-sv{color:var(--texto2)}',
       P + ' .pc-grupo .pc-gn{color:var(--fraco);font-size:12px}',
@@ -292,8 +304,7 @@
       /* cores fixas: alguns programas forçam cor em tudo; aqui a janela mantém as suas */
       P + ' .pc-card,' + P + ' .pc-card button,' + P + ' .pc-card span,' + P + ' .pc-card div,' + P + ' .pc-card b,' + P + ' .pc-card label{color:inherit}',
       P + ' .pc-card{color:var(--texto)!important}',
-      P + ' button.pc-pri,' + P + ' button.pc-pri *{color:#000!important}',
-      P + '.claro button.pc-pri,' + P + '.claro button.pc-pri *{color:#fff!important}'
+      P + ' button.pc-pri,' + P + ' button.pc-pri *{color:#fff!important}'
     ].join('\n');
     (D.head || D.documentElement).appendChild(c);
     if (D.body && D !== document) D.body.style.background = temaClaro() ? '#fff' : '#191919';
@@ -408,6 +419,11 @@
       var cab = el('div', 'pc-cab');
       var hN = el('span', null, 'Nome'), hD = el('span', 'pc-d', 'Data de modificação'), hTi = el('span', 'pc-ti', 'Tipo'), hT = el('span', 'pc-tm', 'Tamanho');
       [hN, hD, hTi, hT].forEach(function (h) { cab.appendChild(h); }); main.appendChild(cab);
+      var cbTodos = null;
+      if (op.multiple) {   // caixa "selecionar todos" no cabeçalho, como no Explorador
+        hN.classList.add('pc-nm'); cbTodos = el('span', 'pc-cb pc-cbt'); cbTodos.title = 'Selecionar todos os arquivos (Ctrl + A)'; hN.appendChild(cbTodos);
+        cbTodos.onclick = function (e) { e.stopPropagation(); var arqs = ultimaLista.filter(function (i) { return !entraEm(i); }).map(function (i) { return i.caminho; }); estado.sel = estado.sel.length === arqs.length ? [] : arqs; atualizarSel(); };
+      }
       var lista = el('div', 'pc-lista'); lista.tabIndex = 0; main.appendChild(lista);
       var det = el('aside', 'pc-det'); corpo.appendChild(det);
 
@@ -423,13 +439,16 @@
       var bWin = botao('janela', 'Janela do Windows', 'Usar a janela comum de abrir arquivo');
       var bOk = el('button', 'pc-pri', op.multiple ? 'Abrir selecionados' : 'Abrir'); bOk.disabled = true;
       var bCan = el('button', null, 'Cancelar');
-      [lNome, nome, tipoSel, bWin, bOk, bCan].forEach(function (x) { rod.appendChild(x); });
+      var qtd = el('span', 'pc-qtd'); qtd.title = 'Clique para limpar a seleção'; qtd.style.cursor = 'pointer';
+      qtd.onclick = function () { estado.sel = []; atualizarSel(); };
+      [qtd, lNome, nome, tipoSel, bWin, bOk, bCan].forEach(function (x) { rod.appendChild(x); });
       card.appendChild(rod);
 
       function fechar(resultado) {
         if (!aberto) return;
         aberto = false; clearInterval(vigia);
         D.removeEventListener('keydown', tecla, true); W.removeEventListener('resize', ajustarTela); D.removeEventListener('pointerdown', fecharMenuFora, true);
+        D.removeEventListener('pointermove', lacoMover); D.removeEventListener('pointerup', lacoSoltar);
         if (J) {
           try { if (!J.closed) lsSet(CHAVE_SO, JSON.stringify({ x: J.screenX, y: J.screenY, w: J.innerWidth, h: J.innerHeight })); } catch (e) { }
           try { if (!J.closed) J.close(); } catch (e) { }
@@ -442,7 +461,7 @@
       /* ----- menus suspensos ----- */
       var menu = null;
       function fecharMenu() { if (menu) { menu.remove(); menu = null; } [bOrd, bVis, bMais].forEach(function (b) { b.classList.remove('on'); }); }
-      function fecharMenuFora(e) { if (menu && !menu.contains(e.target) && !e.target.closest('.pc-cmd button')) fecharMenu(); }
+      function fecharMenuFora(e) { if (menu && !menu.contains(e.target) && (menu.dataset.b === 'ctx' || !e.target.closest('.pc-cmd button'))) fecharMenu(); }
       function abrirMenu(btn, itens) {
         var era = menu && menu.dataset.b === btn.title; fecharMenu(); if (era) return;
         menu = el('div', 'pc-menu'); menu.dataset.b = btn.title;
@@ -496,7 +515,7 @@
         d.appendChild(sv); d.appendChild(el('span', 'pc-ln', nomeL));
         if (opc.remover) {
           var x = el('span', 'pc-x'); x.appendChild(svg('fechar', 13)); x.title = 'Desafixar';
-          x.onclick = function (e) { e.stopPropagation(); api('favorito', { caminho: caminho, remover: 1 }).then(function (j) { LOCAIS = j; montarLado(); }); };
+          x.onclick = function (e) { e.stopPropagation(); fixar(caminho, true); };
           d.appendChild(x);
         }
         if (opc.pin) { var pn = el('span', 'pc-pin'); pn.appendChild(svg('pin', 13)); d.appendChild(pn); }
@@ -516,8 +535,18 @@
           lado.appendChild(h);
           if (!secFechada[t]) arr.forEach(function (a) { lado.appendChild(fn(a)); });
         }
-        var fix = L.pastas.map(function (a) { return { a: a, fav: false }; }).concat(L.favoritos.map(function (a) { return { a: a, fav: true }; }));
-        sec('Acesso rápido', 'favorito', fix, function (x) { return locItem(x.a.nome, x.a.caminho, x.fav ? 'pasta' : iconeLocal(x.a), { remover: x.fav, pin: true }); });
+        var fix = [], vistos = {};
+        function por(a, fav) { var k = chaveC(a.caminho); if (vistos[k]) { if (fav) vistos[k].fav = true; return; } vistos[k] = { a: a, fav: fav }; fix.push(vistos[k]); }
+        L.pastas.forEach(function (a) { por(a, false); });
+        (L.acesso_rapido || []).forEach(function (a) { por(a, true); });
+        (L.favoritos || []).forEach(function (a) { por(a, true); });
+        sec('Acesso rápido', 'favorito', fix, function (x) {
+          var d = locItem(x.a.nome, x.a.caminho, x.fav && !/rea de trabalho|documentos|downloads/i.test(x.a.nome) ? 'pasta' : iconeLocal(x.a), { remover: x.fav, pin: x.fav });
+          d.oncontextmenu = function (e) { e.preventDefault(); menuEm(e.clientX, e.clientY, [{ ic: 'pasta', txt: 'Abrir', f: function () { ir(x.a.caminho); } },
+            x.fav ? { ic: 'pin', txt: 'Desafixar do Acesso rápido', f: function () { fixar(x.a.caminho, true); } } : { ic: 'pin', txt: 'Fixar no Acesso rápido', f: function () { fixar(x.a.caminho); } },
+            '-', { ic: 'copiar', txt: 'Copiar caminho', f: function () { copiar(x.a.caminho); } }, { ic: 'explorador', txt: 'Abrir no Explorador', f: function () { api('explorador', { caminho: x.a.caminho }).catch(function () { }); } }]); };
+          return d;
+        });
         lado.appendChild(el('div', 'pc-sep'));
         sec('Este Computador', 'pc', L.unidades, function (a) { return locItem(a.nome, a.caminho, iconeLocal(a)); });
         if (L.recentes.length) lado.appendChild(el('div', 'pc-sep'));
@@ -583,16 +612,109 @@
         }));
       }
       var ultimaLista = [];
+      /* ----- seleção com o mouse: clique e arraste no espaço vazio desenha o retângulo (como no Explorador) ----- */
+      var laco = { ativo: false, arrastou: false };
+      lista.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0 || e.target.closest('.pc-cb')) return;
+        var r0 = lista.getBoundingClientRect();
+        laco = { ativo: true, arrastou: false, x0: e.clientX - r0.left + lista.scrollLeft, y0: e.clientY - r0.top + lista.scrollTop, base: (e.ctrlKey || e.metaKey) && op.multiple ? estado.sel.slice() : [], cx: e.clientX, cy: e.clientY, div: null, rolar: null };
+      });
+      function lacoMover(e) {
+        if (!laco.ativo) return;
+        if (!laco.arrastou && Math.abs(e.clientX - laco.cx) + Math.abs(e.clientY - laco.cy) < 6) return;
+        if (!laco.arrastou) { laco.arrastou = true; laco.div = el('div', 'pc-laco'); lista.appendChild(laco.div); fundo.classList.add('arrastando'); }
+        laco.ex = e.clientX; laco.ey = e.clientY; desenharLaco();
+        var r0 = lista.getBoundingClientRect();
+        clearInterval(laco.rolar); laco.rolar = null;
+        var passo = e.clientY > r0.bottom - 18 ? 18 : e.clientY < r0.top + 18 ? -18 : 0;
+        if (passo) laco.rolar = setInterval(function () { lista.scrollTop += passo; desenharLaco(); }, 30);
+      }
+      function desenharLaco() {
+        var r0 = lista.getBoundingClientRect();
+        var x1 = laco.ex - r0.left + lista.scrollLeft, y1 = Math.max(0, Math.min(lista.scrollHeight, laco.ey - r0.top + lista.scrollTop));
+        var L = Math.min(laco.x0, x1), T = Math.min(laco.y0, y1), W2 = Math.abs(x1 - laco.x0), H2 = Math.abs(y1 - laco.y0);
+        laco.div.style.left = L + 'px'; laco.div.style.top = T + 'px'; laco.div.style.width = W2 + 'px'; laco.div.style.height = H2 + 'px';
+        var dentro = [];
+        Array.prototype.forEach.call(lista.querySelectorAll('.pc-row'), function (row) {
+          var rr = row.getBoundingClientRect(), ry = rr.top - r0.top + lista.scrollTop, rx = rr.left - r0.left + lista.scrollLeft;
+          if (ry < T + H2 && ry + rr.height > T && rx < L + W2 && rx + rr.width > L) {
+            var it = ultimaLista.filter(function (i) { return i.caminho === row.dataset.c; })[0];
+            if (it && !entraEm(it)) dentro.push(it.caminho);
+          }
+        });
+        estado.sel = op.multiple ? laco.base.concat(dentro.filter(function (c) { return laco.base.indexOf(c) < 0; })) : dentro.slice(-1);
+        if (dentro.length) estado.foco = dentro[dentro.length - 1];
+        atualizarSel();
+      }
+      function lacoSoltar(e) {
+        if (!laco.ativo) return;
+        clearInterval(laco.rolar);
+        var arrastou = laco.arrastou;
+        if (laco.div) laco.div.remove();
+        laco.ativo = false; fundo.classList.remove('arrastando');
+        if (!arrastou && e && !e.target.closest('.pc-row') && lista.contains(e.target)) { estado.sel = []; estado.foco = null; atualizarSel(); }   // clique no vazio limpa
+        setTimeout(function () { laco.arrastou = false; }, 0);
+      }
+      lista.oncontextmenu = function (e) {
+        if (e.target.closest('.pc-row')) return;
+        e.preventDefault();
+        var it = [{ ic: 'atualizar', txt: 'Atualizar (F5)', f: function () { bAtual.onclick(); } }];
+        if (estado.caminho) it.push(fixada(estado.caminho) ? { ic: 'pin', txt: 'Desafixar esta pasta do Acesso rápido', f: function () { fixar(estado.caminho, true); } } : { ic: 'pin', txt: 'Fixar esta pasta no Acesso rápido', f: function () { fixar(estado.caminho); } });
+        if (op.multiple) it.push({ ic: 'ok', txt: 'Selecionar todos (Ctrl + A)', f: function () { estado.sel = ultimaLista.filter(function (x) { return !entraEm(x); }).map(function (x) { return x.caminho; }); atualizarSel(); } });
+        it.push('-', { ic: 'copiar', txt: 'Copiar caminho da pasta', f: function () { copiar(estado.caminho); } }, { ic: 'explorador', txt: 'Abrir no Explorador', f: function () { bExp.onclick(); } });
+        menuEm(e.clientX, e.clientY, it);
+      };
       function linha(i, v) {
         var r = el('div', 'pc-row'); r.dataset.c = i.caminho;
-        var n = el('span', 'pc-n'); n.appendChild(icone(i)); n.appendChild(el('span', 'pc-nt', i.nome));
+        var n = el('span', 'pc-n');
+        if (op.multiple) {
+          var cb = el('span', 'pc-cb' + (entraEm(i) ? ' vz' : '')); cb.appendChild(svg('ok', 12)); n.appendChild(cb);
+          if (!entraEm(i)) cb.onclick = function (e) { e.stopPropagation(); var k = estado.sel.indexOf(i.caminho); if (k >= 0) estado.sel.splice(k, 1); else estado.sel.push(i.caminho); estado.ancora = i.caminho; estado.foco = i.caminho; atualizarSel(); };
+          cb.ondblclick = function (e) { e.stopPropagation(); };
+        }
+        n.appendChild(icone(i)); n.appendChild(el('span', 'pc-nt', i.nome));
         if (estado.busca) n.appendChild(el('span', 'pc-c', i.caminho));
         r.appendChild(n); r.appendChild(el('span', 'pc-d', fmtData(i.modificado))); r.appendChild(el('span', 'pc-ti', tipoDe(i))); r.appendChild(el('span', 'pc-t', i.pasta ? '' : fmtTam(i.tamanho)));
         var entra = i.pasta || (i.pacote && (filtro ? filtro.split(',') : []).indexOf(ext(i.nome)) < 0);
         r.title = i.caminho + (i.pacote && entra ? '  (compactado: dois cliques para abrir como pasta)' : '');
-        r.onclick = function (e) { escolher(i, v, e); };
+        r.onclick = function (e) { if (laco.arrastou) return; escolher(i, v, e); };
+        r.oncontextmenu = function (e) { e.preventDefault(); if (estado.sel.indexOf(i.caminho) < 0) escolher(i, v, null); menuItem(i, e); };
         r.ondblclick = function () { if (entra) ir(i.caminho); else { estado.sel = [i.caminho]; confirmar(); } };
         return r;
+      }
+      function focoPasta() { var f = ultimaLista.filter(function (i) { return i.caminho === estado.foco; })[0]; return f && f.pasta ? f : null; }
+      function chaveC(c) { return String(c || '').replace(/[\\/]+$/, '').toLowerCase(); }
+      function fixada(c) {
+        var L = LOCAIS || {}, k = chaveC(c);
+        return (L.favoritos || []).concat(L.acesso_rapido || []).some(function (a) { return chaveC(a.caminho) === k; });
+      }
+      function fixar(c, tirar) {
+        api('favorito', tirar ? { caminho: c, remover: 1 } : { caminho: c }).then(function (j) { LOCAIS = j; montarLado(); atualizarSel(); stTxt.textContent = tirar ? 'Pasta desafixada do Acesso rápido.' : 'Pasta fixada no Acesso rápido.'; })
+          .catch(function (e) { stTxt.textContent = e.message; });
+      }
+      function menuEm(x, y, itens) {
+        fecharMenu(); var rc = card.getBoundingClientRect();
+        menu = el('div', 'pc-menu'); menu.dataset.b = 'ctx';
+        itens.forEach(function (it) {
+          if (it === '-') { menu.appendChild(el('hr')); return; }
+          var d = el('div'); d.appendChild(el('span', 'pc-ok')); if (it.ic) d.appendChild(svg(it.ic, 15)); d.appendChild(el('span', null, it.txt));
+          d.onclick = function () { fecharMenu(); it.f(); }; menu.appendChild(d);
+        });
+        card.appendChild(menu);
+        var w = menu.offsetWidth, h = menu.offsetHeight;
+        menu.style.left = Math.min(x - rc.left, rc.width - w - 6) + 'px'; menu.style.top = Math.min(y - rc.top, rc.height - h - 6) + 'px';
+      }
+      function menuItem(i, e) {
+        var it = [];
+        if (i.pasta || entraEm(i)) {
+          it.push({ ic: 'pasta', txt: 'Abrir', f: function () { ir(i.caminho); } });
+          if (i.pasta) it.push(fixada(i.caminho) ? { ic: 'pin', txt: 'Desafixar do Acesso rápido', f: function () { fixar(i.caminho, true); } } : { ic: 'pin', txt: 'Fixar no Acesso rápido', f: function () { fixar(i.caminho); } });
+        } else {
+          it.push({ ic: 'abrir', txt: estado.sel.length > 1 ? 'Abrir os ' + estado.sel.length + ' selecionados' : 'Abrir', f: confirmar });
+          if (op.multiple) it.push({ ic: 'ok', txt: 'Selecionar todos (Ctrl + A)', f: function () { estado.sel = ultimaLista.filter(function (x) { return !entraEm(x); }).map(function (x) { return x.caminho; }); atualizarSel(); } });
+        }
+        it.push('-', { ic: 'copiar', txt: 'Copiar caminho', f: function () { copiar(i.caminho); } }, { ic: 'explorador', txt: 'Mostrar no Explorador', f: function () { api('explorador', { caminho: i.caminho }).catch(function (x) { stTxt.textContent = x.message; }); } });
+        menuEm(e.clientX, e.clientY, it);
       }
       function entraEm(i) { return i.pasta || (i.pacote && (filtro ? filtro.split(',') : []).indexOf(ext(i.nome)) < 0); }
       function escolher(i, v, e) {
@@ -625,7 +747,7 @@
         grupos.forEach(function (g) {
           if (g.t) {
             var h = el('div', 'pc-grupo' + (estado.fechados[g.k] ? ' fechado' : '')); h.appendChild(svg('chevron', 13)); h.appendChild(el('span', null, g.t)); h.appendChild(el('span', 'pc-gn', '(' + g.itens.length + ')'));
-            h.onclick = function () { estado.fechados[g.k] = !estado.fechados[g.k]; desenhar(); }; lista.appendChild(h);
+            h.onclick = function () { if (laco.arrastou) return; estado.fechados[g.k] = !estado.fechados[g.k]; desenhar(); }; lista.appendChild(h);
             if (estado.fechados[g.k]) return;
           }
           var gb = el('div', 'pc-gb'); g.itens.forEach(function (i) { gb.appendChild(linha(i, v)); }); lista.appendChild(gb);
@@ -642,6 +764,12 @@
         v.forEach(function (i) { if (estado.sel.indexOf(i.caminho) >= 0) tot += i.tamanho || 0; });
         nome.value = estado.sel.map(function (c) { return '"' + c.split(/[\\/]/).pop() + '"'; }).join(' ').replace(/^"([^"]*)"$/, '$1');
         stTxt.textContent = v.length + (v.length === 1 ? ' item' : ' itens') + (n ? '   |   ' + n + (n === 1 ? ' item selecionado' : ' itens selecionados') + (tot ? '  ' + fmtTam(tot) : '') : '');
+        fundo.classList.toggle('com-sel', n > 0);
+        qtd.textContent = n + (n === 1 ? ' arquivo selecionado' : ' arquivos selecionados') + '  ✕';
+        if (cbTodos) { var na = v.filter(function (i) { return !entraEm(i); }).length; cbTodos.innerHTML = ''; if (n && n === na) { cbTodos.appendChild(svg('ok', 12)); cbTodos.style.background = '#0b5cad'; cbTodos.style.borderColor = '#0b5cad'; } else { cbTodos.style.background = ''; cbTodos.style.borderColor = ''; } }
+        var cf = focoPasta() ? focoPasta().caminho : estado.caminho, jaFix = cf && fixada(cf);
+        bFav.title = (jaFix ? 'Desafixar ' : 'Fixar ') + (focoPasta() ? 'a pasta "' + focoPasta().nome + '"' : 'esta pasta') + (jaFix ? ' do' : ' no') + ' Acesso rápido (painel da esquerda e Explorador do Windows)';
+        bFav.querySelector('.pc-tx').textContent = jaFix ? 'Desafixar' : 'Fixar';
         mostrarDet();
       }
       function mostrarDet() {
@@ -701,7 +829,7 @@
       bSobe.onclick = function () { if (estado.pai) ir(estado.pai); };
       bAtual.onclick = function () { if (estado.caminho) ir(estado.caminho, true); };
       bCopiar.onclick = function () { copiar(estado.sel.length === 1 ? estado.sel[0] : (estado.foco || estado.caminho)); };
-      bFav.onclick = function () { if (estado.caminho) api('favorito', { caminho: estado.caminho }).then(function (j) { LOCAIS = j; montarLado(); stTxt.textContent = 'Pasta fixada no Acesso rápido.'; }).catch(function (e) { stTxt.textContent = e.message; }); };
+      bFav.onclick = function () { var c = focoPasta() ? focoPasta().caminho : estado.caminho; if (c) fixar(c, fixada(c)); };
       bExp.onclick = function () { var c = estado.sel.length === 1 ? estado.sel[0] : estado.caminho; if (c) api('explorador', { caminho: c }).catch(function (e) { stTxt.textContent = e.message; }); };
       busca.oninput = function () { if (!estado.busca) desenhar(); };
       busca.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); procurar(); } else if (e.key === 'Escape' && (busca.value || estado.busca)) { e.preventDefault(); e.stopPropagation(); if (estado.busca) ir(estado.caminho, true); else { busca.value = ''; desenhar(); } } };
@@ -739,6 +867,7 @@
       }
       D.addEventListener('keydown', tecla, true);
       D.addEventListener('pointerdown', fecharMenuFora, true);
+      D.addEventListener('pointermove', lacoMover); D.addEventListener('pointerup', lacoSoltar);
 
       (D.body || D.documentElement).appendChild(fundo);
       aplicarVista();
