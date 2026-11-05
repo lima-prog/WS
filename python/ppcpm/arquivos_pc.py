@@ -178,7 +178,7 @@ def _erro_caminho(caminho: str) -> FileNotFoundError:
     return FileNotFoundError("Pasta não encontrada: " + caminho + " — confira o caminho.")
 
 
-def listar(caminho: str, filtro: str = "") -> dict:
+def listar(caminho: str, filtro: str = "", recente: bool = True, limite: int = LIMITE_LISTA) -> dict:
     caminho = limpar_caminho(caminho)
     exts = _extensoes(filtro)
     dentro = None
@@ -208,12 +208,13 @@ def listar(caminho: str, filtro: str = "") -> dict:
                     ocultos += 1
                     continue
                 itens.append(i)
-                if len(itens) >= LIMITE_LISTA:
+                if len(itens) >= limite:
                     break
     itens.sort(key=lambda x: (not (x["pasta"] or x.get("pacote")), x["nome"].lower()))
-    marcar_recente(caminho)
+    if recente:
+        marcar_recente(caminho)
     return {"caminho": caminho, "pai": _pai(caminho), "itens": itens, "compactado": bool(dentro),
-            "ocultos_pelo_filtro": ocultos, "cortado": len(itens) >= LIMITE_LISTA}
+            "ocultos_pelo_filtro": ocultos, "cortado": len(itens) >= limite}
 
 
 def buscar(caminho: str, termo: str, filtro: str = "") -> dict:
@@ -248,6 +249,17 @@ def buscar(caminho: str, termo: str, filtro: str = "") -> dict:
     achados.sort(key=lambda x: (not x["pasta"], -x["modificado"]))
     return {"caminho": caminho, "termo": termo, "itens": achados[:LIMITE_BUSCA],
             "incompleta": bool(pilha) or len(achados) >= LIMITE_BUSCA}
+
+
+def ler_trecho(caminho: str, ini: int, fim: int) -> bytes:
+    """Só um pedaço do arquivo (bytes ini..fim): para ler o índice de .zip grandes sem trazer tudo."""
+    caminho = limpar_caminho(caminho)
+    if not os.path.isfile(caminho):
+        raise FileNotFoundError("Arquivo não encontrado: " + caminho)
+    ini = max(0, int(ini))
+    with open(caminho, "rb") as f:
+        f.seek(ini)
+        return f.read(max(0, int(fim) - ini))
 
 
 def ler_arquivo(caminho: str) -> tuple[bytes, str, str, int]:

@@ -230,8 +230,10 @@ class Sistema(BaseHTTPRequestHandler):
         try:
             if acao == "locais":
                 return self._json(arquivos_pc.locais())
-            if acao == "listar":
-                return self._json(arquivos_pc.listar(q.get("caminho", ""), q.get("filtro", "")))
+            if acao == "listar":   # todos=1: pasta inteira, sem marcar nos recentes (leitura de pastas pelos programas)
+                todos = q.get("todos") == "1"
+                return self._json(arquivos_pc.listar(q.get("caminho", ""), q.get("filtro", ""), recente=not todos,
+                                                     limite=200000 if todos else arquivos_pc.LIMITE_LISTA))
             if acao == "buscar":
                 return self._json(arquivos_pc.buscar(q.get("caminho", ""), q.get("termo", ""), q.get("filtro", "")))
             if acao == "favorito":
@@ -239,6 +241,9 @@ class Sistema(BaseHTTPRequestHandler):
             if acao == "explorador":
                 arquivos_pc.abrir_no_explorador(q.get("caminho", ""))
                 return self._json({"ok": True})
+            if acao == "trecho":
+                return self._enviar(200, arquivos_pc.ler_trecho(q.get("caminho", ""), int(q.get("ini", 0)), int(q.get("fim", 0))),
+                                    "application/octet-stream")
             if acao == "arquivo":
                 dados, nome, tipo, mod = arquivos_pc.ler_arquivo(q.get("caminho", ""))
                 return self._enviar(200, dados, tipo, extra={"X-Nome": quote(nome), "X-Modificado": str(mod)})

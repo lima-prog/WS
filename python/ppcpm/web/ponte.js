@@ -358,7 +358,7 @@
   function abrirSeletor(op) {
     op = op || {};
     var filtro = filtroDe(op.accept);
-    var chave = 'ppcpm:pc:ultima:' + (filtro || '*');
+    var chave = 'ppcpm:pc:ultima:' + (op.pasta ? 'pasta' : (filtro || '*'));
     var J0 = abrirJanela();   // abre já no clique (o Chrome só permite janela nova dentro do clique)
     aberto = true; JANELA = J0;
     return janelaPronta(J0).then(function (J) { return new Promise(function (resolve) {
@@ -380,7 +380,7 @@
       var top = el('div', 'pc-abas');
       var aba = el('div', 'pc-aba'); aba.appendChild(svg('pasta', 16)); var abaNome = el('span', 'pc-an', 'PPCPM - ARQUIVOS'); aba.appendChild(abaNome);
       var bAbaX = botao('fechar', null, 'Fechar (Esc)'); aba.appendChild(bAbaX); top.appendChild(aba);
-      top.appendChild(el('span', 'pc-tipos', filtro ? 'Tipos aceitos: ' + filtro.split(',').join(', ') : 'Qualquer arquivo'));
+      top.appendChild(el('span', 'pc-tipos', op.pasta ? 'Escolha uma pasta — os arquivos são lidos direto do seu computador' : filtro ? 'Tipos aceitos: ' + filtro.split(',').join(', ') : 'Qualquer arquivo'));
       var ctl = el('div', 'pc-r');
       var bMax = el('button'); bMax.title = 'Maximizar / restaurar'; bMax.appendChild(svg('maximizar', 14));
       var bX = el('button', 'pc-x'); bX.title = 'Fechar (Esc)'; bX.appendChild(svg('fechar', 15));
@@ -400,7 +400,7 @@
 
       /* ----- barra de comandos ----- */
       var cmd = el('div', 'pc-cmd');
-      var bAbrirC = botao('abrir', op.multiple ? 'Abrir selecionados' : 'Abrir', 'Abrir o arquivo selecionado (Enter)'); bAbrirC.firstChild.classList.add('pc-ab');
+      var bAbrirC = botao(op.pasta ? 'ok' : 'abrir', op.pasta ? 'Selecionar pasta' : op.multiple ? 'Abrir selecionados' : 'Abrir', op.pasta ? 'Usar a pasta clicada (ou a pasta aberta)' : 'Abrir o arquivo selecionado (Enter)'); bAbrirC.firstChild.classList.add('pc-ab');
       var bCopiar = botao('copiar', 'Copiar caminho', 'Copiar o caminho da pasta ou do arquivo selecionado');
       var bExp = botao('explorador', 'Abrir no Explorador', 'Abrir esta pasta no Explorador de Arquivos do Windows');
       var bFav = botao('pin', 'Fixar', 'Fixar esta pasta no Acesso rápido (painel da esquerda)');
@@ -437,7 +437,8 @@
       if (filtro) { var o1 = el('option', null, 'Tipos aceitos (' + filtro.split(',').join(', ') + ')'); o1.value = '1'; tipoSel.appendChild(o1); }
       var o2 = el('option', null, 'Todos os arquivos (*.*)'); o2.value = '0'; tipoSel.appendChild(o2); tipoSel.value = filtro ? '1' : '0';
       var bWin = botao('janela', 'Janela do Windows', 'Usar a janela comum de abrir arquivo');
-      var bOk = el('button', 'pc-pri', op.multiple ? 'Abrir selecionados' : 'Abrir'); bOk.disabled = true;
+      var bOk = el('button', 'pc-pri', op.pasta ? 'Selecionar pasta' : op.multiple ? 'Abrir selecionados' : 'Abrir'); bOk.disabled = true;
+      if (op.pasta) { tipoSel.style.display = 'none'; lNome.textContent = 'Pasta:'; nome.placeholder = 'Entre na pasta (dois cliques) ou clique nela e use Selecionar pasta'; }
       var bCan = el('button', null, 'Cancelar');
       var qtd = el('span', 'pc-qtd'); qtd.title = 'Clique para limpar a seleção'; qtd.style.cursor = 'pointer';
       qtd.onclick = function () { estado.sel = []; atualizarSel(); };
@@ -607,6 +608,7 @@
         var aceitos = filtro ? filtro.split(',') : [], q = estado.busca ? '' : busca.value.trim().toLowerCase();
         return ordenar(estado.itens.filter(function (i) {
           if (q && i.nome.toLowerCase().indexOf(q) < 0) return false;
+          if (op.pasta && !i.pasta) return false;
           if (!i.pasta && !i.pacote && estado.soAceitos && aceitos.length && aceitos.indexOf(ext(i.nome)) < 0) return false;
           return true;
         }));
@@ -759,12 +761,13 @@
       }
       function atualizarSel() {
         Array.prototype.forEach.call(lista.querySelectorAll('.pc-row'), function (r) { r.classList.toggle('sel', estado.sel.indexOf(r.dataset.c) >= 0 || (!estado.sel.length && r.dataset.c === estado.foco)); });
-        bOk.disabled = bAbrirC.disabled = !estado.sel.length;
+        bOk.disabled = bAbrirC.disabled = op.pasta ? !estado.caminho : !estado.sel.length;
         var n = estado.sel.length, v = ultimaLista, tot = 0;
         v.forEach(function (i) { if (estado.sel.indexOf(i.caminho) >= 0) tot += i.tamanho || 0; });
         nome.value = estado.sel.map(function (c) { return '"' + c.split(/[\\/]/).pop() + '"'; }).join(' ').replace(/^"([^"]*)"$/, '$1');
         stTxt.textContent = v.length + (v.length === 1 ? ' item' : ' itens') + (n ? '   |   ' + n + (n === 1 ? ' item selecionado' : ' itens selecionados') + (tot ? '  ' + fmtTam(tot) : '') : '');
         fundo.classList.toggle('com-sel', n > 0);
+        if (op.pasta) { var fp = focoPasta(); nome.value = fp ? fp.nome : (estado.caminho.split(/[\\/]/).filter(Boolean).pop() || estado.caminho); }
         qtd.textContent = n + (n === 1 ? ' arquivo selecionado' : ' arquivos selecionados') + '  ✕';
         if (cbTodos) { var na = v.filter(function (i) { return !entraEm(i); }).length; cbTodos.innerHTML = ''; if (n && n === na) { cbTodos.appendChild(svg('ok', 12)); cbTodos.style.background = '#0b5cad'; cbTodos.style.borderColor = '#0b5cad'; } else { cbTodos.style.background = ''; cbTodos.style.borderColor = ''; } }
         var cf = focoPasta() ? focoPasta().caminho : estado.caminho, jaFix = cf && fixada(cf);
@@ -805,6 +808,7 @@
         }).catch(function (e) { erro(e.message); });
       }
       function confirmar() {
+        if (op.pasta) { var fp = focoPasta(), c = fp ? fp.caminho : estado.caminho; if (c) fechar({ pasta: c, nome: fp ? fp.nome : (c.split(/[\\/]/).filter(Boolean).pop() || c) }); return; }
         var cams = estado.sel.slice(); if (!cams.length) return;
         bOk.disabled = true; stTxt.textContent = 'Carregando ' + cams.length + (cams.length === 1 ? ' arquivo…' : ' arquivos…');
         Promise.all(cams.map(function (c) {
@@ -855,7 +859,7 @@
         else if (ed) return;
         else if (e.key === 'Enter') {
           e.preventDefault();
-          if (estado.sel.length) confirmar();
+          if (estado.sel.length || op.pasta && !focoPasta()) confirmar();
           else { var f = ultimaLista.filter(function (i) { return i.caminho === estado.foco; })[0]; if (f && entraEm(f)) ir(f.caminho); }
         }
         else if (e.key === 'Backspace' && estado.pai) { e.preventDefault(); ir(estado.pai); }
@@ -930,6 +934,61 @@
     }); });
   }
 
+  /* ---------- PASTA LOCAL: o mesmo "objeto de pasta" do Chrome (showDirectoryPicker), mas lido pelo Python deste PC.
+     Assim os programas (ex.: Agrupador | Base) leem pastas e .zip sem o aviso "Permitir que este site veja e copie arquivos?". */
+  var GRANDE = 80 * 1024 * 1024;   // acima disso o arquivo é lido por partes (índice de .zip grandes)
+  function urlArq(c) { return API + 'arquivo?caminho=' + encodeURIComponent(c); }
+  function trecho(c, a, b) { return fetch(API + 'trecho?caminho=' + encodeURIComponent(c) + '&ini=' + a + '&fim=' + b, { cache: 'no-store', headers: CAB }).then(function (r) { if (!r.ok) throw new Error('Não foi possível ler ' + c); return r.arrayBuffer(); }); }
+  function PedacoArq(c, a, b, tipo) { this._c = c; this._a = a; this._b = b; this.size = Math.max(0, b - a); this.type = tipo || ''; }
+  PedacoArq.prototype.slice = function (a, b) { a = a == null ? 0 : a < 0 ? this.size + a : a; b = b == null ? this.size : b < 0 ? this.size + b : Math.min(b, this.size); return new PedacoArq(this._c, this._a + a, this._a + Math.max(a, b)); };
+  PedacoArq.prototype.arrayBuffer = function () { return trecho(this._c, this._a, this._b); };
+  PedacoArq.prototype.text = function () { return this.arrayBuffer().then(function (b) { return new TextDecoder().decode(b); }); };
+  PedacoArq.prototype.stream = function () { var self = this; return new ReadableStream({ start: function (ctl) { self.arrayBuffer().then(function (b) { ctl.enqueue(new Uint8Array(b)); ctl.close(); }, function (e) { ctl.error(e); }); } }); };
+  function ArqLocal(i) { this.kind = 'file'; this.name = i.nome; this._i = i; this._c = i.caminho; }
+  ArqLocal.prototype.getFile = function () {
+    var i = this._i;
+    if ((i.tamanho || 0) > GRANDE && !/\.zip[\\/]/i.test(i.caminho)) {   // arquivo enorme: entrega "preguiçoso" (lê só os pedaços pedidos)
+      var p = new PedacoArq(i.caminho, 0, i.tamanho, ''); p.name = i.nome; p.lastModified = (i.modificado || 0) * 1000; return Promise.resolve(p);
+    }
+    return fetch(urlArq(i.caminho), { cache: 'no-store', headers: CAB }).then(function (r) {
+      if (!r.ok) return r.json().then(function (j) { throw new Error(j.erro || 'Não foi possível ler o arquivo.'); });
+      return r.blob().then(function (b) { var f = new File([b], i.nome, { type: b.type, lastModified: (i.modificado || 0) * 1000 || Date.now() }); try { Object.defineProperty(f, 'ppcpmCaminho', { value: i.caminho }); } catch (e) { } return f; });
+    });
+  };
+  ArqLocal.prototype.queryPermission = ArqLocal.prototype.requestPermission = function () { return Promise.resolve('granted'); };
+  ArqLocal.prototype.isSameEntry = function (o) { return Promise.resolve(!!o && o._c === this._c); };
+  function PastaLocal(c, nome) { this.kind = 'directory'; this.name = nome || c.split(/[\\/]/).filter(Boolean).pop() || c; this._c = c; this._itens = null; this.ppcpmCaminho = c; }
+  PastaLocal.prototype._listar = function () {
+    var self = this;
+    if (!self._itens) self._itens = api('listar', { caminho: self._c, todos: 1 }).then(function (j) { return j.itens; }).catch(function (e) { self._itens = null; throw e; });
+    return self._itens;
+  };
+  PastaLocal.prototype._filho = function (i) { return i.pasta ? new PastaLocal(i.caminho, i.nome) : new ArqLocal(i); };
+  PastaLocal.prototype.entries = function () {
+    var self = this, lista = null, k = 0;
+    var it = { next: function () { return (lista ? Promise.resolve(lista) : self._listar().then(function (l) { lista = l; return l; })).then(function (l) { if (k >= l.length) return { done: true, value: undefined }; var i = l[k++]; return { done: false, value: [i.nome, self._filho(i)] }; }); } };
+    it[Symbol.asyncIterator] = function () { return it; };
+    return it;
+  };
+  PastaLocal.prototype.values = function () { var e = this.entries(), it = { next: function () { return e.next().then(function (r) { return r.done ? r : { done: false, value: r.value[1] }; }); } }; it[Symbol.asyncIterator] = function () { return it; }; return it; };
+  PastaLocal.prototype.keys = function () { var e = this.entries(), it = { next: function () { return e.next().then(function (r) { return r.done ? r : { done: false, value: r.value[0] }; }); } }; it[Symbol.asyncIterator] = function () { return it; }; return it; };
+  PastaLocal.prototype[Symbol.asyncIterator] = function () { return this.entries(); };
+  PastaLocal.prototype._achar = function (nome, pasta) {
+    var self = this;
+    return self._listar().then(function (l) {
+      var i = l.filter(function (x) { return x.nome === nome; })[0] || l.filter(function (x) { return x.nome.toLowerCase() === String(nome).toLowerCase(); })[0];
+      if (!i || !!i.pasta !== pasta) throw new DOMException('"' + nome + '" não encontrado em ' + self._c, i ? 'TypeMismatchError' : 'NotFoundError');
+      return self._filho(i);
+    });
+  };
+  PastaLocal.prototype.getDirectoryHandle = function (n, o) { if (o && o.create) return Promise.reject(new DOMException('Pasta do PC aberta só para leitura.', 'NotAllowedError')); return this._achar(n, true); };
+  PastaLocal.prototype.getFileHandle = function (n, o) { if (o && o.create) return Promise.reject(new DOMException('Pasta do PC aberta só para leitura.', 'NotAllowedError')); return this._achar(n, false); };
+  PastaLocal.prototype.queryPermission = function (o) { return Promise.resolve(o && o.mode === 'readwrite' ? 'denied' : 'granted'); };
+  PastaLocal.prototype.requestPermission = PastaLocal.prototype.queryPermission;
+  PastaLocal.prototype.isSameEntry = function (o) { return Promise.resolve(!!o && o._c === this._c); };
+  PastaLocal.prototype.resolve = function (o) { if (!o || !o._c || o._c.indexOf(this._c) !== 0) return Promise.resolve(null); return Promise.resolve(o._c.slice(this._c.length).split(/[\\/]/).filter(Boolean)); };
+  PastaLocal.prototype.removeEntry = function () { return Promise.reject(new DOMException('Pasta do PC aberta só para leitura.', 'NotAllowedError')); };
+
   /* ---------- entrega os arquivos ao programa, como se viessem da janela do Windows ---------- */
   function entregar(input, files) {
     var dt = new DataTransfer();
@@ -998,6 +1057,22 @@
       });
     };
   }
+
+  // 4) programas que pedem uma PASTA (showDirectoryPicker): abre a PPCPM - ARQUIVOS no modo pasta
+  //    e entrega a pasta lida pelo Python — sem o aviso de permissão do Chrome. (Gravar na pasta continua pelo Chrome.)
+  if (typeof window.showDirectoryPicker === 'function') {
+    var origDir = window.showDirectoryPicker.bind(window);
+    window.showDirectoryPicker = function (o) {
+      o = o || {};
+      if (!ativo || aberto || o.mode === 'readwrite') return origDir(o);
+      return abrirSeletor({ pasta: true }).then(function (r) {
+        if (!r) throw new DOMException('Cancelado', 'AbortError');
+        if (r.windows) return r.deJanela ? new Promise(function (ok, erro) { comClique(function () { origDir(o).then(ok, erro); }); }) : origDir(o);
+        return new PastaLocal(r.pasta, r.nome);
+      });
+    };
+  }
+  window.PPCPM_PASTA = function (caminho, nome) { return new PastaLocal(caminho, nome); };
 
   /* ---------- SAIR = encerrar o sistema por completo neste PC ----------
      Botão "Sair" do sistema: pergunta [S] Sim / [N] Não. Com Sim, faz o logout e desliga
