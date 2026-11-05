@@ -1873,24 +1873,54 @@ function linhasDoPdf(itens) {
     J.document.open(); J.document.write(html); J.document.close();
   }
   $('#b-3d').onclick = function () { abrir3D(visiveis().filter(function (i) { return SEL.has(i.id); }), this); };
+  function htmlDoModelo(modelo) {
+    var html = $('#tpl-3d').innerHTML;
+    var dados = '<script>window.MODELO = ' + JSON.stringify(modelo).replace(/</g, '\\u003c') + ';<' + '/script>';
+    return '<!doctype html>' + html.replace('<script type="importmap">', dados + '<script type="importmap">');
+  }
+  function base64(bytes) { var s = '', k = 0x8000; for (var i = 0; i < bytes.length; i += k) s += String.fromCharCode.apply(null, bytes.subarray(i, i + k)); return btoa(s); }
   function abrir3D(sel, b) {
     var w = Math.min(1500, screen.availWidth - 40), h = Math.min(900, screen.availHeight - 60);
-    var J = window.open(PY ? '/pc/janela3d' : '', 'ppcpm_3d_' + Date.now(), 'popup=yes,width=' + w + ',height=' + h + ',left=' + Math.round((screen.availWidth - w) / 2) + ',top=' + Math.round((screen.availHeight - h) / 2));
+    var x = Math.round((screen.availLeft || 0) + (screen.availWidth - w) / 2), y = Math.round((screen.availTop || 0) + (screen.availHeight - h) / 2);
+    var it = sel[0];
+    if (PY) {
+      // versão Python: o 3D abre numa janela de aplicativo, igual à do sistema (sem barra de endereço)
+      var texto = b.innerHTML; b.disabled = true; b.innerHTML = 'Montando o 3D…';
+      (async function () {
+        try {
+          var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8), M, bytes = null, tipo = '';
+          if (!sel.length) M = { catalogo: true };
+          else {
+            bytes = await it.obter(); M = await lerDesenho(bytes, it.nome); tipo = ehCam(it.nome) ? 'text/plain; charset=windows-1252' : 'application/pdf';
+            if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
+            M.pdfUrl = '/pc/3d/' + id + '/arquivo';
+          }
+          var r = await fetch('/api/pc/janela3d', { method: 'POST', headers: { 'X-PPCPM': '1', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, html: htmlDoModelo(M), arquivo: bytes ? base64(bytes) : '', tipo: tipo, x: x, y: y, largura: w, altura: h }) });
+          var j = await r.json(); if (!r.ok) throw new Error(j.erro || 'Erro ' + r.status);
+          if (!j.app && !window.open(j.url, 'ppcpm_3d_' + id, 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y)) alert('O navegador bloqueou a janela do 3D.\nPermita pop-ups deste endereço e clique de novo.');
+        } catch (e) { alert('Não foi possível montar o 3D.\n' + (e.message || e)); }
+        b.disabled = false; b.innerHTML = texto;
+      })();
+      return;
+    }
+    // versão da internet (Vercel): janela pop-up do navegador
+    var J = window.open('', 'ppcpm_3d_' + Date.now(), 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
     if (!J) { alert('O navegador bloqueou a janela do 3D.\nPermita pop-ups deste endereço e clique de novo.'); return; }
     b.disabled = true;
     (async function () {
       try {
-        var t0 = Date.now();
-        while (PY && Date.now() - t0 < 6000) { try { if (J.location.pathname === '/pc/janela3d' && J.document.readyState === 'complete') break; } catch (e) { } await new Promise(function (r) { setTimeout(r, 40); }); }
-        if (!sel.length) { escreverJanela(J, { catalogo: true }); return; }
-        var it = sel[0], bytes = await it.obter(), M = await lerDesenho(bytes, it.nome);
-        if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
-        M.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: ehCam(it.nome) ? 'text/plain' : 'application/pdf' }));
-        escreverJanela(J, M);
-      } catch (e) { try { J.close(); } catch (x) { } alert('Não foi possível montar o 3D.\n' + (e.message || e)); }
+        if (!sel.length) escreverJanela(J, { catalogo: true });
+        else {
+          var bytes = await it.obter(), M = await lerDesenho(bytes, it.nome);
+          if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
+          M.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: ehCam(it.nome) ? 'text/plain' : 'application/pdf' }));
+          escreverJanela(J, M);
+        }
+      } catch (e) { try { J.close(); } catch (x2) { } alert('Não foi possível montar o 3D.\n' + (e.message || e)); }
       b.disabled = false;
     })();
-  };
+  }
 
   window.PPCPM_ENGENHARIA = { itens: function () { return ITENS; }, adicionarArquivos: adicionarArquivos };
 })();

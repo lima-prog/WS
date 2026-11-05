@@ -23666,24 +23666,54 @@ function linhasDoPdf(itens) {
     J.document.open(); J.document.write(html); J.document.close();
   }
   $('#b-3d').onclick = function () { abrir3D(visiveis().filter(function (i) { return SEL.has(i.id); }), this); };
+  function htmlDoModelo(modelo) {
+    var html = $('#tpl-3d').innerHTML;
+    var dados = '<script>window.MODELO = ' + JSON.stringify(modelo).replace(/</g, '\\u003c') + ';<' + '/script>';
+    return '<!doctype html>' + html.replace('<script type="importmap">', dados + '<script type="importmap">');
+  }
+  function base64(bytes) { var s = '', k = 0x8000; for (var i = 0; i < bytes.length; i += k) s += String.fromCharCode.apply(null, bytes.subarray(i, i + k)); return btoa(s); }
   function abrir3D(sel, b) {
     var w = Math.min(1500, screen.availWidth - 40), h = Math.min(900, screen.availHeight - 60);
-    var J = window.open(PY ? '/pc/janela3d' : '', 'ppcpm_3d_' + Date.now(), 'popup=yes,width=' + w + ',height=' + h + ',left=' + Math.round((screen.availWidth - w) / 2) + ',top=' + Math.round((screen.availHeight - h) / 2));
+    var x = Math.round((screen.availLeft || 0) + (screen.availWidth - w) / 2), y = Math.round((screen.availTop || 0) + (screen.availHeight - h) / 2);
+    var it = sel[0];
+    if (PY) {
+      // versão Python: o 3D abre numa janela de aplicativo, igual à do sistema (sem barra de endereço)
+      var texto = b.innerHTML; b.disabled = true; b.innerHTML = 'Montando o 3D…';
+      (async function () {
+        try {
+          var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8), M, bytes = null, tipo = '';
+          if (!sel.length) M = { catalogo: true };
+          else {
+            bytes = await it.obter(); M = await lerDesenho(bytes, it.nome); tipo = ehCam(it.nome) ? 'text/plain; charset=windows-1252' : 'application/pdf';
+            if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
+            M.pdfUrl = '/pc/3d/' + id + '/arquivo';
+          }
+          var r = await fetch('/api/pc/janela3d', { method: 'POST', headers: { 'X-PPCPM': '1', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, html: htmlDoModelo(M), arquivo: bytes ? base64(bytes) : '', tipo: tipo, x: x, y: y, largura: w, altura: h }) });
+          var j = await r.json(); if (!r.ok) throw new Error(j.erro || 'Erro ' + r.status);
+          if (!j.app && !window.open(j.url, 'ppcpm_3d_' + id, 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y)) alert('O navegador bloqueou a janela do 3D.\nPermita pop-ups deste endereço e clique de novo.');
+        } catch (e) { alert('Não foi possível montar o 3D.\n' + (e.message || e)); }
+        b.disabled = false; b.innerHTML = texto;
+      })();
+      return;
+    }
+    // versão da internet (Vercel): janela pop-up do navegador
+    var J = window.open('', 'ppcpm_3d_' + Date.now(), 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
     if (!J) { alert('O navegador bloqueou a janela do 3D.\nPermita pop-ups deste endereço e clique de novo.'); return; }
     b.disabled = true;
     (async function () {
       try {
-        var t0 = Date.now();
-        while (PY && Date.now() - t0 < 6000) { try { if (J.location.pathname === '/pc/janela3d' && J.document.readyState === 'complete') break; } catch (e) { } await new Promise(function (r) { setTimeout(r, 40); }); }
-        if (!sel.length) { escreverJanela(J, { catalogo: true }); return; }
-        var it = sel[0], bytes = await it.obter(), M = await lerDesenho(bytes, it.nome);
-        if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
-        M.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: ehCam(it.nome) ? 'text/plain' : 'application/pdf' }));
-        escreverJanela(J, M);
-      } catch (e) { try { J.close(); } catch (x) { } alert('Não foi possível montar o 3D.\n' + (e.message || e)); }
+        if (!sel.length) escreverJanela(J, { catalogo: true });
+        else {
+          var bytes = await it.obter(), M = await lerDesenho(bytes, it.nome);
+          if (sel.length > 1) M.avisos.unshift('Vários desenhos selecionados: mostrando só o primeiro (' + it.nome + ').');
+          M.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: ehCam(it.nome) ? 'text/plain' : 'application/pdf' }));
+          escreverJanela(J, M);
+        }
+      } catch (e) { try { J.close(); } catch (x2) { } alert('Não foi possível montar o 3D.\n' + (e.message || e)); }
       b.disabled = false;
     })();
-  };
+  }
 
   window.PPCPM_ENGENHARIA = { itens: function () { return ITENS; }, adicionarArquivos: adicionarArquivos };
 })();
@@ -23995,7 +24025,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 124';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 125';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});

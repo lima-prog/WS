@@ -42,6 +42,7 @@ LOCAIS_OK = {"127.0.0.1", "::1", "::ffff:127.0.0.1"}
 
 _pagina = {"chave": None, "bruta": b"", "gzip": b""}
 _trava = threading.Lock()
+JANELAS_3D: dict = {}   # visualizador 3D: id -> {"html", "arquivo", "tipo"} (só na memória, últimas 12)
 ESTADO = {"porta": PORTA_PADRAO, "rede": False, "agendador": None, "servidor": None, "encerrar": False}
 
 
@@ -117,6 +118,18 @@ class Sistema(BaseHTTPRequestHandler):
                                     '<body style="margin:0;font:600 14px Arial;display:grid;place-items:center;height:100vh;'
                                     'color:#5b6474;background:#f4f6f9">Lendo o desenho e montando o 3D…</body></html>',
                                     "text/html; charset=utf-8")
+            if caminho.startswith("/pc/3d/"):   # janela própria do VISUALIZAR 3D (aberta como aplicativo)
+                if self.client_address[0] not in LOCAIS_OK:
+                    return self._json({"erro": "O 3D abre só neste computador."}, 403)
+                partes = caminho[len("/pc/3d/"):].split("/")
+                j = JANELAS_3D.get(partes[0])
+                if not j:
+                    return self._enviar(404, '<!doctype html><meta charset="utf-8"><title>PPCPM - 3D</title><body style="font:600 14px Arial;'
+                                        'display:grid;place-items:center;height:100vh;margin:0;color:#5b6474">Este 3D já foi fechado. '
+                                        'Abra de novo pela aba Engenharia.</body>', "text/html; charset=utf-8")
+                if len(partes) > 1 and partes[1] == "arquivo":
+                    return self._enviar(200, j["arquivo"], j["tipo"] or "application/octet-stream")
+                return self._enviar(200, j["html"], "text/html; charset=utf-8")
             if caminho == "/pc/icone.ico":
                 return self._enviar(200, (PONTE_JS.parent / "icone.ico").read_bytes(), "image/x-icon", sem_cache=False)
             if caminho == "/pc/ponte.js":
@@ -176,6 +189,30 @@ class Sistema(BaseHTTPRequestHandler):
                 return self._json({"ok": True, "enviadas": len(zpls), "metodo": metodo})
             except Exception as e:
                 return self._json({"erro": str(e)}, 500)
+        if caminho == "/api/pc/janela3d":
+            # VISUALIZAR 3D: guarda a página e o arquivo e abre numa janela de aplicativo (sem barra de endereço)
+            if not self._do_proprio_pc():
+                return self._json({"erro": "O 3D abre só neste computador."}, 403)
+            d = self._corpo_json()
+            ident = "".join(ch for ch in str(d.get("id") or "") if ch.isalnum())[:40]
+            if not ident or not d.get("html"):
+                return self._json({"erro": "Nada para mostrar."}, 400)
+            import base64
+            try:
+                arq = base64.b64decode(d.get("arquivo") or "")
+            except ValueError:
+                arq = b""
+            JANELAS_3D[ident] = {"html": str(d["html"]), "arquivo": arq, "tipo": str(d.get("tipo") or "")}
+            for velho in list(JANELAS_3D)[:-12]:
+                JANELAS_3D.pop(velho, None)
+            url = f"http://127.0.0.1:{self.server.server_address[1]}/pc/3d/{ident}"
+            def inteiro(v, padrao):
+                try:
+                    return int(float(v))
+                except (TypeError, ValueError):
+                    return padrao
+            janela = (inteiro(d.get("x"), 40), inteiro(d.get("y"), 40), inteiro(d.get("largura"), 1400), inteiro(d.get("altura"), 860))
+            return self._json({"ok": True, "url": url, "app": abrir_janela_app(url, *janela)})
         if caminho == "/api/encerrar":
             # Botão "Sair" → [S] Sim: desliga o sistema por completo neste PC (só o próprio PC pode)
             if not self._do_proprio_pc():
@@ -250,6 +287,20 @@ def _navegador_app() -> str | None:
                        os.path.join(base, "Microsoft", "Edge", "Application", "msedge.exe")]
     candidatos.sort(key=lambda c: "msedge" in c.lower())   # Chrome primeiro, Edge se não tiver Chrome
     return next((c for c in candidatos if c and os.path.isfile(c)), None)
+
+
+def abrir_janela_app(endereco: str, x: int, y: int, largura: int, altura: int) -> bool:
+    """Abre uma janela de aplicativo (só a tela, igual à janela do sistema). False = não deu (o sistema abre como pop-up)."""
+    nav = _navegador_app()
+    if not nav:
+        return False
+    import subprocess
+    try:
+        subprocess.Popen([nav, f"--app={endereco}", f"--window-size={max(600, largura)},{max(400, altura)}",
+                          f"--window-position={x},{y}"], close_fds=True)
+        return True
+    except OSError:
+        return False
 
 
 def abrir_tela(endereco: str, como_app: bool = True) -> None:
