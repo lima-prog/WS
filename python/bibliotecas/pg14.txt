@@ -1,0 +1,7 @@
+# Área de impressão › Engenharia (desenhos PDF)
+# Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
+
+pypdf>=4.3                                 # Juntar, separar e reordenar páginas de PDF (ordens, impressão casada)
+pywin32>=306; sys_platform == 'win32'      # Imprimir direto na Zebra ZD220 (ZPL) e listar impressoras do Windows
+py7zr>=0.22                                # Abrir arquivos compactados .7z como pasta
+rarfile>=4.2                               # Abrir arquivos .rar como pasta (precisa do 7-Zip ou WinRAR no PC)

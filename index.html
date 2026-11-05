@@ -21791,6 +21791,327 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
 <\/script>
 </body>
 </html>
+</script><script type="text/plain" id="src-pg14"><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<script>
+/* SISTEMA PPCPM - AVISA: usa a janela de aviso do sistema */
+(function(){var nativo=window.alert.bind(window);window.alert=function(m){try{if(window.top!==window&&window.top.__avisa)return window.top.__avisa(m)}catch(e){}nativo(m)}})();
+<\/script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engenharia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"><\/script>
+<style>
+  :root { --bg:#eef1f6; --card:#fff; --borda:#d9dde6; --azul:#0b5cad; --azul2:#1a6dc0; --texto:#1a2233; --fraco:#5b6474; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:Arial,Helvetica,sans-serif; }
+  body { background:var(--bg); color:var(--texto); font-weight:600; font-size:13px; padding:18px 20px; }
+  .grade { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grade.uma { grid-template-columns:1fr; }
+  .card { background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(16,24,40,.06); }
+  .ch { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .ch h2 { font-size:15px; font-weight:700; }
+  .nb { width:24px; height:24px; border-radius:50%; background:#1f3a8a; color:#fff; display:grid; place-items:center; font-size:12px; font-weight:700; flex:none; }
+  .obs { color:var(--azul); font-size:12px; margin:0 0 10px 34px; }
+  .linha { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .esp { flex:1; }
+  button { font:700 13px Arial,Helvetica,sans-serif; border-radius:8px; padding:8px 14px; cursor:pointer; border:1px solid #c5cbd6; background:#fff; color:#1f2937; display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+  button:hover { background:#f1f3f8; }
+  button.pri { background:var(--azul); border-color:var(--azul); color:#fff; }
+  button.pri:hover { background:var(--azul2); }
+  button:disabled { opacity:.5; cursor:default; }
+  svg { flex:none; }
+  input[type=text] { border:1px solid #c5cbd6; border-radius:8px; padding:8px 10px; font:600 13px Arial,Helvetica,sans-serif; color:var(--texto); background:#fff; min-width:0; }
+  input[type=text]:focus { outline:none; border-color:#000; box-shadow:0 0 0 1px #000; }
+  .drop { margin-top:12px; border:2px dashed #9aa8d6; border-radius:12px; background:#f3f6fc; padding:18px; text-align:center; color:#1f2937; cursor:pointer; transition:background .15s, border-color .15s; }
+  .drop.over, .drop:hover { background:#e6edf8; border-color:var(--azul); }
+  .drop .t1 { font-size:14px; font-weight:700; margin-top:6px; }
+  .drop .t2 { color:var(--fraco); font-size:12px; margin-top:4px; }
+  .campo-l { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--fraco); }
+  .campo-l input { width:100%; }
+  .msg { margin-top:10px; font-size:12px; color:var(--fraco); min-height:16px; }
+  .msg.erro { color:#b42318; }
+  .lista-card { margin-top:16px; }
+  .tab { margin-top:10px; border:1px solid var(--borda); border-radius:10px; overflow:auto; max-height:calc(100vh - 430px); min-height:220px; background:#fff; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:7px 10px; border-bottom:1px solid #eef0f4; white-space:nowrap; }
+  th { position:sticky; top:0; background:#f7f8fa; color:var(--fraco); font-size:12px; z-index:1; cursor:pointer; user-select:none; }
+  td.nome { white-space:normal; word-break:break-word; }
+  tbody tr { cursor:pointer; user-select:none; }
+  tr:hover td { background:#f1f6fd; }
+  tr.sel td { background:#e3eefb; }
+  .chip { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; background:#eef2f7; color:#334155; }
+  .chip.zip { background:#ede9fe; color:#5b21b6; }
+  .chip.rede { background:#e0f2fe; color:#075985; }
+  .vazio { padding:40px; text-align:center; color:var(--fraco); }
+  .tot { color:var(--fraco); font-size:12px; }
+  #ver { position:fixed; inset:0; background:rgba(5,10,25,.6); display:none; align-items:center; justify-content:center; padding:18px; z-index:50; }
+  #ver.on { display:flex; }
+  #ver .box { background:#fff; border-radius:12px; width:min(1200px,100%); height:100%; display:flex; flex-direction:column; overflow:hidden; border:1px solid #0b2150; }
+  #ver .top { background:linear-gradient(180deg,#0b2150,#06142f); color:#fff; padding:10px 14px; display:flex; align-items:center; gap:10px; }
+  #ver .top b { flex:1; text-align:center; font-size:14px; letter-spacing:.3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #ver .top button { background:transparent; border-color:rgba(255,255,255,.35); color:#fff; }
+  #ver .top button:hover { background:rgba(255,255,255,.12); }
+  #ver iframe { flex:1; border:0; width:100%; background:#525659; }
+  .ocupado { cursor:progress; }
+  @media (max-width:900px) { .grade { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<div class="grade" id="grade">
+  <div class="card">
+    <div class="ch"><span class="nb">1</span><h2>Desenhos da engenharia (PDF)</h2></div>
+    <p class="obs">Pastas comuns, arquivos .zip (também zip dentro de zip) ou os próprios PDFs</p>
+    <div class="linha">
+      <button class="pri" id="b-arq"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>Adicionar PDF / ZIP</button>
+      <button id="b-pasta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/></svg>Adicionar pasta</button>
+      <span class="esp"></span>
+      <button id="b-limpar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Limpar</button>
+    </div>
+    <input type="file" id="in-arq" accept=".pdf,.zip" multiple hidden>
+    <input type="file" id="in-pasta" webkitdirectory directory multiple hidden>
+    <div class="drop" id="drop">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      <div class="t1">Arraste aqui PDFs, pastas ou arquivos .zip</div>
+      <div class="t2">os PDFs de dentro dos .zip são lidos sem extrair nada no disco</div>
+    </div>
+    <div class="msg" id="msg1"></div>
+  </div>
+
+  <div class="card" id="card-busca" hidden>
+    <div class="ch"><span class="nb">2</span><h2>Buscar na pasta da engenharia</h2></div>
+    <p class="obs">Procura os PDFs da obra nesta pasta, nas subpastas e dentro dos .zip</p>
+    <div class="campo-l">Pasta da engenharia
+      <div class="linha"><input type="text" id="raiz" style="flex:1" placeholder="ex.: \\172.25.0.7\lib-eng\LIBERAÇÕES ENGENHARIA"></div>
+    </div>
+    <div class="linha" style="margin-top:10px">
+      <div class="campo-l" style="flex:1">Obra / trecho / nome do desenho
+        <input type="text" id="termo" placeholder="ex.: 2166-1-01">
+      </div>
+      <button class="pri" id="b-buscar" style="align-self:flex-end"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar</button>
+    </div>
+    <div class="msg" id="msg2"></div>
+  </div>
+</div>
+
+<div class="card lista-card">
+  <div class="linha">
+    <div class="ch" style="margin:0"><span class="nb" id="nb-lista">2</span><h2>Desenhos encontrados</h2></div>
+    <span class="tot" id="tot">0 PDF</span>
+    <span class="esp"></span>
+    <input type="text" id="filtro" placeholder="Filtrar por nome ou obra…" style="width:260px">
+  </div>
+  <div class="tab" id="tab"><div class="vazio">Nenhum desenho ainda. Adicione PDFs, pastas ou .zip.</div></div>
+  <div class="linha" style="margin-top:12px">
+    <button id="b-todos">Marcar todos</button>
+    <button id="b-nenhum">Desmarcar todos</button>
+    <span class="tot" id="sel">Selecionados: 0</span>
+    <span class="esp"></span>
+    <span class="tot">duplo clique = abrir o desenho</span>
+    <button id="b-baixar" disabled><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Baixar PDF</button>
+    <button class="pri" id="b-imprimir" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>Imprimir selecionados</button>
+  </div>
+</div>
+
+<div id="ver" role="dialog" aria-modal="true">
+  <div class="box">
+    <div class="top"><button id="v-imp">Imprimir</button><b id="v-nome">PPCPM - DESENHO</b><button id="v-fechar">Fechar ✕</button></div>
+    <iframe id="v-frame" title="Desenho"></iframe>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var ITENS = [], SEL = new Set(), ORDEM = { col: 'nome', asc: true }, seq = 0;
+  var CP850 = 'ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐└┴┬├─┼ãÃ╚╔╩╦╠═╬¤ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀ÓßÔÒõÕµþÞÚÛÙýÝ¯´\u00ad±‗¾¶§÷¸°¨·¹³²■\u00a0';
+  function nomeZip(bytes) {   // zips do Windows guardam acento na página 850
+    try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+    catch (e) { var s = ''; for (var i = 0; i < bytes.length; i++) s += bytes[i] < 128 ? String.fromCharCode(bytes[i]) : CP850[bytes[i] - 128]; return s; }
+  }
+  function fmtTam(n) { if (!n) return ''; var u = ['B', 'KB', 'MB', 'GB'], i = 0; while (n >= 1024 && i < 3) { n /= 1024; i++; } return n.toLocaleString('pt-BR', { maximumFractionDigits: i ? 1 : 0 }) + ' ' + u[i]; }
+  function obraDe(t) { var m = /(\d{4}-\d{1,3}-\d{1,3})/.exec(t || ''); return m ? m[1] : ''; }
+  function msg(id, t, erro) { var e = $(id); e.textContent = t || ''; e.classList.toggle('erro', !!erro); }
+  function ehPdf(n) { return /\.pdf$/i.test(n); }
+  function ehZip(n) { return /\.zip$/i.test(n); }
+
+  function adicionar(nome, origem, tipo, tamanho, obter, chave) {
+    chave = chave || origem + '|' + nome;
+    if (ITENS.some(function (x) { return x.chave === chave; })) return false;
+    ITENS.push({ id: ++seq, nome: nome, origem: origem, tipo: tipo, tamanho: tamanho, obra: obraDe(nome) || obraDe(origem), obter: obter, chave: chave });
+    return true;
+  }
+  async function lerZip(bytes, origem, nivel) {
+    if (typeof JSZip === 'undefined') throw new Error('Componente de .zip não carregou (internet bloqueada?). Recarregue a página.');
+    var z = await JSZip.loadAsync(bytes, { decodeFileName: nomeZip }), n = 0, internos = [];
+    z.forEach(function (caminho, ent) {
+      if (ent.dir) return;
+      var base = caminho.split('/').pop();
+      if (ehPdf(base)) { if (adicionar(base, origem + ' › ' + caminho.split('/').slice(0, -1).join(' › '), 'zip', ent._data && ent._data.uncompressedSize, function () { return ent.async('uint8array'); })) n++; }
+      else if (ehZip(base) && nivel < 3) internos.push([ent, origem + ' › ' + caminho]);
+    });
+    for (var i = 0; i < internos.length; i++) n += await lerZip(await internos[i][0].async('uint8array'), internos[i][1], nivel + 1);
+    return n;
+  }
+  async function adicionarArquivos(lista) {
+    var n = 0, erros = [];
+    document.body.classList.add('ocupado'); msg('#msg1', 'Lendo arquivos…');
+    for (var i = 0; i < lista.length; i++) {
+      var f = lista[i], pasta = (f.webkitRelativePath || f.caminho || '').split('/').slice(0, -1).join(' › ');
+      try {
+        if (ehPdf(f.name)) { if (adicionar(f.name, pasta || 'arquivo', 'pasta', f.size, function (f) { return function () { return f.arrayBuffer().then(function (b) { return new Uint8Array(b); }); }; }(f))) n++; }
+        else if (ehZip(f.name)) n += await lerZip(await f.arrayBuffer(), (pasta ? pasta + ' › ' : '') + f.name, 1);
+      } catch (e) { erros.push(f.name + ': ' + (e.message || e)); }
+    }
+    document.body.classList.remove('ocupado');
+    msg('#msg1', erros.length ? erros.join(' | ') : (n ? n + ' desenho(s) adicionado(s).' : 'Nenhum PDF novo encontrado.'), erros.length > 0);
+    desenhar();
+  }
+
+  /* entrada de arquivos e pastas */
+  $('#b-arq').onclick = function () { $('#in-arq').click(); };
+  $('#b-pasta').onclick = function () { $('#in-pasta').click(); };
+  $('#in-arq').onchange = function () { adicionarArquivos(Array.from(this.files)); this.value = ''; };
+  $('#in-pasta').onchange = function () { adicionarArquivos(Array.from(this.files).filter(function (f) { return ehPdf(f.name) || ehZip(f.name); })); this.value = ''; };
+  $('#drop').onclick = function () { $('#in-arq').click(); };
+  var dz = $('#drop');
+  dz.addEventListener('dragover', function (e) { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', function () { dz.classList.remove('over'); });
+  dz.addEventListener('drop', async function (e) {
+    e.preventDefault(); dz.classList.remove('over');
+    var entradas = Array.from(e.dataTransfer.items || []).map(function (it) { return it.webkitGetAsEntry ? it.webkitGetAsEntry() : null; }).filter(Boolean);
+    var arqs = [];
+    async function andar(ent, rel) {
+      if (ent.isFile) { await new Promise(function (ok) { ent.file(function (f) { f.caminho = rel + f.name; arqs.push(f); ok(); }, ok); }); return; }
+      var leitor = ent.createReader(), lote;
+      do { lote = await new Promise(function (ok) { leitor.readEntries(ok, function () { ok([]); }); }); for (var i = 0; i < lote.length; i++) await andar(lote[i], rel + ent.name + '/'); } while (lote.length);
+    }
+    if (entradas.length) { for (var i = 0; i < entradas.length; i++) await andar(entradas[i], ''); }
+    else arqs = Array.from(e.dataTransfer.files || []);
+    adicionarArquivos(arqs.filter(function (f) { return ehPdf(f.name) || ehZip(f.name); }));
+  });
+  $('#b-limpar').onclick = function () { ITENS = []; SEL.clear(); msg('#msg1', ''); msg('#msg2', ''); desenhar(); };
+
+  /* busca na pasta da engenharia (só na versão Python deste PC) */
+  var CAB = { 'X-PPCPM': '1' };
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+  fetch('/api/pc/locais', { headers: CAB, cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; $('#card-busca').hidden = false; $('#nb-lista').textContent = '3'; })
+    .catch(function () { $('#grade').classList.add('uma'); });
+  $('#raiz').value = lsGet('ppcpm:eng:raiz') || '';
+  $('#termo').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#b-buscar').click(); });
+  $('#b-buscar').onclick = async function () {
+    var raiz = $('#raiz').value.trim().replace(/^"|"$/g, ''), termo = $('#termo').value.trim();
+    if (!raiz) { msg('#msg2', 'Cole o caminho da pasta da engenharia.', true); $('#raiz').focus(); return; }
+    if (!termo) { msg('#msg2', 'Digite a obra ou parte do nome do desenho.', true); $('#termo').focus(); return; }
+    lsSet('ppcpm:eng:raiz', raiz);
+    var b = this; b.disabled = true; msg('#msg2', 'Procurando "' + termo + '"… (pastas, subpastas e .zip)');
+    try {
+      var r = await fetch('/api/pc/buscar?caminho=' + encodeURIComponent(raiz) + '&termo=' + encodeURIComponent(termo) + '&filtro=.pdf', { headers: CAB, cache: 'no-store' });
+      var j = await r.json(); if (!r.ok) throw new Error(j.erro || 'Erro ' + r.status);
+      var n = 0;
+      j.itens.forEach(function (i) {
+        if (i.pasta || !ehPdf(i.nome)) return;
+        var origem = i.caminho.slice(0, i.caminho.length - i.nome.length).replace(/[\\\/]$/, '');
+        if (adicionar(i.nome, origem, i.dentro_de ? 'zip' : 'rede', i.tamanho, function (c) { return function () {
+          return fetch('/api/pc/arquivo?caminho=' + encodeURIComponent(c), { headers: CAB, cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('Não foi possível ler ' + c); return r.arrayBuffer(); }).then(function (b) { return new Uint8Array(b); });
+        }; }(i.caminho), i.caminho)) n++;
+      });
+      msg('#msg2', n + ' desenho(s) encontrado(s)' + (j.incompleta ? ' (busca parcial: pasta muito grande — refine o termo)' : '') + '.');
+      desenhar();
+    } catch (e) { msg('#msg2', e.message || String(e), true); }
+    b.disabled = false;
+  };
+
+  /* lista */
+  function visiveis() {
+    var q = $('#filtro').value.trim().toLowerCase();
+    var l = ITENS.filter(function (i) { return !q || (i.nome + ' ' + i.obra + ' ' + i.origem).toLowerCase().indexOf(q) >= 0; });
+    var c = ORDEM.col, s = ORDEM.asc ? 1 : -1;
+    return l.sort(function (a, b) { return c === 'tamanho' ? s * ((a.tamanho || 0) - (b.tamanho || 0)) : s * String(a[c] || '').localeCompare(String(b[c] || ''), 'pt-BR', { numeric: true }); });
+  }
+  function desenhar() {
+    var l = visiveis(), tab = $('#tab');
+    $('#tot').textContent = ITENS.length + (ITENS.length === 1 ? ' PDF' : ' PDFs');
+    if (!l.length) { tab.innerHTML = '<div class="vazio">' + (ITENS.length ? 'Nada com esse filtro.' : 'Nenhum desenho ainda. Adicione PDFs, pastas ou .zip.') + '</div>'; contar(); return; }
+    var t = document.createElement('table'), cab = document.createElement('tr');
+    [['', ''], ['nome', 'Desenho'], ['obra', 'Obra'], ['tipo', 'Onde está'], ['origem', 'Pasta / ZIP'], ['tamanho', 'Tamanho']].forEach(function (c) {
+      var th = document.createElement('th'); th.textContent = c[1] + (ORDEM.col === c[0] ? (ORDEM.asc ? ' ▲' : ' ▼') : '');
+      if (c[0]) th.onclick = function () { ORDEM = { col: c[0], asc: ORDEM.col === c[0] ? !ORDEM.asc : true }; desenhar(); };
+      cab.appendChild(th);
+    });
+    var th0 = document.createElement('thead'); th0.appendChild(cab); t.appendChild(th0);
+    var tb = document.createElement('tbody');
+    l.forEach(function (i) {
+      var tr = document.createElement('tr'); if (SEL.has(i.id)) tr.className = 'sel';
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = SEL.has(i.id);
+      cb.onchange = function () { if (cb.checked) SEL.add(i.id); else SEL.delete(i.id); tr.className = cb.checked ? 'sel' : ''; contar(); };
+      var td = document.createElement('td'); td.appendChild(cb); tr.appendChild(td);
+      var tn = document.createElement('td'); tn.className = 'nome'; tn.textContent = i.nome; tr.appendChild(tn);
+      var to = document.createElement('td'); to.textContent = i.obra; tr.appendChild(to);
+      var tt = document.createElement('td'); tt.innerHTML = '<span class="chip ' + i.tipo + '">' + ({ zip: 'Dentro de .zip', rede: 'Pasta da rede', pasta: 'Pasta' }[i.tipo] || i.tipo) + '</span>'; tr.appendChild(tt);
+      var tg = document.createElement('td'); tg.className = 'nome'; tg.style.color = '#5b6474'; tg.style.fontWeight = '500'; tg.textContent = i.origem; tr.appendChild(tg);
+      var tz = document.createElement('td'); tz.textContent = fmtTam(i.tamanho); tz.style.textAlign = 'right'; tr.appendChild(tz);
+      tr.ondblclick = function () { abrir(i); };
+      tr.onclick = function (e) { if (e.target === cb) return; cb.checked = !cb.checked; cb.onchange(); };
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); tab.innerHTML = ''; tab.appendChild(t); contar();
+  }
+  function contar() { var n = ITENS.filter(function (i) { return SEL.has(i.id); }).length; $('#sel').textContent = 'Selecionados: ' + n; $('#b-imprimir').disabled = $('#b-baixar').disabled = !n; }
+  $('#filtro').oninput = desenhar;
+  $('#b-todos').onclick = function () { visiveis().forEach(function (i) { SEL.add(i.id); }); desenhar(); };
+  $('#b-nenhum').onclick = function () { SEL.clear(); desenhar(); };
+
+  /* abrir, imprimir, baixar */
+  var urlAtual = null;
+  function mostrar(bytes, titulo, imprimir) {
+    if (urlAtual) URL.revokeObjectURL(urlAtual);
+    urlAtual = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    $('#v-nome').textContent = titulo; $('#ver').classList.add('on');
+    var f = $('#v-frame'); f.onload = imprimir ? function () { setTimeout(function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(urlAtual); } }, 400); } : null;
+    f.src = urlAtual;
+  }
+  async function abrir(i) { try { mostrar(await i.obter(), i.nome, false); } catch (e) { alert('Não foi possível abrir o desenho.\n' + (e.message || e)); } }
+  async function juntar() {
+    var l = visiveis().filter(function (i) { return SEL.has(i.id); });
+    if (l.length === 1) return { bytes: await l[0].obter(), nome: l[0].nome, n: 1 };
+    if (typeof PDFLib === 'undefined') throw new Error('Componente de PDF não carregou (internet bloqueada?). Recarregue a página.');
+    var doc = await PDFLib.PDFDocument.create(), pulados = [];
+    for (var k = 0; k < l.length; k++) {
+      try { var src = await PDFLib.PDFDocument.load(await l[k].obter(), { ignoreEncryption: true }); (await doc.copyPages(src, src.getPageIndices())).forEach(function (p) { doc.addPage(p); }); }
+      catch (e) { pulados.push(l[k].nome); }
+    }
+    if (pulados.length) alert('Estes desenhos não puderam ser juntados (PDF protegido ou com defeito):\n' + pulados.join('\n'));
+    return { bytes: await doc.save(), nome: l.length + ' desenhos', n: l.length };
+  }
+  async function acao(imprimir) {
+    var b = imprimir ? $('#b-imprimir') : $('#b-baixar'); b.disabled = true; document.body.classList.add('ocupado');
+    try {
+      var r = await juntar();
+      if (imprimir) mostrar(r.bytes, 'Imprimir — ' + r.nome, true);
+      else {
+        var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([r.bytes], { type: 'application/pdf' }));
+        a.download = r.n === 1 ? r.nome : 'Desenhos_Engenharia_' + new Date().toISOString().slice(0, 10) + '.pdf'; a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+      }
+    } catch (e) { alert('Não foi possível preparar os desenhos.\n' + (e.message || e)); }
+    b.disabled = false; document.body.classList.remove('ocupado'); contar();
+  }
+  $('#b-imprimir').onclick = function () { acao(true); };
+  $('#b-baixar').onclick = function () { acao(false); };
+  $('#v-imp').onclick = function () { var f = $('#v-frame'); try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.open(urlAtual); } };
+  $('#v-fechar').onclick = function () { $('#ver').classList.remove('on'); $('#v-frame').src = 'about:blank'; };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('#ver').classList.contains('on')) $('#v-fechar').click(); });
+
+  window.PPCPM_ENGENHARIA = { itens: function () { return ITENS; }, adicionarArquivos: adicionarArquivos };
+})();
+<\/script>
+</body>
+</html>
 </script>
 <script>
 /* ===== IDIOMA E TEMA (Versão 31) =====
@@ -22096,7 +22417,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 118';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 119';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -22271,7 +22592,7 @@ const ico=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true"
 /* NAV */
 const NAV=[['home','Tela inicial','dash'],['prod','Produção','fab'],['val','Processo de validação','op'],['ops','Ordens de Produção','op'],['rot','Gerenciador de Roteiros','pal'],['exp','Área de impressão','fab'],['plan','Planejamento','gan'],['cap','Capacidade','gau'],['qual','Qualidade / RNC','nut'],['kpi','Indicadores','kpi'],['rel','Relatórios','rel'],['usr','Usuários','usr'],['cfg','Configurações','cfg']];
 const CHV='<svg class="ic chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-const GRP={val:['pg1'],rot:['pg10','pg11'],exp:['pg12']};const grpOf=id=>GRP.val.includes(id)?'val':GRP.rot.includes(id)?'rot':GRP.exp.includes(id)?'exp':'prod';
+const GRP={val:['pg1'],rot:['pg10','pg11'],exp:['pg12','pg14']};const grpOf=id=>GRP.val.includes(id)?'val':GRP.rot.includes(id)?'rot':GRP.exp.includes(id)?'exp':'prod';
 const subHTML=k=>`<div class="sub" id="sub-${k}">${PROG.filter(p=>grpOf(p[0])===k).map(p=>`<button class="n" data-v="${p[0]}">${ico('rel')}<span>${p[1]}</span></button>`).join('')}</div>`;
 $('#nv').innerHTML=NAV.map(n=>n[0]==='ops'?'':(n[0]==='prod'||n[0]==='val'||n[0]==='rot'||n[0]==='exp')?`<button class="n grp" data-tg="${n[0]}" aria-expanded="false">${ico(n[2])}<span>${n[1]}</span>${CHV}</button>${subHTML(n[0])}`:`<button class="n" data-v="${n[0]}">${ico(n[2])}<span>${n[1]}</span></button>`).join('')+'<div class="plant"><img src="'+$('#nv').dataset.plant+'" alt="" decoding="async"><div><b>Grupo Projeart</b><br>Indústria Metalúrgica</div></div>';
 $('#nv').onclick=e=>{const t=e.target.closest('[data-tg]');if(t){const k=t.dataset.tg;return subTg(!$('#sub-'+k).classList.contains('open'),k)}const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};$('#bg').onclick=()=>$('#nv').classList.toggle('open');
@@ -22336,7 +22657,7 @@ window.__net=n=>{netSet(n)};window.__irEnvioRoteiro=()=>go('pg11');
 let cur='home';const F={p:'',s:'',q:''};let CM=new Date();CM.setDate(1);
 function subTg(o,k){k=k||'prod';$('#sub-'+k).classList.toggle('open',o);const g=$('nav .grp[data-tg='+k+']');g.setAttribute('aria-expanded',o);g.classList.toggle('opn',o)}
 function go(v){cur=v;$('#nv').classList.remove('open');document.querySelectorAll('nav .n').forEach(b=>b.classList.toggle('on',b.dataset.v===v));{const gv=/^pg/.test(v)?grpOf(v):'';['prod','val','rot','exp'].forEach(k=>{if(gv===k)subTg(true,k);$('nav .grp[data-tg='+k+']').classList.toggle('in',gv===k)})}render();scrollTo(0,0);savePrefs()}
-function prodV(){const p=PROG.find(x=>x[0]===cur);return`<div class="prh"><h2 class="up"${/^pg(?:[1-9]|1[0-3])$/.test(cur)?' style="text-align:center"':''}>${p[2]}</h2>${/^pg(?:[1-9]|1[0-3])$/.test(cur)?`<span class="onl${NET==='ok'?'':' '+NET}" role="status"><i></i>${NETTXT[NET]}</span>`:''}</div><div class="pn" style="padding:0;overflow:hidden;background:${/^pg(?:[1-9]|1[0-3])$/.test(cur)?'#eef1f6':'#0b0e14'}"><iframe id="ppcp" data-pg="${cur}" title="${p[2]}" style="width:100%;height:calc(100vh - 170px);min-height:520px;border:0;display:block"></iframe></div>`}
+function prodV(){const p=PROG.find(x=>x[0]===cur);return`<div class="prh"><h2 class="up"${/^pg(?:[1-9]|1[0-4])$/.test(cur)?' style="text-align:center"':''}>${p[2]}</h2>${/^pg(?:[1-9]|1[0-4])$/.test(cur)?`<span class="onl${NET==='ok'?'':' '+NET}" role="status"><i></i>${NETTXT[NET]}</span>`:''}</div><div class="pn" style="padding:0;overflow:hidden;background:${/^pg(?:[1-9]|1[0-4])$/.test(cur)?'#eef1f6':'#0b0e14'}"><iframe id="ppcp" data-pg="${cur}" title="${p[2]}" style="width:100%;height:calc(100vh - 170px);min-height:520px;border:0;display:block"></iframe></div>`}
 function render(){if(cur==='prod')cur='pg3';if(cur==='val'||cur==='pg8')cur='pg1';if(cur==='rot')cur='pg10';if(cur==='exp')cur='pg12';{const f=$('#ppcp');if(/^pg/.test(cur)&&f&&f.dataset.pg===cur)return}if(cur==='usr'&&!(USER&&USER.adm))cur='home';const nb=$('nav .n[data-v=usr]');if(nb){const q=USER&&USER.adm?pend().length:0;nb.innerHTML=ico('usr')+'<span>Usuários</span>'+(q?`<span class="nb" title="Cadastros aguardando aprovação">${q}</span>`:'')}
  const isP=/^pg/.test(cur);const V=isP?prodV:{home,ops:opsV,plan:planV,cfg:cfgV,usr:usrV}[cur];const nm=isP?'':NAV.find(n=>n[0]===cur)[1];
  $('#view').innerHTML=V?V():`<h2>${nm}</h2><div class="pn empty"><b>${ico('cone')}</b>Este módulo chega em uma versão futura.<br>Diga o que ele precisa fazer e montamos o próximo.</div>`;
