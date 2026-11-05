@@ -45,6 +45,7 @@ def main(args: list[str]) -> int:
         cfg = gerar_de_html(html, DESTINO)
         print(f"OK: {cfg['versao']} separado em {len(cfg['modulos'])} programas em {DESTINO}")
         bibliotecas.gerar_arquivos(AQUI / "bibliotecas")
+        (AQUI.parent / "versao_python.json").write_text((AQUI / "versao_python.json").read_text(encoding="utf-8"), encoding="utf-8")
         print("OK: listas de bibliotecas por seção atualizadas em bibliotecas/")
     igual = montar(DESTINO) == html
     print("Conferência:", "remontagem IDÊNTICA ao index.html" if igual else "DIFERENTE do index.html — rode o gerador de novo")

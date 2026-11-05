@@ -9,7 +9,7 @@ Toda versão nova publicada (GitHub lima-prog/ws → Vercel) chega sozinha aqui:
        -> baixa o index.html (GitHub ou, se bloqueado, a Vercel) e regenera ppcpm/gerado/.
           Não precisa reiniciar: na próxima tela o usuário vê "Nova versão disponível".
 
-Confere ao abrir e a cada 5 minutos. Nunca mexe em: dados_locais/, .venv/, .python/, pacotes/.
+Confere ao abrir e a cada 1 minuto (pela Vercel, que publica na hora). Nunca mexe em: dados_locais/, .venv/, .python/, pacotes/.
 Desligar: python app.py --sem-atualizar
 """
 from __future__ import annotations
@@ -30,7 +30,7 @@ from .gerador import gerar_de_html
 GITHUB_RAW = "https://raw.githubusercontent.com/lima-prog/ws/main/"
 GITHUB_ZIP = "https://codeload.github.com/lima-prog/ws/zip/refs/heads/main"
 VERCEL = "https://sistemaoperacional-grupoprojeartv92.vercel.app/"
-INTERVALO_MIN = 5
+INTERVALO_SEG = 60          # confere a cada 1 minuto (só um arquivinho de versão, bem leve)
 PROTEGIDOS = {"dados_locais", ".venv", ".python", "pacotes", ".atualizando", "__pycache__"}
 ARQ_LOG = PASTA_DADOS / "atualizacoes.log"
 
@@ -63,13 +63,14 @@ def _json(urls: list[str]) -> dict | None:
 
 
 def versoes_remotas() -> dict:
-    html = _json([GITHUB_RAW + "versao.json", VERCEL + "versao.json"])
-    py = _json([GITHUB_RAW + "python/versao_python.json"])
+    # Vercel primeiro: publica em segundos e não guarda cache. O GitHub (raw) guarda até 5 min: só reserva.
+    html = _json([VERCEL + "versao.json", GITHUB_RAW + "versao.json"])
+    py = _json([VERCEL + "versao_python.json", GITHUB_RAW + "python/versao_python.json"])
     return {"html": (html or {}).get("versao"), "python": (py or {}).get("pacote")}
 
 
 def atualizar_html(versao_remota: str) -> bool:
-    for url in (GITHUB_RAW + "index.html", VERCEL + "index.html", VERCEL):
+    for url in (VERCEL + "index.html", VERCEL, GITHUB_RAW + "index.html"):
         try:
             html = _baixar(url, 90).decode("utf-8")
             if f"const VERSAO='{versao_remota}'" not in html:
@@ -96,6 +97,13 @@ def atualizar_python(pacote_remoto) -> bool:
             return False
         if not any(n.startswith(raiz + "app.py") for n in nomes):
             registrar("Pacote baixado está incompleto (sem app.py).")
+            return False
+        try:
+            no_zip = json.loads(z.read(raiz + ARQ_VERSAO_PYTHON.name).decode("utf-8")).get("pacote")
+        except Exception:
+            no_zip = None
+        if no_zip != pacote_remoto:
+            registrar(f"O GitHub ainda está entregando o pacote {no_zip}; tento de novo em 1 minuto.")
             return False
         temp = PASTA_APP / ".atualizando"
         shutil.rmtree(temp, ignore_errors=True)
@@ -164,7 +172,7 @@ class Agendador(threading.Thread):
         self.ultimo: dict = {}
 
     def run(self) -> None:
-        time.sleep(4)
+        time.sleep(2)
         while True:
             try:
                 self.ultimo = dict(verificar_agora(), quando=datetime.now().strftime("%d/%m/%Y %H:%M"))
@@ -173,4 +181,4 @@ class Agendador(threading.Thread):
                     return
             except Exception as e:
                 registrar(f"Erro ao conferir atualizações: {e}")
-            time.sleep(INTERVALO_MIN * 60)
+            time.sleep(INTERVALO_SEG)

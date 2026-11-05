@@ -25,6 +25,6 @@ jobs:
         run: |
           git config user.name "SISTEMA PPCPM (automático)"
           git config user.email "actions@users.noreply.github.com"
-          git add python
+          git add python versao_python.json
           git diff --cached --quiet || git commit -m "Versão Python gerada automaticamente a partir do index.html"
           git push
