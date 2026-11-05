@@ -21958,6 +21958,9 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
   .furos { display:flex; flex-direction:column; gap:6px; }
   button.furo { justify-content:flex-start; text-align:left; white-space:normal; font-weight:600; line-height:1.4; padding:8px 10px; }
   button.furo b { font-weight:700; }
+  .regra { font-size:12px; color:#374151; line-height:1.45; margin:0 0 8px; font-weight:600; }
+  .regra b { color:var(--texto); }
+  .bola.verde { border-color:#22c55e; }
   .bola { flex:none; width:14px; height:14px; border-radius:50%; border:3px solid #ff7a1a; background:#fff; }
   .avisos { margin-top:6px; padding-left:16px; color:#b45309; font-size:12px; }
   .palco { position:relative; display:flex; flex-direction:column; min-width:0; min-height:0; }
@@ -22168,6 +22171,16 @@ function criarVisualizador3D(container, parametros) {
     const aneis = (furos || []).map((f) => anel(f[2], esp, centro.clone().add(U.clone().multiplyScalar(f[0])).add(V.clone().multiplyScalar(f[1])), N, `Furo Ø${f[2]} mm · ${nome}`, chaveFuro));
     return { malha: m, aneis };
   }
+  // cordão de filete: prisma triangular de a até b; pernas ao longo de e1 (na face) e e2 (subindo na peça)
+  function cordao(c, perna) {
+    const A = new THREE.Vector3(...c.a), B = new THREE.Vector3(...c.b), dir = B.clone().sub(A), L = dir.length(); dir.normalize();
+    const e1 = new THREE.Vector3(...c.e1).normalize(), e2 = new THREE.Vector3(...c.e2).normalize(), p = Math.max(perna, 4);
+    const s = new THREE.Shape(); s.moveTo(0, 0); s.lineTo(p, 0); s.lineTo(0, p); s.lineTo(0, 0);
+    const geo = new THREE.ExtrudeGeometry(s, { depth: L, bevelEnabled: false });
+    const z = e1.clone().cross(e2), m = new THREE.Matrix4().makeBasis(e1, e2, z);
+    m.setPosition(z.dot(dir) >= 0 ? A : B); geo.applyMatrix4(m);
+    return geo;
+  }
   function mesclar(geos) {   // junta geometrias simples (posição/normal/uv) numa só
     const pos = [], nor = [], uv = [], idx = []; let base = 0;
     geos.forEach((g) => { const gi = g.index ? g.index.array : null, n = g.attributes.position.count;
@@ -22295,6 +22308,15 @@ function criarVisualizador3D(container, parametros) {
     grupo.userData.aneis = [];
     const guardar = (m) => { grupo.add(m); grupo.userData.pecas.push(m); if (m.userData.furo) { grupo.userData.aneis.push(m); m.visible = par.verFuros !== false; } };
     par.barras.forEach((b) => { const g = barra(b, mat); g.children.slice().forEach(guardar); });
+    grupo.userData.soldas = [];
+    if (!materiais.solda) materiais.solda = new THREE.MeshStandardMaterial({ color: '#22c55e', emissive: '#0f9d48', emissiveIntensity: 0.45, metalness: 0.3, roughness: 0.55 });
+    (par.soldas || []).forEach((g) => {
+      const geos = g.cordoes.map((c) => cordao(c, g.perna));
+      if (!geos.length) return;
+      const m = new THREE.Mesh(mesclar(geos), materiais.solda);
+      m.userData = { nome: `Solda de filete · perna ${String(g.perna).replace('.', ',')} mm · ${g.onde}`, marca: 'S:' + g.chave, furo: true, solda: true, matBase: materiais.solda };
+      m.visible = par.verSoldas !== false; grupo.add(m); grupo.userData.pecas.push(m); grupo.userData.soldas.push(m);
+    });
     (par.placas3d || []).forEach((pl) => {
       const o = placaFuros(pl.largZ, pl.altY, pl.esp, (pl.furos || []).map((f) => [f.z, f.y, f.d]), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0), new THREE.Vector3(...pl.centro), mat, pl.nome, pl.marca, 'F:topo');
       guardar(o.malha); o.aneis.forEach(guardar);
@@ -22397,10 +22419,28 @@ function criarVisualizador3D(container, parametros) {
   camera.position.copy(inicio.pos); controles.target.copy(inicio.alvo); controles.update(); laco();
   return {
     atualizar(novos, animar = true) { const antes = camera.position.clone(), alvo = controles.target.clone(); montar(novos); if (animar) { camera.position.copy(antes.multiplyScalar(0.92)); controles.target.copy(alvo); irPara(inicio.pos.clone(), inicio.alvo.clone(), 700); } },
-    material(acab, cor) { P.acabamento = acab; P.cor = cor; const m = material(acab, cor); grupo.traverse((o) => { if (o.isMesh && !o.userData.furo) o.material = m; }); if (materiais.principal) materiais.principal.dispose(); if (materiais.luz) { materiais.luz.dispose(); delete materiais.luz; } materiais.principal = m; },
+    material(acab, cor) { P.acabamento = acab; P.cor = cor; const m = material(acab, cor); grupo.traverse((o) => { if (o.isMesh && !o.userData.furo) o.material = m; }); if (materiais.principal) materiais.principal.dispose(); if (materiais.luz) { materiais.luz.dispose(); delete materiais.luz; } materiais.principal = m; if (P.transparente) this.transparente(true); },
     destacarMarca(marca) { if (!grupo) return; destacar(marca === null ? [] : grupo.userData.pecas.filter((m) => marca ? m.userData.marca === marca : !m.userData.marca)); },
     resetar, focarPonta, tamanho: () => r.tamanho,
     verFuros(sim) { P.verFuros = sim; (grupo.userData.aneis || []).forEach((m) => { m.visible = sim; }); },
+    transparente(sim) {   // "raio-x": aço translúcido para ver soldas e peças por dentro
+      P.transparente = sim;
+      [materiais.principal, materiais.luz].forEach((m) => { if (!m) return; m.transparent = sim; m.opacity = sim ? 0.28 : 1; m.depthWrite = !sim; m.needsUpdate = true; });
+      document.dispatchEvent(new CustomEvent('ppcpm-transp', { detail: sim }));
+    },
+    verSoldas(sim) { P.verSoldas = sim; (grupo.userData.soldas || []).forEach((m) => { m.visible = sim; }); },
+    focarSolda(chave) {   // chega perto de uma ligação soldada
+      const m = (grupo.userData.soldas || []).find((x) => x.userData.marca === chave); if (!m) return;
+      const pos = m.geometry.attributes.position, p = new THREE.Vector3(pos.getX(0), pos.getY(0), pos.getZ(0));
+      const alvo = m.localToWorld(p), meio = new THREE.Box3().setFromObject(grupo).getCenter(new THREE.Vector3()), lado = alvo.x < meio.x ? -1 : 1;
+      const dentro = Math.abs(alvo.z) < 160 && Math.abs(alvo.x - meio.x) < new THREE.Box3().setFromObject(grupo).getSize(new THREE.Vector3()).x / 2 - 60;
+      if (dentro) this.transparente(true);      // a solda fica por dentro da mesa do banzo: mostra o aço transparente
+      const off = dentro
+        ? new THREE.Vector3(lado * 380, (alvo.y > meio.y ? -1 : 1) * 260, 820)
+        : new THREE.Vector3(-lado * 480, 220, 430);                                            // chapa de topo: olha por fora, junto da chapa
+      irPara(alvo.clone().add(off), alvo);
+      return dentro;
+    },
     focarFuros(chave) {   // chega perto de um grupo de furos
       let lista = (grupo.userData.aneis || []).filter((m) => !chave || m.userData.marca === chave);
       if (!lista.length) return;
@@ -22457,7 +22497,7 @@ if (MODELO.catalogo) {
   PAR = { catalogo: true, perfil: { tipo: 'Z', h: z.h, b: z.d1, d: z.d2, t: 1.95 }, nomeZ: 'Z290', comprimento: 1500, segmentos: [1500], placas: [], comFuro: true, acabamento: 'natural', nomePrincipal: 'Perfil Z290 #1,95' };
   $('#titulo').textContent = 'PPCPM - PERFIL Z ENRIJECIDO'; $('#b-pdf').style.display = 'none';
 } else if (MODELO.tipo === 'estrutura') {
-  PAR = { estrutura: true, barras: MODELO.barras, placas3d: MODELO.placas3d, perfil: MODELO.perfil, comprimento: MODELO.comprimento, acabamento: 'natural', nomePrincipal: 'Banzo ' + MODELO.banzo.descricao.replace(/\s+x\s+[\d.]+$/, '') };
+  PAR = { estrutura: true, barras: MODELO.barras, placas3d: MODELO.placas3d, soldas: MODELO.soldas, perfil: MODELO.perfil, comprimento: MODELO.comprimento, acabamento: 'natural', nomePrincipal: 'Banzo ' + MODELO.banzo.descricao.replace(/\s+x\s+[\d.]+$/, '') };
   $('#titulo').textContent = 'PPCPM - 3D · ' + (MODELO.arquivo || MODELO.objeto || 'DESENHO');
   document.title = 'PPCPM - 3D · ' + (MODELO.arquivo || '');
 } else {
@@ -22467,6 +22507,14 @@ if (MODELO.catalogo) {
   document.title = 'PPCPM - 3D · ' + (MODELO.arquivo || '');
 }
 
+// NOMENCLATURA PADRÃO DO NOME DO ARQUIVO (legenda do desenho): F2021_1754-2-01_01_R0
+const TIPOLOGIA = { R: 'Reações', C: 'Chumbação', B: 'Básico / aprovação', F: 'Fabricação', M: 'Montagem de estrutura', T: 'Montagem de telha' };
+function identificacao(arq) {
+  const m = /^([A-Z])(\d{4})_(\d+)-(\d+)-(\d+)_(.+?)_R(\d+)$/i.exec(String(arq || '').trim());
+  if (!m) return '';
+  const t = m[1].toUpperCase();
+  return `<h3>Nome do arquivo</h3><div class="kv"><span>Tipologia</span><span>${esc(t)} · ${esc(TIPOLOGIA[t] || '—')}</span><span>Ano da obra</span><span>${m[2]}</span><span>OF</span><span>${m[3]}</span><span>Trecho</span><span>${m[4]}</span><span>Subtrecho</span><span>${m[5]}</span><span>Prancha</span><span>${esc(m[6])}</span><span>Revisão</span><span>R${m[7]}</span></div>`;
+}
 function ficha() {
   const f = $('#ficha'); let h = '';
   if (PAR.catalogo) {
@@ -22478,7 +22526,7 @@ function ficha() {
     const ok = (v) => v ? ` <span class="ok">✓ cota ${fmt(v, 0)}</span>` : '';
     h += `<h3>Desenho</h3><div class="kv"><span>Objeto</span><span>${esc(M.objeto || '—')}</span><span>Obra</span><span>${esc(M.obra || '—')}</span><span>Trecho</span><span>${esc(M.trecho || '—')}</span><span>Arquivo</span><span>${esc(M.arquivo || '—')}</span>`;
     if (conj.nome) h += `<span>Conjunto</span><span>${esc(conj.marca)} · ${esc(conj.nome)} · ${conj.qtd} un.${conj.peso_unit ? ' · ' + fmt(conj.peso_unit, 1) + ' kg' : ''}</span>`;
-    h += `</div><h3>Estrutura em 3D</h3><div class="kv"><span>Banzos</span><span>${esc(M.banzo.descricao)}</span>`;
+    h += `</div>` + identificacao(M.arquivo) + `<h3>Estrutura em 3D</h3><div class="kv"><span>Banzos</span><span>${esc(M.banzo.descricao)}</span>`;
     h += `<span>Vão</span><span>${fmt(c.banzo, 0)} mm${ok(c.ok_banzo)}</span>`;
     if (c.ok_total || M.placas3d.length) h += `<span>Com chapas</span><span>${fmt(c.total, 0)} mm${ok(c.ok_total)}</span>`;
     h += `<span>Altura</span><span>${fmt(c.altura, 0)} mm${ok(c.ok_altura)}</span><span>Espessura</span><span>${fmt(M.espessura, 0)} mm</span>`;
@@ -22491,6 +22539,18 @@ function ficha() {
       });
       h += `<div class="botoes" style="margin-top:6px"><button data-verfuros="1" class="${PAR.verFuros !== false ? 'on' : ''}">Furos em destaque</button><button data-verfuros="0" class="${PAR.verFuros === false ? 'on' : ''}">Só o aço</button></div></div>`;
     }
+    if ((M.soldas || []).length) {
+      h += `<h3>Soldas</h3><div class="regra">${M.regras && M.regras.soldaMin ? 'O desenho não indica solda nas peças. Regra da legenda (AWS): <b>na ausência de indicações de solda, considerar a espessura mínima da chapa</b> — solda de filete com perna = menor espessura da ligação.' : 'Solda de filete com perna = menor espessura da ligação.'}</div><div class="furos">`;
+      M.soldas.forEach((g) => { h += `<button class="furo" data-solda="S:${esc(g.chave)}"><span class="bola verde"></span><span><b>${esc(g.onde)}</b><br>Filete perna ${fmt(g.perna)} mm · ${g.ligacoes} ligações · ${fmt(g.metros, 1)} m</span></button>`; });
+      const tot = M.soldas.reduce((t, g) => t + g.metros, 0);
+      h += `<div class="regra" style="margin:2px 0 0">Total no conjunto: <b>${fmt(tot, 1)} m</b> de solda de filete.<br>(L.O) lado oposto · (N.L) neste lado · (A.L) ambos os lados</div>`;
+      h += `<div class="botoes" style="margin-top:6px"><button data-versoldas="1" class="${PAR.verSoldas !== false ? 'on' : ''}">Soldas em destaque</button><button data-versoldas="0" class="${PAR.verSoldas === false ? 'on' : ''}">Esconder soldas</button><button data-transp="1" class="${PAR.transparente ? 'on' : ''}">Ver por dentro</button></div></div>`;
+    }
+    if ((M.emendas || []).length) {
+      h += `<h3>Emenda não prevista</h3><div class="regra">Se precisar emendar uma peça, o chanfro sai da espessura (legenda do desenho): até 6,35 = reto · 8,00 a 12,7 = V simples 60° · 16,0 ou mais = V duplo 60°.</div><table><thead><tr><th>Marca</th><th>Parte</th><th>Esp.</th><th>Chanfro</th></tr></thead><tbody>`;
+      M.emendas.forEach((e) => { h += `<tr><td>${esc(e.marca)}</td><td>${esc(e.parte)}</td><td>${fmt(e.esp)}</td><td>${esc(e.chanfro)}</td></tr>`; });
+      h += `</tbody></table>`;
+    }
     h += `<h3>Lista de materiais</h3><table><thead><tr><th>Marca</th><th>Qtd</th><th>Descrição</th><th>No 3D</th></tr></thead><tbody>`;
     M.itens.forEach((i) => { h += `<tr data-marca="${i.no3d ? esc(i.marca) : '-'}"><td>${esc(i.marca)}</td><td>${i.por_conjunto}</td><td>${esc(i.descricao)}</td><td>${i.no3d ? esc(i.papel3d) : '<span style="color:#9aa1ad">' + esc(i.papel3d) + '</span>'}</td></tr>`; });
     h += `</tbody></table>`;
@@ -22499,7 +22559,7 @@ function ficha() {
     const M = MODELO, c = M.conferencia || {}, conj = M.conjunto || {};
     h += `<h3>Desenho</h3><div class="kv"><span>Objeto</span><span>${esc(M.objeto || conj.nome || '—')}</span><span>Obra</span><span>${esc(M.obra || '—')}</span><span>Trecho</span><span>${esc(M.trecho || '—')}</span><span>Arquivo</span><span>${esc(M.arquivo || '—')}</span>`;
     if (conj.qtd) h += `<span>Conjunto</span><span>${esc(conj.marca)} · ${conj.qtd} un. · ${fmt(conj.peso_unit)} kg/un.</span>`;
-    h += `</div><h3>Peça em 3D</h3><div class="kv"><span>Perfil</span><span>${esc(PAR.nomePrincipal)}<br><small style="color:#5b6474">(${esc(M.perfil.origem || '')})</small></span>`;
+    h += `</div>` + identificacao(M.arquivo) + `<h3>Peça em 3D</h3><div class="kv"><span>Perfil</span><span>${esc(PAR.nomePrincipal)}<br><small style="color:#5b6474">(${esc(M.perfil.origem || '')})</small></span>`;
     h += `<span>Comprimento</span><span>${fmt(M.comprimento, 0)} mm ${c.ok_corpo ? '<span class="ok">✓ cota do desenho</span>' : ''}</span>`;
     if ((M.segmentos || []).length > 1) h += `<span>Emenda</span><span>${M.segmentos.map((s) => fmt(s, 0)).join(' + ')} mm</span>`;
     if (c.ok_tampas) h += `<span>Com tampas</span><span>${fmt(c.com_tampas, 0)} mm <span class="ok">✓</span></span>`;
@@ -22523,6 +22583,9 @@ function ficha() {
   f.querySelectorAll('[data-z]').forEach((b) => b.onclick = () => { const z = CAT_Z[b.dataset.z]; PAR.nomeZ = b.dataset.z; Object.assign(PAR.perfil, { h: z.h, b: z.d1, d: z.d2 }); atualizar(); });
   f.querySelectorAll('[data-e]').forEach((b) => b.onclick = () => { PAR.perfil.t = parseFloat(b.dataset.e); atualizar(); });
   f.querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { PAR.comFuro = b.dataset.f === '1'; atualizar(); });
+  f.querySelectorAll('[data-solda]').forEach((b) => b.onclick = () => { viewer.focarSolda(b.dataset.solda); });
+  f.querySelectorAll('[data-transp]').forEach((b) => b.onclick = () => { viewer.transparente(!PAR.transparente); });
+  f.querySelectorAll('[data-versoldas]').forEach((b) => b.onclick = () => { PAR.verSoldas = b.dataset.versoldas === '1'; viewer.verSoldas(PAR.verSoldas); ficha(); });
   f.querySelectorAll('[data-furo]').forEach((b) => b.onclick = () => viewer.focarFuros(b.dataset.furo));
   f.querySelectorAll('[data-verfuros]').forEach((b) => b.onclick = () => { PAR.verFuros = b.dataset.verfuros === '1'; viewer.verFuros(PAR.verFuros); ficha(); });
   f.querySelectorAll('[data-a]').forEach((b) => b.onclick = () => { PAR.acabamento = b.dataset.a; viewer.material(PAR.acabamento); ficha(); });
@@ -22548,9 +22611,10 @@ ficha(); secao2D();
 $('#b-reset').onclick = () => viewer.resetar();
 const vistas = $('#vistas');
 if (!PAR.catalogo && PAR.comprimento > 2500) {
-  [['Vista geral', () => viewer.resetar()], ['◀ Ponta esquerda', () => viewer.focarPonta(-1)], ['Ponta direita ▶', () => viewer.focarPonta(1)]].concat((MODELO.furacoes || []).length ? [['Ver furos', () => viewer.focarFuros(MODELO.furacoes[0].onde === 'Chapas de topo' ? 'F:topo' : 'F:' + MODELO.furacoes[0].marca)]] : []).forEach(([t, f]) => { const b = document.createElement('button'); b.textContent = t; b.onclick = f; vistas.appendChild(b); });
+  [['Vista geral', () => viewer.resetar()], ['◀ Ponta esquerda', () => viewer.focarPonta(-1)], ['Ponta direita ▶', () => viewer.focarPonta(1)]].concat((MODELO.soldas || []).length ? [['Ver soldas', () => viewer.focarSolda('S:' + MODELO.soldas[0].chave)]] : []).concat((MODELO.furacoes || []).length ? [['Ver furos', () => viewer.focarFuros(MODELO.furacoes[0].onde === 'Chapas de topo' ? 'F:topo' : 'F:' + MODELO.furacoes[0].marca)]] : []).forEach(([t, f]) => { const b = document.createElement('button'); b.textContent = t; b.onclick = f; vistas.appendChild(b); });
 }
 $('#b-pdf').onclick = () => { if (MODELO.pdfUrl) window.open(MODELO.pdfUrl, '_blank'); };
+document.addEventListener('ppcpm-transp', (e) => { PAR.transparente = e.detail; document.querySelectorAll('[data-transp]').forEach((b) => b.classList.toggle('on', !!e.detail)); });
 document.addEventListener('ppcpm-peca', (e) => { document.querySelectorAll('tr[data-marca]').forEach((tr) => tr.classList.toggle('luz', e.detail !== null && tr.dataset.marca === e.detail)); });
 window.PPCPM_3D = viewer;
 <\/script>
@@ -22949,6 +23013,67 @@ function interpretarEstrutura(linhas, segs, nomeArquivo, caminhos) {
     function menor(l) { var m = 0; for (var i = 1; i < l.length; i++) { var d = l[i] - l[i - 1]; if (!m || d < m) m = d; } return m; }
     return { a: menor(us), b: menor(vs) };
   }
+
+
+  /* ---------- 6c) SOLDAS (legenda do desenho) ----------
+     "NA AUSÊNCIA DE INDICAÇÕES DE SOLDA, CONSIDERAR A ESPESSURA MÍNIMA DA CHAPA" (AWS):
+     solda de filete com perna = a menor espessura das duas peças da ligação.
+       - diagonais / montantes: cordões nas bordas da peça encostada na mesa do banzo + no topo;
+       - chapas de topo: solda em todo o contorno do banzo (mesas e alma). */
+  M.soldas = []; M.regras = { soldaMin: /ESPESSURA\s+M[IÍ]NIMA\s+DA\s+CHAPA/i.test(texto) || /SOLDA\s+DE\s+FILETE/i.test(texto), aws: /AWS/.test(texto), emenda: /EMENDA/.test(texto) };
+  var yTc = M.barras[0].p0[1], yBc = M.barras[1].p0[1], hb = vista.vis / 2;
+  function add3(a, b, k) { return [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k]; }
+  function cordao(grupo, P, Q, e1, e2, perna) { var L = Math.hypot(Q[0] - P[0], Q[1] - P[1], Q[2] - P[2]); if (L < 2) return; grupo.cordoes.push({ a: P, b: Q, e1: e1, e2: e2 }); grupo.metros += L / 1000; grupo.perna = perna; }
+  var gS = {};
+  function grupoSolda(chave, onde, perna) { if (!gS[chave]) { gS[chave] = { chave: chave, onde: onde, perna: perna, cordoes: [], metros: 0, ligacoes: 0 }; M.soldas.push(gS[chave]); } return gS[chave]; }
+  M.barras.slice(2).forEach(function (b) {
+    var p = b.perfil, dx = b.p1[0] - b.p0[0], dy = b.p1[1] - b.p0[1], L = Math.hypot(dx, dy), u = [dx / L, dy / L, 0], n = [-u[1], u[0], 0];
+    var esp = p.tipo === 'L' ? (p.t || 3) : (p.tf || 6), perna = Math.min(esp, pb.tf || esp);
+    var faixa = p.tipo === 'L' ? [-(b.larg || p.h) / 2, -(b.larg || p.h) / 2 + p.h] : [-(b.giro === 'deitado' ? p.b : p.h) / 2, (b.giro === 'deitado' ? p.b : p.h) / 2];
+    var lados = p.tipo === 'L' ? [b.lado || 1] : [1, -1];
+    var papel = b.nome.split(' · ')[0], g = grupoSolda(papel + '|' + perna, (papel === 'Montante' ? 'Montantes' : 'Diagonais') + ' × banzos', perna);
+    g.marcas = g.marcas || []; if (g.marcas.indexOf(b.marca) < 0) { g.marcas.push(b.marca); g.onde = (papel === 'Montante' ? 'Montantes ' : 'Diagonais ') + g.marcas.join(', ') + ' × banzos'; }
+    [[0, -1], [L, 1]].forEach(function (ponta) {
+      var tEnd = ponta[0], sent = ponta[1], yEnd = b.p0[1] + u[1] * tEnd;
+      var deCima = Math.abs(yEnd - yTc) < Math.abs(yEnd - yBc), yBorda = deCima ? yTc - hb : yBc + hb;
+      if (Math.abs(u[1]) < 1e-6) return;
+      var tB = (yBorda - b.p0[1]) / u[1];
+      if ((tEnd - tB) * sent < -5) return;                                   // a ponta não chega no banzo
+      if ((tEnd - tB) * sent < 5) tB = tEnd - sent * 5;
+      g.ligacoes++;
+      lados.forEach(function (lado) {
+        var z = lado * zInt, e2 = [0, 0, -lado];
+        function pt(t, v) { return [b.p0[0] + u[0] * t + n[0] * v, b.p0[1] + u[1] * t + n[1] * v, z]; }
+        cordao(g, pt(tB, faixa[0]), pt(tEnd, faixa[0]), [-n[0], -n[1], 0], e2, perna);
+        cordao(g, pt(tB, faixa[1]), pt(tEnd, faixa[1]), [n[0], n[1], 0], e2, perna);
+        cordao(g, pt(tEnd, faixa[0]), pt(tEnd, faixa[1]), [u[0] * sent, u[1] * sent, 0], e2, perna);
+      });
+    });
+  });
+  M.placas3d.forEach(function (pl) {
+    var lado = pl.centro[0] < 1 ? -1 : 1, x = pl.centro[0] - lado * pl.esp / 2, yc = pl.centro[1], e2 = [-lado, 0, 0];
+    var h = pb.h, bf = pb.b, tf = pb.tf || 6, tw = pb.tw || 4, gm = grupoSolda('topo-mesa', 'Chapas de topo × mesas (todo o contorno)', Math.min(pl.esp, tf)), ga = grupoSolda('topo-alma', 'Chapas de topo × alma (todo o contorno)', Math.min(pl.esp, tw));
+    gm.ligacoes++; ga.ligacoes++;
+    [1, -1].forEach(function (k) {
+      cordao(gm, [x, yc - bf / 2, k * h / 2], [x, yc + bf / 2, k * h / 2], [0, 0, k], e2, gm.perna);                       // face de fora da mesa
+      cordao(gm, [x, yc + tw / 2 + 0.5, k * (h / 2 - tf)], [x, yc + bf / 2, k * (h / 2 - tf)], [0, 0, -k], e2, gm.perna);   // face de dentro (acima da alma)
+      cordao(gm, [x, yc - bf / 2, k * (h / 2 - tf)], [x, yc - tw / 2 - 0.5, k * (h / 2 - tf)], [0, 0, -k], e2, gm.perna);   // face de dentro (abaixo da alma)
+      cordao(gm, [x, yc + k * bf / 2, h / 2 - tf], [x, yc + k * bf / 2, h / 2], [0, k, 0], e2, gm.perna);                   // pontas das mesas
+      cordao(gm, [x, yc + k * bf / 2, -h / 2], [x, yc + k * bf / 2, -(h / 2 - tf)], [0, k, 0], e2, gm.perna);
+      cordao(ga, [x, yc + k * tw / 2, -(h / 2 - tf)], [x, yc + k * tw / 2, h / 2 - tf], [0, k, 0], e2, ga.perna);          // alma, dos dois lados
+    });
+  });
+  M.soldas.forEach(function (g) { g.metros = Math.round(g.metros * 100) / 100; });
+
+  /* ---------- 6d) EMENDA NÃO PREVISTA (legenda): chanfro pela espessura ---------- */
+  function chanfro(e) { return e < 8 ? 'Reto (folga 2 a 4 mm)' : e <= 12.7 ? 'V simples 60°' : 'V duplo 60°'; }
+  M.emendas = [];
+  M.itens.forEach(function (it) {
+    var es = it.tipo === 'chapa' ? [it.esp] : it.perfil.tipo === 'W' ? [it.perfil.tf, it.perfil.tw] : [it.perfil.t];
+    es.filter(function (e, i, a) { return e && a.indexOf(e) === i; }).forEach(function (e, i) {
+      M.emendas.push({ marca: it.marca, parte: it.tipo === 'chapa' ? 'chapa' : it.perfil.tipo === 'W' ? (i ? 'alma' : 'mesa') : 'aba', esp: e, chanfro: chanfro(e) });
+    });
+  });
 
   /* ---------- 7) conferência com as cotas do desenho ---------- */
   function perto(v) { return M.cotas.find(function (c) { return Math.abs(c - v) <= 3; }); }
@@ -23683,7 +23808,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 122';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 123';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
