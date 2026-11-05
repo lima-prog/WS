@@ -162,6 +162,10 @@
   th { color:var(--fraco); font-size:11px; }
   tbody tr { cursor:default; }
   tbody tr:hover td, tbody tr.luz td { background:#e8f0fb; }
+  .furos { display:flex; flex-direction:column; gap:6px; }
+  button.furo { justify-content:flex-start; text-align:left; white-space:normal; font-weight:600; line-height:1.4; padding:8px 10px; }
+  button.furo b { font-weight:700; }
+  .bola { flex:none; width:14px; height:14px; border-radius:50%; border:3px solid #ff7a1a; background:#fff; }
   .avisos { margin-top:6px; padding-left:16px; color:#b45309; font-size:12px; }
   .palco { position:relative; display:flex; flex-direction:column; min-width:0; min-height:0; }
   #cena { flex:1; min-height:260px; position:relative; cursor:grab; }
@@ -360,8 +364,65 @@ function criarVisualizador3D(container, parametros) {
     const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; m.userData.nome = nome; return m;
   }
 
+  // placa plana (lu × lv, espessura esp) com furos [u, v, Ø], no plano U-V, centrada em 'centro'
+  function placaFuros(lu, lv, esp, furos, U, V, centro, mat, nome, marca, chaveFuro) {
+    const s = new THREE.Shape(); s.moveTo(-lu / 2, -lv / 2); s.lineTo(lu / 2, -lv / 2); s.lineTo(lu / 2, lv / 2); s.lineTo(-lu / 2, lv / 2); s.lineTo(-lu / 2, -lv / 2);
+    (furos || []).forEach((f) => { const h = new THREE.Path(); h.absarc(f[0], f[1], f[2] / 2, 0, Math.PI * 2, true); s.holes.push(h); });
+    const geo = new THREE.ExtrudeGeometry(s, { depth: esp, bevelEnabled: false, curveSegments: 20 }); geo.translate(0, 0, -esp / 2); ajustarUV(geo, false);
+    const N = U.clone().cross(V).normalize(), m = new THREE.Mesh(geo, mat);
+    m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(U, V, N)); m.position.copy(centro);
+    m.castShadow = m.receiveShadow = true; m.userData.nome = nome; m.userData.marca = marca;
+    const aneis = (furos || []).map((f) => anel(f[2], esp, centro.clone().add(U.clone().multiplyScalar(f[0])).add(V.clone().multiplyScalar(f[1])), N, `Furo Ø${f[2]} mm · ${nome}`, chaveFuro));
+    return { malha: m, aneis };
+  }
+  function mesclar(geos) {   // junta geometrias simples (posição/normal/uv) numa só
+    const pos = [], nor = [], uv = [], idx = []; let base = 0;
+    geos.forEach((g) => { const gi = g.index ? g.index.array : null, n = g.attributes.position.count;
+      pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array); uv.push(...g.attributes.uv.array);
+      if (gi) gi.forEach((i) => idx.push(i + base)); else for (let i = 0; i < n; i++) idx.push(i + base); base += n; g.dispose(); });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
+    return g;
+  }
+  // anel laranja dentro do furo: deixa a furação visível de qualquer ângulo (pode ser escondido)
+  function anel(d, esp, pos, N, nome, chave) {
+    if (!materiais.furo) materiais.furo = new THREE.MeshStandardMaterial({ color: '#ff7a1a', emissive: '#ff5500', emissiveIntensity: 0.55, metalness: 0.2, roughness: 0.5, side: THREE.DoubleSide });
+    // parede do furo + aro nas duas faces (como uma arruela laranja): dá para ver o furo de longe
+    const r = d / 2 + 0.4, aba = Math.max(4, d * 0.3), partes = [new THREE.CylinderGeometry(r, r, esp + 1, 32, 1, true)];
+    [1, -1].forEach((k) => { const a = new THREE.RingGeometry(r, r + aba, 32); a.rotateX(-Math.PI / 2); a.translate(0, k * (esp / 2 + 0.6), 0); partes.push(a); });
+    const geo = mesclar(partes), m = new THREE.Mesh(geo, materiais.furo);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), N); m.position.copy(pos);
+    m.userData = { nome, marca: chave, furo: true, matBase: materiais.furo };
+    return m;
+  }
+  // barra com furos: monta mesas/alma (ou abas da cantoneira) como chapas para os furos atravessarem de verdade
+  function barraFurada(b, mat) {
+    const p = b.perfil, Zw = new THREE.Vector3(0, 0, 1), A = new THREE.Vector3(...b.p0), B = new THREE.Vector3(...b.p1);
+    const dir = B.clone().sub(A), L = dir.length(); dir.normalize();
+    const n = Zw.clone().cross(dir).normalize(), meio = A.clone().add(B).multiplyScalar(0.5).add(Zw.clone().multiplyScalar(b.z || 0));
+    const fu = b.furos.map((f) => [f.u - L / 2, f.v, f.d]), chave = 'F:' + b.marca, out = [];
+    const em = (v, k) => v.clone().multiplyScalar(k);
+    if (p.tipo === 'L') {
+      const a = p.h, c = p.b, t = p.t || 3, w = b.larg || a, lado = b.lado ? -Math.sign(b.lado) : 1;
+      const cAba = meio.clone().add(em(n, -w / 2 + a / 2)).add(em(Zw, lado * t / 2));
+      out.push(placaFuros(L, a, t, fu.map((f) => [f[0], f[1] - (-w / 2 + a / 2), f[2]]), dir, n, cAba, mat, b.nome, b.marca, chave));
+      out.push(placaFuros(L, c - t, t, [], dir, Zw, meio.clone().add(em(n, -w / 2 + t / 2)).add(em(Zw, lado * (t + (c - t) / 2))), mat, b.nome, b.marca, chave));
+    } else {
+      const h = p.h, bf = p.b, tf = p.tf || 6, tw = p.tw || 5;
+      if (b.giro === 'em pe') {      // alma no plano do desenho: furos na alma
+        out.push(placaFuros(L, h - 2 * tf, tw, fu, dir, n, meio, mat, b.nome, b.marca, chave));
+        [1, -1].forEach((k) => out.push(placaFuros(L, bf, tf, [], dir, Zw, meio.clone().add(em(n, k * (h / 2 - tf / 2))), mat, b.nome, b.marca, chave)));
+      } else {                       // mesas no plano do desenho: furos nas duas mesas
+        [1, -1].forEach((k) => out.push(placaFuros(L, bf, tf, fu, dir, n, meio.clone().add(em(Zw, k * (h / 2 - tf / 2))), mat, b.nome, b.marca, chave)));
+        out.push(placaFuros(L, h - 2 * tf, tw, [], dir, Zw, meio, mat, b.nome, b.marca, chave));
+      }
+    }
+    const g = new THREE.Group(); out.forEach((o) => { g.add(o.malha); o.aneis.forEach((r) => g.add(r)); }); return g;
+  }
+
   // barra reta (perfil, cantoneira) de p0 a p1 — usada nas estruturas (treliças, vigas mestras)
   function barra(b, mat) {
+    if (b.furos && b.furos.length) return barraFurada(b, mat);
     const p = b.perfil, Zw = new THREE.Vector3(0, 0, 1);
     const A = new THREE.Vector3(...b.p0), B = new THREE.Vector3(...b.p1), dir = B.clone().sub(A), L = dir.length(); dir.normalize();
     const n = Zw.clone().cross(dir).normalize();                    // perpendicular à barra, no plano do desenho
@@ -438,11 +499,12 @@ function criarVisualizador3D(container, parametros) {
   }
 
   function montarEstrutura(par, mat) {
-    par.barras.forEach((b) => { const g = barra(b, mat); g.children.slice().forEach((m) => { grupo.add(m); grupo.userData.pecas.push(m); }); });
+    grupo.userData.aneis = [];
+    const guardar = (m) => { grupo.add(m); grupo.userData.pecas.push(m); if (m.userData.furo) { grupo.userData.aneis.push(m); m.visible = par.verFuros !== false; } };
+    par.barras.forEach((b) => { const g = barra(b, mat); g.children.slice().forEach(guardar); });
     (par.placas3d || []).forEach((pl) => {
-      const geo = new THREE.BoxGeometry(pl.esp, pl.altY, pl.largZ); ajustarUV(geo, false);
-      const m = new THREE.Mesh(geo, mat); m.position.set(...pl.centro); m.castShadow = m.receiveShadow = true;
-      m.userData.nome = pl.nome; m.userData.marca = pl.marca; grupo.add(m); grupo.userData.pecas.push(m);
+      const o = placaFuros(pl.largZ, pl.altY, pl.esp, (pl.furos || []).map((f) => [f.z, f.y, f.d]), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 1, 0), new THREE.Vector3(...pl.centro), mat, pl.nome, pl.marca, 'F:topo');
+      guardar(o.malha); o.aneis.forEach(guardar);
     });
     return finalizar();
   }
@@ -498,7 +560,7 @@ function criarVisualizador3D(container, parametros) {
   const raycaster = new THREE.Raycaster(), ponteiro = new THREE.Vector2(), rotulo = $('#rotulo');
   let destacado = [];
   function destacar(lista) {
-    destacado.forEach((m) => { m.material = materiais.principal; });
+    destacado.forEach((m) => { m.material = m.userData.matBase || materiais.principal; });
     destacado = lista || [];
     if (destacado.length) { if (!materiais.luz) { materiais.luz = materiais.principal.clone(); materiais.luz.emissive = new THREE.Color('#1d6fd1'); materiais.luz.emissiveIntensity = 0.35; } destacado.forEach((m) => { m.material = materiais.luz; }); }
   }
@@ -542,9 +604,22 @@ function criarVisualizador3D(container, parametros) {
   camera.position.copy(inicio.pos); controles.target.copy(inicio.alvo); controles.update(); laco();
   return {
     atualizar(novos, animar = true) { const antes = camera.position.clone(), alvo = controles.target.clone(); montar(novos); if (animar) { camera.position.copy(antes.multiplyScalar(0.92)); controles.target.copy(alvo); irPara(inicio.pos.clone(), inicio.alvo.clone(), 700); } },
-    material(acab, cor) { P.acabamento = acab; P.cor = cor; const m = material(acab, cor); grupo.traverse((o) => { if (o.isMesh) o.material = m; }); if (materiais.principal) materiais.principal.dispose(); if (materiais.luz) { materiais.luz.dispose(); delete materiais.luz; } materiais.principal = m; },
+    material(acab, cor) { P.acabamento = acab; P.cor = cor; const m = material(acab, cor); grupo.traverse((o) => { if (o.isMesh && !o.userData.furo) o.material = m; }); if (materiais.principal) materiais.principal.dispose(); if (materiais.luz) { materiais.luz.dispose(); delete materiais.luz; } materiais.principal = m; },
     destacarMarca(marca) { if (!grupo) return; destacar(marca === null ? [] : grupo.userData.pecas.filter((m) => marca ? m.userData.marca === marca : !m.userData.marca)); },
-    resetar, focarPonta, tamanho: () => r.tamanho
+    resetar, focarPonta, tamanho: () => r.tamanho,
+    verFuros(sim) { P.verFuros = sim; (grupo.userData.aneis || []).forEach((m) => { m.visible = sim; }); },
+    focarFuros(chave) {   // chega perto de um grupo de furos
+      let lista = (grupo.userData.aneis || []).filter((m) => !chave || m.userData.marca === chave);
+      if (!lista.length) return;
+      const p0 = lista[0].getWorldPosition(new THREE.Vector3());          // só o grupo mais perto do primeiro furo
+      lista = lista.filter((m) => m.getWorldPosition(new THREE.Vector3()).distanceTo(p0) < 900);
+      const cx = new THREE.Box3(); lista.forEach((m) => cx.expandByObject(m));
+      const alvo = cx.getCenter(new THREE.Vector3()), t = cx.getSize(new THREE.Vector3()), d = Math.max(700, Math.max(t.x, t.y, t.z) * 2.2);
+      const N = new THREE.Vector3(0, 1, 0).applyQuaternion(lista[0].quaternion), meio = new THREE.Box3().setFromObject(grupo).getCenter(new THREE.Vector3());
+      const lado = alvo.x < meio.x ? -1 : 1;
+      const off = Math.abs(N.x) > 0.7 ? new THREE.Vector3(lado * d * 0.85, d * 0.3, d * 0.45) : new THREE.Vector3(lado * d * 0.35, d * 0.25, d * 0.9);   // olhando a face furada por fora
+      irPara(alvo.clone().add(off), alvo);
+    },
   };
 }
 
@@ -615,6 +690,14 @@ function ficha() {
     if (c.ok_total || M.placas3d.length) h += `<span>Com chapas</span><span>${fmt(c.total, 0)} mm${ok(c.ok_total)}</span>`;
     h += `<span>Altura</span><span>${fmt(c.altura, 0)} mm${ok(c.ok_altura)}</span><span>Espessura</span><span>${fmt(M.espessura, 0)} mm</span>`;
     h += `<span>Barras</span><span>${r.diagonais || 0} diagonais · ${r.montantes || 0} montantes</span><span>Peças no 3D</span><span>${r.pecas || 0}</span></div>`;
+    if ((M.furacoes || []).length) {
+      h += `<h3>Furações</h3><div class="furos">`;
+      M.furacoes.forEach((f) => {
+        const passo = f.passo && (f.passo.a || f.passo.b) ? ` · passo ${[f.passo.a, f.passo.b].filter((x) => x).map((x) => fmt(x, 0)).join(' × ')} mm` : '';
+        h += `<button class="furo" data-furo="F:${f.onde === 'Chapas de topo' ? 'topo' : esc(f.marca)}"><span class="bola"></span><span><b>${esc(f.onde)}</b>${f.cada ? ` (${f.cada} chapas)` : ''}<br>${f.n} furos Ø${f.d} mm${f.cada ? ' em cada' : ''}${passo}</span></button>`;
+      });
+      h += `<div class="botoes" style="margin-top:6px"><button data-verfuros="1" class="${PAR.verFuros !== false ? 'on' : ''}">Furos em destaque</button><button data-verfuros="0" class="${PAR.verFuros === false ? 'on' : ''}">Só o aço</button></div></div>`;
+    }
     h += `<h3>Lista de materiais</h3><table><thead><tr><th>Marca</th><th>Qtd</th><th>Descrição</th><th>No 3D</th></tr></thead><tbody>`;
     M.itens.forEach((i) => { h += `<tr data-marca="${i.no3d ? esc(i.marca) : '-'}"><td>${esc(i.marca)}</td><td>${i.por_conjunto}</td><td>${esc(i.descricao)}</td><td>${i.no3d ? esc(i.papel3d) : '<span style="color:#9aa1ad">' + esc(i.papel3d) + '</span>'}</td></tr>`; });
     h += `</tbody></table>`;
@@ -647,6 +730,8 @@ function ficha() {
   f.querySelectorAll('[data-z]').forEach((b) => b.onclick = () => { const z = CAT_Z[b.dataset.z]; PAR.nomeZ = b.dataset.z; Object.assign(PAR.perfil, { h: z.h, b: z.d1, d: z.d2 }); atualizar(); });
   f.querySelectorAll('[data-e]').forEach((b) => b.onclick = () => { PAR.perfil.t = parseFloat(b.dataset.e); atualizar(); });
   f.querySelectorAll('[data-f]').forEach((b) => b.onclick = () => { PAR.comFuro = b.dataset.f === '1'; atualizar(); });
+  f.querySelectorAll('[data-furo]').forEach((b) => b.onclick = () => viewer.focarFuros(b.dataset.furo));
+  f.querySelectorAll('[data-verfuros]').forEach((b) => b.onclick = () => { PAR.verFuros = b.dataset.verfuros === '1'; viewer.verFuros(PAR.verFuros); ficha(); });
   f.querySelectorAll('[data-a]').forEach((b) => b.onclick = () => { PAR.acabamento = b.dataset.a; viewer.material(PAR.acabamento); ficha(); });
   f.querySelectorAll('tr[data-marca]').forEach((tr) => { tr.onmouseenter = () => viewer.destacarMarca(tr.dataset.marca); tr.onmouseleave = () => viewer.destacarMarca(null); });
 }
@@ -670,7 +755,7 @@ ficha(); secao2D();
 $('#b-reset').onclick = () => viewer.resetar();
 const vistas = $('#vistas');
 if (!PAR.catalogo && PAR.comprimento > 2500) {
-  [['Vista geral', () => viewer.resetar()], ['◀ Ponta esquerda', () => viewer.focarPonta(-1)], ['Ponta direita ▶', () => viewer.focarPonta(1)]].forEach(([t, f]) => { const b = document.createElement('button'); b.textContent = t; b.onclick = f; vistas.appendChild(b); });
+  [['Vista geral', () => viewer.resetar()], ['◀ Ponta esquerda', () => viewer.focarPonta(-1)], ['Ponta direita ▶', () => viewer.focarPonta(1)]].concat((MODELO.furacoes || []).length ? [['Ver furos', () => viewer.focarFuros(MODELO.furacoes[0].onde === 'Chapas de topo' ? 'F:topo' : 'F:' + MODELO.furacoes[0].marca)]] : []).forEach(([t, f]) => { const b = document.createElement('button'); b.textContent = t; b.onclick = f; vistas.appendChild(b); });
 }
 $('#b-pdf').onclick = () => { if (MODELO.pdfUrl) window.open(MODELO.pdfUrl, '_blank'); };
 document.addEventListener('ppcpm-peca', (e) => { document.querySelectorAll('tr[data-marca]').forEach((tr) => tr.classList.toggle('luz', e.detail !== null && tr.dataset.marca === e.detail)); });
@@ -697,7 +782,8 @@ window.PPCPM_3D = viewer;
    ===================================================================== */
 async function segmentosDoPdf(pdfjs, pg) {
   var ol = await pg.getOperatorList(), O = pdfjs.OPS, H = pg.view[3];
-  var ctm = [1, 0, 0, 1, 0, 0], pilha = [], cam = 0, segs = [];
+  var ctm = [1, 0, 0, 1, 0, 0], pilha = [], cam = 0, segs = [], caminhos = [], ultimo = null;
+  var PINTA = [O.fill, O.eoFill, O.fillStroke, O.eoFillStroke, O.closeFillStroke, O.closeEOFillStroke];
   function mul(a, b) { return [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]]; }
   function P(x, y) { return [ctm[0] * x + ctm[2] * y + ctm[4], H - (ctm[1] * x + ctm[3] * y + ctm[5])]; }
   function add(u, v) { segs.push([u[0], u[1], v[0], v[1], cam]); }
@@ -706,14 +792,17 @@ async function segmentosDoPdf(pdfjs, pg) {
     if (f === O.save) pilha.push(ctm);
     else if (f === O.restore) { var s = pilha.pop(); if (s) ctm = s; }
     else if (f === O.transform) ctm = mul(ctm, a);
+    else if (PINTA.indexOf(f) >= 0) { if (ultimo) ultimo.cheio = true; }
     else if (f === O.constructPath) {
       var ops = a[0], c = a[1], k = 0, cur = null, ini = null; cam++;
+      var nCurvas = 0, pts = []; for (var oo = 0; oo < ops.length; oo++) if (ops[oo] === O.curveTo || ops[oo] === O.curveTo2 || ops[oo] === O.curveTo3) nCurvas++;
+      ultimo = { id: cam, curvas: nCurvas, cheio: false, pts: pts }; caminhos.push(ultimo);
       for (var j = 0; j < ops.length; j++) {
         var op = ops[j], p;
-        if (op === O.moveTo) { cur = P(c[k], c[k + 1]); ini = cur; k += 2; }
-        else if (op === O.lineTo) { p = P(c[k], c[k + 1]); k += 2; if (cur) add(cur, p); cur = p; }
-        else if (op === O.curveTo) { p = P(c[k + 4], c[k + 5]); k += 6; if (cur) add(cur, p); cur = p; }
-        else if (op === O.curveTo2 || op === O.curveTo3) { p = P(c[k + 2], c[k + 3]); k += 4; if (cur) add(cur, p); cur = p; }
+        if (op === O.moveTo) { cur = P(c[k], c[k + 1]); ini = cur; k += 2; pts.push(cur); }
+        else if (op === O.lineTo) { p = P(c[k], c[k + 1]); k += 2; if (cur) add(cur, p); cur = p; pts.push(p); }
+        else if (op === O.curveTo) { p = P(c[k + 4], c[k + 5]); k += 6; if (cur) add(cur, p); cur = p; pts.push(p); }
+        else if (op === O.curveTo2 || op === O.curveTo3) { p = P(c[k + 2], c[k + 3]); k += 4; if (cur) add(cur, p); cur = p; pts.push(p); }
         else if (op === O.closePath) { if (cur && ini) add(cur, ini); cur = ini; }
         else if (op === O.rectangle) {
           var x = c[k], y = c[k + 1], w = c[k + 2], h = c[k + 3]; k += 4;
@@ -723,7 +812,7 @@ async function segmentosDoPdf(pdfjs, pg) {
       }
     }
   }
-  return { segs: segs, largura: pg.view[2], altura: H };
+  return { segs: segs, caminhos: caminhos, largura: pg.view[2], altura: H };
 }
 
 function textoVetorial(segs, exportar) {
@@ -821,7 +910,7 @@ var MODELOS_LETRA_DADOS = [["V","0000081818181834242424664200",0.458,1,0],["M","
      4) cada barra é ligada ao item da lista com a mesma largura/compr.
    Resultado em milímetros: X = ao longo do vão, Y = altura, Z = espessura.
    ===================================================================== */
-function interpretarEstrutura(linhas, segs, nomeArquivo) {
+function interpretarEstrutura(linhas, segs, nomeArquivo, caminhos) {
   'use strict';
   var texto = linhas.join('\n');
   function num(v) { return v == null ? NaN : parseFloat(String(v).replace(',', '.')); }
@@ -1012,12 +1101,61 @@ function interpretarEstrutura(linhas, segs, nomeArquivo) {
   var k = 0;
   topo.forEach(function (it) {
     for (var q = 0; q < it.por_conjunto && k < pontas.length; q++, k++) {
-      var pt = pontas[k], aZ = Math.abs(it.larg - espZ) < Math.abs(it.comp - espZ) ? it.larg : it.comp, aY = aZ === it.larg ? it.comp : it.larg;
-      M.placas3d.push({ marca: it.marca, nome: 'Chapa de topo · ' + nomeIt(it), centro: [pt.x + pt.lado * it.esp / 2, pt.y, 0], esp: it.esp, altY: aY, largZ: aZ });
+      var pt = pontas[k], aZ = espZ >= hSec ? Math.max(it.larg, it.comp) : Math.min(it.larg, it.comp), aY = espZ >= hSec ? Math.min(it.larg, it.comp) : Math.max(it.larg, it.comp);
+      M.placas3d.push({ marca: it.marca, nome: 'Chapa de topo · ' + nomeIt(it), centro: [pt.x + pt.lado * it.esp / 2, pt.y, 0], esp: it.esp, altY: aY, largZ: aZ, banzo: pt.y > altura / 2 ? 'sup' : 'inf', furos: [] });
       it.no3d++; it.papel3d = 'Chapa de topo do banzo';
     }
   });
   M.itens.forEach(function (it) { if (!it.no3d && !it.papel3d) it.papel3d = 'não posicionada no 3D'; });
+
+  /* ---------- 6b) FURAÇÕES ----------
+     Os furos vêm desenhados com o símbolo padrão da Projeart (SIMBOLOGIA DE FUROS):
+     o círculo com cruz e o preenchimento dizem o diâmetro. Na vista em elevação o furo
+     atravessa as peças naquele ponto (eixo Z); nos cortes (ex.: CORTE A-A) os grupos de
+     furos de cima e de baixo caem nas chapas de topo dos banzos. */
+  M.furacoes = [];
+  var simbolos = furosDoDesenho(caminhos || []);
+  var naVista = simbolos.filter(function (f) { return f.x >= vista.x0 - 2 && f.x <= vista.x1 + 2 && f.y >= vista.yT0 - 2 && f.y <= vista.yB1 + 2; });
+  naVista.forEach(function (f) {
+    var P = [X(f.x), Y(f.y)], alvo = null;
+    M.barras.forEach(function (b) {
+      var dx = b.p1[0] - b.p0[0], dy = b.p1[1] - b.p0[1], L = Math.hypot(dx, dy), u = [dx / L, dy / L], n = [-u[1], u[0]];
+      var t = (P[0] - b.p0[0]) * u[0] + (P[1] - b.p0[1]) * u[1], o = (P[0] - b.p0[0]) * n[0] + (P[1] - b.p0[1]) * n[1];
+      var meia = b.giro === 'cantoneira' ? (b.larg || b.perfil.h) / 2 : (b.giro === 'deitado' ? b.perfil.b : b.perfil.h) / 2;
+      if (t < 0 || t > L || Math.abs(o) > meia + 1) return;
+      if (!alvo || meia < alvo.meia) alvo = { b: b, t: t, o: o, meia: meia };   // a peça mais estreita no ponto (montante antes do banzo)
+    });
+    if (!alvo) return;
+    M.barras.filter(function (b) { return b.marca === alvo.b.marca && b.p0[0] === alvo.b.p0[0] && b.p0[1] === alvo.b.p0[1]; })
+      .forEach(function (b) { (b.furos = b.furos || []).push({ u: alvo.t, v: alvo.o, d: f.d }); });
+  });
+  var porMarca = {};
+  M.barras.forEach(function (b) { if (b.furos && b.furos.length && !porMarca[b.marca + '|' + b.p0.join()]) { porMarca[b.marca + '|' + b.p0.join()] = 1; M.furacoes.push({ marca: b.marca, onde: b.nome.split(' · ')[0] + ' ' + b.marca, n: b.furos.length, d: b.furos[0].d, passo: passos(b.furos.map(function (f) { return [f.u, f.v]; })) }); } });
+  // cortes: dois grupos de furos alinhados (cima/baixo) -> chapas de topo
+  var fora = simbolos.filter(function (f) { return naVista.indexOf(f) < 0; }), gr = [];
+  fora.forEach(function (f) { var g = gr.find(function (g) { return g.f.some(function (h) { return Math.hypot(h.x - f.x, h.y - f.y) < 70; }); }); if (g) g.f.push(f); else gr.push({ f: [f] }); });
+  gr.forEach(function (g) { g.cx = g.f.reduce(function (s, f) { return s + f.x; }, 0) / g.f.length; g.cy = g.f.reduce(function (s, f) { return s + f.y; }, 0) / g.f.length; });
+  var dBanzos = M.barras[0].p0[1] - M.barras[1].p0[1], par = null;
+  gr.forEach(function (a) { gr.forEach(function (b) {
+    if (a === b || b.cy <= a.cy || Math.abs(a.cx - b.cx) > 2 || a.f.length !== b.f.length || par) return;
+    var k = dBanzos / (b.cy - a.cy), larg = (Math.max.apply(null, a.f.map(function (f) { return f.x; })) - Math.min.apply(null, a.f.map(function (f) { return f.x; }))) * k;
+    if (k > 1 && k < 30 && larg < espZ * 1.2) par = { cima: a, baixo: b, k: k };
+  }); });
+  if (par && M.placas3d.length) {
+    M.placas3d.forEach(function (pl) {
+      var g = pl.banzo === 'sup' ? par.cima : par.baixo;
+      pl.furos = g.f.map(function (f) { return { z: (f.x - g.cx) * par.k, y: -(f.y - g.cy) * par.k, d: f.d }; });
+    });
+    var pl0 = M.placas3d[0];
+    M.furacoes.push({ marca: M.placas3d.map(function (p) { return p.marca; }).filter(function (m, i, a) { return a.indexOf(m) === i; }).join(' / '), onde: 'Chapas de topo', n: pl0.furos.length, d: pl0.furos[0].d, passo: passos(pl0.furos.map(function (f) { return [f.z, f.y]; })), cada: M.placas3d.length });
+  }
+  function passos(pts) {
+    var us = [], vs = [];
+    pts.forEach(function (p) { var a = Math.round(p[0]), b = Math.round(p[1]); if (!us.some(function (x) { return Math.abs(x - a) < 3; })) us.push(a); if (!vs.some(function (x) { return Math.abs(x - b) < 3; })) vs.push(b); });
+    us.sort(function (a, b) { return a - b; }); vs.sort(function (a, b) { return a - b; });
+    function menor(l) { var m = 0; for (var i = 1; i < l.length; i++) { var d = l[i] - l[i - 1]; if (!m || d < m) m = d; } return m; }
+    return { a: menor(us), b: menor(vs) };
+  }
 
   /* ---------- 7) conferência com as cotas do desenho ---------- */
   function perto(v) { return M.cotas.find(function (c) { return Math.abs(c - v) <= 3; }); }
@@ -1030,6 +1168,41 @@ function interpretarEstrutura(linhas, segs, nomeArquivo) {
   if (!M.conjunto) M.avisos.push('Não achei a linha do conjunto (ex.: VIGA MESTRA) na lista.');
   return M;
 }
+
+/* Símbolos de furo do desenho -> { x, y (pt da página), d (Ø mm) }.
+   Tabela padrão Projeart (SIMBOLOGIA DE FUROS): círculo com X = Ø11 · cheio = Ø14 · metade direita = Ø18 ·
+   vazio = Ø21 · quarto de cima à esquerda = Ø24 · dois quartos (cima-esq. e baixo-dir.) = Ø28 · 2 círculos = Ø35 · 3 círculos = Ø42 */
+function furosDoDesenho(caminhos) {
+  function bb(p) { var a = 1e9, b = 1e9, c = -1e9, d = -1e9; p.forEach(function (q) { a = Math.min(a, q[0]); b = Math.min(b, q[1]); c = Math.max(c, q[0]); d = Math.max(d, q[1]); }); return [a, b, c, d]; }
+  var circ = [], cheios = [], linhas = [];
+  caminhos.forEach(function (c) {
+    if (!c.pts || !c.pts.length) return;
+    var b = bb(c.pts), w = b[2] - b[0], h = b[3] - b[1], o = { b: b, c: [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2], w: w, h: h, pts: c.pts };
+    if (c.curvas === 4 && Math.abs(w - h) < 0.05 && w > 1 && w < 20) circ.push(o);
+    else if (c.cheio) cheios.push(o);
+    else if (c.curvas === 0 && c.pts.length === 2) linhas.push(o);
+  });
+  var grupos = [];
+  circ.forEach(function (c) { var g = grupos.find(function (g) { return Math.hypot(g.c[0] - c.c[0], g.c[1] - c.c[1]) < 0.15; }); if (g) { g.n++; g.R = Math.max(g.R, c.w / 2); } else grupos.push({ c: c.c, n: 1, R: c.w / 2 }); });
+  var res = [];
+  grupos.forEach(function (g) {
+    var cx = g.c[0], cy = g.c[1], R = g.R, q = {}, cruz = '';
+    cheios.forEach(function (f) { if (Math.hypot(f.c[0] - cx, f.c[1] - cy) < R * 0.95 && f.w < 2 * R && f.h < 2 * R) q[(f.c[1] < cy ? 'T' : 'B') + (f.c[0] < cx ? 'L' : 'R')] = 1; });
+    linhas.forEach(function (l) {
+      var a = l.pts[0], b = l.pts[1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (L > 1.5 * R && Math.hypot((a[0] + b[0]) / 2 - cx, (a[1] + b[1]) / 2 - cy) < 0.3) cruz = (Math.abs(a[0] - b[0]) < 0.05 || Math.abs(a[1] - b[1]) < 0.05) ? (cruz === 'X' ? cruz : '+') : 'X';
+    });
+    if (!cruz) return;                                     // círculo sem cruz não é símbolo de furo
+    var Q = Object.keys(q).sort().join(''), d = null;
+    if (g.n >= 3) d = 42; else if (g.n === 2) d = 35;
+    else if (cruz === 'X') d = 11;
+    else if (Q === 'BLBRTLTR') d = 14; else if (Q === 'BRTR') d = 18; else if (Q === '') d = 21; else if (Q === 'TL') d = 24; else if (Q === 'BRTL') d = 28;
+    if (d) res.push({ x: cx, y: cy, d: d });
+  });
+  // o quadro da legenda (os 8 símbolos em linha) não é furo de peça
+  return res.filter(function (f) { return res.filter(function (o) { return Math.abs(o.y - f.y) < 0.5 && Math.abs(o.x - f.x) < 200 && o.d !== f.d; }).length < 4; });
+}
+
 
 /* =====================================================================
    PPCPM — LEITOR DE DESENHO (PDF) PARA 3D
@@ -1377,7 +1550,7 @@ function linhasDoPdf(itens) {
     try { r = await segmentosDoPdf(pdfjsLib, await doc.getPage(1)); } catch (e) { }
     if (r && !linhas.some(function (l) { return /LISTA\s+(DE\s+)?MATERIAIS/i.test(l); })) linhas = linhasDoPdf(itens.concat(textoVetorial(r.segs)));
     var E = null;
-    if (r) { try { E = interpretarEstrutura(linhas, r.segs, nome); } catch (e) { E = null; } }
+    if (r) { try { E = interpretarEstrutura(linhas, r.segs, nome, r.caminhos); } catch (e) { E = null; } }
     if (E && E.barras.length > 2) return E;
     return interpretarDesenho(linhas, nome);
   }
