@@ -89,7 +89,24 @@
     rede: '<rect x="3" y="4" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M12 11v4M5 19h14M12 15v4"/>',
     recente: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
     favorito: '<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
-    arquivos: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/>'
+    arquivos: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/>',
+    voltar: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    avancar: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    atualizar: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/>',
+    copiar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+    classificar: '<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>',
+    visualizar: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+    mais: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+    detalhes: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>',
+    chevron: '<path d="M6 9l6 6 6-6"/>',
+    direita: '<path d="M9 6l6 6-6 6"/>',
+    pin: '<path d="M14 3l7 7-3 1-4 4 1 5-2 1-4-4-5 5M9 15l-4-4 1-2 5 1 4-4 1-3"/>',
+    casa: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+    pc: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/>',
+    vLista: '<path d="M4 6h3M10 6h10M4 12h3M10 12h10M4 18h3M10 18h10"/>',
+    vIcones: '<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>',
+    vDetalhes: '<path d="M3 5h18M3 10h18M3 15h18M3 20h18"/>',
+    ok: '<path d="M5 12l5 5 9-10"/>'
   };
   function svg(nome, tam) {
     var w = el('span', 'pc-sv'); tam = tam || 16;
@@ -115,94 +132,171 @@
     if (n.indexOf('downloads') >= 0) return 'downloads'; return 'pasta';
   }
 
-  /* ---------- visual (padrão do sistema: Arial negrito, #0b5cad) ---------- */
+  /* ---------- visual: estilo do Explorador de Arquivos do Windows 11 (segue o tema claro/escuro do sistema) ---------- */
+  function temaClaro() { try { var u = JSON.parse(localStorage.getItem('projeart_pcp:ui') || 'null'); return !!(u && u.tema === 'light'); } catch (e) { return false; } }
   function estilo(D) {
     D = D || document;
     if (D.getElementById('ppcpm-pc-css')) return;
     var c = D.createElement('style'); c.id = 'ppcpm-pc-css';
+    var P = '#ppcpm-pc';
     c.textContent = [
-      '#ppcpm-pc{position:fixed;inset:0;z-index:2147483000;background:rgba(5,10,25,.55);font:600 13px Arial,Helvetica,sans-serif;color:#1a2233}',
-      '#ppcpm-pc *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}',
-      '#ppcpm-pc .pc-card{position:absolute;background:#fff;border:1px solid #0b2150;border-radius:10px;box-shadow:0 18px 55px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;min-width:560px;min-height:380px}',
-      '#ppcpm-pc .pc-card.max{border-radius:0}',
-      '#ppcpm-pc .pc-top{position:relative;display:flex;align-items:center;justify-content:center;height:46px;padding:0 120px;background:linear-gradient(180deg,#0b2150,#06142f);color:#fff;cursor:move;user-select:none;flex:none}',
-      '#ppcpm-pc .pc-top b{font:700 15px Arial,Helvetica,sans-serif;letter-spacing:.6px;text-transform:uppercase;display:flex;align-items:center;gap:9px;white-space:nowrap}',
-      '#ppcpm-pc .pc-top .pc-l{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#fff;font-size:12px;white-space:nowrap}',
-      '#ppcpm-pc .pc-top .pc-r{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:2px}',
-      '#ppcpm-pc .pc-top .pc-r button{background:transparent;border:0;color:#cfdcf5;padding:6px 8px;border-radius:6px}',
-      '#ppcpm-pc .pc-top .pc-r button:hover{background:rgba(255,255,255,.12);color:#fff}',
-      '#ppcpm-pc .pc-top .pc-r button.pc-x:hover{background:#c62828}',
-      '#ppcpm-pc .pc-sv{display:inline-flex;align-items:center}',
-      '#ppcpm-pc button{font:700 13px Arial,Helvetica,sans-serif;border-radius:7px;padding:7px 12px;cursor:pointer;border:1px solid #c5cbd6;background:#f2f4f6;color:#1f2937;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}',
-      '#ppcpm-pc button:hover{background:#e6eaf0}',
-      '#ppcpm-pc button.pc-pri{background:#0b5cad;border-color:#0b5cad;color:#fff}',
-      '#ppcpm-pc button.pc-pri:hover{background:#1a6dc0}',
-      '#ppcpm-pc button:disabled{opacity:.5;cursor:default}',
-      '#ppcpm-pc .pc-h{position:absolute;z-index:5}',
-      '#ppcpm-pc .pc-h.n,#ppcpm-pc .pc-h.s{left:10px;right:10px;height:7px;cursor:ns-resize}',
-      '#ppcpm-pc .pc-h.n{top:-3px}#ppcpm-pc .pc-h.s{bottom:-3px}',
-      '#ppcpm-pc .pc-h.e,#ppcpm-pc .pc-h.w{top:10px;bottom:10px;width:7px;cursor:ew-resize}',
-      '#ppcpm-pc .pc-h.e{right:-3px}#ppcpm-pc .pc-h.w{left:-3px}',
-      '#ppcpm-pc .pc-h.ne,#ppcpm-pc .pc-h.nw,#ppcpm-pc .pc-h.se,#ppcpm-pc .pc-h.sw{width:14px;height:14px}',
-      '#ppcpm-pc .pc-h.ne{top:-3px;right:-3px;cursor:nesw-resize}#ppcpm-pc .pc-h.sw{bottom:-3px;left:-3px;cursor:nesw-resize}',
-      '#ppcpm-pc .pc-h.nw{top:-3px;left:-3px;cursor:nwse-resize}#ppcpm-pc .pc-h.se{bottom:-3px;right:-3px;cursor:nwse-resize}',
-      '#ppcpm-pc .pc-grip{position:absolute;right:3px;bottom:3px;width:12px;height:12px;pointer-events:none;background:linear-gradient(135deg,transparent 50%,#9aa5b5 50%,#9aa5b5 58%,transparent 58%,transparent 70%,#9aa5b5 70%,#9aa5b5 78%,transparent 78%)}',
-      '#ppcpm-pc .pc-barra{display:flex;gap:8px;padding:10px 18px;border-bottom:1px solid #e3e7ee;background:#f7f8fa}',
-      '#ppcpm-pc input[type=text]{flex:1;min-width:0;border:1px solid #c5cbd6;border-radius:7px;padding:7px 10px;font:600 13px Arial,Helvetica,sans-serif;color:#1a2233;background:#fff}',
-      '#ppcpm-pc input[type=text]:focus{outline:2px solid #0b5cad55;border-color:#0b5cad}',
-      '#ppcpm-pc .pc-corpo{flex:1;display:flex;min-height:0}',
-      '#ppcpm-pc .pc-lado{width:230px;border-right:1px solid #e3e7ee;overflow:auto;padding:8px 0;background:#fafbfc}',
-      '#ppcpm-pc .pc-sec{padding:12px 16px 5px;font-size:11px;color:#6b7383;text-transform:uppercase;letter-spacing:.6px}',
-      '#ppcpm-pc .pc-loc{display:flex;align-items:center;gap:9px;padding:6px 16px;cursor:pointer;white-space:nowrap;overflow:hidden;color:#1f2937}',
-      '#ppcpm-pc .pc-loc .pc-sv{color:#0b5cad;flex:none}',
-      '#ppcpm-pc .pc-loc span:not(.pc-sv):not(.pc-x){overflow:hidden;text-overflow:ellipsis}',
-      '#ppcpm-pc .pc-loc:hover{background:#e8f0fb}',
-      '#ppcpm-pc .pc-loc.on{background:#dbe8f8;color:#0b5cad}',
-      '#ppcpm-pc .pc-loc .pc-x{margin-left:auto;color:#a33;opacity:0;font-size:14px}',
-      '#ppcpm-pc .pc-loc:hover .pc-x{opacity:1}',
-      '#ppcpm-pc .pc-main{flex:1;display:flex;flex-direction:column;min-width:0}',
-      '#ppcpm-pc .pc-ferr{display:flex;gap:10px;align-items:center;padding:10px 14px}',
-      '#ppcpm-pc .pc-bw{flex:1;position:relative;display:flex}',
-      '#ppcpm-pc .pc-bw .pc-sv{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#6b7383}',
-      '#ppcpm-pc .pc-bw input[type=text]{padding-left:32px}',
-      '#ppcpm-pc .pc-ferr label{display:flex;gap:6px;align-items:center;white-space:nowrap;color:#3d4554;cursor:pointer}',
-      '#ppcpm-pc .pc-cab,#ppcpm-pc .pc-row{display:grid;grid-template-columns:28px 1fr 150px 90px;gap:8px;align-items:center;padding:6px 14px}',
-      '#ppcpm-pc .pc-barra button{padding:7px 10px}',
-      '#ppcpm-pc .pc-cab{font-size:12px;color:#6b7383;border-bottom:1px solid #e3e7ee;background:#f7f8fa}',
-      '#ppcpm-pc .pc-cab span{cursor:pointer;user-select:none}',
-      '#ppcpm-pc .pc-lista{flex:1;overflow:auto;outline:none}',
-      '#ppcpm-pc .pc-row{cursor:pointer;border-bottom:1px solid #f0f2f5;user-select:none}',
-      '#ppcpm-pc .pc-row:hover{background:#f1f6fd}',
-      '#ppcpm-pc .pc-row.sel{background:#d6e6fa}',
-      '#ppcpm-pc .pc-row .pc-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '#ppcpm-pc .pc-row .pc-c{font-weight:500;color:#7b8494;font-size:11px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '#ppcpm-pc .pc-row .pc-d,#ppcpm-pc .pc-row .pc-t{color:#5b6474;font-weight:500;font-size:12px}',
-      '#ppcpm-pc .pc-row .pc-t{text-align:right}',
-      '#ppcpm-pc .pc-ic{display:flex}',
-      '#ppcpm-pc .pc-vazio{padding:40px 20px;text-align:center;color:#6b7383}',
-      '#ppcpm-pc .pc-erro{margin:14px;padding:10px 12px;border:1px solid #f1b4b4;background:#fdeeee;color:#9b1c1c;border-radius:8px}',
-      '#ppcpm-pc .pc-rod{display:flex;gap:8px;align-items:center;padding:12px 18px;border-top:1px solid #e3e7ee;background:#f7f8fa}',
-      '#ppcpm-pc .pc-info{margin-right:auto;color:#3d4554;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '#ppcpm-pc .pc-card.estreita .pc-lado{display:none}',
-      '#ppcpm-pc .pc-card.estreita .pc-cab,#ppcpm-pc .pc-card.estreita .pc-row{grid-template-columns:28px 1fr 80px}',
-      '#ppcpm-pc .pc-card.estreita .pc-d{display:none}',
-      '#ppcpm-pc .pc-card.estreita .pc-barra .pc-tx{display:none}',
-      '#ppcpm-pc .pc-card.estreita .pc-top .pc-l{display:none}',
-      '#ppcpm-pc.arrastando,#ppcpm-pc.arrastando *{user-select:none!important}',
-      '#ppcpm-pc.janela{background:#fff}',
-      '#ppcpm-pc.janela .pc-card{left:0!important;top:0!important;width:100%!important;height:100%!important;border:0;border-radius:0;box-shadow:none;min-width:0;min-height:0}',
-      '#ppcpm-pc.janela .pc-h,#ppcpm-pc.janela .pc-grip{display:none}',
-      '#ppcpm-pc.janela .pc-top{cursor:default}',
-      /* cores fixas: alguns programas forçam cor preta em tudo; aqui a janela mantém as suas */
-      '#ppcpm-pc .pc-top,#ppcpm-pc .pc-top *,#ppcpm-pc .pc-top svg{color:#fff!important}',
-      '#ppcpm-pc .pc-top .pc-l{color:#fff!important;opacity:.92}',
-      '#ppcpm-pc .pc-top svg{stroke:currentColor!important}',
-      '#ppcpm-pc button.pc-pri,#ppcpm-pc button.pc-pri *{color:#fff!important}',
-      '#ppcpm-pc .pc-loc .pc-sv,#ppcpm-pc .pc-loc .pc-sv svg{color:#0b5cad!important}',
-      '#ppcpm-pc .pc-loc .pc-x,#ppcpm-pc .pc-loc .pc-x svg{color:#b42318!important}',
-      '#ppcpm-pc .pc-sv svg{stroke:currentColor}'
+      P + '{--fundo:#191919;--painel:#202020;--campo:#2d2d2d;--borda:#333;--texto:#fff;--texto2:#c8c8c8;--fraco:#9a9a9a;--hover:#2a2a2a;--sel:#2c4a68;--selb:#3d6a96;--acento:#60cdff;--btn:#2d2d2d;--menu:#2c2c2c;--sombra:rgba(0,0,0,.55);--pasta:#e8b54a}',
+      P + '.claro{--fundo:#fff;--painel:#f3f3f3;--campo:#fff;--borda:#e1e1e1;--texto:#1a1a1a;--texto2:#3b3b3b;--fraco:#6b6b6b;--hover:#f0f0f0;--sel:#cce8ff;--selb:#99d1ff;--acento:#005fb8;--btn:#fbfbfb;--menu:#f9f9f9;--sombra:rgba(0,0,0,.25);--pasta:#f2b33d}',
+      P + '{position:fixed;inset:0;z-index:2147483000;background:rgba(5,10,25,.55);font:400 13px Arial,Helvetica,sans-serif;color:var(--texto)}',
+      P + ' *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}',
+      P + ' .pc-card{position:absolute;background:var(--fundo);border:1px solid var(--borda);border-radius:8px;box-shadow:0 18px 55px var(--sombra);display:flex;flex-direction:column;overflow:hidden;min-width:560px;min-height:380px;color:var(--texto)}',
+      P + ' .pc-card.max{border-radius:0}',
+      /* abas (como as abas do Explorador) */
+      P + ' .pc-abas{position:relative;display:flex;align-items:flex-end;height:40px;padding:0 6px 0 8px;background:var(--painel);user-select:none;flex:none;cursor:move}',
+      P + ' .pc-aba{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px 0 12px;min-width:180px;max-width:320px;background:var(--fundo);border-radius:8px 8px 0 0;color:var(--texto);cursor:default}',
+      P + ' .pc-aba .pc-an{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      P + ' .pc-aba button{padding:3px!important;border:0!important;background:transparent!important}',
+      P + ' .pc-aba button:hover{background:var(--hover)!important}',
+      P + ' .pc-abas .pc-tipos{margin:0 auto 9px 14px;color:var(--fraco);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      P + ' .pc-abas .pc-r{display:flex;gap:2px;align-self:center}',
+      P + ' .pc-abas .pc-r button{background:transparent;border:0;padding:7px 12px;border-radius:4px}',
+      P + ' .pc-abas .pc-r button:hover{background:var(--hover)}',
+      P + ' .pc-abas .pc-r button.pc-x:hover{background:#c42b1c;color:#fff}',
+      P + '.janela .pc-abas{cursor:default}',
+      /* linha do endereço */
+      P + ' .pc-end{display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--fundo);flex:none}',
+      P + ' .pc-nav{background:transparent!important;border:0!important;padding:7px 9px!important;border-radius:4px!important;color:var(--texto)!important}',
+      P + ' .pc-nav:hover:not(:disabled){background:var(--hover)!important}',
+      P + ' .pc-nav:disabled{opacity:.35!important}',
+      P + ' .pc-mig{flex:1;min-width:0;height:32px;display:flex;align-items:center;gap:0;background:var(--campo);border:1px solid var(--borda);border-radius:4px;padding:0 4px 0 8px;overflow:hidden;cursor:text}',
+      P + ' .pc-mig .pc-sv{color:var(--texto2);margin-right:4px}',
+      P + ' .pc-mig .pc-pt{padding:4px 6px;border-radius:3px;white-space:nowrap;cursor:pointer;color:var(--texto)}',
+      P + ' .pc-mig .pc-pt:hover{background:var(--hover)}',
+      P + ' .pc-mig .pc-sp{color:var(--fraco);padding:0 1px;font-size:11px}',
+      P + ' .pc-mig .pc-vz{flex:1 0 40px;align-self:stretch}',
+      P + ' .pc-mig .pc-pt,' + P + ' .pc-mig .pc-sp,' + P + ' .pc-mig > .pc-sv{flex:none}',
+      P + ' .pc-mig input{flex:1;height:100%;border:0!important;outline:0!important;background:transparent!important;padding:0 4px!important}',
+      P + ' .pc-pesq{position:relative;width:260px;flex:none}',
+      P + ' .pc-pesq input{width:100%;height:32px;padding:0 32px 0 10px!important}',
+      P + ' .pc-pesq .pc-sv{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--texto2)}',
+      P + ' input[type=text]{border:1px solid var(--borda);border-radius:4px;font:400 13px Arial,Helvetica,sans-serif;color:var(--texto);background:var(--campo)}',
+      P + ' input[type=text]::placeholder{color:var(--fraco)}',
+      P + ' input[type=text]:focus{outline:0;border-bottom:2px solid var(--acento)}',
+      /* barra de comandos */
+      P + ' .pc-cmd{display:flex;align-items:center;gap:2px;padding:4px 10px 6px;background:var(--fundo);border-bottom:1px solid var(--borda);flex:none;min-height:44px}',
+      P + ' .pc-cmd button{background:transparent;border:0;padding:7px 10px;border-radius:4px;color:var(--texto)}',
+      P + ' .pc-cmd button:hover:not(:disabled){background:var(--hover)}',
+      P + ' .pc-cmd button.on{background:var(--hover)}',
+      P + ' .pc-cmd .pc-div{width:1px;height:22px;background:var(--borda);margin:0 6px;flex:none}',
+      P + ' .pc-cmd .pc-esp{flex:1}',
+      P + ' .pc-cmd .pc-ab{color:var(--acento)}',
+      P + ' button{font:400 13px Arial,Helvetica,sans-serif;border-radius:4px;padding:7px 12px;cursor:pointer;border:1px solid var(--borda);background:var(--btn);color:var(--texto);white-space:nowrap;display:inline-flex;align-items:center;gap:7px}',
+      P + ' button:hover{background:var(--hover)}',
+      P + ' button.pc-pri{background:var(--acento);border-color:var(--acento);color:#000}',
+      P + '.claro button.pc-pri{color:#fff}',
+      P + ' button.pc-pri:hover{filter:brightness(1.08)}',
+      P + ' button:disabled{opacity:.45;cursor:default}',
+      P + ' .pc-sv{display:inline-flex;align-items:center}',
+      P + ' .pc-sv svg{stroke:currentColor}',
+      /* menus suspensos */
+      P + ' .pc-menu{position:absolute;z-index:20;min-width:220px;background:var(--menu);border:1px solid var(--borda);border-radius:8px;box-shadow:0 10px 30px var(--sombra);padding:4px}',
+      P + ' .pc-menu div{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:4px;cursor:pointer;white-space:nowrap;color:var(--texto)}',
+      P + ' .pc-menu div:hover{background:var(--hover)}',
+      P + ' .pc-menu div .pc-ok{width:14px;color:var(--acento);flex:none}',
+      P + ' .pc-menu hr{border:0;border-top:1px solid var(--borda);margin:4px 2px}',
+      P + ' .pc-menu .pc-mt{padding:6px 12px 2px;font-size:11px;color:var(--fraco);cursor:default}',
+      P + ' .pc-menu .pc-mt:hover{background:transparent}',
+      /* corpo */
+      P + ' .pc-corpo{flex:1;display:flex;min-height:0;background:var(--fundo)}',
+      P + ' .pc-lado{width:240px;flex:none;border-right:1px solid var(--borda);overflow:auto;padding:6px 0;background:var(--fundo)}',
+      P + ' .pc-sep{height:1px;background:var(--borda);margin:8px 12px}',
+      P + ' .pc-sec{display:flex;align-items:center;gap:6px;padding:7px 12px 4px;color:var(--texto2);cursor:pointer;user-select:none}',
+      P + ' .pc-sec .pc-sv{color:var(--fraco)}',
+      P + ' .pc-loc{position:relative;display:flex;align-items:center;gap:10px;padding:6px 12px 6px 28px;margin:0 6px;border-radius:4px;cursor:pointer;white-space:nowrap;overflow:hidden;color:var(--texto)}',
+      P + ' .pc-loc.top{padding-left:12px}',
+      P + ' .pc-loc .pc-sv{flex:none}',
+      P + ' .pc-loc span.pc-ln{overflow:hidden;text-overflow:ellipsis;flex:1}',
+      P + ' .pc-loc:hover{background:var(--hover)}',
+      P + ' .pc-loc.on{background:var(--hover)}',
+      P + ' .pc-loc.on:before{content:"";position:absolute;left:0;top:25%;bottom:25%;width:3px;border-radius:2px;background:var(--acento)}',
+      P + ' .pc-loc .pc-pin{color:var(--fraco);flex:none}',
+      P + ' .pc-loc .pc-x{display:none;color:var(--fraco);flex:none}',
+      P + ' .pc-loc:hover .pc-x{display:inline-flex}',
+      P + ' .pc-loc:hover .pc-x + .pc-pin{display:none}',
+      P + ' .pc-main{flex:1;display:flex;flex-direction:column;min-width:0}',
+      P + ' .pc-cab{display:grid;grid-template-columns:minmax(200px,1fr) 160px 190px 90px;align-items:center;padding:0 14px 0 20px;height:32px;color:var(--texto2);border-bottom:1px solid var(--borda);flex:none}',
+      P + ' .pc-cab span{position:relative;cursor:pointer;user-select:none;padding:8px 8px;border-left:1px solid var(--borda);white-space:nowrap;overflow:hidden}',
+      P + ' .pc-cab span:first-child{border-left:0;padding-left:30px}',
+      P + ' .pc-cab span:hover{background:var(--hover)}',
+      P + ' .pc-cab span.on:after{content:"";position:absolute;left:50%;top:2px;width:7px;height:7px;border-left:1.5px solid var(--fraco);border-top:1.5px solid var(--fraco);transform:translateX(-50%) rotate(45deg)}',
+      P + ' .pc-cab span.on.desc:after{top:-1px;transform:translateX(-50%) rotate(225deg)}',
+      P + ' .pc-cab span.pc-tm{text-align:right}',
+      P + ' .pc-lista{flex:1;overflow:auto;outline:none;padding:2px 8px 8px}',
+      P + ' .pc-grupo{display:flex;align-items:center;gap:6px;padding:10px 6px 4px;color:var(--texto);font-size:15px;cursor:pointer;user-select:none}',
+      P + ' .pc-grupo .pc-sv{color:var(--texto2)}',
+      P + ' .pc-grupo .pc-gn{color:var(--fraco);font-size:12px}',
+      P + ' .pc-grupo.fechado .pc-sv{transform:rotate(-90deg)}',
+      P + ' .pc-row{display:grid;grid-template-columns:minmax(200px,1fr) 160px 190px 90px;align-items:center;padding:0 6px 0 12px;height:30px;border-radius:4px;cursor:default;user-select:none;border:1px solid transparent;color:var(--texto)}',
+      P + ' .pc-row:hover{background:var(--hover)}',
+      P + ' .pc-row.sel{background:var(--sel);border-color:var(--selb)}',
+      P + ' .pc-row .pc-n{display:flex;align-items:center;gap:8px;min-width:0;padding-right:8px}',
+      P + ' .pc-row .pc-nt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      P + ' .pc-row .pc-c{color:var(--fraco);font-size:11px;margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}',
+      P + ' .pc-row .pc-d,' + P + ' .pc-row .pc-ti,' + P + ' .pc-row .pc-t{color:var(--texto2);padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      P + ' .pc-row .pc-t{text-align:right}',
+      /* modo lista e ícones grandes */
+      P + ' .pc-lista.lista .pc-cab,' + P + '.v-lista .pc-cab,' + P + '.v-icones .pc-cab{display:none}',
+      P + '.v-lista .pc-gb{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:0 6px}',
+      P + '.v-lista .pc-row{grid-template-columns:1fr;height:28px}',
+      P + '.v-lista .pc-row .pc-d,' + P + '.v-lista .pc-row .pc-ti,' + P + '.v-lista .pc-row .pc-t{display:none}',
+      P + '.v-icones .pc-gb{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}',
+      P + '.v-icones .pc-row{grid-template-columns:1fr;height:auto;padding:10px 6px;text-align:center}',
+      P + '.v-icones .pc-row .pc-n{flex-direction:column;gap:6px;padding:0}',
+      P + '.v-icones .pc-row .pc-nt{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}',
+      P + '.v-icones .pc-row .pc-ic svg{width:48px;height:48px}',
+      P + '.v-icones .pc-row .pc-d,' + P + '.v-icones .pc-row .pc-ti,' + P + '.v-icones .pc-row .pc-t,' + P + '.v-icones .pc-row .pc-c{display:none}',
+      /* painel de detalhes */
+      P + ' .pc-det{width:260px;flex:none;border-left:1px solid var(--borda);padding:16px;overflow:auto;display:none;background:var(--fundo)}',
+      P + '.com-det .pc-det{display:block}',
+      P + ' .pc-det .pc-dg{display:flex;justify-content:center;padding:18px 0 14px}',
+      P + ' .pc-det .pc-dg svg{width:72px;height:72px}',
+      P + ' .pc-det b{display:block;font:700 14px Arial,Helvetica,sans-serif;word-break:break-word;margin-bottom:12px}',
+      P + ' .pc-det .pc-kv{display:grid;grid-template-columns:92px 1fr;gap:7px 8px;font-size:12px}',
+      P + ' .pc-det .pc-kv span:nth-child(odd){color:var(--fraco)}',
+      P + ' .pc-det .pc-kv span:nth-child(even){word-break:break-word;color:var(--texto2)}',
+      P + ' .pc-ic{display:flex;flex:none}',
+      P + ' .pc-vazio{padding:40px 20px;text-align:center;color:var(--fraco)}',
+      P + ' .pc-erro{margin:14px;padding:10px 12px;border:1px solid #c42b1c;background:rgba(196,43,28,.12);color:var(--texto);border-radius:6px}',
+      /* barra de status e rodapé (como a janela "Abrir" do Windows) */
+      P + ' .pc-status{display:flex;align-items:center;gap:14px;padding:0 10px 0 14px;height:28px;color:var(--texto2);font-size:12px;background:var(--fundo);border-top:1px solid var(--borda);flex:none}',
+      P + ' .pc-status .pc-info{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      P + ' .pc-status button{background:transparent;border:1px solid transparent;padding:3px 5px;border-radius:3px;color:var(--texto2)}',
+      P + ' .pc-status button.on{border-color:var(--borda);background:var(--hover);color:var(--texto)}',
+      P + ' .pc-rod{display:flex;gap:8px;align-items:center;padding:10px 14px;background:var(--painel);border-top:1px solid var(--borda);flex:none}',
+      P + ' .pc-rod label{color:var(--texto2);white-space:nowrap}',
+      P + ' .pc-rod .pc-nome{flex:1;min-width:120px;height:32px;padding:0 10px}',
+      P + ' .pc-rod select{height:32px;min-width:170px;max-width:260px;border:1px solid var(--borda);border-radius:4px;background:var(--campo);color:var(--texto);font:400 13px Arial,Helvetica,sans-serif;padding:0 8px}',
+      P + ' .pc-rod button{min-width:96px;justify-content:center}',
+      /* redimensionar (janela dentro da página) */
+      P + ' .pc-h{position:absolute;z-index:5}',
+      P + ' .pc-h.n,' + P + ' .pc-h.s{left:10px;right:10px;height:7px;cursor:ns-resize}',
+      P + ' .pc-h.n{top:-3px}' + P + ' .pc-h.s{bottom:-3px}',
+      P + ' .pc-h.e,' + P + ' .pc-h.w{top:10px;bottom:10px;width:7px;cursor:ew-resize}',
+      P + ' .pc-h.e{right:-3px}' + P + ' .pc-h.w{left:-3px}',
+      P + ' .pc-h.ne,' + P + ' .pc-h.nw,' + P + ' .pc-h.se,' + P + ' .pc-h.sw{width:14px;height:14px}',
+      P + ' .pc-h.ne{top:-3px;right:-3px;cursor:nesw-resize}' + P + ' .pc-h.sw{bottom:-3px;left:-3px;cursor:nesw-resize}',
+      P + ' .pc-h.nw{top:-3px;left:-3px;cursor:nwse-resize}' + P + ' .pc-h.se{bottom:-3px;right:-3px;cursor:nwse-resize}',
+      P + ' .pc-card.estreita .pc-lado,' + P + ' .pc-card.estreita .pc-det{display:none!important}',
+      P + ' .pc-card.estreita .pc-cab,' + P + ' .pc-card.estreita .pc-row{grid-template-columns:1fr 90px}',
+      P + ' .pc-card.estreita .pc-d,' + P + ' .pc-card.estreita .pc-ti{display:none}',
+      P + ' .pc-card.estreita .pc-tx,' + P + ' .pc-card.estreita .pc-pesq,' + P + ' .pc-card.estreita .pc-tipos{display:none}',
+      P + '.arrastando,' + P + '.arrastando *{user-select:none!important}',
+      P + '.janela{background:var(--fundo)}',
+      P + '.janela .pc-card{left:0!important;top:0!important;width:100%!important;height:100%!important;border:0;border-radius:0;box-shadow:none;min-width:0;min-height:0}',
+      P + '.janela .pc-h{display:none}',
+      /* cores fixas: alguns programas forçam cor em tudo; aqui a janela mantém as suas */
+      P + ' .pc-card,' + P + ' .pc-card button,' + P + ' .pc-card span,' + P + ' .pc-card div,' + P + ' .pc-card b,' + P + ' .pc-card label{color:inherit}',
+      P + ' .pc-card{color:var(--texto)!important}',
+      P + ' button.pc-pri,' + P + ' button.pc-pri *{color:#000!important}',
+      P + '.claro button.pc-pri,' + P + '.claro button.pc-pri *{color:#fff!important}'
     ].join('\n');
     (D.head || D.documentElement).appendChild(c);
+    if (D.body && D !== document) D.body.style.background = temaClaro() ? '#fff' : '#191919';
   }
 
   /* ---------- janela separada do Windows (pode ir para o outro monitor) ---------- */
@@ -233,7 +327,23 @@
   // se o programa sair da tela (troca de aba do sistema), fecha a janela junto
   window.addEventListener('pagehide', function () { if (JANELA && !JANELA.closed) try { JANELA.close(); } catch (e) { } });
 
-  /* ---------- seletor ---------- */
+  /* ---------- seletor (estilo Explorador de Arquivos) ---------- */
+  var TIPOS = { xlsx: 'Planilha do Microsoft Excel', xlsm: 'Planilha do Excel (com macros)', xls: 'Planilha do Excel 97-2003', xlsb: 'Planilha binária do Excel',
+    ods: 'Planilha OpenDocument', csv: 'Arquivo CSV', pdf: 'Documento PDF', dbf: 'Arquivo DBF', zip: 'Pasta compactada (zip)', '7z': 'Arquivo 7-Zip', rar: 'Arquivo WinRAR',
+    tar: 'Arquivo TAR', gz: 'Arquivo GZ', txt: 'Documento de texto', html: 'Documento HTML', htm: 'Documento HTML', json: 'Arquivo JSON', zpl: 'Arquivo de etiqueta (ZPL)',
+    prn: 'Arquivo de impressão', dxf: 'Desenho DXF', dwg: 'Desenho do AutoCAD', cam: 'Arquivo CAM (CNC)', nc1: 'Arquivo CNC (DSTV)', png: 'Imagem PNG', jpg: 'Imagem JPEG', jpeg: 'Imagem JPEG', docx: 'Documento do Word' };
+  function tipoDe(i) { if (i.pasta) return 'Pasta de arquivos'; var e = ext(i.nome).replace('.', ''); return TIPOS[e] || (e ? 'Arquivo ' + e.toUpperCase() : 'Arquivo'); }
+  function grupoData(seg) {
+    if (!seg) return [9, 'Sem data'];
+    var d = new Date(seg * 1000), h = new Date(); h.setHours(0, 0, 0, 0);
+    var dia = 864e5, t = d.getTime(), ini = h.getTime(), sem = ini - ((h.getDay() + 6) % 7) * dia;
+    if (t >= ini) return [0, 'Hoje']; if (t >= ini - dia) return [1, 'Ontem'];
+    if (t >= sem) return [2, 'Anteriormente nesta semana']; if (t >= sem - 7 * dia) return [3, 'Semana passada'];
+    var mes = new Date(h.getFullYear(), h.getMonth(), 1).getTime(), mesAnt = new Date(h.getFullYear(), h.getMonth() - 1, 1).getTime();
+    if (t >= mes) return [4, 'Anteriormente neste mês']; if (t >= mesAnt) return [5, 'Mês passado'];
+    if (t >= new Date(h.getFullYear(), 0, 1).getTime()) return [6, 'Anteriormente neste ano'];
+    return [7, 'Há muito tempo'];
+  }
   function abrirSeletor(op) {
     op = op || {};
     var filtro = filtroDe(op.accept);
@@ -244,60 +354,82 @@
       var D = J ? J.document : document, W = J || window;
       JANELA = J;
       estilo(D); aberto = true;
-      var estado = { caminho: '', pai: '', itens: [], sel: [], ordem: lsGet('ppcpm:pc:ordem') || 'nome', soAceitos: !!filtro, busca: null };
+      var estado = { caminho: '', pai: '', itens: [], sel: [], ordem: lsGet('ppcpm:pc:ordem') || 'nome', desc: lsGet('ppcpm:pc:desc') === '1',
+        agrupar: lsGet('ppcpm:pc:agrupar') || 'data', vista: lsGet('ppcpm:pc:vista') || 'detalhes', soAceitos: !!filtro, busca: null,
+        atras: [], frente: [], fechados: {}, det: lsGet('ppcpm:pc:det') === '1', ancora: null };
+      if (J) try { J.document.title = 'PPCPM - ARQUIVOS'; } catch (e) { }
 
       var fundo = el('div'); fundo.id = 'ppcpm-pc'; fundo.setAttribute('role', 'dialog'); fundo.setAttribute('aria-modal', 'true');
       if (J) fundo.classList.add('janela');
+      if (temaClaro()) fundo.classList.add('claro');
       var card = el('div', 'pc-card'); fundo.appendChild(card);
+      function botao(ic, txt, titulo, cls) { var b = el('button', cls || null); if (ic) b.appendChild(svg(ic, 16)); if (txt) b.appendChild(el('span', 'pc-tx', txt)); if (titulo) b.title = titulo; return b; }
 
-      var top = el('div', 'pc-top');
-      var tit = el('b'); tit.appendChild(svg('arquivos', 18)); tit.appendChild(D.createTextNode('PPCPM - ARQUIVOS'));
-      top.appendChild(tit);
-      top.appendChild(el('span', 'pc-l', filtro ? 'Tipos aceitos: ' + filtro.split(',').join(', ') : 'Qualquer arquivo'));
+      /* ----- aba (como no Explorador) ----- */
+      var top = el('div', 'pc-abas');
+      var aba = el('div', 'pc-aba'); aba.appendChild(svg('pasta', 16)); var abaNome = el('span', 'pc-an', 'PPCPM - ARQUIVOS'); aba.appendChild(abaNome);
+      var bAbaX = botao('fechar', null, 'Fechar (Esc)'); aba.appendChild(bAbaX); top.appendChild(aba);
+      top.appendChild(el('span', 'pc-tipos', filtro ? 'Tipos aceitos: ' + filtro.split(',').join(', ') : 'Qualquer arquivo'));
       var ctl = el('div', 'pc-r');
-      var bMax = el('button'); bMax.title = 'Maximizar / restaurar'; bMax.appendChild(svg('maximizar', 15));
-      var bX = el('button', 'pc-x'); bX.title = 'Fechar (Esc)'; bX.appendChild(svg('fechar', 16));
+      var bMax = el('button'); bMax.title = 'Maximizar / restaurar'; bMax.appendChild(svg('maximizar', 14));
+      var bX = el('button', 'pc-x'); bX.title = 'Fechar (Esc)'; bX.appendChild(svg('fechar', 15));
       ctl.appendChild(bMax); ctl.appendChild(bX); top.appendChild(ctl);
       card.appendChild(top);
       ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(function (d) { var h = el('div', 'pc-h ' + d); h.dataset.d = d; card.appendChild(h); });
-      card.appendChild(el('div', 'pc-grip'));
 
-      var barra = el('div', 'pc-barra');
-      var bSobe = el('button'); bSobe.appendChild(svg('up')); bSobe.title = 'Pasta acima (Backspace)';
-      var cam = el('input'); cam.type = 'text'; cam.placeholder = 'Cole aqui o caminho copiado do Explorador (ex.: G:\\Meu Drive\\PCP) e aperte Enter';
-      var bIr = el('button'); bIr.title = 'Ir para o caminho digitado (Enter)'; bIr.appendChild(svg('ir')); bIr.appendChild(el('span', 'pc-tx', 'Ir'));
-      var bFav = el('button'); bFav.title = 'Guardar esta pasta nos Favoritos'; bFav.appendChild(svg('estrela')); bFav.appendChild(el('span', 'pc-tx', 'Favoritar'));
-      var bExp = el('button'); bExp.title = 'Abrir esta pasta no Explorador de Arquivos'; bExp.appendChild(svg('explorador')); bExp.appendChild(el('span', 'pc-tx', 'Abrir no Explorador'));
-      [bSobe, cam, bIr, bFav, bExp].forEach(function (x) { barra.appendChild(x); });
-      card.appendChild(barra);
+      /* ----- endereço: voltar, avançar, acima, atualizar, caminho e pesquisa ----- */
+      var end = el('div', 'pc-end');
+      var bVolta = botao('voltar', null, 'Voltar (Alt + seta para a esquerda)', 'pc-nav'), bAvanca = botao('avancar', null, 'Avançar (Alt + seta para a direita)', 'pc-nav');
+      var bSobe = botao('up', null, 'Pasta acima (Backspace)', 'pc-nav'), bAtual = botao('atualizar', null, 'Atualizar (F5)', 'pc-nav');
+      var mig = el('div', 'pc-mig'); mig.title = 'Clique para digitar ou colar um caminho (ex.: G:\\Meu Drive\\PCP)';
+      var cam = el('input'); cam.type = 'text'; cam.placeholder = 'Cole o caminho do Explorador e aperte Enter';
+      var pesq = el('div', 'pc-pesq'); var busca = el('input'); busca.type = 'text'; busca.placeholder = 'Pesquisar'; pesq.appendChild(busca); pesq.appendChild(svg('busca', 15));
+      [bVolta, bAvanca, bSobe, bAtual, mig, pesq].forEach(function (x) { end.appendChild(x); });
+      card.appendChild(end);
 
+      /* ----- barra de comandos ----- */
+      var cmd = el('div', 'pc-cmd');
+      var bAbrirC = botao('abrir', op.multiple ? 'Abrir selecionados' : 'Abrir', 'Abrir o arquivo selecionado (Enter)'); bAbrirC.firstChild.classList.add('pc-ab');
+      var bCopiar = botao('copiar', 'Copiar caminho', 'Copiar o caminho da pasta ou do arquivo selecionado');
+      var bExp = botao('explorador', 'Abrir no Explorador', 'Abrir esta pasta no Explorador de Arquivos do Windows');
+      var bFav = botao('pin', 'Fixar', 'Fixar esta pasta no Acesso rápido (painel da esquerda)');
+      var bOrd = botao('classificar', 'Classificar', 'Classificar e agrupar'); bOrd.appendChild(svg('chevron', 12));
+      var bVis = botao('visualizar', 'Visualizar', 'Detalhes, lista ou ícones grandes'); bVis.appendChild(svg('chevron', 12));
+      var bMais = botao('mais', null, 'Mais opções');
+      var bDet = botao('detalhes', 'Detalhes', 'Mostrar o painel de detalhes do arquivo selecionado');
+      function div() { return el('span', 'pc-div'); }
+      [bAbrirC, div(), bCopiar, bExp, bFav, div(), bOrd, bVis, div(), bMais, el('span', 'pc-esp'), bDet].forEach(function (x) { cmd.appendChild(x); });
+      card.appendChild(cmd);
+
+      /* ----- corpo: navegação | lista | detalhes ----- */
       var corpo = el('div', 'pc-corpo'); card.appendChild(corpo);
       var lado = el('aside', 'pc-lado'); corpo.appendChild(lado);
       var main = el('section', 'pc-main'); corpo.appendChild(main);
-      var ferr = el('div', 'pc-ferr');
-      var busca = el('input'); busca.type = 'text'; busca.placeholder = 'Filtrar nesta pasta… (Enter procura também nas subpastas)';
-      var bw = el('div', 'pc-bw'); bw.appendChild(svg('busca')); bw.appendChild(busca);
-      var lbl = el('label'); var chk = el('input'); chk.type = 'checkbox'; chk.checked = estado.soAceitos; chk.disabled = !filtro;
-      lbl.appendChild(chk); lbl.appendChild(D.createTextNode('Só tipos aceitos'));
-      ferr.appendChild(bw); ferr.appendChild(lbl); main.appendChild(ferr);
       var cab = el('div', 'pc-cab');
-      cab.appendChild(el('span'));
-      var hN = el('span', null, 'Nome'), hD = el('span', 'pc-d', 'Modificado'), hT = el('span', null, 'Tamanho');
-      hT.style.textAlign = 'right'; [hN, hD, hT].forEach(function (h) { cab.appendChild(h); }); main.appendChild(cab);
+      var hN = el('span', null, 'Nome'), hD = el('span', 'pc-d', 'Data de modificação'), hTi = el('span', 'pc-ti', 'Tipo'), hT = el('span', 'pc-tm', 'Tamanho');
+      [hN, hD, hTi, hT].forEach(function (h) { cab.appendChild(h); }); main.appendChild(cab);
       var lista = el('div', 'pc-lista'); lista.tabIndex = 0; main.appendChild(lista);
+      var det = el('aside', 'pc-det'); corpo.appendChild(det);
 
+      /* ----- status e rodapé (como a janela Abrir do Windows) ----- */
+      var status = el('div', 'pc-status'); var stTxt = el('span', 'pc-info', '');
+      var bVD = botao('vDetalhes', null, 'Detalhes'), bVI = botao('vIcones', null, 'Ícones grandes');
+      status.appendChild(stTxt); status.appendChild(bVD); status.appendChild(bVI); card.appendChild(status);
       var rod = el('div', 'pc-rod');
-      var info = el('span', 'pc-info', '');
-      var bWin = el('button'); bWin.appendChild(svg('janela')); bWin.appendChild(el('span', 'pc-tx', 'Janela do Windows')); bWin.title = 'Usar a janela comum de abrir arquivo';
+      var lNome = el('label', null, 'Nome:'); var nome = el('input', 'pc-nome'); nome.type = 'text'; nome.readOnly = true; nome.placeholder = op.multiple ? 'Escolha um ou mais arquivos (Ctrl ou Shift + clique)' : 'Clique duas vezes no arquivo para abrir';
+      var tipoSel = el('select'); tipoSel.title = 'Tipos de arquivo';
+      if (filtro) { var o1 = el('option', null, 'Tipos aceitos (' + filtro.split(',').join(', ') + ')'); o1.value = '1'; tipoSel.appendChild(o1); }
+      var o2 = el('option', null, 'Todos os arquivos (*.*)'); o2.value = '0'; tipoSel.appendChild(o2); tipoSel.value = filtro ? '1' : '0';
+      var bWin = botao('janela', 'Janela do Windows', 'Usar a janela comum de abrir arquivo');
+      var bOk = el('button', 'pc-pri', op.multiple ? 'Abrir selecionados' : 'Abrir'); bOk.disabled = true;
       var bCan = el('button', null, 'Cancelar');
-      var bOk = el('button', 'pc-pri'); bOk.appendChild(svg('abrir')); bOk.appendChild(el('span', null, op.multiple ? 'Abrir selecionados' : 'Abrir arquivo')); bOk.disabled = true;
-      [info, bWin, bCan, bOk].forEach(function (x) { rod.appendChild(x); });
+      [lNome, nome, tipoSel, bWin, bOk, bCan].forEach(function (x) { rod.appendChild(x); });
       card.appendChild(rod);
 
       function fechar(resultado) {
         if (!aberto) return;
         aberto = false; clearInterval(vigia);
-        D.removeEventListener('keydown', tecla, true); W.removeEventListener('resize', ajustarTela);
+        D.removeEventListener('keydown', tecla, true); W.removeEventListener('resize', ajustarTela); D.removeEventListener('pointerdown', fecharMenuFora, true);
         if (J) {
           try { if (!J.closed) lsSet(CHAVE_SO, JSON.stringify({ x: J.screenX, y: J.screenY, w: J.innerWidth, h: J.innerHeight })); } catch (e) { }
           try { if (!J.closed) J.close(); } catch (e) { }
@@ -307,45 +439,139 @@
         resolve(resultado);
       }
 
-      /* ----- painel da esquerda ----- */
-      function locItem(nome, caminho, ic, remover) {
-        var d = el('div', 'pc-loc'); d.title = caminho;
-        d.appendChild(svg(ic)); d.appendChild(el('span', null, nome));
-        if (remover) {
-          var x = el('span', 'pc-x'); x.appendChild(svg('fechar', 13)); x.title = 'Tirar dos favoritos';
+      /* ----- menus suspensos ----- */
+      var menu = null;
+      function fecharMenu() { if (menu) { menu.remove(); menu = null; } [bOrd, bVis, bMais].forEach(function (b) { b.classList.remove('on'); }); }
+      function fecharMenuFora(e) { if (menu && !menu.contains(e.target) && !e.target.closest('.pc-cmd button')) fecharMenu(); }
+      function abrirMenu(btn, itens) {
+        var era = menu && menu.dataset.b === btn.title; fecharMenu(); if (era) return;
+        menu = el('div', 'pc-menu'); menu.dataset.b = btn.title;
+        itens.forEach(function (it) {
+          if (it === '-') { menu.appendChild(el('hr')); return; }
+          if (it.titulo) { menu.appendChild(el('div', 'pc-mt', it.titulo)); return; }
+          var d = el('div'); var ok = el('span', 'pc-ok'); if (it.on) ok.appendChild(svg('ok', 14)); d.appendChild(ok);
+          if (it.ic) d.appendChild(svg(it.ic, 15)); d.appendChild(el('span', null, it.txt));
+          d.onclick = function () { fecharMenu(); it.f(); }; menu.appendChild(d);
+        });
+        var r = btn.getBoundingClientRect(), rc = card.getBoundingClientRect();
+        menu.style.left = Math.min(r.left - rc.left, rc.width - 240) + 'px'; menu.style.top = (r.bottom - rc.top + 2) + 'px';
+        card.appendChild(menu); btn.classList.add('on');
+      }
+      function setOrdem(o) { if (estado.ordem === o) estado.desc = !estado.desc; else { estado.ordem = o; estado.desc = o === 'data' || o === 'tam'; } lsSet('ppcpm:pc:ordem', o); lsSet('ppcpm:pc:desc', estado.desc ? '1' : '0'); desenhar(); }
+      bOrd.onclick = function () {
+        abrirMenu(bOrd, [{ txt: 'Nome', on: estado.ordem === 'nome', f: function () { setOrdem('nome'); } }, { txt: 'Data de modificação', on: estado.ordem === 'data', f: function () { setOrdem('data'); } },
+          { txt: 'Tipo', on: estado.ordem === 'tipo', f: function () { setOrdem('tipo'); } }, { txt: 'Tamanho', on: estado.ordem === 'tam', f: function () { setOrdem('tam'); } }, '-',
+          { txt: 'Crescente', on: !estado.desc, f: function () { estado.desc = false; lsSet('ppcpm:pc:desc', '0'); desenhar(); } }, { txt: 'Decrescente', on: estado.desc, f: function () { estado.desc = true; lsSet('ppcpm:pc:desc', '1'); desenhar(); } }, '-',
+          { titulo: 'Agrupar por' },
+          { txt: 'Data de modificação', on: estado.agrupar === 'data', f: function () { setAgrupar('data'); } }, { txt: 'Tipo', on: estado.agrupar === 'tipo', f: function () { setAgrupar('tipo'); } },
+          { txt: '(Nenhum)', on: estado.agrupar === 'nenhum', f: function () { setAgrupar('nenhum'); } }]);
+      };
+      function setAgrupar(a) { estado.agrupar = a; estado.fechados = {}; lsSet('ppcpm:pc:agrupar', a); desenhar(); }
+      function setVista(v) { estado.vista = v; lsSet('ppcpm:pc:vista', v); aplicarVista(); desenhar(); }
+      function aplicarVista() {
+        fundo.classList.toggle('v-lista', estado.vista === 'lista'); fundo.classList.toggle('v-icones', estado.vista === 'icones');
+        bVD.classList.toggle('on', estado.vista === 'detalhes'); bVI.classList.toggle('on', estado.vista === 'icones');
+        fundo.classList.toggle('com-det', estado.det); bDet.classList.toggle('on', estado.det);
+      }
+      bVis.onclick = function () {
+        abrirMenu(bVis, [{ ic: 'vIcones', txt: 'Ícones grandes', on: estado.vista === 'icones', f: function () { setVista('icones'); } },
+          { ic: 'vLista', txt: 'Lista', on: estado.vista === 'lista', f: function () { setVista('lista'); } },
+          { ic: 'vDetalhes', txt: 'Detalhes', on: estado.vista === 'detalhes', f: function () { setVista('detalhes'); } }, '-',
+          { ic: 'detalhes', txt: 'Painel de detalhes', on: estado.det, f: function () { bDet.onclick(); } }]);
+      };
+      bMais.onclick = function () {
+        abrirMenu(bMais, [{ ic: 'janela', txt: 'Usar a janela comum do Windows', f: function () { bWin.onclick(); } },
+          { ic: 'atualizar', txt: 'Atualizar unidades e favoritos', f: function () { api('locais').then(function (j) { LOCAIS = j; montarLado(); }).catch(function () { }); } },
+          { ic: 'copiar', txt: 'Copiar caminho da pasta', f: function () { copiar(estado.caminho); } }]);
+      };
+      bDet.onclick = function () { estado.det = !estado.det; lsSet('ppcpm:pc:det', estado.det ? '1' : '0'); aplicarVista(); mostrarDet(); };
+      bVD.onclick = function () { setVista('detalhes'); }; bVI.onclick = function () { setVista('icones'); };
+
+      /* ----- painel da esquerda (Acesso rápido, Este Computador, Recentes) ----- */
+      function locItem(nomeL, caminho, ic, opc) {
+        opc = opc || {};
+        var d = el('div', 'pc-loc' + (opc.top ? ' top' : '')); d.title = caminho;
+        var sv = svg(ic, 16); if (ic === 'pasta' || ic === 'favorito' || ic === 'desktop' || ic === 'documentos' || ic === 'downloads') sv.style.color = 'var(--pasta)';
+        if (ic === 'disco' || ic === 'rede') sv.style.color = 'var(--acento)';
+        d.appendChild(sv); d.appendChild(el('span', 'pc-ln', nomeL));
+        if (opc.remover) {
+          var x = el('span', 'pc-x'); x.appendChild(svg('fechar', 13)); x.title = 'Desafixar';
           x.onclick = function (e) { e.stopPropagation(); api('favorito', { caminho: caminho, remover: 1 }).then(function (j) { LOCAIS = j; montarLado(); }); };
           d.appendChild(x);
         }
+        if (opc.pin) { var pn = el('span', 'pc-pin'); pn.appendChild(svg('pin', 13)); d.appendChild(pn); }
         d.onclick = function () { ir(caminho); };
         d.dataset.c = caminho; return d;
       }
+      var secFechada = {};
+      try { secFechada = JSON.parse(lsGet('ppcpm:pc:secoes') || '{}') || {}; } catch (e) { }
       function montarLado() {
         lado.innerHTML = '';
         var L = LOCAIS || { unidades: [], pastas: [], favoritos: [], recentes: [] };
-        function sec(t, arr, tipo) {
-          if (!arr.length) return; lado.appendChild(el('div', 'pc-sec', t));
-          arr.forEach(function (a) {
-            if (typeof a === 'string') { var p = a.split(/[\\/]/).filter(Boolean); lado.appendChild(locItem(p.length > 1 ? p[p.length - 2] + ' › ' + p[p.length - 1] : (p[0] || a), a, 'recente')); }
-            else lado.appendChild(locItem(a.nome, a.caminho, iconeLocal(a, tipo), tipo === 'fav'));
-          });
+        function sec(t, ic, arr, fn) {
+          if (!arr.length) return;
+          var h = el('div', 'pc-sec'); var ch = svg(secFechada[t] ? 'direita' : 'chevron', 12); h.appendChild(ch);
+          var si = svg(ic, 16); si.style.color = ic === 'pc' ? 'var(--acento)' : 'var(--pasta)'; h.appendChild(si); h.appendChild(el('span', null, t));
+          h.onclick = function () { secFechada[t] = !secFechada[t]; lsSet('ppcpm:pc:secoes', JSON.stringify(secFechada)); montarLado(); };
+          lado.appendChild(h);
+          if (!secFechada[t]) arr.forEach(function (a) { lado.appendChild(fn(a)); });
         }
-        sec('Favoritos', L.favoritos, 'fav');
-        sec('Este computador', L.pastas.concat(L.unidades));
-        sec('Recentes', L.recentes, 'rec');
+        var fix = L.pastas.map(function (a) { return { a: a, fav: false }; }).concat(L.favoritos.map(function (a) { return { a: a, fav: true }; }));
+        sec('Acesso rápido', 'favorito', fix, function (x) { return locItem(x.a.nome, x.a.caminho, x.fav ? 'pasta' : iconeLocal(x.a), { remover: x.fav, pin: true }); });
+        lado.appendChild(el('div', 'pc-sep'));
+        sec('Este Computador', 'pc', L.unidades, function (a) { return locItem(a.nome, a.caminho, iconeLocal(a)); });
+        if (L.recentes.length) lado.appendChild(el('div', 'pc-sep'));
+        sec('Recentes', 'recente', L.recentes, function (a) { var p = a.split(/[\\/]/).filter(Boolean); return locItem(p.length > 1 ? p[p.length - 2] + ' › ' + p[p.length - 1] : (p[0] || a), a, 'recente'); });
         marcarLado();
       }
       function marcarLado() {
         Array.prototype.forEach.call(lado.querySelectorAll('.pc-loc'), function (d) { d.classList.toggle('on', d.dataset.c === estado.caminho); });
       }
 
+      /* ----- caminho clicável (Este Computador › Downloads › 00 - ARQUIVOS) ----- */
+      function partesCaminho(c) {
+        var out = [], i, rede = /^\\\\/.test(c), ini = rede ? c.indexOf('\\', 2) : -1;
+        if (rede) { var fimShare = c.indexOf('\\', ini + 1); var raiz = fimShare < 0 ? c : c.slice(0, fimShare); out.push([raiz.slice(2), raiz]); i = fimShare < 0 ? c.length : fimShare; }
+        else i = 0;
+        for (var k = i; k <= c.length; k++) {
+          if (k === c.length || c[k] === '\\' || c[k] === '/') {
+            var seg = c.slice(i, k).replace(/^[\\/]+/, '');
+            if (seg) { var alvo = c.slice(0, k); if (/^[A-Za-z]:$/.test(alvo)) alvo += '\\'; if (alvo === '' && c[0] === '/') alvo = '/'; out.push([seg, alvo || '/']); }
+            i = k;
+          }
+        }
+        return out;
+      }
+      function montarMig() {
+        mig.innerHTML = ''; var ic = svg('pc', 16); mig.appendChild(ic);
+        if (estado.busca) { mig.appendChild(el('span', 'pc-pt', 'Resultados da pesquisa em ' + (estado.caminho.split(/[\\/]/).filter(Boolean).pop() || estado.caminho))); return; }
+        var raizEl = el('span', 'pc-pt', 'Este Computador'); raizEl.onclick = function (e) { e.stopPropagation(); }; mig.appendChild(raizEl);
+        partesCaminho(estado.caminho).forEach(function (p) {
+          var sp = el('span', 'pc-sp'); sp.appendChild(svg('direita', 11)); mig.appendChild(sp);
+          var a = el('span', 'pc-pt', p[0]); a.title = p[1]; a.onclick = function (e) { e.stopPropagation(); ir(p[1]); }; mig.appendChild(a);
+        });
+        mig.appendChild(el('span', 'pc-vz'));                          // espaço livre: clique para digitar o caminho
+        mig.scrollLeft = mig.scrollWidth;                                // caminho comprido: mostra o fim (pasta atual)
+      }
+      function editarCaminho() {
+        if (mig.contains(cam)) return;
+        mig.innerHTML = ''; mig.appendChild(svg('pasta', 16)); cam.value = estado.caminho; mig.appendChild(cam); cam.focus(); cam.select();
+      }
+      mig.onclick = editarCaminho;
+      cam.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (cam.value.trim()) ir(cam.value.trim().replace(/^"|"$/g, '')); } else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); montarMig(); } };
+      cam.onblur = function () { setTimeout(function () { if (D.activeElement !== cam) montarMig(); }, 150); };
+
       /* ----- lista ----- */
       function ordenar(a) {
-        var o = estado.ordem;
+        var o = estado.ordem, s = estado.desc ? -1 : 1;
         return a.slice().sort(function (x, y) {
           if (x.pasta !== y.pasta) return x.pasta ? -1 : 1;
-          if (o === 'data') return y.modificado - x.modificado;
-          if (o === 'tam') return y.tamanho - x.tamanho;
-          return x.nome.localeCompare(y.nome, 'pt-BR', { numeric: true, sensitivity: 'base' });
+          var r = 0;
+          if (o === 'data') r = (x.modificado || 0) - (y.modificado || 0);
+          else if (o === 'tam') r = (x.tamanho || 0) - (y.tamanho || 0);
+          else if (o === 'tipo') r = tipoDe(x).localeCompare(tipoDe(y), 'pt-BR');
+          if (!r) r = x.nome.localeCompare(y.nome, 'pt-BR', { numeric: true, sensitivity: 'base' }) * (o === 'nome' ? 1 : s);
+          return r * s;
         });
       }
       function visiveis() {
@@ -356,105 +582,173 @@
           return true;
         }));
       }
-      function desenhar() {
-        lista.innerHTML = '';
-        var v = visiveis();
-        if (!v.length) { lista.appendChild(el('div', 'pc-vazio', estado.busca ? 'Nada encontrado com "' + estado.busca + '".' : 'Pasta vazia ou sem arquivos dos tipos aceitos.')); }
-        v.forEach(function (i) {
-          var r = el('div', 'pc-row'); r.dataset.c = i.caminho;
-          if (estado.sel.indexOf(i.caminho) >= 0) r.classList.add('sel');
-          r.appendChild(icone(i));
-          var n = el('span', 'pc-n', i.nome);
-          if (estado.busca) n.appendChild(el('span', 'pc-c', i.caminho));
-          r.appendChild(n); r.appendChild(el('span', 'pc-d', fmtData(i.modificado))); r.appendChild(el('span', 'pc-t', i.pasta ? '' : fmtTam(i.tamanho)));
-          if (!i.pacote) r.title = i.caminho;
-          var entra = i.pasta || (i.pacote && (filtro ? filtro.split(',') : []).indexOf(ext(i.nome)) < 0);
-          if (i.pacote) r.title = i.caminho + (entra ? '  (compactado: dois cliques para abrir como pasta)' : '');
-          r.onclick = function (e) {
-            if (entra) { estado.sel = []; atualizarSel(); r.classList.add('sel'); return; }
-            if (op.multiple && (e.ctrlKey || e.metaKey)) {
-              var k = estado.sel.indexOf(i.caminho); if (k >= 0) estado.sel.splice(k, 1); else estado.sel.push(i.caminho);
-            } else if (op.multiple && e.shiftKey && estado.sel.length) {
-              var arq = v.filter(function (x) { return !x.pasta; }).map(function (x) { return x.caminho; });
-              var a = arq.indexOf(estado.sel[estado.sel.length - 1]), b = arq.indexOf(i.caminho);
-              estado.sel = arq.slice(Math.min(a, b), Math.max(a, b) + 1);
-            } else estado.sel = [i.caminho];
-            atualizarSel();
-          };
-          r.ondblclick = function () { if (entra) ir(i.caminho); else { estado.sel = [i.caminho]; confirmar(); } };
-          lista.appendChild(r);
-        });
-        [hN, hD, hT].forEach(function (h, k) { var o = ['nome', 'data', 'tam'][k]; h.style.color = estado.ordem === o ? '#0b5cad' : ''; });
+      var ultimaLista = [];
+      function linha(i, v) {
+        var r = el('div', 'pc-row'); r.dataset.c = i.caminho;
+        var n = el('span', 'pc-n'); n.appendChild(icone(i)); n.appendChild(el('span', 'pc-nt', i.nome));
+        if (estado.busca) n.appendChild(el('span', 'pc-c', i.caminho));
+        r.appendChild(n); r.appendChild(el('span', 'pc-d', fmtData(i.modificado))); r.appendChild(el('span', 'pc-ti', tipoDe(i))); r.appendChild(el('span', 'pc-t', i.pasta ? '' : fmtTam(i.tamanho)));
+        var entra = i.pasta || (i.pacote && (filtro ? filtro.split(',') : []).indexOf(ext(i.nome)) < 0);
+        r.title = i.caminho + (i.pacote && entra ? '  (compactado: dois cliques para abrir como pasta)' : '');
+        r.onclick = function (e) { escolher(i, v, e); };
+        r.ondblclick = function () { if (entra) ir(i.caminho); else { estado.sel = [i.caminho]; confirmar(); } };
+        return r;
+      }
+      function entraEm(i) { return i.pasta || (i.pacote && (filtro ? filtro.split(',') : []).indexOf(ext(i.nome)) < 0); }
+      function escolher(i, v, e) {
+        if (entraEm(i)) { estado.sel = []; estado.foco = i.caminho; atualizarSel(); return; }
+        estado.foco = i.caminho;
+        if (op.multiple && e && (e.ctrlKey || e.metaKey)) {
+          var k = estado.sel.indexOf(i.caminho); if (k >= 0) estado.sel.splice(k, 1); else estado.sel.push(i.caminho);
+        } else if (op.multiple && e && e.shiftKey && estado.ancora) {
+          var arq = v.filter(function (x) { return !entraEm(x); }).map(function (x) { return x.caminho; });
+          var a = arq.indexOf(estado.ancora), b = arq.indexOf(i.caminho);
+          if (a >= 0 && b >= 0) estado.sel = arq.slice(Math.min(a, b), Math.max(a, b) + 1);
+        } else { estado.sel = [i.caminho]; estado.ancora = i.caminho; }
+        if (!(e && e.shiftKey)) estado.ancora = i.caminho;
         atualizarSel();
       }
-      function atualizarSel() {
-        Array.prototype.forEach.call(lista.querySelectorAll('.pc-row'), function (r) { r.classList.toggle('sel', estado.sel.indexOf(r.dataset.c) >= 0); });
-        bOk.disabled = !estado.sel.length;
-        var n = estado.sel.length;
-        info.textContent = n ? (n === 1 ? estado.sel[0] : n + ' arquivos selecionados') : (op.multiple ? 'Dica: Ctrl ou Shift + clique para escolher vários arquivos' : 'Clique duas vezes no arquivo para abrir');
+      function desenhar() {
+        lista.innerHTML = '';
+        var v = visiveis(); ultimaLista = v;
+        if (!v.length) lista.appendChild(el('div', 'pc-vazio', estado.busca ? 'Nada encontrado com "' + estado.busca + '".' : 'Esta pasta está vazia ou não tem arquivos dos tipos aceitos.'));
+        var grupos = [];
+        if (estado.agrupar === 'nenhum' || !v.length) grupos = [{ k: '', t: '', itens: v }];
+        else {
+          var m = {};
+          v.forEach(function (i) {
+            var g = estado.agrupar === 'data' ? grupoData(i.modificado) : [0, tipoDe(i)];
+            var k = g[1]; if (!m[k]) { m[k] = { k: k, ord: g[0], t: g[1], itens: [] }; grupos.push(m[k]); } m[k].itens.push(i);
+          });
+          grupos.sort(function (a, b) { return estado.agrupar === 'data' ? a.ord - b.ord : (a.t === 'Pasta de arquivos' ? -1 : b.t === 'Pasta de arquivos' ? 1 : a.t.localeCompare(b.t, 'pt-BR')); });
+        }
+        grupos.forEach(function (g) {
+          if (g.t) {
+            var h = el('div', 'pc-grupo' + (estado.fechados[g.k] ? ' fechado' : '')); h.appendChild(svg('chevron', 13)); h.appendChild(el('span', null, g.t)); h.appendChild(el('span', 'pc-gn', '(' + g.itens.length + ')'));
+            h.onclick = function () { estado.fechados[g.k] = !estado.fechados[g.k]; desenhar(); }; lista.appendChild(h);
+            if (estado.fechados[g.k]) return;
+          }
+          var gb = el('div', 'pc-gb'); g.itens.forEach(function (i) { gb.appendChild(linha(i, v)); }); lista.appendChild(gb);
+        });
+        [[hN, 'nome'], [hD, 'data'], [hTi, 'tipo'], [hT, 'tam']].forEach(function (p) { p[0].classList.toggle('on', estado.ordem === p[1]); p[0].classList.toggle('desc', estado.ordem === p[1] && estado.desc); });
+        abaNome.textContent = estado.busca ? 'Pesquisa: ' + estado.busca : (estado.caminho.split(/[\\/]/).filter(Boolean).pop() || estado.caminho || 'PPCPM - ARQUIVOS');
+        if (J) try { J.document.title = 'PPCPM - ARQUIVOS · ' + abaNome.textContent; } catch (e) { }
+        montarMig(); atualizarSel();
       }
-      function erro(msg) { lista.innerHTML = ''; lista.appendChild(el('div', 'pc-erro', msg)); }
+      function atualizarSel() {
+        Array.prototype.forEach.call(lista.querySelectorAll('.pc-row'), function (r) { r.classList.toggle('sel', estado.sel.indexOf(r.dataset.c) >= 0 || (!estado.sel.length && r.dataset.c === estado.foco)); });
+        bOk.disabled = bAbrirC.disabled = !estado.sel.length;
+        var n = estado.sel.length, v = ultimaLista, tot = 0;
+        v.forEach(function (i) { if (estado.sel.indexOf(i.caminho) >= 0) tot += i.tamanho || 0; });
+        nome.value = estado.sel.map(function (c) { return '"' + c.split(/[\\/]/).pop() + '"'; }).join(' ').replace(/^"([^"]*)"$/, '$1');
+        stTxt.textContent = v.length + (v.length === 1 ? ' item' : ' itens') + (n ? '   |   ' + n + (n === 1 ? ' item selecionado' : ' itens selecionados') + (tot ? '  ' + fmtTam(tot) : '') : '');
+        mostrarDet();
+      }
+      function mostrarDet() {
+        if (!estado.det) return;
+        det.innerHTML = '';
+        var c = estado.sel[estado.sel.length - 1] || estado.foco, i = ultimaLista.filter(function (x) { return x.caminho === c; })[0];
+        if (!i) { det.appendChild(el('div', 'pc-vazio', 'Selecione um arquivo para ver os detalhes.')); return; }
+        var g = el('div', 'pc-dg'); g.appendChild(icone(i)); det.appendChild(g); det.appendChild(el('b', null, i.nome));
+        var kv = el('div', 'pc-kv');
+        [['Tipo', tipoDe(i)], ['Tamanho', i.pasta ? '' : fmtTam(i.tamanho)], ['Modificado', fmtData(i.modificado)], ['Local', i.caminho.slice(0, i.caminho.length - i.nome.length).replace(/[\\/]$/, '')]].forEach(function (p) { if (p[1]) { kv.appendChild(el('span', null, p[0])); kv.appendChild(el('span', null, p[1])); } });
+        det.appendChild(kv);
+      }
+      function erro(msg) { lista.innerHTML = ''; lista.appendChild(el('div', 'pc-erro', msg)); stTxt.textContent = ''; }
 
-      function ir(c) {
+      function ir(c, semHist) {
         estado.busca = null; busca.value = '';
         lista.innerHTML = ''; lista.appendChild(el('div', 'pc-vazio', 'Abrindo pasta…'));
         api('listar', { caminho: c }).then(function (j) {
-          estado.caminho = j.caminho; estado.pai = j.pai; estado.itens = j.itens; estado.sel = [];
-          cam.value = j.caminho; bSobe.disabled = !j.pai; lsSet(chave, j.caminho);
+          if (!semHist && estado.caminho && estado.caminho !== j.caminho) { estado.atras.push(estado.caminho); estado.frente = []; }
+          estado.caminho = j.caminho; estado.pai = j.pai; estado.itens = j.itens; estado.sel = []; estado.foco = null; estado.ancora = null;
+          bSobe.disabled = !j.pai; bVolta.disabled = !estado.atras.length; bAvanca.disabled = !estado.frente.length; lsSet(chave, j.caminho);
+          busca.placeholder = 'Pesquisar em ' + (j.caminho.split(/[\\/]/).filter(Boolean).pop() || j.caminho);
           desenhar(); marcarLado();
-          if (j.cortado) info.textContent = 'Pasta muito grande: mostrando os primeiros itens. Use o filtro.';
-        }).catch(function (e) { erro(e.message + ' — confira o caminho ou se a unidade de rede está conectada.'); });
+          if (j.cortado) stTxt.textContent += '   |   Pasta muito grande: mostrando os primeiros itens. Use a pesquisa.';
+        }).catch(function (e) { erro(e.message + ' — confira o caminho ou se a unidade de rede está conectada.'); montarMig(); });
       }
       function procurar() {
         var t = busca.value.trim(); if (!t || !estado.caminho) return;
         lista.innerHTML = ''; lista.appendChild(el('div', 'pc-vazio', 'Procurando "' + t + '" em ' + estado.caminho + ' e subpastas…'));
         api('buscar', { caminho: estado.caminho, termo: t, filtro: estado.soAceitos ? filtro : '' }).then(function (j) {
           estado.busca = t; estado.itens = j.itens; estado.sel = []; desenhar();
-          if (j.incompleta) info.textContent = 'Busca parcial (pasta muito grande). Entre numa subpasta para refinar.';
+          if (j.incompleta) stTxt.textContent += '   |   Busca parcial (pasta muito grande). Entre numa subpasta para refinar.';
         }).catch(function (e) { erro(e.message); });
       }
       function confirmar() {
         var cams = estado.sel.slice(); if (!cams.length) return;
-        bOk.disabled = true; info.textContent = 'Carregando ' + cams.length + (cams.length === 1 ? ' arquivo…' : ' arquivos…');
+        bOk.disabled = true; stTxt.textContent = 'Carregando ' + cams.length + (cams.length === 1 ? ' arquivo…' : ' arquivos…');
         Promise.all(cams.map(function (c) {
           return fetch(API + 'arquivo?caminho=' + encodeURIComponent(c), { cache: 'no-store', headers: CAB }).then(function (r) {
             if (!r.ok) return r.json().then(function (j) { throw new Error(j.erro || 'Não foi possível ler o arquivo.'); });
-            var nome = decodeURIComponent(r.headers.get('X-Nome') || encodeURIComponent(c.split(/[\\/]/).pop()));
+            var nm = decodeURIComponent(r.headers.get('X-Nome') || encodeURIComponent(c.split(/[\\/]/).pop()));
             var mod = +r.headers.get('X-Modificado') || Date.now();
-            return r.blob().then(function (b) { var f = new File([b], nome, { type: b.type, lastModified: mod }); try { Object.defineProperty(f, 'ppcpmCaminho', { value: c }); } catch (e) { } return f; });
+            return r.blob().then(function (b) { var f = new File([b], nm, { type: b.type, lastModified: mod }); try { Object.defineProperty(f, 'ppcpmCaminho', { value: c }); } catch (e) { } return f; });
           });
         })).then(function (files) { fechar({ files: files }); })
-          .catch(function (e) { bOk.disabled = false; info.textContent = ''; W.alert('Não foi possível abrir o arquivo.\n' + e.message); });
+          .catch(function (e) { bOk.disabled = false; stTxt.textContent = ''; W.alert('Não foi possível abrir o arquivo.\n' + e.message); });
+      }
+      function copiar(t) {
+        if (!t) return;
+        var ok = function () { stTxt.textContent = 'Caminho copiado: ' + t; };
+        try { W.navigator.clipboard.writeText(t).then(ok, function () { W.prompt('Copie o caminho:', t); }); } catch (e) { W.prompt('Copie o caminho:', t); }
       }
 
       /* ----- botões e teclado ----- */
+      bVolta.onclick = function () { if (!estado.atras.length) return; estado.frente.push(estado.caminho); ir(estado.atras.pop(), true); };
+      bAvanca.onclick = function () { if (!estado.frente.length) return; estado.atras.push(estado.caminho); ir(estado.frente.pop(), true); };
       bSobe.onclick = function () { if (estado.pai) ir(estado.pai); };
-      bIr.onclick = function () { if (cam.value.trim()) ir(cam.value); };
-      cam.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); bIr.onclick(); } };
-      bFav.onclick = function () { if (estado.caminho) api('favorito', { caminho: estado.caminho }).then(function (j) { LOCAIS = j; montarLado(); info.textContent = 'Pasta adicionada aos favoritos.'; }).catch(function (e) { info.textContent = e.message; }); };
-      bExp.onclick = function () { var c = estado.sel.length === 1 ? estado.sel[0] : estado.caminho; if (c) api('explorador', { caminho: c }).catch(function (e) { info.textContent = e.message; }); };
+      bAtual.onclick = function () { if (estado.caminho) ir(estado.caminho, true); };
+      bCopiar.onclick = function () { copiar(estado.sel.length === 1 ? estado.sel[0] : (estado.foco || estado.caminho)); };
+      bFav.onclick = function () { if (estado.caminho) api('favorito', { caminho: estado.caminho }).then(function (j) { LOCAIS = j; montarLado(); stTxt.textContent = 'Pasta fixada no Acesso rápido.'; }).catch(function (e) { stTxt.textContent = e.message; }); };
+      bExp.onclick = function () { var c = estado.sel.length === 1 ? estado.sel[0] : estado.caminho; if (c) api('explorador', { caminho: c }).catch(function (e) { stTxt.textContent = e.message; }); };
       busca.oninput = function () { if (!estado.busca) desenhar(); };
-      busca.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); procurar(); } };
-      chk.onchange = function () { estado.soAceitos = chk.checked; desenhar(); };
-      [[hN, 'nome'], [hD, 'data'], [hT, 'tam']].forEach(function (p) { p[0].onclick = function () { estado.ordem = p[1]; lsSet('ppcpm:pc:ordem', p[1]); desenhar(); }; });
+      busca.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); procurar(); } else if (e.key === 'Escape' && (busca.value || estado.busca)) { e.preventDefault(); e.stopPropagation(); if (estado.busca) ir(estado.caminho, true); else { busca.value = ''; desenhar(); } } };
+      tipoSel.onchange = function () { estado.soAceitos = tipoSel.value === '1'; desenhar(); };
+      [[hN, 'nome'], [hD, 'data'], [hTi, 'tipo'], [hT, 'tam']].forEach(function (p) { p[0].onclick = function () { setOrdem(p[1]); }; });
       bCan.onclick = function () { fechar(null); };
       bWin.onclick = function () { fechar({ windows: true, deJanela: !!J }); };
-      bOk.onclick = confirmar;
+      bOk.onclick = confirmar; bAbrirC.onclick = confirmar;
+      function moverSel(passo) {
+        var v = ultimaLista; if (!v.length) return;
+        var atual = estado.sel[estado.sel.length - 1] || estado.foco, k = -1;
+        v.forEach(function (i, n) { if (i.caminho === atual) k = n; });
+        var nk = Math.max(0, Math.min(v.length - 1, k + passo)); escolher(v[nk], v, null);
+        var r = lista.querySelector('.pc-row[data-c="' + (W.CSS && W.CSS.escape ? W.CSS.escape(v[nk].caminho) : v[nk].caminho.replace(/"/g, '\\"')) + '"]'); if (r) r.scrollIntoView({ block: 'nearest' });
+      }
       function tecla(e) {
-        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fechar(null); }
-        else if (e.key === 'Enter' && D.activeElement !== cam && D.activeElement !== busca && estado.sel.length) { e.preventDefault(); confirmar(); }
-        else if (e.key === 'Backspace' && D.activeElement !== cam && D.activeElement !== busca && estado.pai) { e.preventDefault(); ir(estado.pai); }
+        var ed = D.activeElement === cam || D.activeElement === busca;
+        if (e.key === 'Escape' && (D.activeElement === cam || (D.activeElement === busca && (busca.value || estado.busca)))) return;   // o campo trata o Esc
+        if (e.key === 'Escape') { if (menu) { fecharMenu(); e.preventDefault(); return; } e.preventDefault(); e.stopPropagation(); fechar(null); }
+        else if (e.key === 'F5') { e.preventDefault(); bAtual.onclick(); }
+        else if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); bVolta.onclick(); }
+        else if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); bAvanca.onclick(); }
+        else if (ed) return;
+        else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (estado.sel.length) confirmar();
+          else { var f = ultimaLista.filter(function (i) { return i.caminho === estado.foco; })[0]; if (f && entraEm(f)) ir(f.caminho); }
+        }
+        else if (e.key === 'Backspace' && estado.pai) { e.preventDefault(); ir(estado.pai); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); moverSel(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); moverSel(-1); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A') && op.multiple) { e.preventDefault(); estado.sel = ultimaLista.filter(function (i) { return !entraEm(i); }).map(function (i) { return i.caminho; }); atualizarSel(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'l' || e.key === 'L')) { e.preventDefault(); editarCaminho(); }
+        else if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'e' || e.key === 'F' || e.key === 'E')) { e.preventDefault(); busca.focus(); }
       }
       D.addEventListener('keydown', tecla, true);
+      D.addEventListener('pointerdown', fecharMenuFora, true);
 
       (D.body || D.documentElement).appendChild(fundo);
+      aplicarVista();
       // fechou a janela pelo X do Windows: cancela
       var vigia = setInterval(function () { if (J && J.closed) fechar(null); }, 400);
 
       /* ----- tamanho e posição: a janela abre no tamanho que o usuário deixou da última vez ----- */
       var MINW = 560, MINH = 380, CHAVE_JANELA = 'ppcpm:pc:janela', geo, maxi = false;
       function vw() { return fundo.clientWidth; } function vh() { return fundo.clientHeight; }
-      function padrao() { var w = Math.min(1040, vw() - 28), h = Math.min(640, vh() - 28); return { w: w, h: h, x: (vw() - w) / 2, y: (vh() - h) / 2 }; }
+      function padrao() { var w = Math.min(1100, vw() - 28), h = Math.min(680, vh() - 28); return { w: w, h: h, x: (vw() - w) / 2, y: (vh() - h) / 2 }; }
       function aplicar() {
         var g = maxi ? { x: 0, y: 0, w: vw(), h: vh() } : geo;
         if (!maxi) {
@@ -463,7 +757,7 @@
         }
         card.style.left = g.x + 'px'; card.style.top = g.y + 'px'; card.style.width = g.w + 'px'; card.style.height = g.h + 'px';
         card.classList.toggle('max', maxi); card.classList.toggle('estreita', g.w < 760);
-        bMax.innerHTML = ''; bMax.appendChild(svg(maxi ? 'restaurar' : 'maximizar', 15));
+        bMax.innerHTML = ''; bMax.appendChild(svg(maxi ? 'restaurar' : 'maximizar', 14));
       }
       function guardar() { lsSet(CHAVE_JANELA, JSON.stringify({ w: geo.w, h: geo.h, x: geo.x, y: geo.y, max: maxi })); }
       try { var g0 = JSON.parse(lsGet(CHAVE_JANELA) || 'null'); geo = g0 && g0.w ? g0 : padrao(); maxi = !!(g0 && g0.max); } catch (e) { geo = padrao(); }
@@ -493,14 +787,14 @@
       top.addEventListener('dblclick', function (e) { if (!J && !e.target.closest('button')) { maxi = !maxi; aplicar(); guardar(); } });
       Array.prototype.forEach.call(card.querySelectorAll('.pc-h'), function (h) { h.addEventListener('pointerdown', function (e) { arrastar(e, h.dataset.d); }); });
       bMax.onclick = function () { maxi = !maxi; aplicar(); guardar(); };
-      bX.onclick = function () { fechar(null); };
+      bX.onclick = bAbaX.onclick = function () { fechar(null); };
       function ajustarTela() { aplicar(); }
       W.addEventListener('resize', ajustarTela);
-      if (J) { bMax.style.display = 'none'; try { J.focus(); } catch (e) { } }
+      if (J) { ctl.style.display = 'none'; try { J.focus(); } catch (e) { } }
 
       montarLado();
       var inicio = lsGet(chave) || lsGet('ppcpm:pc:ultima:*') || (LOCAIS && LOCAIS.pastas[0] && LOCAIS.pastas[0].caminho) || (LOCAIS && LOCAIS.unidades[0] && LOCAIS.unidades[0].caminho) || '';
-      if (inicio) ir(inicio); else erro('Nenhuma pasta encontrada. Cole o caminho acima.');
+      if (inicio) ir(inicio); else { erro('Nenhuma pasta encontrada. Clique no caminho acima e cole o endereço da pasta.'); montarMig(); }
       // atualiza unidades/favoritos (pendrive ou rede pode ter conectado agora)
       api('locais').then(function (j) { LOCAIS = j; montarLado(); }).catch(function () { });
       setTimeout(function () { lista.focus(); }, 0);
@@ -521,7 +815,8 @@
   function comClique(acao) {
     estilo(document);
     var f = el('div'); f.id = 'ppcpm-pc';
-    var c = el('div'); c.style.cssText = 'position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);background:#fff;border:1px solid #0b2150;border-radius:10px;box-shadow:0 18px 55px rgba(0,0,0,.45);padding:18px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;min-width:320px';
+    if (temaClaro()) f.classList.add('claro');
+    var c = el('div'); c.style.cssText = 'position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);background:var(--painel);color:var(--texto);border:1px solid var(--borda);border-radius:10px;box-shadow:0 18px 55px rgba(0,0,0,.45);padding:18px 20px;display:flex;flex-direction:column;gap:12px;align-items:center;min-width:320px';
     c.appendChild(el('b', null, 'Abrir a janela comum do Windows?'));
     var r = el('div'); r.style.cssText = 'display:flex;gap:8px';
     var ok = el('button', 'pc-pri'); ok.appendChild(svg('janela')); ok.appendChild(el('span', null, 'Abrir janela do Windows'));
