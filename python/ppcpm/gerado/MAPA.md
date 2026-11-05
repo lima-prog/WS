@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 119
+# Mapa do sistema — Versão 120
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -17,7 +17,7 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `modulos/pg11.html` | 106 KB |
 | `modulos/pg12.html` | 1.053 KB |
 | `modulos/pg13.html` | 151 KB |
-| `modulos/pg14.html` | 23 KB |
+| `modulos/pg14.html` | 70 KB |
 | `js/sistema.js` | 102 KB |
 | `molde.html` | 53 KB |
 | `config.json` | 2 KB |

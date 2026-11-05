@@ -111,6 +111,12 @@ class Sistema(BaseHTTPRequestHandler):
                                     '<title>PPCPM - ARQUIVOS</title><link rel="icon" href="/pc/icone.ico">'
                                     '<style>html,body{margin:0;height:100%;background:#fff;overflow:hidden}</style>'
                                     '</head><body></body></html>', "text/html; charset=utf-8")
+            if caminho == "/pc/janela3d":   # janela do visualizador 3D (a aba Engenharia escreve o 3D dentro dela)
+                return self._enviar(200, '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
+                                    '<title>PPCPM - VISUALIZADOR 3D</title><link rel="icon" href="/pc/icone.ico"></head>'
+                                    '<body style="margin:0;font:600 14px Arial;display:grid;place-items:center;height:100vh;'
+                                    'color:#5b6474;background:#f4f6f9">Lendo o desenho e montando o 3D…</body></html>',
+                                    "text/html; charset=utf-8")
             if caminho == "/pc/icone.ico":
                 return self._enviar(200, (PONTE_JS.parent / "icone.ico").read_bytes(), "image/x-icon", sem_cache=False)
             if caminho == "/pc/ponte.js":
