@@ -19261,7 +19261,7 @@ if (typeof module !== 'undefined') module.exports = PP;
   function fmtData(d) { return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
   function layout(et, c) {
     var L = {};
-    L.obra = et.obra; L.fluxo = et.fluxo; L.pacote = U.strip(et.pacote.split('PACOTE ').join(''));
+    L.obra = et.obra; L.fluxo = et.fluxo; L.pacote = U.strip(et.pacote.split('PACOTE ').join('')); L.grupo = !!et.grupo;
     L.obs = et.observacao || '';
     L.W = Math.round((c.largura_etiqueta_mm || 50) * 8); L.H = Math.round((c.altura_etiqueta_mm || 90) * 8);
     L.x = mm(c.margem_esquerda); L.lt = L.W - L.x - mm(c.margem_direita);
@@ -19285,10 +19285,13 @@ if (typeof module !== 'undefined') module.exports = PP;
     var z = '^XA\n^LL' + L.H + '\n^PW' + L.W + '\n';
     if (c.mostrar_borda) z += '^FO' + L.bx + ',' + L.by + '^GB' + L.bw + ',' + L.bh + ',' + c.espessura_linha + '^FS\n';
     var linha = function (y) { return '^FO' + (L.x + 10) + ',' + y + '^GB' + (L.lt - 20) + ',' + c.espessura_linha + '^FS\n'; };
-    if (c.mostrar_linhas) z += linha(L.yL1) + linha(L.yL2) + linha(L.yL3);
-    z += '^FO' + L.x + ',' + L.yObra + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_obra + ',' + largura_fonte_obra(L.obra) + '^FD' + L.obra + '^FS\n';
-    var f2 = fonte_linha2(L.fluxo, c, L.lt);
-    z += '^FO' + L.x + ',' + (L.yFluxo + f2.dy) + '^FB' + L.lt + ',1,0,C^A0N,' + f2.alt + ',' + f2.larg + '^FD' + L.fluxo + '^FS\n';
+    if (c.mostrar_linhas) z += (L.grupo ? '' : linha(L.yL1)) + linha(L.yL2) + linha(L.yL3);   // PERFIL L / U/C: sem o 1º traço
+    if (L.grupo) z += '^FO' + L.x + ',' + yGrupo(L, c) + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_obra + ',' + largura_fonte_obra(L.obra) + '^FD' + L.obra + '^FS\n';
+    else {
+      z += '^FO' + L.x + ',' + L.yObra + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_obra + ',' + largura_fonte_obra(L.obra) + '^FD' + L.obra + '^FS\n';
+      var f2 = fonte_linha2(L.fluxo, c, L.lt);
+      z += '^FO' + L.x + ',' + (L.yFluxo + f2.dy) + '^FB' + L.lt + ',1,0,C^A0N,' + f2.alt + ',' + f2.larg + '^FD' + L.fluxo + '^FS\n';
+    }
     z += '^FO' + L.x + ',' + L.yPac + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_pacote + ',' + c.fonte_pacote + '^FD' + L.pacote + '^FS\n';
     if (L.obs) {
       z += '^FO' + L.x + ',' + L.yObs + '^FB' + L.lt + ',2,0,C^A0N,20,20^FD' + L.obs + '^FS\n';
@@ -19297,6 +19300,8 @@ if (typeof module !== 'undefined') module.exports = PP;
     z += '^FO' + L.x + ',' + L.yData + '^FB' + L.lt + ',1,0,C^A0N,' + c.fonte_data + ',' + c.fonte_data + '^FD' + data + '^FS\n';
     return z + '^XZ';
   }
+  // etiqueta de grupo (PERFIL L / PERFIL U/C): o nome fica no meio do espaço acima do pacote
+  function yGrupo(L, c) { return Math.round((L.yObra + L.yL2 - pt(c.fonte_obra)) / 2); }
   // Prévia aproximada (SVG, 1 dot = 1 unidade) — a Zebra usa a fonte 0 (CG Triumvirate condensada)
   function previaSVG(et, c) {
     var L = layout(et, c), data = fmtData(new Date()), s = [];
@@ -19305,12 +19310,12 @@ if (typeof module !== 'undefined') module.exports = PP;
     s.push('<rect width="' + L.W + '" height="' + alt + '" fill="#fff"/>');
     if (c.mostrar_borda) s.push('<rect x="' + L.bx + '" y="' + L.by + '" width="' + L.bw + '" height="' + L.bh + '" fill="none" stroke="#000" stroke-width="' + c.espessura_linha + '"/>');
     var ln = function (y) { s.push('<rect x="' + (L.x + 10) + '" y="' + y + '" width="' + (L.lt - 20) + '" height="' + c.espessura_linha + '" fill="#000"/>'); };
-    if (c.mostrar_linhas) { ln(L.yL1); ln(L.yL2); ln(L.yL3); }
+    if (c.mostrar_linhas) { if (!L.grupo) ln(L.yL1); ln(L.yL2); ln(L.yL3); }
     var tx = function (y, alt, larg, t) {
       s.push('<text x="' + (L.x + L.lt / 2) + '" y="' + (y + alt * 0.8) + '" font-family="Arial Narrow,Arial,sans-serif" font-weight="700" font-size="' + alt + '" text-anchor="middle" textLength="' + Math.min(L.lt, len(t) * larg * 0.62) + '" lengthAdjust="spacingAndGlyphs" fill="#000">' + U.esc(t) + '</text>');
     };
-    tx(L.yObra, c.fonte_obra, largura_fonte_obra(L.obra), L.obra);
-    var f2 = fonte_linha2(L.fluxo, c, L.lt); tx(L.yFluxo + f2.dy, f2.alt, f2.larg, L.fluxo);
+    if (L.grupo) tx(yGrupo(L, c), c.fonte_obra, largura_fonte_obra(L.obra), L.obra);
+    else { tx(L.yObra, c.fonte_obra, largura_fonte_obra(L.obra), L.obra); var f2 = fonte_linha2(L.fluxo, c, L.lt); tx(L.yFluxo + f2.dy, f2.alt, f2.larg, L.fluxo); }
     tx(L.yPac, c.fonte_pacote, c.fonte_pacote, L.pacote);
     if (L.obs) { tx(L.yObs, 20, 20, L.obs); if (c.mostrar_linhas) ln(L.yObs + mm(25)); }
     tx(L.yData, c.fonte_data, c.fonte_data, data);
@@ -19647,7 +19652,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     function marcar(v) { marcados.clear(); if (v) tEmit.linhas.forEach(function (r) { marcados.add(r.id); }); tEmit.render(); contador(); }
     function ids() { return tEmit.linhas.filter(function (r) { return marcados.has(r.id); }).map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }); }  // imprime na ordem do relatório: saquinho, depois obra por obra
     function contador() { lblTot.textContent = 'Total: ' + tEmit.linhas.length + ' | Selecionadas: ' + ids().length; }
-    function porIds(l) { var t = tab(); return l.map(function (i) { if (VIRT[i]) { var v = VIRT[i]; return { id: i, pacote: v.pacote, obra: v.obra, fluxo: '', observacao: v.observacao || '' }; } var r = t.achar(function (x) { return x.id === i; }); return r ? { id: i, pacote: r.pacote, obra: r.obra, fluxo: r.fluxo, observacao: r.observacao || '' } : null; }).filter(Boolean); }
+    function porIds(l) { var t = tab(); return l.map(function (i) { if (VIRT[i]) { var v = VIRT[i]; return { id: i, pacote: v.pacote, obra: v.obra, fluxo: '', observacao: v.observacao || '', grupo: true }; } var r = t.achar(function (x) { return x.id === i; }); return r ? { id: i, pacote: r.pacote, obra: r.obra, fluxo: r.fluxo, observacao: r.observacao || '' } : null; }).filter(Boolean); }
 
     async function escolherImpressora() {
       status.textContent = 'Procurando impressoras...';
@@ -19720,7 +19725,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       buscarClick(); rodape();
     }
     function previa(r) {
-      var c = config(), et = { obra: r.obra, fluxo: r.membros ? '' : r.fluxo, pacote: r.pacote, observacao: r.observacao || '' };
+      var c = config(), et = { obra: r.obra, fluxo: r.membros ? '' : r.fluxo, pacote: r.pacote, observacao: r.observacao || '', grupo: !!r.membros };
       var caixa = h('div', { class: 'etq-caixa', html: previaSVG(et, c) });
       var pre = h('pre', { class: 'log', style: { height: '160px', marginTop: '10px' } }, gerar_zpl(et, c));
       ui.modal({ titulo: 'Prévia da etiqueta #' + r.id, corpo: h('div', null, caixa, h('div', { class: 'fraco mt' }, 'Prévia aproximada (a fonte real é a da impressora). Código ZPL:'), pre), largura: 520, botoes: [{ texto: 'Fechar', valor: true }] });
@@ -24069,7 +24074,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 129';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 130';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
