@@ -1838,10 +1838,34 @@ function melhorPorArquivo(cands) {
   const v = [...m.values()]; if (!v.length) return [];
   return Math.min(...v.map(c => c.prior[1])) === 0 ? v.filter(c => c.prior[1] === 0) : v;
 }
+// procura, em largura e só entre pastas (rápido), as pastas/zips de atalho das obras até 'maxNivel' abaixo da raiz
+async function acharAtalhos(ref, prefixos, obras, maxNivel = 3, maxPastas = 400) {
+  const pfs = prefixos.map(p => p.toLowerCase()), ols = obras.map(o => o.toLowerCase());
+  const achados = [], faltam = new Set(pfs); const fila = [{ ref, nivel: 0 }]; let lidas = 0;
+  while (fila.length && lidas < maxPastas) {
+    const lote = fila.splice(0, 6);
+    const res = await Promise.all(lote.map(async p => ({ p, ents: await listarRef(p.ref) })));
+    for (const { p, ents } of res) {
+      lidas++;
+      for (const e of ents) {
+        const nl = e.name.toLowerCase(), ez = nl.endsWith('.zip'), ns = ez ? nl.slice(0, -4) : nl;
+        if (e.kind !== 'dir' && !ez) continue;
+        if (pfs.includes(ns)) { if (!achados.some(a => a.name.toLowerCase() === nl)) achados.push(e); faltam.delete(ns); }
+        else if (ols.some(ol => nomeBateObra(ns, ol))) achados.push(e);
+        else if (e.kind === 'dir' && p.nivel + 1 < maxNivel) fila.push({ ref: e.ref, nivel: p.nivel + 1 });
+      }
+    }
+    if (!faltam.size) break;   // achou o atalho de todas as obras: não desce mais
+  }
+  return achados;
+}
 async function buscarDbfsPorObra(raizes, obras, completa, progresso) {
   const prefixos = [...new Set(obras.map(o => o.split('-')[0]))];
   progresso(`Verificando o atalho de ${prefixos.length} obra(s) em ${raizes.length} pasta(s) raiz…`);
-  const nivel1 = await Promise.all(raizes.map(r => listarRef(r.ref)));
+  // o atalho (pasta "2139" ou "2139.zip") pode estar até 3 níveis abaixo da raiz escolhida
+  // (ex.: raiz lib-eng → LIBERAÇÕES ENGENHARIA → 2139 → 2139-5-02_L1). Também guarda as pastas/zips
+  // com o nome da própria obra que aparecerem pelo caminho.
+  const nivel1 = await Promise.all(raizes.map(r => acharAtalhos(r.ref, prefixos, obras)));
   const cacheRapido = new Map(), precisaLenta = new Set();
   await Promise.all(raizes.flatMap((r, ri) => prefixos.map(async pf => {
     const ent = nivel1[ri].find(e => e.kind === 'dir' && e.name.toLowerCase() === pf.toLowerCase());
