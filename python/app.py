@@ -228,8 +228,8 @@ class Sistema(BaseHTTPRequestHandler):
         if not self._do_proprio_pc():
             return self._json({"erro": "Arquivos do PC só abrem no próprio computador do sistema."}, 403)
         try:
-            if acao == "locais":
-                return self._json(arquivos_pc.locais())
+            if acao == "locais":   # rapido=1: resposta imediata (liga a ponte sem esperar o Acesso rápido do Windows)
+                return self._json(arquivos_pc.locais(rapido=q.get("rapido") == "1"))
             if acao == "listar":   # todos=1: pasta inteira, sem marcar nos recentes (leitura de pastas pelos programas)
                 todos = q.get("todos") == "1"
                 return self._json(arquivos_pc.listar(q.get("caminho", ""), q.get("filtro", ""), recente=not todos,

@@ -93,7 +93,7 @@ def _gravar_pastas(d: dict) -> None:
     os.replace(tmp, ARQ_PASTAS)
 
 
-def locais() -> dict:
+def locais(rapido: bool = False) -> dict:
     """Painel da esquerda do seletor: unidades, pastas do usuário, favoritos e recentes."""
     pastas = []
     for chave, padrao, nome in (("Desktop", "Desktop", "Área de Trabalho"),
@@ -108,7 +108,7 @@ def locais() -> dict:
         "pastas": pastas,
         "favoritos": [f for f in d["favoritos"] if isinstance(f, dict) and f.get("caminho")],
         "recentes": [r for r in d["recentes"] if isinstance(r, str)][:8],
-        "acesso_rapido": acesso_rapido.listar(),      # pastas fixadas no Explorador do Windows
+        "acesso_rapido": acesso_rapido.ultima() if rapido else acesso_rapido.listar(),   # pastas fixadas no Explorador do Windows
         "separador": os.sep,
     }
 

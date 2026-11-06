@@ -19,7 +19,7 @@
 
   /* ---------- liga só se o Python deste PC responder ---------- */
   var CAB = { 'X-PPCPM': '1' };
-  fetch(API + 'locais', { cache: 'no-store', headers: CAB }).then(function (r) {
+  fetch(API + 'locais?rapido=1', { cache: 'no-store', headers: CAB }).then(function (r) {   // rápido: não espera o Windows
     if (!r.ok) throw 0; return r.json();
   }).then(function (j) { LOCAIS = j; ativo = true; ligarZebra(); }).catch(function () { ativo = false; });
 
