@@ -24,7 +24,7 @@ const DICT=[
 ["Salvar senha","Remember password","Recordar contraseña"],
 ["CADASTRE-SE","SIGN UP","REGÍSTRATE"],
 ["Criar cadastro para acessar o sistema","Create an account to access the system","Crear una cuenta para acceder al sistema"],
-["ENTRAR","SIGN IN","ENTRAR"],["BEM-VINDO","WELCOME","BIENVENIDO"],
+["ENTRAR","SIGN IN","ENTRAR"],["BEM-VINDO","WELCOME","BIENVENIDO"],["Conectando ao servidor…","Connecting to the server…","Conectando al servidor…"],["Conferindo usuário…","Checking user…","Verificando usuario…"],["Carregando o sistema…","Loading the system…","Cargando el sistema…"],["O servidor demorou para responder.","The server took too long to respond.","El servidor tardó en responder."],["A internet está lenta ou o servidor não respondeu a tempo. Clique em ENTRAR de novo.","The connection is slow or the server did not respond in time. Click SIGN IN again.","La conexión está lenta o el servidor no respondió a tiempo. Haz clic en ENTRAR otra vez."],
 ["ACESSO SEGURO · GRUPO PROJEART","SECURE ACCESS · GRUPO PROJEART","ACCESO SEGURO · GRUPO PROJEART"],
 ["Criar cadastro","Create account","Crear cuenta"],
 ["Solicite seu acesso ao sistema.","Request access to the system.","Solicita tu acceso al sistema."],
@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 125';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 126';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -431,26 +431,29 @@ $('#lf').onsubmit=async e=>{e.preventDefault();const l=$('#lu').value.trim().rep
  if(vazio.length)return loginErro('Preencha todos os campos.','Falta preencher: '+vazio.map(x=>({'#lu':'login','#lp':'senha','#le':'e-mail'})[x]).join(', ')+'.',vazio);
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m))return loginErro('E-mail inválido.','Digite um e-mail no formato nome@empresa.com.br.',['#le']);
  if(!SB)return loginErro('Sem conexão com o servidor.','Não foi possível iniciar a conexão. Atualize a página.',['#lu']);
- const bt=$('#lf .btn');if(bt)bt.disabled=true;LoginAnim.carregando();let entrou=false;
+ const bt=$('#lf .btn');if(bt)bt.disabled=true;LoginAnim.carregando('Conectando ao servidor…');let entrou=false;
  const bad=()=>{FAL++;$('#lp').value='';loginErro('Erro no login.','Login, senha ou e-mail incorretos. Confira os dados e tente de novo.'+(FAL>1?' Tentativa '+FAL+'.':''),['#lu','#lp','#le'],'#lp')};
- try{const {data,error}=await SB.auth.signInWithPassword({email:m,password:s});
+ try{const {data,error}=await comPrazo(SB.auth.signInWithPassword({email:m,password:s}),25000);
   if(error){if(/fetch|network|failed/i.test(error.message||''))return loginErro('Sem conexão com o servidor.','Confira a internet e tente de novo.',['#lu']);return bad()}
-  const p=await perfilDe(data.user.id);
+  LoginAnim.etapa('Conferindo usuário…');const p=await comPrazo(perfilDe(data.user.id),20000);
   if(!p||p.login!==l){await SB.auth.signOut();return bad()}
   if(!p.ativo){await SB.auth.signOut();return p.aprovado_em?loginErro('Acesso bloqueado.','Seu usuário está bloqueado. Fale com o administrador do sistema.',['#lu'],'#lu'):loginErro('Acesso ainda não ativado.','Use a chave de acesso enviada pelo administrador (CADASTRE-SE › Ativar acesso). Se já passaram 5 minutos, refaça o cadastro.',['#lu'],'#lu')}
   FAL=0;limpaErro();
   try{if($('#lr').checked)localStorage.setItem(RK,JSON.stringify({l:$('#lu').value.trim(),s,e:$('#le').value.trim()}));else localStorage.removeItem(RK)}catch(x){}
-  entrou=true;await LoginAnim.sucesso();coverIntro();await enter(uObj(p),true)}
- catch(x){console.error(x);const iv0=document.getElementById('intro');if(iv0&&!USER)iv0.remove();loginErro('Sem conexão com o servidor.','Confira a internet e tente de novo.',['#lu'])}
+  LoginAnim.etapa('Carregando o sistema…');entrou=true;await LoginAnim.sucesso();coverIntro();await enter(uObj(p),true)}
+ catch(x){console.error(x);const iv0=document.getElementById('intro');if(iv0&&!USER)iv0.remove();entrou=false;if(x&&x.prazo){try{SB.auth.signOut()}catch(y){}return loginErro('O servidor demorou para responder.','A internet está lenta ou o servidor não respondeu a tempo. Clique em ENTRAR de novo.',['#lu'])}loginErro('Sem conexão com o servidor.','Confira a internet e tente de novo.',['#lu'])}
  finally{if(bt)bt.disabled=false;if(entrou)setTimeout(()=>LoginAnim.limpar(),400);else LoginAnim.parar()}};
+// espera no máximo 'ms': o botão nunca fica girando para sempre
+function comPrazo(p,ms){let t;return Promise.race([p,new Promise((_,r)=>{t=setTimeout(()=>r(Object.assign(new Error('prazo'),{prazo:true})),ms)})]).finally(()=>clearTimeout(t))}
 function coverIntro(){if(!document.getElementById('intro')){document.body.insertAdjacentHTML('beforeend',introHTML());applyI18n($('#intro'))}}
 async function perfilDe(id){const r=await SB.from('perfis').select('*').eq('id',id).maybeSingle();return r.data}
 const RK='projeart_pcp:lembrar';let FAL=0;
 function lOk(t){const e=$('#lok');e.textContent=t?TX(t):'';e.classList.toggle('hide',!t)}
 function limpaErro(){lOk();$('#er').innerHTML='';document.querySelectorAll('#lf .in').forEach(x=>x.classList.remove('bad'))}
 const LoginAnim={btn:()=>$('#lf .btn'),
- carregando(){const b=this.btn();if(!b)return;b.dataset.txt=b.dataset.txt||b.textContent;b.classList.remove('btn-sucesso');b.classList.add('btn-carregando')},
- parar(){const b=this.btn();if(b)b.classList.remove('btn-carregando')},
+ carregando(t){const b=this.btn();if(!b)return;b.dataset.txt=b.dataset.txt||b.textContent;b.classList.remove('btn-sucesso');b.classList.add('btn-carregando');if(t)b.textContent=TX(t)},
+ etapa(t){const b=this.btn();if(b&&b.classList.contains('btn-carregando'))b.textContent=TX(t)},
+ parar(){const b=this.btn();if(!b)return;b.classList.remove('btn-carregando');if(b.dataset.txt&&!b.classList.contains('btn-sucesso')){b.textContent=b.dataset.txt;applyI18n($('#lf'))}},
  async sucesso(){const b=this.btn(),c=$('#lf');if(!b)return;b.classList.remove('btn-carregando');b.classList.add('btn-sucesso');b.textContent='✓ '+TX('BEM-VINDO');
   const calmo=matchMedia('(prefers-reduced-motion: reduce)').matches;await new Promise(r=>setTimeout(r,calmo?150:500));c.classList.add('login-saindo');await new Promise(r=>setTimeout(r,calmo?50:600))},
  limpar(){const b=this.btn(),c=$('#lf');if(c)c.classList.remove('login-saindo');if(b){b.classList.remove('btn-carregando','btn-sucesso');if(b.dataset.txt){b.textContent=b.dataset.txt;applyI18n($('#lf'))}}}};
@@ -461,8 +464,8 @@ function fillRemember(){try{const r=JSON.parse(localStorage.getItem(RK));if(r){$
 fillRemember();
 $('#lr').onchange=()=>{if(!$('#lr').checked)try{localStorage.removeItem(RK)}catch(e){}};
 let POLL=null;
-async function enter(u,doLogin){USER=u;await DB.refresh();$('nav .n[data-v=usr]').classList.toggle('hide',!u.adm);SB.rpc('registrar_acesso').then(()=>{},()=>{});DB.log('perfis',u.id,'login');
- $('#login').classList.add('hide');$('#app').classList.remove('hide');setUserLabel();const tl=await loadPrefs();if(doLogin&&ANIM){INTRO=true;go('home')}else{const c0=document.getElementById('intro');if(c0&&doLogin)c0.remove();go(tl)}
+async function enter(u,doLogin){USER=u;const pref=loadPrefs();await DB.refresh();$('nav .n[data-v=usr]').classList.toggle('hide',!u.adm);SB.rpc('registrar_acesso').then(()=>{},()=>{});DB.log('perfis',u.id,'login');
+ $('#login').classList.add('hide');$('#app').classList.remove('hide');setUserLabel();const tl=await pref;if(doLogin&&ANIM){INTRO=true;go('home')}else{const c0=document.getElementById('intro');if(c0&&doLogin)c0.remove();go(tl)}
  clearInterval(POLL);POLL=setInterval(async()=>{if(!USER||document.hidden)return;const a=document.activeElement,dl=$('#dg');if(dl&&dl.open)return;const ok=await DB.refresh();if(ok&&!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))&&!INTRO&&!document.getElementById('intro'))render()},20000)}
 $('#out').onclick=async()=>{clearInterval(POLL);DB.log('perfis',USER&&USER.id,'logout');const s=SB&&SB.auth.signOut();$('#app').classList.add('hide');$('#login').classList.remove('hide');USER=null;ops=[];$('#lp').value='';limpaErro();fillRemember();try{await s}catch(e){}};
 function setUserLabel(){if(!USER)return;$('#us').innerHTML=esc(USER.n)+'<small class="us-r"> · '+esc(TX(USER.r))+'</small>'}

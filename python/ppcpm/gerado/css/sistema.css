@@ -130,12 +130,12 @@ dialog{width:min(480px,94vw)}
 #login .in.bad{border-color:#e24b4a!important;box-shadow:0 0 0 2px rgba(226,75,74,.25)!important;transition:border-color .2s,box-shadow .2s}
 #login #er:not(:empty){animation:loginFadeIn .3s ease}
 @keyframes loginFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-#login .btn.btn-carregando{position:relative;color:transparent!important;pointer-events:none}
-#login .btn.btn-carregando::before{content:"";position:absolute;inset:0;margin:auto;width:20px;height:20px;border-radius:50%;border:3px solid #fff;border-top-color:transparent;animation:loginGirar .7s linear infinite}
+#login .btn.btn-carregando{position:relative;overflow:hidden;color:#fff!important;pointer-events:none;cursor:progress;letter-spacing:.2px}
+#login .btn.btn-carregando::before{content:"";display:inline-block;vertical-align:-3px;width:15px;height:15px;margin-right:10px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:loginGirar 1.2s cubic-bezier(.5,.15,.5,.85) infinite}#login .btn.btn-carregando::after{content:"";position:absolute;left:-35%;bottom:0;width:35%;height:3px;border-radius:3px;background:rgba(255,255,255,.75);animation:loginBarra 1.8s ease-in-out infinite}@keyframes loginBarra{to{left:100%}}
 @keyframes loginGirar{to{transform:rotate(360deg)}}
 #login .btn.btn-sucesso{background:#1d9e75!important;border-color:#1d9e75!important;color:#fff!important;transition:background .3s}
 #login .card.login-saindo{opacity:0!important;transform:translateY(-20px) scale(.96)!important;transition:opacity .5s ease,transform .5s ease}
-@media(prefers-reduced-motion:reduce){#login #er:not(:empty),#login .btn.btn-carregando::before{animation:none}#login .card.login-saindo{transition:none}}
+@media(prefers-reduced-motion:reduce){#login #er:not(:empty){animation:none}#login .btn.btn-carregando::before{animation:loginGirar 2s linear infinite}#login .btn.btn-carregando::after{animation:loginBarra 3s linear infinite}#login .card.login-saindo{transition:none}}
 @media(prefers-reduced-motion:reduce){#login .card.shk{animation:none}}
 
 /* Animação de abertura do Início */
