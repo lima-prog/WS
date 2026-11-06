@@ -2512,7 +2512,8 @@ if (typeof module !== 'undefined') module.exports = PP;
   }
   var ETAPAS = { saquinho: 'Saquinho', preparacao: 'Preparação', nao_preparacao: 'Não Preparação' };
   // filtros que juntam vários setores (ex.: PERFIL L = PERFILADEIRA L1 + PERFILADEIRA L2)
-  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'] };
+  // e juntam TODAS as obras do pacote num saco só (uma etiqueta com só o nome do grupo)
+  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'], 'PERFIL U/C': ['PERFILADEIRA U/C'] };
   function noSetor(fluxo, fl) {
     if (!fl || fl === TODOS) return true;
     var g = GRUPOS_SETOR[fl];
@@ -2801,19 +2802,20 @@ if (typeof module !== 'undefined') module.exports = PP;
       VIRT = {}; if (GRUPOS_SETOR[cbFl.value]) l = juntarGrupo(l, cbFl.value);
       preencher(l.sort(function (a, b) { return a.id - b.id; }));   // lista na mesma ordem em que imprime
     }
-    // PERFIL L: a mesma obra na PERFILADEIRA L1 e na L2 vira UMA etiqueta só (setor "PERFIL L").
-    // Só neste filtro — nos outros filtros as etiquetas continuam separadas por setor.
+    // PERFIL L / PERFIL U/C: todas as obras do pacote (L1 + L2, ou U/C) viram UMA etiqueta só — um saco só,
+    // com só o nome do grupo. Só nesses filtros — nos outros as etiquetas continuam por obra e setor.
     var VIRT = {};
     function juntarGrupo(l, nomeGrupo) {
       var g = {}, ordem = [];
       l.forEach(function (r) {
-        var k = r.pacote + '|' + r.obra + '|' + r.tipo;
+        var k = r.pacote + '|' + r.tipo;
         if (!g[k]) { g[k] = []; ordem.push(k); } g[k].push(r);
       });
       return ordem.map(function (k) {
         var rs = g[k].slice().sort(function (a, b) { return a.id - b.id; }), obs = [];
         rs.forEach(function (r) { var o = String(r.observacao || '').trim(); if (o && obs.indexOf(o) < 0) obs.push(o); });
-        var v = Object.assign({}, rs[0], { fluxo: nomeGrupo, membros: rs.map(function (r) { return r.id; }),
+        var obras = []; rs.forEach(function (r) { if (obras.indexOf(r.obra) < 0) obras.push(r.obra); });
+        var v = Object.assign({}, rs[0], { obra: nomeGrupo, fluxo: nomeGrupo, obras: obras, membros: rs.map(function (r) { return r.id; }),
           observacao: obs.join(' / ').slice(0, OBSERVACAO_MAX), impresso: rs.every(function (r) { return r.impresso === 1; }) ? 1 : 0 });
         VIRT[v.id] = v; return v;
       });
@@ -2826,7 +2828,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     function marcar(v) { marcados.clear(); if (v) tEmit.linhas.forEach(function (r) { marcados.add(r.id); }); tEmit.render(); contador(); }
     function ids() { return tEmit.linhas.filter(function (r) { return marcados.has(r.id); }).map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }); }  // imprime na ordem do relatório: saquinho, depois obra por obra
     function contador() { lblTot.textContent = 'Total: ' + tEmit.linhas.length + ' | Selecionadas: ' + ids().length; }
-    function porIds(l) { var t = tab(); return l.map(function (i) { var r = VIRT[i] || t.achar(function (x) { return x.id === i; }); return r ? { id: i, pacote: r.pacote, obra: r.obra, fluxo: r.fluxo, observacao: r.observacao || '' } : null; }).filter(Boolean); }
+    function porIds(l) { var t = tab(); return l.map(function (i) { if (VIRT[i]) { var v = VIRT[i]; return { id: i, pacote: v.pacote, obra: v.obra, fluxo: '', observacao: v.observacao || '' }; } var r = t.achar(function (x) { return x.id === i; }); return r ? { id: i, pacote: r.pacote, obra: r.obra, fluxo: r.fluxo, observacao: r.observacao || '' } : null; }).filter(Boolean); }
 
     async function escolherImpressora() {
       status.textContent = 'Procurando impressoras...';
@@ -2899,7 +2901,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       buscarClick(); rodape();
     }
     function previa(r) {
-      var c = config(), et = { obra: r.obra, fluxo: r.fluxo, pacote: r.pacote, observacao: r.observacao || '' };
+      var c = config(), et = { obra: r.obra, fluxo: r.membros ? '' : r.fluxo, pacote: r.pacote, observacao: r.observacao || '' };
       var caixa = h('div', { class: 'etq-caixa', html: previaSVG(et, c) });
       var pre = h('pre', { class: 'log', style: { height: '160px', marginTop: '10px' } }, gerar_zpl(et, c));
       ui.modal({ titulo: 'Prévia da etiqueta #' + r.id, corpo: h('div', null, caixa, h('div', { class: 'fraco mt' }, 'Prévia aproximada (a fonte real é a da impressora). Código ZPL:'), pre), largura: 520, botoes: [{ texto: 'Fechar', valor: true }] });
