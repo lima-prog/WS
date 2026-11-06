@@ -2511,9 +2511,17 @@ if (typeof module !== 'undefined') module.exports = PP;
     return desc ? l.reverse() : l;
   }
   var ETAPAS = { saquinho: 'Saquinho', preparacao: 'Preparação', nao_preparacao: 'Não Preparação' };
+  // filtros que juntam vários setores (ex.: PERFIL L = PERFILADEIRA L1 + PERFILADEIRA L2)
+  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'] };
+  function noSetor(fluxo, fl) {
+    if (!fl || fl === TODOS) return true;
+    var g = GRUPOS_SETOR[fl];
+    if (g) { var f = String(fluxo || '').trim().toUpperCase().replace(/\s+/g, ' '); return g.indexOf(f) >= 0; }
+    return fluxo === fl;
+  }
   function buscar(pac, obra, fl, etapa) {
     return tab().filtrar(function (r) {
-      return (!pac || pac === TODOS || r.pacote === pac) && (!obra || obra === TODAS || r.obra === obra) && (!fl || fl === TODOS || r.fluxo === fl)
+      return (!pac || pac === TODOS || r.pacote === pac) && (!obra || obra === TODAS || r.obra === obra) && noSetor(r.fluxo, fl)
         && (!etapa || etapa === TODAS || r.tipo === etapa || (r.tipo === 'saquinho' && etapa !== 'nao_preparacao'));
     }).sort(function (a, b) { return b.id - a.id; });
   }
@@ -2772,11 +2780,20 @@ if (typeof module !== 'undefined') module.exports = PP;
       h('div', { class: 'linha mt' }, ui.botao('✅ Marcar todas', { click: function () { marcar(true); } }), ui.botao('❌ Desmarcar todas', { click: function () { marcar(false); } }), lblTot,
         h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ui.botao('⬇ Baixar PDF', { click: function () { imprimir('pdf'); } }), ui.botao('🖨️ Imprimir selecionadas', { classe: 'prim', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') imprimirZpl(false); else imprimir(false); } }))), combos);
     function combos() {
-      [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, distintos('fluxo')]].forEach(function (x) {
+      [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, comGrupos(distintos('fluxo'))]].forEach(function (x) {
         var atual = x[0].value; x[0].innerHTML = '';
-        [x[1]].concat(x[2].map(String)).forEach(function (v) { x[0].appendChild(h('option', { value: v }, v)); });
+        [x[1]].concat(x[2].map(String)).forEach(function (v) { var o = h('option', { value: v }, v); if (GRUPOS_SETOR[v]) { o.textContent = v + '  (' + GRUPOS_SETOR[v].map(function (n) { return n.replace('PERFILADEIRA ', ''); }).join(' + ') + ')'; o.style.fontWeight = '700'; } x[0].appendChild(o); });
         x[0].value = Array.prototype.some.call(x[0].options, function (o) { return o.value === atual; }) ? atual : x[1];
       });
+    }
+    // coloca o filtro de grupo (PERFIL L) logo antes dos setores que ele junta, se algum deles existir
+    function comGrupos(lista) {
+      var out = lista.slice();
+      Object.keys(GRUPOS_SETOR).forEach(function (g) {
+        var pos = out.findIndex(function (v) { return GRUPOS_SETOR[g].indexOf(String(v).trim().toUpperCase().replace(/\s+/g, ' ')) >= 0; });
+        if (pos >= 0 && out.indexOf(g) < 0) out.splice(pos, 0, g);
+      });
+      return out;
     }
     function preencher(l) { marcados.clear(); tEmit.definirLinhas(l); contador(); }
     function buscarClick() { preencher(buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS, cbEtapa.value || TODAS).sort(function (a, b) { return a.id - b.id; })); }  // lista na mesma ordem em que imprime

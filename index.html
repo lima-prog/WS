@@ -19330,9 +19330,17 @@ if (typeof module !== 'undefined') module.exports = PP;
     return desc ? l.reverse() : l;
   }
   var ETAPAS = { saquinho: 'Saquinho', preparacao: 'Preparação', nao_preparacao: 'Não Preparação' };
+  // filtros que juntam vários setores (ex.: PERFIL L = PERFILADEIRA L1 + PERFILADEIRA L2)
+  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'] };
+  function noSetor(fluxo, fl) {
+    if (!fl || fl === TODOS) return true;
+    var g = GRUPOS_SETOR[fl];
+    if (g) { var f = String(fluxo || '').trim().toUpperCase().replace(/\s+/g, ' '); return g.indexOf(f) >= 0; }
+    return fluxo === fl;
+  }
   function buscar(pac, obra, fl, etapa) {
     return tab().filtrar(function (r) {
-      return (!pac || pac === TODOS || r.pacote === pac) && (!obra || obra === TODAS || r.obra === obra) && (!fl || fl === TODOS || r.fluxo === fl)
+      return (!pac || pac === TODOS || r.pacote === pac) && (!obra || obra === TODAS || r.obra === obra) && noSetor(r.fluxo, fl)
         && (!etapa || etapa === TODAS || r.tipo === etapa || (r.tipo === 'saquinho' && etapa !== 'nao_preparacao'));
     }).sort(function (a, b) { return b.id - a.id; });
   }
@@ -19591,11 +19599,20 @@ if (typeof module !== 'undefined') module.exports = PP;
       h('div', { class: 'linha mt' }, ui.botao('✅ Marcar todas', { click: function () { marcar(true); } }), ui.botao('❌ Desmarcar todas', { click: function () { marcar(false); } }), lblTot,
         h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ui.botao('⬇ Baixar PDF', { click: function () { imprimir('pdf'); } }), ui.botao('🖨️ Imprimir selecionadas', { classe: 'prim', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') imprimirZpl(false); else imprimir(false); } }))), combos);
     function combos() {
-      [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, distintos('fluxo')]].forEach(function (x) {
+      [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, comGrupos(distintos('fluxo'))]].forEach(function (x) {
         var atual = x[0].value; x[0].innerHTML = '';
-        [x[1]].concat(x[2].map(String)).forEach(function (v) { x[0].appendChild(h('option', { value: v }, v)); });
+        [x[1]].concat(x[2].map(String)).forEach(function (v) { var o = h('option', { value: v }, v); if (GRUPOS_SETOR[v]) { o.textContent = v + '  (' + GRUPOS_SETOR[v].map(function (n) { return n.replace('PERFILADEIRA ', ''); }).join(' + ') + ')'; o.style.fontWeight = '700'; } x[0].appendChild(o); });
         x[0].value = Array.prototype.some.call(x[0].options, function (o) { return o.value === atual; }) ? atual : x[1];
       });
+    }
+    // coloca o filtro de grupo (PERFIL L) logo antes dos setores que ele junta, se algum deles existir
+    function comGrupos(lista) {
+      var out = lista.slice();
+      Object.keys(GRUPOS_SETOR).forEach(function (g) {
+        var pos = out.findIndex(function (v) { return GRUPOS_SETOR[g].indexOf(String(v).trim().toUpperCase().replace(/\s+/g, ' ')) >= 0; });
+        if (pos >= 0 && out.indexOf(g) < 0) out.splice(pos, 0, g);
+      });
+      return out;
     }
     function preencher(l) { marcados.clear(); tEmit.definirLinhas(l); contador(); }
     function buscarClick() { preencher(buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS, cbEtapa.value || TODAS).sort(function (a, b) { return a.id - b.id; })); }  // lista na mesma ordem em que imprime
@@ -24025,7 +24042,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 126';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 127';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=694;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
