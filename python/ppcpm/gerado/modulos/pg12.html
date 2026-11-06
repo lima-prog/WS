@@ -2782,7 +2782,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     function combos() {
       [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, comGrupos(distintos('fluxo'))]].forEach(function (x) {
         var atual = x[0].value; x[0].innerHTML = '';
-        [x[1]].concat(x[2].map(String)).forEach(function (v) { var o = h('option', { value: v }, v); if (GRUPOS_SETOR[v]) { o.textContent = v + '  (' + GRUPOS_SETOR[v].map(function (n) { return n.replace('PERFILADEIRA ', ''); }).join(' + ') + ')'; o.style.fontWeight = '700'; } x[0].appendChild(o); });
+        [x[1]].concat(x[2].map(String)).forEach(function (v) { x[0].appendChild(h('option', { value: v }, v)); });
         x[0].value = Array.prototype.some.call(x[0].options, function (o) { return o.value === atual; }) ? atual : x[1];
       });
     }
@@ -2796,12 +2796,37 @@ if (typeof module !== 'undefined') module.exports = PP;
       return out;
     }
     function preencher(l) { marcados.clear(); tEmit.definirLinhas(l); contador(); }
-    function buscarClick() { preencher(buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS, cbEtapa.value || TODAS).sort(function (a, b) { return a.id - b.id; })); }  // lista na mesma ordem em que imprime
-    function demanda() { var p = cbPac.value; if (!p || p === TODOS) { ui.alerta('Aviso', 'Selecione um pacote!', 'alerta'); return; } preencher(buscar(p, 'DEMANDA', 'LCT')); }
+    function buscarClick() {
+      var l = buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS, cbEtapa.value || TODAS);
+      VIRT = {}; if (GRUPOS_SETOR[cbFl.value]) l = juntarGrupo(l, cbFl.value);
+      preencher(l.sort(function (a, b) { return a.id - b.id; }));   // lista na mesma ordem em que imprime
+    }
+    // PERFIL L: a mesma obra na PERFILADEIRA L1 e na L2 vira UMA etiqueta só (setor "PERFIL L").
+    // Só neste filtro — nos outros filtros as etiquetas continuam separadas por setor.
+    var VIRT = {};
+    function juntarGrupo(l, nomeGrupo) {
+      var g = {}, ordem = [];
+      l.forEach(function (r) {
+        var k = r.pacote + '|' + r.obra + '|' + r.tipo;
+        if (!g[k]) { g[k] = []; ordem.push(k); } g[k].push(r);
+      });
+      return ordem.map(function (k) {
+        var rs = g[k].slice().sort(function (a, b) { return a.id - b.id; }), obs = [];
+        rs.forEach(function (r) { var o = String(r.observacao || '').trim(); if (o && obs.indexOf(o) < 0) obs.push(o); });
+        var v = Object.assign({}, rs[0], { fluxo: nomeGrupo, membros: rs.map(function (r) { return r.id; }),
+          observacao: obs.join(' / ').slice(0, OBSERVACAO_MAX), impresso: rs.every(function (r) { return r.impresso === 1; }) ? 1 : 0 });
+        VIRT[v.id] = v; return v;
+      });
+    }
+    function marcarImpresso(id) {   // etiqueta juntada: marca todas as etiquetas de origem (L1 e L2)
+      var lista = VIRT[id] ? VIRT[id].membros : [id];
+      lista.forEach(function (i) { tab().atualizar(function (r) { return r.id === i; }, { impresso: 1 }); });
+    }
+    function demanda() { var p = cbPac.value; if (!p || p === TODOS) { ui.alerta('Aviso', 'Selecione um pacote!', 'alerta'); return; } VIRT = {}; preencher(buscar(p, 'DEMANDA', 'LCT')); }
     function marcar(v) { marcados.clear(); if (v) tEmit.linhas.forEach(function (r) { marcados.add(r.id); }); tEmit.render(); contador(); }
     function ids() { return tEmit.linhas.filter(function (r) { return marcados.has(r.id); }).map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }); }  // imprime na ordem do relatório: saquinho, depois obra por obra
     function contador() { lblTot.textContent = 'Total: ' + tEmit.linhas.length + ' | Selecionadas: ' + ids().length; }
-    function porIds(l) { var t = tab(); return l.map(function (i) { var r = t.achar(function (x) { return x.id === i; }); return r ? { id: i, pacote: r.pacote, obra: r.obra, fluxo: r.fluxo, observacao: r.observacao || '' } : null; }).filter(Boolean); }
+    function porIds(l) { var t = tab(); return l.map(function (i) { var r = VIRT[i] || t.achar(function (x) { return x.id === i; }); return r ? { id: i, pacote: r.pacote, obra: r.obra, fluxo: r.fluxo, observacao: r.observacao || '' } : null; }).filter(Boolean); }
 
     async function escolherImpressora() {
       status.textContent = 'Procurando impressoras...';
@@ -2837,7 +2862,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       } catch (e) { console.error(e); status.textContent = '❌ Erro'; await ui.erro('Erro', 'Não foi possível preparar as etiquetas: ' + U.msgErro(e)); return; }
       status.textContent = 'ℹ️ ' + etqs.length + ' etiqueta(s) ' + (modo === 'pdf' ? 'em PDF' : 'enviadas para a janela de impressão');
       if (await ui.confirmar('Marcar como impressas?', (modo === 'pdf' ? 'O PDF com ' : 'A impressão de ') + etqs.length + ' etiqueta(s) foi ' + (modo === 'pdf' ? 'gerado.' : 'aberta.') + '\nDepois de imprimir, marcar essas etiquetas como impressas?')) {
-        etqs.forEach(function (e) { tab().atualizar(function (r) { return r.id === e.id; }, { impresso: 1 }); });
+        etqs.forEach(function (e) { marcarImpresso(e.id); });
       }
       buscarClick();
     }
@@ -2851,7 +2876,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         var z = etqs.map(function (e) { return gerar_zpl(e, c); }).join('\n');
         PP.fs.baixar(new Blob([z], { type: 'text/plain' }), 'etiquetas_' + U.limparNomeArquivo((etqs[0] && etqs[0].pacote) || 'pacote') + '.zpl');
         if (await ui.confirmar('Marcar como impressas?', 'O arquivo com ' + etqs.length + ' etiqueta(s) foi baixado.\nDepois de enviar para a impressora, marcar essas etiquetas como impressas?')) {
-          etqs.forEach(function (e) { tab().atualizar(function (r) { return r.id === e.id; }, { impresso: 1 }); });
+          etqs.forEach(function (e) { marcarImpresso(e.id); });
         }
         buscarClick(); return;
       }
@@ -2861,7 +2886,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       try {
         for (var i = 0; i < etqs.length; i++) {
           await enviar(gerar_zpl(etqs[i], c), dest.imp, dest.via);
-          var id = etqs[i].id; tab().atualizar(function (r) { return r.id === id; }, { impresso: 1 }); n++;
+          marcarImpresso(etqs[i].id); n++;
         }
         cfgTab().set('ultima_impressora', dest.imp.name);
       } catch (e) {
