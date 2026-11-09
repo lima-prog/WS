@@ -130,6 +130,8 @@ dialog{width:min(480px,94vw)}
 #login .in.bad{border-color:#e24b4a!important;box-shadow:0 0 0 2px rgba(226,75,74,.25)!important;transition:border-color .2s,box-shadow .2s}
 #login #er:not(:empty){animation:loginFadeIn .3s ease}
 @keyframes loginFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+#login .ou{display:flex;align-items:center;gap:10px;margin:12px 0 10px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}#login .ou::before,#login .ou::after{content:"";flex:1;height:1px;background:rgba(148,163,184,.3)}
+#login .gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid #dadce0;background:#fff;color:#3c4043;font:600 13px "Segoe UI",Roboto,Arial,sans-serif;cursor:pointer;transition:background .15s,box-shadow .15s}#login .gbtn:hover{background:#f8f9fa;box-shadow:0 1px 3px rgba(0,0,0,.25)}#login .gbtn:disabled{opacity:.7;cursor:progress}#login .gbtn .gg{width:18px;height:18px;flex:none}
 #login .btn.btn-carregando{position:relative;overflow:hidden;color:#fff!important;pointer-events:none;cursor:progress;letter-spacing:.2px}
 #login .btn.btn-carregando::before{content:"";display:inline-block;vertical-align:-3px;width:15px;height:15px;margin-right:10px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:loginGirar 1.2s cubic-bezier(.5,.15,.5,.85) infinite}#login .btn.btn-carregando::after{content:"";position:absolute;left:-35%;bottom:0;width:35%;height:3px;border-radius:3px;background:rgba(255,255,255,.75);animation:loginBarra 1.8s ease-in-out infinite}@keyframes loginBarra{to{left:100%}}
 @keyframes loginGirar{to{transform:rotate(360deg)}}

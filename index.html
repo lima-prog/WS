@@ -149,6 +149,8 @@ dialog{width:min(480px,94vw)}
 #login .in.bad{border-color:#e24b4a!important;box-shadow:0 0 0 2px rgba(226,75,74,.25)!important;transition:border-color .2s,box-shadow .2s}
 #login #er:not(:empty){animation:loginFadeIn .3s ease}
 @keyframes loginFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+#login .ou{display:flex;align-items:center;gap:10px;margin:12px 0 10px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}#login .ou::before,#login .ou::after{content:"";flex:1;height:1px;background:rgba(148,163,184,.3)}
+#login .gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid #dadce0;background:#fff;color:#3c4043;font:600 13px "Segoe UI",Roboto,Arial,sans-serif;cursor:pointer;transition:background .15s,box-shadow .15s}#login .gbtn:hover{background:#f8f9fa;box-shadow:0 1px 3px rgba(0,0,0,.25)}#login .gbtn:disabled{opacity:.7;cursor:progress}#login .gbtn .gg{width:18px;height:18px;flex:none}
 #login .btn.btn-carregando{position:relative;overflow:hidden;color:#fff!important;pointer-events:none;cursor:progress;letter-spacing:.2px}
 #login .btn.btn-carregando::before{content:"";display:inline-block;vertical-align:-3px;width:15px;height:15px;margin-right:10px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:loginGirar 1.2s cubic-bezier(.5,.15,.5,.85) infinite}#login .btn.btn-carregando::after{content:"";position:absolute;left:-35%;bottom:0;width:35%;height:3px;border-radius:3px;background:rgba(255,255,255,.75);animation:loginBarra 1.8s ease-in-out infinite}@keyframes loginBarra{to{left:100%}}
 @keyframes loginGirar{to{transform:rotate(360deg)}}
@@ -572,6 +574,7 @@ i.car{display:inline-block;border:3px solid transparent;border-top:4px solid #55
 <div class="rw"><label class="chk"><input type="checkbox" id="lr"> Salvar senha</label><button type="button" class="cadb" id="addu" title="Criar cadastro para acessar o sistema"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="8" r="4.2"/><path d="M3.5 20.5a7.5 7.5 0 0 1 12.2-5.8"/><path d="M18.5 15v6M15.5 18h6"/></svg>CADASTRE-SE</button></div>
 <label class="f">E-MAIL<div class="in"><input id="le" type="email" autocomplete="email" placeholder="Digite seu e-mail"></div></label>
 <div class="err" id="er" role="alert"></div><button class="btn">ENTRAR</button>
+<div class="ou"><span>ou</span></div><button type="button" class="gbtn" id="lgg"><svg class="gg" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.2-8.5 2.2-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg><span>Entrar com Google</span></button>
 <div class="ft"><svg class="ic " viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/><path d="M12 15v2"/></svg>ACESSO SEGURO · GRUPO PROJEART</div><div class="lok hide" id="lok" role="status"></div></form>
 <form class="card hide" id="cf" novalidate><img class="emb" id="cemb" alt=""><h1>Criar cadastro</h1><p class="s">Solicite seu acesso ao sistema.<br>O administrador vai analisar o seu pedido.</p>
 <div id="cfx"><label class="f">LOGIN | NOME<div class="in"><input id="cu" name="cad-login" autocomplete="off" data-lpignore="true" placeholder="Ex.: joao.silva" autocapitalize="none"></div></label>
@@ -24218,7 +24221,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 134';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 135';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -24231,7 +24234,7 @@ function seed(){return[['Estrutura Metálica',1200,'Solda',-3,700,'Em produção
 let USER=null,ops=[],lastSync=null,OFF=false;
 const SB_URL='https://zlbgiodxpywrqapjlldg.supabase.co',SB_KEY='sb_publishable_mYX9vBcW3BQnjZYnnrMmhA_EDWpzHQA';
 const _mem={},AS={getItem:k=>{try{return sessionStorage.getItem(k)}catch(e){return _mem[k]??null}},setItem:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){_mem[k]=v}},removeItem:k=>{try{sessionStorage.removeItem(k)}catch(e){delete _mem[k]}}};
-let SB=null;try{SB=window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage:AS,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}catch(e){console.error(e)}
+let SB=null;try{SB=window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage:AS,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,flowType:'pkce'}})}catch(e){console.error(e)}
 const DB=(()=>{
  const C={perfis:[],solicitacoes:[],historico:[],nAp:0},now=()=>new Date().toISOString();
  async function refresh(){if(!USER||!SB)return false;
@@ -24364,6 +24367,23 @@ $('#lf').onsubmit=async e=>{e.preventDefault();const l=$('#lu').value.trim().rep
   LoginAnim.etapa('Carregando o sistema…');entrou=true;await LoginAnim.sucesso();coverIntro();await enter(uObj(p),true)}
  catch(x){console.error(x);const iv0=document.getElementById('intro');if(iv0&&!USER)iv0.remove();entrou=false;if(x&&x.prazo){try{SB.auth.signOut()}catch(y){}return loginErro('O servidor demorou para responder.','A internet está lenta ou o servidor não respondeu a tempo. Clique em ENTRAR de novo.',['#lu'])}loginErro('Sem conexão com o servidor.','Confira a internet e tente de novo.',['#lu'])}
  finally{if(bt)bt.disabled=false;if(entrou)setTimeout(()=>LoginAnim.limpar(),400);else LoginAnim.parar()}};
+/* ENTRAR COM GOOGLE — mesma conta do cadastro (o e-mail Google tem de ser o e-mail cadastrado e aprovado) */
+$('#lgg').onclick=async()=>{if(!SB)return loginErro('Sem conexão com o servidor.','Não foi possível iniciar a conexão. Atualize a página.',['#lu']);
+ const b=$('#lgg'),t=b.querySelector('span');b.disabled=true;t.textContent=TX('Abrindo o Google…');limpaErro();
+ try{const cfg=await comPrazo(fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()),15000);
+  if(!(cfg&&cfg.external&&cfg.external.google))throw Object.assign(new Error('off'),{off:true});
+  const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(error)throw error}
+ catch(x){console.error(x);b.disabled=false;t.textContent=TX('Entrar com Google');
+  if(x&&x.off)return loginErro('Entrar com Google ainda não está ligado.','O administrador precisa ativar o login pelo Google no servidor. Por enquanto, entre com login, senha e e-mail.',['#lu']);
+  loginErro('Não foi possível abrir o Google.','Confira a internet e tente de novo.',['#lu'])}};
+async function voltaDoGoogle(){const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1)),code=q.get('code'),erro=q.get('error_description')||h.get('error_description');
+ if(!code&&!erro)return null;history.replaceState(null,'',location.pathname);
+ if(erro){loginErro('O Google não liberou a entrada.',erro.replace(/\+/g,' '),['#lu']);return null}
+ coverIntro();const {data,error}=await comPrazo(SB.auth.exchangeCodeForSession(code),25000);if(error)throw error;
+ const u=data.user,p=await comPrazo(perfilDe(u.id),20000);
+ if(!p){await SB.auth.signOut();loginErro('Conta Google sem cadastro.','O e-mail '+(u.email||'')+' não tem cadastro aprovado no sistema. Entre com a conta Google do seu e-mail cadastrado, ou peça o cadastro em CADASTRE-SE.',['#lu']);return null}
+ if(!p.ativo){await SB.auth.signOut();p.aprovado_em?loginErro('Acesso bloqueado.','Seu usuário está bloqueado. Fale com o administrador do sistema.',['#lu'],'#lu'):loginErro('Acesso ainda não ativado.','Use a chave de acesso enviada pelo administrador (CADASTRE-SE › Ativar acesso). Se já passaram 5 minutos, refaça o cadastro.',['#lu'],'#lu');return null}
+ return p}
 // espera no máximo 'ms': o botão nunca fica girando para sempre
 function comPrazo(p,ms){let t;return Promise.race([p,new Promise((_,r)=>{t=setTimeout(()=>r(Object.assign(new Error('prazo'),{prazo:true})),ms)})]).finally(()=>clearTimeout(t))}
 function coverIntro(){if(!document.getElementById('intro')){document.body.insertAdjacentHTML('beforeend',introHTML());applyI18n($('#intro'))}}
@@ -24663,6 +24683,7 @@ document.addEventListener('click',e=>{if(e.target.closest('#tt1'))return setThem
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#gp').classList.contains('hide')){pop(false);$('#gb').focus()}});
 document.documentElement.lang=HL[LANG];document.documentElement.setAttribute('data-theme',THEME);document.title=TX('SISTEMA - PPCPM');applyI18n();markUI();
 (async()=>{let tem=false;try{tem=!!AS.getItem('sb-zlbgiodxpywrqapjlldg-auth-token')}catch(e){}if(tem)coverIntro();
+ try{if(SB){const pg=await voltaDoGoogle();if(pg){await enter(uObj(pg),true);return}}}catch(e){console.error(e);try{await SB.auth.signOut()}catch(y){}loginErro('Não foi possível entrar com o Google.','Tente de novo. Se continuar, entre com login, senha e e-mail.',['#lu'])}
  try{if(!SB)throw 0;const {data}=await SB.auth.getSession();if(data&&data.session){const p=await perfilDe(data.session.user.id);if(p&&p.ativo){await enter(uObj(p),true);return}await SB.auth.signOut()}}catch(e){if(e)console.error(e)}
  const c=document.getElementById('intro');if(c&&!USER)c.remove()})();
 </script></body></html>

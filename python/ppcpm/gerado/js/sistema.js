@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 134';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 135';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -315,7 +315,7 @@ function seed(){return[['Estrutura Metálica',1200,'Solda',-3,700,'Em produção
 let USER=null,ops=[],lastSync=null,OFF=false;
 const SB_URL='https://zlbgiodxpywrqapjlldg.supabase.co',SB_KEY='sb_publishable_mYX9vBcW3BQnjZYnnrMmhA_EDWpzHQA';
 const _mem={},AS={getItem:k=>{try{return sessionStorage.getItem(k)}catch(e){return _mem[k]??null}},setItem:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){_mem[k]=v}},removeItem:k=>{try{sessionStorage.removeItem(k)}catch(e){delete _mem[k]}}};
-let SB=null;try{SB=window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage:AS,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}})}catch(e){console.error(e)}
+let SB=null;try{SB=window.supabase.createClient(SB_URL,SB_KEY,{auth:{storage:AS,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,flowType:'pkce'}})}catch(e){console.error(e)}
 const DB=(()=>{
  const C={perfis:[],solicitacoes:[],historico:[],nAp:0},now=()=>new Date().toISOString();
  async function refresh(){if(!USER||!SB)return false;
@@ -448,6 +448,23 @@ $('#lf').onsubmit=async e=>{e.preventDefault();const l=$('#lu').value.trim().rep
   LoginAnim.etapa('Carregando o sistema…');entrou=true;await LoginAnim.sucesso();coverIntro();await enter(uObj(p),true)}
  catch(x){console.error(x);const iv0=document.getElementById('intro');if(iv0&&!USER)iv0.remove();entrou=false;if(x&&x.prazo){try{SB.auth.signOut()}catch(y){}return loginErro('O servidor demorou para responder.','A internet está lenta ou o servidor não respondeu a tempo. Clique em ENTRAR de novo.',['#lu'])}loginErro('Sem conexão com o servidor.','Confira a internet e tente de novo.',['#lu'])}
  finally{if(bt)bt.disabled=false;if(entrou)setTimeout(()=>LoginAnim.limpar(),400);else LoginAnim.parar()}};
+/* ENTRAR COM GOOGLE — mesma conta do cadastro (o e-mail Google tem de ser o e-mail cadastrado e aprovado) */
+$('#lgg').onclick=async()=>{if(!SB)return loginErro('Sem conexão com o servidor.','Não foi possível iniciar a conexão. Atualize a página.',['#lu']);
+ const b=$('#lgg'),t=b.querySelector('span');b.disabled=true;t.textContent=TX('Abrindo o Google…');limpaErro();
+ try{const cfg=await comPrazo(fetch(SB_URL+'/auth/v1/settings',{headers:{apikey:SB_KEY}}).then(r=>r.json()),15000);
+  if(!(cfg&&cfg.external&&cfg.external.google))throw Object.assign(new Error('off'),{off:true});
+  const {error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(error)throw error}
+ catch(x){console.error(x);b.disabled=false;t.textContent=TX('Entrar com Google');
+  if(x&&x.off)return loginErro('Entrar com Google ainda não está ligado.','O administrador precisa ativar o login pelo Google no servidor. Por enquanto, entre com login, senha e e-mail.',['#lu']);
+  loginErro('Não foi possível abrir o Google.','Confira a internet e tente de novo.',['#lu'])}};
+async function voltaDoGoogle(){const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1)),code=q.get('code'),erro=q.get('error_description')||h.get('error_description');
+ if(!code&&!erro)return null;history.replaceState(null,'',location.pathname);
+ if(erro){loginErro('O Google não liberou a entrada.',erro.replace(/\+/g,' '),['#lu']);return null}
+ coverIntro();const {data,error}=await comPrazo(SB.auth.exchangeCodeForSession(code),25000);if(error)throw error;
+ const u=data.user,p=await comPrazo(perfilDe(u.id),20000);
+ if(!p){await SB.auth.signOut();loginErro('Conta Google sem cadastro.','O e-mail '+(u.email||'')+' não tem cadastro aprovado no sistema. Entre com a conta Google do seu e-mail cadastrado, ou peça o cadastro em CADASTRE-SE.',['#lu']);return null}
+ if(!p.ativo){await SB.auth.signOut();p.aprovado_em?loginErro('Acesso bloqueado.','Seu usuário está bloqueado. Fale com o administrador do sistema.',['#lu'],'#lu'):loginErro('Acesso ainda não ativado.','Use a chave de acesso enviada pelo administrador (CADASTRE-SE › Ativar acesso). Se já passaram 5 minutos, refaça o cadastro.',['#lu'],'#lu');return null}
+ return p}
 // espera no máximo 'ms': o botão nunca fica girando para sempre
 function comPrazo(p,ms){let t;return Promise.race([p,new Promise((_,r)=>{t=setTimeout(()=>r(Object.assign(new Error('prazo'),{prazo:true})),ms)})]).finally(()=>clearTimeout(t))}
 function coverIntro(){if(!document.getElementById('intro')){document.body.insertAdjacentHTML('beforeend',introHTML());applyI18n($('#intro'))}}
@@ -747,5 +764,6 @@ document.addEventListener('click',e=>{if(e.target.closest('#tt1'))return setThem
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#gp').classList.contains('hide')){pop(false);$('#gb').focus()}});
 document.documentElement.lang=HL[LANG];document.documentElement.setAttribute('data-theme',THEME);document.title=TX('SISTEMA - PPCPM');applyI18n();markUI();
 (async()=>{let tem=false;try{tem=!!AS.getItem('sb-zlbgiodxpywrqapjlldg-auth-token')}catch(e){}if(tem)coverIntro();
+ try{if(SB){const pg=await voltaDoGoogle();if(pg){await enter(uObj(pg),true);return}}}catch(e){console.error(e);try{await SB.auth.signOut()}catch(y){}loginErro('Não foi possível entrar com o Google.','Tente de novo. Se continuar, entre com login, senha e e-mail.',['#lu'])}
  try{if(!SB)throw 0;const {data}=await SB.auth.getSession();if(data&&data.session){const p=await perfilDe(data.session.user.id);if(p&&p.ativo){await enter(uObj(p),true);return}await SB.auth.signOut()}}catch(e){if(e)console.error(e)}
  const c=document.getElementById('intro');if(c&&!USER)c.remove()})();
