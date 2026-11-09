@@ -366,6 +366,13 @@ def main(args: list[str]) -> int:
         from ppcpm.diagnostico import relatorio
         print(relatorio())
         return 0
+    if "--criar-atalho" in args:
+        from ppcpm.atalho import garantir
+        print(garantir())
+        return 0
+    if "--sem-atalho" not in args:
+        from ppcpm.atalho import garantir_em_segundo_plano
+        garantir_em_segundo_plano()      # o atalho da Área de Trabalho sumiu? cria de novo
 
     abrir_navegador = "--sem-navegador" not in args
     porta_aberta = _ja_aberto()

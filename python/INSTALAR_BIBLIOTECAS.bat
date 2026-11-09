@@ -19,7 +19,12 @@ echo   Instalando bibliotecas: %LISTA%
 echo ============================================
 echo.
 
-if exist ".venv\Scripts\python.exe" goto instalar
+if exist ".venv\Scripts\python.exe" (
+  ".venv\Scripts\python.exe" -c "import sys" >nul 2>nul && goto instalar
+  echo A pasta .venv veio de outro computador e nao funciona neste PC.
+  echo Vou criar uma nova, com o Python deste PC...
+  echo.
+)
 call "%~dp0ferramentas\achar_python.bat" real
 if not defined PYEXE (
   echo [ERRO] Para instalar bibliotecas e preciso o Python instalado no PC - o portatil nao serve.
@@ -28,7 +33,8 @@ if not defined PYEXE (
   exit /b 1
 )
 echo Criando a pasta .venv - ambiente proprio do sistema, nao mexe no resto do PC...
-"%PYEXE%" %PYARG% -m venv .venv
+if exist ".venv\" rmdir /s /q ".venv" >nul 2>nul
+"%PYEXE%" %PYARG% -m venv --clear .venv
 if errorlevel 1 (
   echo [ERRO] Nao foi possivel criar o .venv.
   pause
@@ -42,7 +48,7 @@ if exist "pacotes\" (
   "%VPY%" -m pip install --no-index --find-links pacotes -r "%LISTA%"
 ) else (
   echo Instalando pela internet...
-  "%VPY%" -m pip install --disable-pip-version-check -r "%LISTA%"
+  "%VPY%" -m pip install --disable-pip-version-check --prefer-binary -r "%LISTA%"
 )
 if errorlevel 1 (
   echo.
