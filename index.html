@@ -19484,6 +19484,7 @@ if (typeof module !== 'undefined') module.exports = PP;
   var ETAPAS = { saquinho: 'Saquinho', preparacao: 'Preparação', nao_preparacao: 'Não Preparação' };
   // filtros que juntam vários setores (ex.: PERFIL L = PERFILADEIRA L1 + PERFILADEIRA L2)
   // e juntam TODAS as obras do pacote num saco só (uma etiqueta com só o nome do grupo)
+  var SETOR_PS = 'PERFIL SOLDADO';   // V136: aba PS PREP (COD ITEM = PS_PREP)
   var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'], 'PERFIL U/C': ['PERFILADEIRA U/C'] };
   function noSetor(fluxo, fl) {
     if (!fl || fl === TODOS) return true;
@@ -19552,6 +19553,18 @@ if (typeof module !== 'undefined') module.exports = PP;
     }
     var nPrep = somar(prep, 'Preparação', 'CORTE', 'SEQUÊNCIA DE ROTEIRO');
     var nNao = somar(nao, 'Não Preparação', 'SETOR');
+    // V136 — aba PS PREP: linhas com COD ITEM = PS_PREP viram o setor "PERFIL SOLDADO" (uma etiqueta por obra)
+    var nPs = 0, ps = abaDoRelatorio(wb, 'PS PREP'), tPs = ps ? linhasDaAba(ps) : null;
+    if (tPs) {
+      var pOf = tPs.col('OF-TRECHO'), pCod = tPs.col('COD ITEM'), pL = tPs.col('LOTE');
+      if (pOf >= 0 && pCod >= 0) tPs.linhas.forEach(function (l) {
+        var obra = valorTexto(l[pOf]); if (!obra || semAcento(valorTexto(l[pCod])) !== 'PS_PREP') return;
+        if (!lote && pL >= 0 && /^\d+$/.test(valorTexto(l[pL]))) lote = valorTexto(l[pL]);
+        if (!obras.has(obra)) obras.set(obra, { prep: [], nao: [] });
+        var lista = obras.get(obra).nao;
+        if (lista.indexOf(SETOR_PS) < 0) { lista.push(SETOR_PS); nPs++; nNao++; }
+      });
+    }
     if (!obras.size) throw new Error('Nenhuma obra com máquina (Preparação) ou setor (Não Preparação) encontrada no relatório.');
     var pacote = lote ? 'PACOTE ' + lote : extrair_pacote_do_nome_arquivo(nomeArquivo);
     var ordem = Array.from(obras.keys()).sort(function (a, b) { return a.localeCompare(b, 'pt-BR', { numeric: true }); });
@@ -19560,7 +19573,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     var etqs = [{ obra: 'DEMANDA', fluxo: 'LCT', pacote: pacote, tipo: 'saquinho' }];
     ordem.forEach(function (obra) { obras.get(obra).prep.forEach(function (m) { etqs.push({ obra: obra, fluxo: m, pacote: pacote, tipo: 'preparacao' }); }); });
     ordem.forEach(function (obra) { obras.get(obra).nao.sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); }).forEach(function (st) { etqs.push({ obra: obra, fluxo: st, pacote: pacote, tipo: 'nao_preparacao' }); }); });
-    return { pacote: pacote, obras: ordem.length, etiquetas: etqs, preparacao: nPrep, nao_preparacao: nNao };
+    return { pacote: pacote, obras: ordem.length, etiquetas: etqs, preparacao: nPrep, nao_preparacao: nNao, perfil_soldado: nPs };
   }
   function importar(bytes, nomeArquivo, obs) {
     var d = ler_relatorio(bytes, nomeArquivo);
@@ -19691,7 +19704,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     var ui = PP.ui, h = ui.h, arquivo = null, df = null;
     var status = h('div', { class: 'status mt' });
     function rodape() { var imp = cfgTab().get('ultima_impressora', '') || 'nenhuma'; status.textContent = '👤 ' + usuario() + ' | 🖨️ Última impressora: ' + imp; }
-    raiz.appendChild(ui.cabecalhoFerramenta('Impressão de Etiquetas', 'Importa o Relatório de Ordens e Fluxos (Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx), grava as etiquetas do pacote no histórico e imprime na Zebra (203 dpi).\n\n1) Início: escolha o relatório (o nº do pacote vem da coluna LOTE) e clique em IMPORTAR DADOS.\n2) Emitir etiqueta: filtre, marque e clique em Imprimir selecionadas.\n3) Histórico: tudo que já foi importado/impresso.\n\nAba Preparação: uma etiqueta por obra e máquina de corte. Aba Não Preparação: uma etiqueta por obra e setor. Mais o saquinho DEMANDA/LCT.\n\nImpressão direta precisa do "Zebra Browser Print" instalado no computador (serviço gratuito da Zebra). Sem ele, as etiquetas saem como arquivo .zpl para enviar à impressora.'));
+    raiz.appendChild(ui.cabecalhoFerramenta('Impressão de Etiquetas', 'Importa o Relatório de Ordens e Fluxos (Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx), grava as etiquetas do pacote no histórico e imprime na Zebra (203 dpi).\n\n1) Início: escolha o relatório (o nº do pacote vem da coluna LOTE) e clique em IMPORTAR DADOS.\n2) Emitir etiqueta: filtre, marque e clique em Imprimir selecionadas.\n3) Histórico: tudo que já foi importado/impresso.\n\nAba Preparação: uma etiqueta por obra e máquina de corte. Aba Não Preparação: uma etiqueta por obra e setor. Aba PS PREP (COD ITEM = PS_PREP): uma etiqueta PERFIL SOLDADO por obra. Mais o saquinho DEMANDA/LCT.\n\nImpressão direta precisa do "Zebra Browser Print" instalado no computador (serviço gratuito da Zebra). Sem ele, as etiquetas saem como arquivo .zpl para enviar à impressora.'));
     var abas = h('div', { class: 'abas', style: { alignItems: 'center' } }), paineis = [];
     raiz.appendChild(abas);
     var acoes = h('div', { class: 'linha', style: { marginLeft: 'auto', paddingBottom: '6px' } },
@@ -19734,6 +19747,51 @@ if (typeof module !== 'undefined') module.exports = PP;
     [[TODAS, 'Todas'], ['preparacao', 'Preparação'], ['nao_preparacao', 'Não Preparação']].forEach(function (x) { cbEtapa.appendChild(h('option', { value: x[0] }, x[1])); });
     cbEtapa.addEventListener('change', function () { buscarClick(); });
     var lblTot = h('span', { class: 'fraco' }, 'Total: 0 | Selecionadas: 0');
+    /* V136 — filtro em que dá para DIGITAR: a lista vai filtrando enquanto escreve (o <select> fica escondido por baixo) */
+    var COMBOS = [];
+    function digitavel(sel) {
+      var sem = function (t) { return String(t == null ? '' : t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); };
+      var box = h('span', { style: 'position:relative;display:inline-block' });
+      var inp = h('input', { class: 'campo', type: 'text', autocomplete: 'off', spellcheck: 'false', placeholder: 'Digite…', style: 'min-width:150px;padding-right:22px' });
+      var seta = h('span', { style: 'position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.6;font-size:10px' }, '▼');
+      var lista = h('div', { style: 'display:none;position:absolute;left:0;top:calc(100% + 2px);min-width:100%;max-height:280px;overflow:auto;z-index:50;border:1px solid rgba(128,128,128,.45);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.25);padding:3px 0' });
+      sel.style.display = 'none';
+      box.appendChild(inp); box.appendChild(seta); box.appendChild(lista); box.appendChild(sel);
+      var itens = [], ativo = -1;
+      function texto() { var o = sel.options[sel.selectedIndex]; return o ? o.text : ''; }
+      function sync() { if (document.activeElement !== inp) inp.value = texto(); }
+      function marcar(i) { ativo = i; itens.forEach(function (d, k) { d.style.background = k === i ? 'rgba(11,92,173,.85)' : ''; d.style.color = k === i ? '#fff' : ''; }); if (itens[i]) itens[i].scrollIntoView({ block: 'nearest' }); }
+      function abrir(filtro) {
+        var cs = getComputedStyle(inp); lista.style.background = cs.backgroundColor && cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ? cs.backgroundColor : '#fff'; lista.style.color = cs.color;
+        lista.innerHTML = ''; itens = [];
+        var f = sem(filtro);
+        Array.prototype.forEach.call(sel.options, function (o) {
+          if (f && sem(o.text).indexOf(f) < 0) return;
+          var d = h('div', { style: 'padding:5px 10px;cursor:pointer;white-space:nowrap' }, o.text);
+          d.addEventListener('mousedown', function (e) { e.preventDefault(); escolher(o.value); });
+          d.addEventListener('mouseenter', function () { marcar(itens.indexOf(d)); });
+          d._v = o.value; itens.push(d); lista.appendChild(d);
+        });
+        if (!itens.length) lista.appendChild(h('div', { style: 'padding:5px 10px;opacity:.6' }, 'Nada encontrado'));
+        lista.style.display = 'block'; marcar(itens.length ? 0 : -1);
+      }
+      function fechar() { lista.style.display = 'none'; }
+      function escolher(v) { sel.value = v; fechar(); inp.value = texto(); inp.blur(); sel.dispatchEvent(new Event('change')); }
+      inp.addEventListener('focus', function () { inp.select(); abrir(''); });
+      inp.addEventListener('input', function () { abrir(inp.value); });
+      inp.addEventListener('blur', function () { setTimeout(function () { fechar(); inp.value = texto(); }, 120); });
+      inp.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (lista.style.display === 'none') abrir(''); else marcar(Math.min(ativo + 1, itens.length - 1)); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); marcar(Math.max(ativo - 1, 0)); }
+        else if (e.key === 'Enter') { e.preventDefault(); if (itens[ativo]) escolher(itens[ativo]._v); }
+        else if (e.key === 'Escape') { e.preventDefault(); fechar(); inp.value = texto(); inp.blur(); }
+      });
+      sel.addEventListener('change', sync);
+      COMBOS.push(sync);
+      return box;
+    }
+    function syncCombos() { COMBOS.forEach(function (f) { f(); }); }
+    [cbPac, cbObra, cbFl].forEach(function (c) { c.addEventListener('change', function () { buscarClick(); }); });
     function chk(r) {
       var c = h('input', { type: 'checkbox' }); c.checked = marcados.has(r.id);
       c.addEventListener('change', function () { if (c.checked) marcados.add(r.id); else marcados.delete(r.id); contador(); });
@@ -19745,7 +19803,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     var tEmit = new ui.Tabela({ selecao: 'nenhuma', altura: 'calc(100vh - 420px)', vazio: 'Nenhuma etiqueta — importe uma planilha ou ajuste os filtros.', colunas: [{ chave: 'sel', titulo: 'Sel', alinhar: 'c', celula: chk }].concat(colunas), aoDuploClique: previa });
     tEmit.el.style.minHeight = '260px';
     aba('🖨️ Emitir etiqueta', h('div', { class: 'card' },
-      h('div', { class: 'linha' }, h('span', null, 'Pacote:'), cbPac, h('span', null, 'Obra:'), cbObra, h('span', null, 'Etapa:'), cbEtapa, h('span', null, 'Máquina / Setor:'), cbFl,
+      h('div', { class: 'linha' }, h('span', null, 'Pacote:'), digitavel(cbPac), h('span', null, 'Obra:'), digitavel(cbObra), h('span', null, 'Etapa:'), digitavel(cbEtapa), h('span', null, 'Máquina / Setor:'), digitavel(cbFl),
         ui.botao('🔍 Buscar', { click: buscarClick }), ui.botao('🗑️ Limpar', { click: function () { [cbPac, cbObra, cbFl, cbEtapa].forEach(function (c) { c.selectedIndex = 0; }); buscarClick(); } }),
         ui.botao('📦 DEMANDA/LCT', { click: demanda })),
       h('div', { class: 'mt' }, tEmit.el),
@@ -19757,6 +19815,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         [x[1]].concat(x[2].map(String)).forEach(function (v) { x[0].appendChild(h('option', { value: v }, v)); });
         x[0].value = Array.prototype.some.call(x[0].options, function (o) { return o.value === atual; }) ? atual : x[1];
       });
+      syncCombos();
     }
     // coloca o filtro de grupo (PERFIL L) logo antes dos setores que ele junta, se algum deles existir
     function comGrupos(lista) {
@@ -19772,6 +19831,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       var l = buscar(cbPac.value || TODOS, cbObra.value || TODAS, cbFl.value || TODOS, cbEtapa.value || TODAS);
       VIRT = {}; if (GRUPOS_SETOR[cbFl.value]) l = juntarGrupo(l, cbFl.value);
       preencher(l.sort(function (a, b) { return a.id - b.id; }));   // lista na mesma ordem em que imprime
+      syncCombos();
     }
     // PERFIL L / PERFIL U/C: todas as obras do pacote (L1 + L2, ou U/C) viram UMA etiqueta só — um saco só,
     // com só o nome do grupo. Só nesses filtros — nos outros as etiquetas continuam por obra e setor.
@@ -19795,7 +19855,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       var lista = VIRT[id] ? VIRT[id].membros : [id];
       lista.forEach(function (i) { tab().atualizar(function (r) { return r.id === i; }, { impresso: 1 }); });
     }
-    function demanda() { var p = cbPac.value; if (!p || p === TODOS) { ui.alerta('Aviso', 'Selecione um pacote!', 'alerta'); return; } VIRT = {}; preencher(buscar(p, 'DEMANDA', 'LCT')); }
+    function demanda() { var p = cbPac.value; if (!p || p === TODOS) { ui.alerta('Aviso', 'Selecione um pacote!', 'alerta'); return; } VIRT = {}; preencher(buscar(p, 'DEMANDA', 'LCT')); syncCombos(); }
     function marcar(v) { marcados.clear(); if (v) tEmit.linhas.forEach(function (r) { marcados.add(r.id); }); tEmit.render(); contador(); }
     function ids() { return tEmit.linhas.filter(function (r) { return marcados.has(r.id); }).map(function (r) { return r.id; }).sort(function (a, b) { return a - b; }); }  // imprime na ordem do relatório: saquinho, depois obra por obra
     function contador() { lblTot.textContent = 'Total: ' + tEmit.linhas.length + ' | Selecionadas: ' + ids().length; }
@@ -24221,7 +24281,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 135';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 136';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Relatórios dos fluxos", "PPCPM - RELATÓRIOS DOS FLUXOS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
