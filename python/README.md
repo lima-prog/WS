@@ -71,6 +71,7 @@ Outras opções: `--sem-navegador`, `--sem-atualizar`, `--verificar`, `--criar-a
 | Tem internet e Python | `INSTALAR.bat` e depois, se quiser, `INSTALAR_BIBLIOTECAS.bat` |
 | Sem Python | Instale o "Python 3.12" pela Microsoft Store (não pede administrador) |
 | Rede bloqueia o pip | Num PC com internet, rode `BAIXAR_PACOTES_OFFLINE.bat`. Copie a pasta com `pacotes` e rode `INSTALAR_BIBLIOTECAS.bat` (usa a mesma versão do Python) |
+| Instalar pelo drive da rede (X:) | Dois cliques no `INSTALAR` do drive: copia para `C:\Users\<você>\SISTEMA-PPCPM`, cria o atalho e instala as bibliotecas. Nunca rode o sistema direto do drive |
 | Erro "No Python at ..." ao instalar | A pasta `.venv` veio copiada de outro PC. Apague a pasta `.venv` e rode `INSTALAR_BIBLIOTECAS.bat` de novo (da versão do pacote 21 em diante isso é automático) |
 | Algo não abre | Rode `VERIFICAR_SISTEMA.bat` e mande o print |
 

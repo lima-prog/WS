@@ -394,6 +394,12 @@ def main(args: list[str]) -> int:
     if na_rede:
         print(f"Na rede da empresa: http://{_ip_na_rede()}:{porta}  (os arquivos deste PC continuam só aqui)")
     print("Deixe esta janela aberta enquanto usar o sistema. Para fechar: Ctrl+C.")
+    if sys.platform.startswith("win"):
+        from ppcpm.acesso_rapido import _rede
+        if _rede(str(PASTA_APP)):
+            print("\n[AVISO] O sistema esta abrindo direto do drive da rede (" + str(PASTA_APP) + ").")
+            print("        Para cada PC ter o seu: rode o INSTALAR que esta no drive. Ele instala em")
+            print("        C:\\Users\\<voce>\\SISTEMA-PPCPM e cria o atalho na Area de Trabalho.\n")
 
     eh_repositorio = (PASTA_APP.parent / ".git").exists()   # cópia de desenvolvimento: não se atualiza sozinha
     if "--sem-atualizar" not in args and (not eh_repositorio or "--atualizar" in args):
