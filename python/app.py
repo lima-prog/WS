@@ -360,8 +360,25 @@ def _garantir_icone() -> None:
         pass
 
 
+def _sem_modo_selecao() -> None:
+    """Desliga a "Edição Rápida" da janela preta: um clique nela entrava no modo "Selecionar",
+    que PAUSA o sistema (inclusive a atualização) até alguém apertar Esc."""
+    if not sys.platform.startswith("win"):
+        return
+    try:
+        import ctypes
+        k = ctypes.windll.kernel32
+        h = k.GetStdHandle(-10)                      # entrada do console
+        modo = ctypes.c_uint32()
+        if k.GetConsoleMode(h, ctypes.byref(modo)):
+            k.SetConsoleMode(h, (modo.value & ~0x0040) | 0x0080)   # tira QUICK_EDIT, mantém EXTENDED_FLAGS
+    except Exception:
+        pass
+
+
 def main(args: list[str]) -> int:
     _garantir_icone()
+    _sem_modo_selecao()
     if "--verificar" in args:
         from ppcpm.diagnostico import relatorio
         print(relatorio())
