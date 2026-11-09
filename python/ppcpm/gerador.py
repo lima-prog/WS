@@ -100,23 +100,66 @@ def separar(html: str) -> dict:
     return partes
 
 
-def gravar(partes: dict, destino: Path = PASTA_GERADO) -> None:
-    """Grava as partes numa pasta temporária e só então troca pela pasta gerado/ (nunca fica pela metade)."""
+def _apagar(pasta: Path) -> bool:
+    """Apaga a pasta. No Windows, arquivo somente-leitura ou preso pelo antivírus/indexador dá
+    "Acesso negado": tira o somente-leitura e tenta de novo algumas vezes. True = apagou."""
+    import os
+    import stat
+    import time
+
+    def liberar(func, caminho, _info):
+        try:
+            os.chmod(caminho, stat.S_IWRITE)
+            func(caminho)
+        except OSError:
+            pass
+
+    for tentativa in range(4):
+        if not pasta.exists():
+            return True
+        try:
+            shutil.rmtree(pasta, onerror=liberar)
+        except OSError:
+            pass
+        if not pasta.exists():
+            return True
+        time.sleep(0.4 * (tentativa + 1))
+    return not pasta.exists()
+
+
+def limpar_sobras(destino: Path = PASTA_GERADO) -> None:
+    """Apaga sobras de atualizações antigas (gerado_velho*, gerado_novo*). Se alguma ainda estiver presa, fica para a próxima."""
     destino = Path(destino)
-    temp = destino.with_name(destino.name + "_novo")
-    if temp.exists():
-        shutil.rmtree(temp)
+    for sobra in destino.parent.glob(destino.name + "_*"):
+        if sobra.is_dir() and (sobra.name.startswith(destino.name + "_velho") or sobra.name.startswith(destino.name + "_novo")):
+            _apagar(sobra)
+
+
+def _nome_livre(base: Path) -> Path:
+    """base, ou base_2, base_3... (quando uma sobra presa não pôde ser apagada)."""
+    if not base.exists() or _apagar(base):
+        return base
+    n = 2
+    while base.with_name(f"{base.name}_{n}").exists():
+        n += 1
+    return base.with_name(f"{base.name}_{n}")
+
+
+def gravar(partes: dict, destino: Path = PASTA_GERADO) -> None:
+    """Grava as partes numa pasta temporária e só então troca pela pasta gerado/ (nunca fica pela metade).
+    Uma sobra presa de atualização antiga NÃO impede mais a atualização: usa outro nome e segue."""
+    destino = Path(destino)
+    temp = _nome_livre(destino.with_name(destino.name + "_novo"))
     for nome, txt in partes.items():
         p = temp / nome
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(txt, encoding="utf-8", newline="")
-    velho = destino.with_name(destino.name + "_velho")
-    if velho.exists():
-        shutil.rmtree(velho)
+    velho = _nome_livre(destino.with_name(destino.name + "_velho"))
     if destino.exists():
         destino.rename(velho)
     temp.rename(destino)
-    shutil.rmtree(velho, ignore_errors=True)
+    _apagar(velho)
+    limpar_sobras(destino)
 
 
 def gerar_de_html(html: str, destino: Path = PASTA_GERADO) -> dict:

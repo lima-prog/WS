@@ -130,8 +130,10 @@ def atualizar_python(pacote_remoto) -> bool:
         alvo.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(origem, alvo)
     if (temp / "ppcpm" / "gerado").is_dir():
-        shutil.rmtree(PASTA_GERADO, ignore_errors=True)
-        shutil.copytree(temp / "ppcpm" / "gerado", PASTA_GERADO)
+        from .gerador import _apagar, limpar_sobras
+        _apagar(PASTA_GERADO)            # se algo ficar preso, copia por cima (não trava a atualização)
+        shutil.copytree(temp / "ppcpm" / "gerado", PASTA_GERADO, dirs_exist_ok=True)
+        limpar_sobras(PASTA_GERADO)
     # arquivos de código que saíram do sistema (nunca mexe em ícones, dados_locais, .venv...)
     for pasta in ("ppcpm", "bibliotecas", "ferramentas", "testes"):
         for velho in (PASTA_APP / pasta).rglob("*"):
@@ -173,6 +175,11 @@ class Agendador(threading.Thread):
 
     def run(self) -> None:
         time.sleep(2)
+        try:
+            from .gerador import limpar_sobras
+            limpar_sobras()              # sobras de atualizações antigas que o Windows deixou presas
+        except Exception:
+            pass
         while True:
             try:
                 self.ultimo = dict(verificar_agora(), quando=datetime.now().strftime("%d/%m/%Y %H:%M"))
