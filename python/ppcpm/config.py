@@ -19,9 +19,39 @@ ARQ_VERSAO_PYTHON = PASTA_APP / "versao_python.json"
 _cache: dict = {"mtime": None, "dados": {}}
 
 
+def reparar_gerado() -> bool:
+    """Se a pasta gerado/ sumiu (ou ficou sem config.json) no meio de uma troca de versão,
+    traz de volta a mais nova entre gerado_novo* e gerado_velho*. True = gerado/ está ok."""
+    import shutil
+    if (PASTA_GERADO / "config.json").is_file():
+        return True
+    candidatas = [c for c in PASTA_GERADO.parent.glob(PASTA_GERADO.name + "_*")
+                  if c.is_dir() and (c / "config.json").is_file() and (c / "modulos").is_dir()]
+    candidatas.sort(key=lambda c: (c / "config.json").stat().st_mtime, reverse=True)
+    for c in candidatas:
+        try:
+            if not PASTA_GERADO.exists():
+                c.rename(PASTA_GERADO)
+            else:
+                shutil.copytree(c, PASTA_GERADO, dirs_exist_ok=True)
+            if (PASTA_GERADO / "config.json").is_file():
+                return True
+        except OSError:
+            try:
+                shutil.copytree(c, PASTA_GERADO, dirs_exist_ok=True)
+                if (PASTA_GERADO / "config.json").is_file():
+                    return True
+            except OSError:
+                continue
+    return False
+
+
 def config() -> dict:
     """Lê o config.json (e relê se mudou no disco)."""
     arq = PASTA_GERADO / "config.json"
+    if not arq.is_file():
+        if not reparar_gerado() and _cache["dados"]:
+            return _cache["dados"]          # segue com a versão que já estava carregada
     mtime = arq.stat().st_mtime
     if _cache["mtime"] != mtime:
         _cache["dados"] = json.loads(arq.read_text(encoding="utf-8"))
@@ -41,6 +71,7 @@ def versao() -> str:
 
 
 # Atalhos (valores do momento em que o sistema abriu)
+reparar_gerado()
 CONFIG = config()
 VERSAO: str = CONFIG["versao"]
 PACOTE_ATUAL = CONFIG["pacote_atual"]

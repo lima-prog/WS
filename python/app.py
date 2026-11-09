@@ -411,15 +411,18 @@ def main(args: list[str]) -> int:
     if na_rede:
         print(f"Na rede da empresa: http://{_ip_na_rede()}:{porta}  (os arquivos deste PC continuam só aqui)")
     print("Deixe esta janela aberta enquanto usar o sistema. Para fechar: Ctrl+C.")
+    no_drive = False
     if sys.platform.startswith("win"):
         from ppcpm.acesso_rapido import _rede
-        if _rede(str(PASTA_APP)):
+        no_drive = _rede(str(PASTA_APP))
+        if no_drive:
             print("\n[AVISO] O sistema esta abrindo direto do drive da rede (" + str(PASTA_APP) + ").")
-            print("        Para cada PC ter o seu: rode o INSTALAR que esta no drive. Ele instala em")
-            print("        C:\\Users\\<voce>\\SISTEMA-PPCPM e cria o atalho na Area de Trabalho.\n")
+            print("        Essa copia do drive e so o INSTALADOR: ela nao se atualiza (para nao quebrar")
+            print("        a pasta que todos usam). Rode o INSTALAR do drive: ele instala em")
+            print("        C:\\Users\\<voce>\\SISTEMA-PPCPM, cria o atalho e esse se atualiza sozinho.\n")
 
     eh_repositorio = (PASTA_APP.parent / ".git").exists()   # cópia de desenvolvimento: não se atualiza sozinha
-    if "--sem-atualizar" not in args and (not eh_repositorio or "--atualizar" in args):
+    if "--sem-atualizar" not in args and not no_drive and (not eh_repositorio or "--atualizar" in args):
         from ppcpm.atualizador import Agendador
 
         def pedir_reinicio():

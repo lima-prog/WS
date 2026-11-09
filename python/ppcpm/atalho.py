@@ -118,6 +118,9 @@ def garantir(forcar: bool = False) -> str:
     """Confere/cria o atalho. Devolve uma frase com o que aconteceu."""
     if not sys.platform.startswith("win"):
         return "Atalho: só no Windows."
+    from .acesso_rapido import _rede
+    if _rede(str(PASTA_APP)):
+        return "Atalho: cópia do drive da rede, não mexo no atalho (o atalho é da instalação no PC)."
     bat = PASTA_APP / "ABRIR_SISTEMA.bat"
     icone = PASTA_APP / "icone.ico"
     if not icone.exists():

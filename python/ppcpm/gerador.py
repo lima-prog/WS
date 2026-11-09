@@ -157,7 +157,17 @@ def gravar(partes: dict, destino: Path = PASTA_GERADO) -> None:
     velho = _nome_livre(destino.with_name(destino.name + "_velho"))
     if destino.exists():
         destino.rename(velho)
-    temp.rename(destino)
+    try:
+        temp.rename(destino)
+    except OSError:
+        # pasta de rede/arquivo em uso: copia por cima; se nem isso der, devolve a versão antiga
+        try:
+            shutil.copytree(temp, destino, dirs_exist_ok=True)
+        except OSError:
+            if velho.exists() and not destino.exists():
+                velho.rename(destino)
+            raise
+        _apagar(temp)
     _apagar(velho)
     limpar_sobras(destino)
 
