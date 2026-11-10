@@ -213,6 +213,28 @@ class Sistema(BaseHTTPRequestHandler):
                     return padrao
             janela = (inteiro(d.get("x"), 40), inteiro(d.get("y"), 40), inteiro(d.get("largura"), 1400), inteiro(d.get("altura"), 860))
             return self._json({"ok": True, "url": url, "app": abrir_janela_app(url, *janela)})
+        if caminho == "/api/pc/base_preenchida":
+            # Agrupador | Base: o Python monta a base preenchida (sem o limite de memória da janela)
+            if not self._do_proprio_pc():
+                return self._json({"erro": "Só no próprio computador do sistema."}, 403)
+            from ppcpm import base_preenchida
+            n = int(self.headers.get("Content-Length") or 0)
+            if n <= 4 or n > 1024 * 1024 * 1024:
+                return self._json({"erro": "Envio vazio ou grande demais."}, 400)
+            corpo = self.rfile.read(n)
+            tam = int.from_bytes(corpo[:4], "big")
+            try:
+                d = json.loads(corpo[4:4 + tam].decode("utf-8"))
+                arq, r = base_preenchida.gerar(corpo[4 + tam:], d, lambda m: None)
+            except base_preenchida.ForaDoPadrao as e:
+                return self._json({"erro": str(e), "fallback": True}, 422)
+            except Exception as e:  # noqa: BLE001
+                import traceback
+                traceback.print_exc()
+                return self._json({"erro": str(e) or e.__class__.__name__}, 500)
+            del corpo
+            return self._enviar(200, arq, "application/octet-stream",
+                                extra={"X-Resultado": quote(json.dumps(r)), "Access-Control-Expose-Headers": "X-Resultado"})
         if caminho == "/api/encerrar":
             # Botão "Sair" → [S] Sim: desliga o sistema por completo neste PC (só o próprio PC pode)
             if not self._do_proprio_pc():

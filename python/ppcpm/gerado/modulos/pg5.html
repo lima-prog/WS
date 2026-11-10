@@ -893,9 +893,53 @@ async function escreverDbfRapido(xml, o) {
   return { xml: new Blob(blocos, { type: 'application/xml' }), colsFormula };
 }
 
+/* V138 — no sistema instalado (Python) quem monta a base é o Python do PC: sem o limite de memória da janela.
+   Aqui só junta os dados (DBF, fluxo, FOCO) e manda junto com a base. Devolve null quando não há Python
+   (site da Vercel) ou a base foge do padrão — aí segue o modo do navegador. */
+async function basePeloPython(fileBase, linhas, fluxoMap, lote, linhasFoco, progresso, ext) {
+  if (window.PPCPM_BASE_SO_NAVEGADOR) return null;
+  progresso('Preparando os dados…'); await tick();
+  const posComFilhos = construirPosComFilhos(linhas);
+  let comFluxo = 0, semFluxo = 0; const achadas = new Set();
+  const valores = [], fluxoCol = [];
+  for (const row of linhas) {
+    const vals = []; for (let c0 = COL_DBF_INICIO; c0 <= COL_DBF_FIM; c0++) vals.push(valorCelulaDbf(row[c0]));
+    valores.push(vals);
+    const filho = !!(row[IE['POS_PEZ']] && row[IE['POS_PEZ']].trim());
+    const f = filho ? acharFluxoDaLinha(row, fluxoMap, posComFilhos) : null;
+    if (f) { fluxoCol.push(f.col); comFluxo++; achadas.add(f.chave); }
+    else { fluxoCol.push(null); if (filho) semFluxo++; }
+  }
+  const foco = (linhasFoco || []).map(l => ESQUEMA_FOCCO.map((nome, c) => coagirValorFoco(nome, l[c])));
+  const meta = {
+    const: { LINHA_INICIAL_BASE, LINHA_NUM_PCT, COL_NUM_PCT, LINHA_DT_REFRESH, COL_DT_REFRESH, COL_DBF_FIM, IDX_MAQ_BC, IDX_MAQ_G3M,
+      IDX_MAQ_PERFIL_UC, LINHA_INICIAL_FOCCO, ABA_FOCCO, N_COLS_FOCCO: ESQUEMA_FOCCO.length },
+    lote: valorLote(lote), dataHoje: serialHoje(), valores, fluxoCol, foco,
+  };
+  const js = new TextEncoder().encode(JSON.stringify(meta)), tam = new Uint8Array(4);
+  new DataView(tam.buffer).setUint32(0, js.length, false);
+  progresso('O Python do sistema está montando a base…'); await tick();
+  let r;
+  try { r = await fetch('/api/pc/base_preenchida', { method: 'POST', headers: { 'X-PPCPM': '1', 'Content-Type': 'application/octet-stream' }, body: new Blob([tam, js, fileBase]) }); }
+  catch (e) { return null; }                       // sem servidor Python (site da internet)
+  if (r.status === 404 || r.status === 405 || r.status === 501) return null;
+  if (r.status === 422) { try { console.warn('[base] Python: base fora do padrão, usando o navegador:', (await r.json()).erro); } catch (e) { } return null; }
+  if (!r.ok) { let j = {}; try { j = await r.json(); } catch (e) { } throw new Error('o Python não conseguiu montar a base: ' + (j.erro || 'erro ' + r.status)); }
+  let res = {}; try { res = JSON.parse(decodeURIComponent(r.headers.get('X-Resultado') || '%7B%7D')); } catch (e) { }
+  progresso('Recebendo o arquivo…'); await tick();
+  const mime = ext === 'xlsm' ? 'application/vnd.ms-excel.sheet.macroEnabled.12' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const blob = new Blob([await r.arrayBuffer()], { type: mime });
+  const naoEncontradas = [];
+  if (fluxoMap) for (const [ch, info] of Object.entries(fluxoMap.granular || {})) if (!achadas.has(ch)) { const [of, marca] = ch.split('|'); naoEncontradas.push([of, marca, info.maq]); }
+  return { blob, ext, comFluxo, semFluxo, naoEncontradas, linhasFoco: foco.length, cachesCorrigidos: res.cachesCorrigidos || 0,
+    cachesErro: res.cachesErro || 0, pivots: res.pivots || 0, formulasArrastadas: res.formulasArrastadas || 0, viaPython: true };
+}
+
 async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco, progresso) {
   const ext = extOf(fileBase.name);
   if (!['xlsx', 'xlsm'].includes(ext)) throw new Error('a Base precisa ser .xlsx ou .xlsm (se estiver em .xlsb, abra no Excel e "Salvar Como" .xlsx)');
+  const viaPy = await basePeloPython(fileBase, linhas, fluxoMap, lote, linhasFoco, progresso, ext);
+  if (viaPy) return viaPy;
   progresso('Abrindo a base…');
   const zip = await JSZip.loadAsync(await fileBase.arrayBuffer());
   const { wbDoc, relsDoc, rels, sheets } = await mapearAbas(zip);
