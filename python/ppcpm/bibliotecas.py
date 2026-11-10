@@ -46,7 +46,7 @@ SECOES = [
     ("pg6", "Produção › Impressão Grupo - LIC", PLANILHAS + PDF + ["reportlab"], []),
     ("pg7", "Produção › Impressão - FLUXO 04", PLANILHAS + PDF + ["reportlab"], []),
     ("pg1", "Processo de validação › Análise da DBF X Focco - ERP", PLANILHAS + ["lxml"] + PDF, []),
-    ("pg13", "Produção › Relatórios dos fluxos", ["pandas", "openpyxl", "XlsxWriter", "xlrd", "lxml", "ezdxf"], []),
+    ("pg13", "Gerenciador de Roteiros › Gerenciador de roteiros", ["pandas", "openpyxl", "XlsxWriter", "xlrd", "lxml", "ezdxf"], []),
     ("pg14", "Área de impressão › Engenharia (desenhos PDF)", ["pypdf", "pywin32"], ["py7zr", "rarfile"]),
     ("pg10", "Gerenciador de Roteiros › Alteração de Roteiros", ["pandas", "openpyxl", "XlsxWriter", "xlrd"], []),
     ("pg11", "Gerenciador de Roteiros › Acesso ao Intranet", ["requests"], []),
