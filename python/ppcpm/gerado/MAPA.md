@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 139
+# Mapa do sistema — Versão 140
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -36,5 +36,5 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | pg10 | Alteração de Roteiros | PPCPM - ALTERAÇÃO DE ROTEIROS |
 | pg11 | Acesso ao Intranet | PPCPM - ACESSO AO INTRANET |
 | pg12 | Impressão de Etiquetas | PPCPM - IMPRESSÃO DE ETIQUETAS |
-| pg13 | Gerenciador de roteiros | PPCPM - GERENCIADOR DE ROTEIROS |
+| pg13 | Gerar relatórios das ordens | PPCPM - GERAR RELATÓRIOS DAS ORDENS |
 | pg14 | Engenharia | PPCPM - ENGENHARIA |

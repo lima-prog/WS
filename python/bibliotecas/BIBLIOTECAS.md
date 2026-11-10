@@ -18,7 +18,7 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | Produção › Impressão Grupo - LIC | `pg6.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
 | Produção › Impressão - FLUXO 04 | `pg7.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
 | Processo de validação › Análise da DBF X Focco - ERP | `pg1.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, lxml, pypdf, pdfplumber |
-| Gerenciador de Roteiros › Gerenciador de roteiros | `pg13.txt` | pandas, openpyxl, XlsxWriter, xlrd, lxml, ezdxf |
+| Gerenciador de Roteiros › Gerar relatórios das ordens | `pg13.txt` | pandas, openpyxl, XlsxWriter, xlrd, lxml, ezdxf |
 | Área de impressão › Engenharia (desenhos PDF) | `pg14.txt` | pypdf, pywin32 (opcional: py7zr, rarfile) |
 | Gerenciador de Roteiros › Alteração de Roteiros | `pg10.txt` | pandas, openpyxl, XlsxWriter, xlrd |
 | Gerenciador de Roteiros › Acesso ao Intranet | `pg11.txt` | requests |

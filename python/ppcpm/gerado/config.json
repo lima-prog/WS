@@ -1,5 +1,5 @@
 {
-  "versao": "Versão 139",
+  "versao": "Versão 140",
   "pacote_atual": 700,
   "obra_impressao": "2139-5-01",
   "supabase_url": "https://zlbgiodxpywrqapjlldg.supabase.co",
@@ -67,8 +67,8 @@
     },
     {
       "id": "pg13",
-      "nome": "Gerenciador de roteiros",
-      "titulo": "PPCPM - GERENCIADOR DE ROTEIROS",
+      "nome": "Gerar relatórios das ordens",
+      "titulo": "PPCPM - GERAR RELATÓRIOS DAS ORDENS",
       "arquivo": "modulos/pg13.html"
     },
     {

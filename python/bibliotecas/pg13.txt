@@ -1,4 +1,4 @@
-# Gerenciador de Roteiros › Gerenciador de roteiros
+# Gerenciador de Roteiros › Gerar relatórios das ordens
 # Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
 
 pandas>=2.2                                # Tabelas: ler, cruzar, somar e filtrar planilhas e DBF com rapidez
