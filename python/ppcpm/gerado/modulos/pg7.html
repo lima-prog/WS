@@ -789,6 +789,113 @@ function valorCelulaDbf(v) {
   return /^-?\d+(\.\d+)?$/.test(ns) ? parseFloat(ns) : s;
 }
 
+/* V137 — escreve a aba DBF da base direto no XML, linha por linha (pouca memória).
+   Linhas 1..10 (cabeçalho + modelo) usam o EditorAba de sempre; da 11 em diante é texto.
+   Devolve null quando a aba foge do padrão (aí o chamador usa o modo completo). */
+const escXmlTxt = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+async function escreverDbfRapido(xml, o) {
+  const { lote, n, valores, fluxoCol, progresso } = o;
+  const mSD = /<((?:[\w.-]+:)?)sheetData\b[^>]*?(\/?)>/.exec(xml);
+  if (!mSD || mSD[2]) return null;
+  const P = mSD[1], ini = mSD.index + mSD[0].length, fimSD = xml.indexOf('</' + P + 'sheetData>', ini);
+  if (fimSD < 0) return null;
+  const reRow = new RegExp('<' + P + 'row\\b[^>]*?(?:/>|>[\\s\\S]*?</' + P + 'row>)', 'g');
+  const corpo = xml.slice(ini, fimSD), pequenas = [], grandes = new Map(); let m, ultimo = 0;
+  while ((m = reRow.exec(corpo))) {
+    const t = m[0], rr = /\sr="(\d+)"/.exec(t.slice(0, t.indexOf('>')));
+    if (!rr) return null;
+    const num = +rr[1]; if (num <= ultimo) return null; ultimo = num;
+    if (num <= LINHA_INICIAL_BASE) pequenas.push(t); else grandes.set(num, t);
+  }
+  const ed = new EditorAba(parseXml(xml.slice(0, ini) + pequenas.join('') + xml.slice(fimSD)));
+  xml = null;
+  ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
+  ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
+  const colsFormula = [];
+  for (const [col] of ed.celulas(LINHA_INICIAL_BASE)) {
+    if (col <= COL_DBF_FIM + 1 || (col >= IDX_MAQ_PERFIL_UC && col <= IDX_MAQ_G3M)) continue;
+    const t = ed.formulaModelo(LINHA_INICIAL_BASE, col);
+    if (t) colsFormula.push({ col, texto: t, estilo: ed.estilo(LINHA_INICIAL_BASE, col) });
+  }
+  const estilos = {};
+  for (let c = 1; c <= COL_DBF_FIM + 1; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
+  for (let c = IDX_MAQ_PERFIL_UC; c <= IDX_MAQ_G3M; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
+  // linha 10 (a primeira de dados) pelo editor de sempre
+  if (n > 0) {
+    for (let c = 1; c <= COL_DBF_FIM + 1; c++) ed.setValor(LINHA_INICIAL_BASE, c, valores[0][c - 1], estilos[c]);
+    for (let c = IDX_MAQ_BC; c <= IDX_MAQ_G3M; c++) ed.setValor(LINHA_INICIAL_BASE, c, fluxoCol[0] === c ? 'X' : null, estilos[c]);
+    if (fluxoCol[0] === IDX_MAQ_PERFIL_UC) ed.setValor(LINHA_INICIAL_BASE, IDX_MAQ_PERFIL_UC, 'X', estilos[IDX_MAQ_PERFIL_UC]);
+  } else {
+    for (let c = 1; c <= COL_DBF_FIM + 1; c++) ed.setValor(LINHA_INICIAL_BASE, c, null, estilos[c]);
+    for (let c = IDX_MAQ_BC; c <= IDX_MAQ_G3M; c++) ed.setValor(LINHA_INICIAL_BASE, c, null, estilos[c]);
+  }
+  const fim = Math.max(ultimo, LINHA_INICIAL_BASE + n - 1);
+  const reCel = new RegExp('<' + P + 'c\\b[^>]*?(?:/>|>[\\s\\S]*?</' + P + 'c>)', 'g');
+  const reFormula = new RegExp('<' + P + 'f\\b'), reMestre = new RegExp('<' + P + 'f\\b[^>]*\\sref="');
+  const alvo = c => (c >= 1 && c <= COL_DBF_FIM + 1) || (c >= IDX_MAQ_PERFIL_UC && c <= IDX_MAQ_G3M);
+  const fechaRow = '</' + P + 'row>';
+  const partes = []; let maxC = 0, maxR = 0;
+  for (let r = LINHA_INICIAL_BASE + 1; r <= fim; r++) {
+    const k = r - LINHA_INICIAL_BASE, velha = grandes.get(r), cel = new Map();
+    let abre = null, mexeu = false;
+    if (velha) {
+      const fe = velha.indexOf('>'); abre = velha.slice(0, fe + 1);
+      if (abre.endsWith('/>')) abre = abre.slice(0, -2) + '>';
+      else {
+        const dentro = velha.slice(fe + 1, velha.length - fechaRow.length); let mc; reCel.lastIndex = 0;
+        while ((mc = reCel.exec(dentro))) {
+          const t = mc[0], ref = /\sr="\$?([A-Z]+)\$?\d+"/.exec(t.slice(0, t.indexOf('>')));
+          if (!ref) return null;
+          const col = colNum(ref[1]);
+          if (alvo(col) && reMestre.test(t)) return null;   // fórmula compartilhada "mãe" numa coluna que será sobrescrita
+          cel.set(col, t);
+        }
+      }
+      grandes.delete(r);
+    }
+    const attrs = (t, c, est) => {
+      if (!t) return ` r="${colLetra(c)}${r}"` + (est ? ` s="${est}"` : '');
+      const fimTag = t.search(/\/?>/);
+      return t.slice(t.indexOf(' '), fimTag).replace(/\st="[^"]*"/, '');
+    };
+    const setV = (c, v, est) => {
+      const t = cel.get(c);
+      if (v === null || v === undefined || v === '') { if (t) { cel.set(c, `<${P}c${attrs(t, c)}/>`); mexeu = true; } return; }
+      const a = attrs(t, c, est); mexeu = true;
+      if (typeof v === 'number' && isFinite(v)) cel.set(c, `<${P}c${a}><${P}v>${v}</${P}v></${P}c>`);
+      else cel.set(c, `<${P}c${a} t="inlineStr"><${P}is><${P}t xml:space="preserve">${escXmlTxt(limparTextoXml(String(v)))}</${P}t></${P}is></${P}c>`);
+    };
+    for (let c = 1; c <= COL_DBF_FIM + 1; c++) setV(c, k < n ? valores[k][c - 1] : null, estilos[c]);
+    for (let c = IDX_MAQ_BC; c <= IDX_MAQ_G3M; c++) setV(c, (k < n && fluxoCol[k] === c) ? 'X' : null, estilos[c]);
+    if (k < n && fluxoCol[k] === IDX_MAQ_PERFIL_UC) setV(IDX_MAQ_PERFIL_UC, 'X', estilos[IDX_MAQ_PERFIL_UC]);
+    if (k < n && n > 1) for (const fc of colsFormula) {
+      const t = cel.get(fc.col);
+      if (t && reFormula.test(t)) continue;
+      cel.set(fc.col, `<${P}c${attrs(t, fc.col, fc.estilo)}><${P}f>${escXmlTxt(deslocarFormula(fc.texto, r - LINHA_INICIAL_BASE, 0))}</${P}f></${P}c>`); mexeu = true;
+    }
+    if (!velha && !cel.size) continue;
+    if (velha && !mexeu) { partes.push(velha); maxR = r; continue; }
+    const cols = Array.from(cel.keys()).sort((a, b) => a - b);
+    if (cols.length && cols[cols.length - 1] > maxC) maxC = cols[cols.length - 1];
+    partes.push((abre || `<${P}row r="${r}">`).replace(/\sspans="[^"]*"/, '') + cols.map(c => cel.get(c)).join('') + fechaRow); maxR = r;
+    if (k % 2000 === 0) { progresso(`Escrevendo a aba DBF… ${k}/${fim - LINHA_INICIAL_BASE + 1}`); await tick(); }
+  }
+  let saida = ed.finalizar();
+  const mF = new RegExp('</' + '((?:[\\w.-]+:)?)sheetData>').exec(saida);
+  if (!mF) return null;
+  saida = saida.replace(/(<(?:[\w.-]+:)?dimension\b[^>]*?\sref=")([^"]*)(")/, (t0, a, ref, z) => {
+    const [x, y] = ref.split(':'); const i0 = refCel(x) || { c: 1, r: 1 }, f0 = refCel(y || x) || i0;
+    return a + `${colLetra(i0.c)}${i0.r}:${colLetra(Math.max(f0.c, maxC))}${Math.max(f0.r, maxR)}` + z;
+  });
+  const mF2 = new RegExp('</' + '((?:[\\w.-]+:)?)sheetData>').exec(saida);
+  // monta o arquivo da aba como Blob (fica fora da memória do JavaScript), sem juntar tudo num texto gigante
+  const blocos = [saida.slice(0, mF2.index)];
+  for (let i = 0; i < partes.length; i += 5000) blocos.push(partes.slice(i, i + 5000).join(''));
+  blocos.push(saida.slice(mF2.index));
+  partes.length = 0;
+  return { xml: new Blob(blocos, { type: 'application/xml' }), colsFormula };
+}
+
 async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco, progresso) {
   const ext = extOf(fileBase.name);
   if (!['xlsx', 'xlsm'].includes(ext)) throw new Error('a Base precisa ser .xlsx ou .xlsm (se estiver em .xlsb, abra no Excel e "Salvar Como" .xlsx)');
@@ -799,12 +906,9 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   if (!caminhoDbf) throw new Error('a planilha base não tem aba "DBF"');
 
   progresso('Lendo a aba DBF…'); await tick();
-  const ed = new EditorAba(parseXml(await zip.file(caminhoDbf).async('string')));
-  ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
-  ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
-
+  let xmlDbf = await zip.file(caminhoDbf).async('string');
   progresso('Montando os dados novos…'); await tick();
-  const n = linhas.length, oldMax = ed.maxRow, fim = Math.max(oldMax, LINHA_INICIAL_BASE + n - 1);
+  const n = linhas.length;
   const posComFilhos = construirPosComFilhos(linhas);
   let comFluxo = 0, semFluxo = 0; const achadas = new Set();
   const valores = [], fluxoCol = [];
@@ -817,39 +921,53 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
     else { fluxoCol.push(null); if (filho) semFluxo++; }
   }
 
-  // modelo de fórmula da linha 10 (pra "arrastar" pra baixo, igual o AutoFill)
   const colsFormula = [];
-  for (const [col] of ed.celulas(LINHA_INICIAL_BASE)) {
-    if (col <= COL_DBF_FIM + 1 || (col >= IDX_MAQ_PERFIL_UC && col <= IDX_MAQ_G3M)) continue;
-    const t = ed.formulaModelo(LINHA_INICIAL_BASE, col);
-    if (t) colsFormula.push({ col, texto: t, estilo: ed.estilo(LINHA_INICIAL_BASE, col) });
+  // V137 — modo rápido: escreve a aba DBF direto no texto (sem montar a planilha inteira na memória).
+  // Com bases grandes o modo antigo estourava a memória ("Out of Memory"). Se algo for diferente do esperado, usa o modo completo.
+  let rapido = null;
+  if (!window.PPCPM_BASE_MODO_COMPLETO) {
+    try { rapido = await escreverDbfRapido(xmlDbf, { lote, n, valores, fluxoCol, progresso }); }
+    catch (e) { console.warn('[base] modo rápido não deu, usando o modo completo:', e); rapido = null; }
   }
-  const estilos = {};
-  for (let c = 1; c <= COL_DBF_FIM + 1; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
-  for (let c = IDX_MAQ_PERFIL_UC; c <= IDX_MAQ_G3M; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
-
-  progresso('Escrevendo a aba DBF…'); await tick();
-  for (let k = 0; k <= fim - LINHA_INICIAL_BASE; k++) {
-    const r = LINHA_INICIAL_BASE + k;
-    for (let c = 1; c <= COL_DBF_FIM + 1; c++) ed.setValor(r, c, k < n ? valores[k][c - 1] : null, estilos[c]);
-    for (let c = IDX_MAQ_BC; c <= IDX_MAQ_G3M; c++) ed.setValor(r, c, (k < n && fluxoCol[k] === c) ? 'X' : null, estilos[c]);
-    if (k < n && fluxoCol[k] === IDX_MAQ_PERFIL_UC) ed.setValor(r, IDX_MAQ_PERFIL_UC, 'X', estilos[IDX_MAQ_PERFIL_UC]);
-    if (k % 400 === 0) { progresso(`Escrevendo a aba DBF… ${k}/${fim - LINHA_INICIAL_BASE + 1}`); await tick(); }
-  }
-
-  if (colsFormula.length && n > 1) {
-    progresso('Arrastando fórmulas…'); await tick();
-    for (let r = LINHA_INICIAL_BASE + 1; r <= LINHA_INICIAL_BASE + n - 1; r++) {
-      for (const fc of colsFormula) {
-        const c = ed.celula(r, fc.col, false);
-        if (c && primeiroFilho(c, 'f')) continue;
-        ed.setFormula(r, fc.col, deslocarFormula(fc.texto, r - LINHA_INICIAL_BASE, 0), fc.estilo);
-      }
-      if (r % 300 === 0) { progresso(`Arrastando fórmulas… linha ${r}`); await tick(); }
+  if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
+  else {
+    const ed = new EditorAba(parseXml(xmlDbf));
+    ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
+    ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
+      const oldMax = ed.maxRow, fim = Math.max(oldMax, LINHA_INICIAL_BASE + n - 1);
+    // modelo de fórmula da linha 10 (pra "arrastar" pra baixo, igual o AutoFill)
+    for (const [col] of ed.celulas(LINHA_INICIAL_BASE)) {
+      if (col <= COL_DBF_FIM + 1 || (col >= IDX_MAQ_PERFIL_UC && col <= IDX_MAQ_G3M)) continue;
+      const t = ed.formulaModelo(LINHA_INICIAL_BASE, col);
+      if (t) colsFormula.push({ col, texto: t, estilo: ed.estilo(LINHA_INICIAL_BASE, col) });
     }
+    const estilos = {};
+    for (let c = 1; c <= COL_DBF_FIM + 1; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
+    for (let c = IDX_MAQ_PERFIL_UC; c <= IDX_MAQ_G3M; c++) estilos[c] = ed.estilo(LINHA_INICIAL_BASE, c);
+
+    progresso('Escrevendo a aba DBF…'); await tick();
+    for (let k = 0; k <= fim - LINHA_INICIAL_BASE; k++) {
+      const r = LINHA_INICIAL_BASE + k;
+      for (let c = 1; c <= COL_DBF_FIM + 1; c++) ed.setValor(r, c, k < n ? valores[k][c - 1] : null, estilos[c]);
+      for (let c = IDX_MAQ_BC; c <= IDX_MAQ_G3M; c++) ed.setValor(r, c, (k < n && fluxoCol[k] === c) ? 'X' : null, estilos[c]);
+      if (k < n && fluxoCol[k] === IDX_MAQ_PERFIL_UC) ed.setValor(r, IDX_MAQ_PERFIL_UC, 'X', estilos[IDX_MAQ_PERFIL_UC]);
+      if (k % 400 === 0) { progresso(`Escrevendo a aba DBF… ${k}/${fim - LINHA_INICIAL_BASE + 1}`); await tick(); }
+    }
+
+    if (colsFormula.length && n > 1) {
+      progresso('Arrastando fórmulas…'); await tick();
+      for (let r = LINHA_INICIAL_BASE + 1; r <= LINHA_INICIAL_BASE + n - 1; r++) {
+        for (const fc of colsFormula) {
+          const c = ed.celula(r, fc.col, false);
+          if (c && primeiroFilho(c, 'f')) continue;
+          ed.setFormula(r, fc.col, deslocarFormula(fc.texto, r - LINHA_INICIAL_BASE, 0), fc.estilo);
+        }
+        if (r % 300 === 0) { progresso(`Arrastando fórmulas… linha ${r}`); await tick(); }
+      }
+    }
+    progresso('Salvando a aba DBF…'); await tick();
+    zip.file(caminhoDbf, ed.finalizar());
   }
-  progresso('Salvando a aba DBF…'); await tick();
-  zip.file(caminhoDbf, ed.finalizar());
 
   const naoEncontradas = [];
   if (fluxoMap) for (const [ch, info] of Object.entries(fluxoMap.granular || {})) if (!achadas.has(ch)) { const [of, marca] = ch.split('|'); naoEncontradas.push([of, marca, info.maq]); }
