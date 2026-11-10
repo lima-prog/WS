@@ -972,6 +972,8 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   }
   if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
   else {
+    // V141: o modo completo monta a aba inteira na memória — só para bases pequenas (senão a janela estoura: "Out of Memory")
+    if (xmlDbf.length > 20e6) throw new Error('esta base é grande demais para ser montada dentro da janela. Use o sistema instalado no PC (Python), que monta bases de qualquer tamanho — se ele já está instalado, feche e abra o sistema e tente de novo.');
     const ed = new EditorAba(parseXml(xmlDbf));
     ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
     ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));

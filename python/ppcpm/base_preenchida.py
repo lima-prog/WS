@@ -155,9 +155,11 @@ class AbaTexto:
         for mr in re.finditer(rf"<{re.escape(P)}row\b[^>]*?(?:/>|>.*?</{re.escape(P)}row>)", corpo, re.S):
             t = mr.group(0)
             rr = re.search(r'\sr="(\d+)"', t[:t.index(">")])
-            if not rr:
-                raise ForaDoPadrao("linha sem número")
-            n = int(rr.group(1))
+            if rr:
+                n = int(rr.group(1))
+            else:                       # linha sem número: é a seguinte (igual o Excel entende)
+                n = ultimo + 1
+                t = set_attr_tag(t[:t.index(">") + 1], "r", str(n)) + t[t.index(">") + 1:]
             if n <= ultimo:
                 raise ForaDoPadrao("linhas fora de ordem")
             self.rows[n] = t
@@ -183,9 +185,13 @@ class AbaTexto:
         for mc in self.re_cel.finditer(t, fe + 1, len(t) - len(fecha)):
             c = mc.group(0)
             ref = re.search(r'\sr="\$?([A-Z]+)\$?\d+"', c[:c.index(">")])
-            if not ref:
-                raise ForaDoPadrao("célula sem referência")
-            cel[col_num(ref.group(1))] = c
+            if ref:
+                col = col_num(ref.group(1))
+            else:                       # célula sem referência: é a coluna seguinte
+                col = (max(cel) if cel else 0) + 1
+                fe2 = c.index(">")
+                c = set_attr_tag(c[:fe2 + 1], "r", f"{col_letra(col)}{n}") + c[fe2 + 1:]
+            cel[col] = c
         return cel
 
     def estilo(self, n: int, col: int):
@@ -241,8 +247,6 @@ class AbaTexto:
         """Uma célula só (cabeçalho)."""
         cel = self.celulas(n)
         t = cel.get(col)
-        if t and self.re_mestre.search(t):
-            raise ForaDoPadrao("fórmula compartilhada numa célula que seria sobrescrita")
         ref = f"{col_letra(col)}{n}"
         if valor is None or valor == "":
             if not t:
@@ -290,6 +294,52 @@ class AbaTexto:
                     if si and rc:
                         self._masters[si.group(1)] = (int(rc.group(2)), col_num(rc.group(1)), desesc(m.group(3)))
         return self._masters
+
+    def materializar(self, sis: set):
+        """Fórmulas compartilhadas cuja "mãe" vai ser sobrescrita: cada célula vira a fórmula escrita por extenso
+        (igual o Excel faz quando você apaga a primeira célula de uma fórmula arrastada)."""
+        if not sis:
+            return
+        mestres = self.mestres()
+        P = re.escape(self.P)
+        re_f = re.compile(rf"<{P}f\b([^>]*?)(?:/>|>([^<]*)</{P}f>)")
+        for n in list(self.rows):
+            t = self.rows[n]
+            if "si=" not in t:
+                continue
+            cel = self.celulas(n)
+            mudou = False
+            for col, c in list(cel.items()):
+                m = re_f.search(c)
+                if not m:
+                    continue
+                si = re.search(r'\ssi="(\d+)"', m.group(1))
+                if not si or si.group(1) not in sis or si.group(1) not in mestres:
+                    continue
+                r0, c0, txt = mestres[si.group(1)]
+                f = txt if (n, col) == (r0, c0) else deslocar_formula(txt, n - r0, col - c0)
+                cel[col] = c[:m.start()] + f"<{self.P}f>{esc(f)}</{self.P}f>" + c[m.end():]
+                mudou = True
+            if mudou:
+                velha = self.rows[n]
+                abre = velha[:velha.index(">") + 1]
+                self.rows[n] = abre + "".join(cel[k] for k in sorted(cel)) + f"</{self.P}row>"
+
+    def sis_mestres_em(self, linhas, cols_ok) -> set:
+        """si das fórmulas compartilhadas "mãe" que estão nas células que vão ser sobrescritas."""
+        out = set()
+        for n in linhas:
+            t = self.rows.get(n)
+            if not t or "ref=" not in t:
+                continue
+            for col, c in self.celulas(n).items():
+                if cols_ok(n, col) and self.re_mestre.search(c):
+                    si = re.search(r'\ssi="(\d+)"', c)
+                    if si:
+                        out.add(si.group(1))
+                    else:   # fórmula de matriz (array) numa coluna de dados: vira valor normal ao sobrescrever
+                        pass
+        return out
 
     def finalizar(self) -> str:
         cab = self.cabeca
@@ -357,6 +407,10 @@ def gerar(base: bytes, d: dict, progresso=lambda m: None) -> tuple[bytes, dict]:
     # ---------------- aba DBF
     progresso("Lendo a aba DBF…")
     aba = AbaTexto(z.read(abas["DBF"]).decode("utf-8"))
+    _cab = {(int(K["LINHA_NUM_PCT"]), int(K["COL_NUM_PCT"])), (int(K["LINHA_DT_REFRESH"]), int(K["COL_DT_REFRESH"]))}
+    _fim0 = max(aba.max_row_orig, L0 + n - 1)
+    _alvo0 = lambda r, c: (r, c) in _cab or (r >= L0 and (1 <= c <= COL_FIM + 1 or PUC <= c <= G3M))
+    aba.materializar(aba.sis_mestres_em([x for x in aba.rows if x in {a for a, _ in _cab} or L0 <= x <= _fim0], _alvo0))
     aba.set_valor(int(K["LINHA_NUM_PCT"]), int(K["COL_NUM_PCT"]), d["lote"], aba.estilo(int(K["LINHA_NUM_PCT"]), int(K["COL_NUM_PCT"])))
     aba.set_valor(int(K["LINHA_DT_REFRESH"]), int(K["COL_DT_REFRESH"]), d["dataHoje"], aba.estilo(int(K["LINHA_DT_REFRESH"]), int(K["COL_DT_REFRESH"])))
 
@@ -376,9 +430,6 @@ def gerar(base: bytes, d: dict, progresso=lambda m: None) -> tuple[bytes, dict]:
         k = r - L0
         cel = aba.celulas(r)
         mexeu = False
-        for c, t in cel.items():
-            if alvo(c) and aba.re_mestre.search(t):
-                raise ForaDoPadrao("fórmula compartilhada numa coluna de dados")
 
         def setv(c, v, est):
             nonlocal mexeu
@@ -420,6 +471,7 @@ def gerar(base: bytes, d: dict, progresso=lambda m: None) -> tuple[bytes, dict]:
         progresso("Escrevendo aba FOCO…")
         af = AbaTexto(z.read(abas[nome_foco]).decode("utf-8"))
         LF, nc, nf = int(K["LINHA_INICIAL_FOCCO"]), int(K["N_COLS_FOCCO"]), len(foco)
+        af.materializar(af.sis_mestres_em([x for x in af.rows if x >= LF], lambda r, c: r >= LF and 1 <= c <= nc))
         est = {c: af.estilo(LF, c) for c in range(1, nc + 1)}
         for r in range(LF, max(af.max_row_orig, LF + nf - 1) + 1):
             k = r - LF
@@ -427,8 +479,6 @@ def gerar(base: bytes, d: dict, progresso=lambda m: None) -> tuple[bytes, dict]:
             mexeu = False
             for c in range(1, nc + 1):
                 t = cel.get(c)
-                if t and af.re_mestre.search(t):
-                    raise ForaDoPadrao("fórmula compartilhada na aba FOCO")
                 v = foco[k][c - 1] if k < nf and c - 1 < len(foco[k]) else None
                 ref = f"{col_letra(c)}{r}"
                 if v is None or v == "":

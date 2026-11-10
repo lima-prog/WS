@@ -1658,6 +1658,8 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   }
   if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
   else {
+    // V141: o modo completo monta a aba inteira na memória — só para bases pequenas (senão a janela estoura: "Out of Memory")
+    if (xmlDbf.length > 20e6) throw new Error('esta base é grande demais para ser montada dentro da janela. Use o sistema instalado no PC (Python), que monta bases de qualquer tamanho — se ele já está instalado, feche e abra o sistema e tente de novo.');
     const ed = new EditorAba(parseXml(xmlDbf));
     ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
     ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
@@ -3970,6 +3972,8 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   }
   if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
   else {
+    // V141: o modo completo monta a aba inteira na memória — só para bases pequenas (senão a janela estoura: "Out of Memory")
+    if (xmlDbf.length > 20e6) throw new Error('esta base é grande demais para ser montada dentro da janela. Use o sistema instalado no PC (Python), que monta bases de qualquer tamanho — se ele já está instalado, feche e abra o sistema e tente de novo.');
     const ed = new EditorAba(parseXml(xmlDbf));
     ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
     ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
@@ -6928,6 +6932,8 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   }
   if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
   else {
+    // V141: o modo completo monta a aba inteira na memória — só para bases pequenas (senão a janela estoura: "Out of Memory")
+    if (xmlDbf.length > 20e6) throw new Error('esta base é grande demais para ser montada dentro da janela. Use o sistema instalado no PC (Python), que monta bases de qualquer tamanho — se ele já está instalado, feche e abra o sistema e tente de novo.');
     const ed = new EditorAba(parseXml(xmlDbf));
     ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
     ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
@@ -9556,6 +9562,8 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   }
   if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
   else {
+    // V141: o modo completo monta a aba inteira na memória — só para bases pequenas (senão a janela estoura: "Out of Memory")
+    if (xmlDbf.length > 20e6) throw new Error('esta base é grande demais para ser montada dentro da janela. Use o sistema instalado no PC (Python), que monta bases de qualquer tamanho — se ele já está instalado, feche e abra o sistema e tente de novo.');
     const ed = new EditorAba(parseXml(xmlDbf));
     ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
     ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
@@ -12180,6 +12188,8 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   }
   if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
   else {
+    // V141: o modo completo monta a aba inteira na memória — só para bases pequenas (senão a janela estoura: "Out of Memory")
+    if (xmlDbf.length > 20e6) throw new Error('esta base é grande demais para ser montada dentro da janela. Use o sistema instalado no PC (Python), que monta bases de qualquer tamanho — se ele já está instalado, feche e abra o sistema e tente de novo.');
     const ed = new EditorAba(parseXml(xmlDbf));
     ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
     ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
@@ -14456,6 +14466,8 @@ async function gerarBasePreenchida(fileBase, linhas, fluxoMap, lote, linhasFoco,
   }
   if (rapido) { xmlDbf = null; zip.file(caminhoDbf, rapido.xml); colsFormula.push(...rapido.colsFormula); }
   else {
+    // V141: o modo completo monta a aba inteira na memória — só para bases pequenas (senão a janela estoura: "Out of Memory")
+    if (xmlDbf.length > 20e6) throw new Error('esta base é grande demais para ser montada dentro da janela. Use o sistema instalado no PC (Python), que monta bases de qualquer tamanho — se ele já está instalado, feche e abra o sistema e tente de novo.');
     const ed = new EditorAba(parseXml(xmlDbf));
     ed.setValor(LINHA_NUM_PCT, COL_NUM_PCT, valorLote(lote), ed.estilo(LINHA_NUM_PCT, COL_NUM_PCT));
     ed.setValor(LINHA_DT_REFRESH, COL_DT_REFRESH, serialHoje(), ed.estilo(LINHA_DT_REFRESH, COL_DT_REFRESH));
@@ -25254,7 +25266,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 140';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 141';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
