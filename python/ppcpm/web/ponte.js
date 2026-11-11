@@ -218,8 +218,14 @@
       P + ' .pc-loc .pc-x{display:none;color:var(--fraco);flex:none}',
       P + ' .pc-loc:hover .pc-x{display:inline-flex}',
       P + ' .pc-loc:hover .pc-x + .pc-pin{display:none}',
-      P + ' .pc-main{flex:1;display:flex;flex-direction:column;min-width:0}',
-      P + ' .pc-cab{display:grid;grid-template-columns:minmax(200px,1fr) 160px 190px 90px;align-items:center;padding:0 14px 0 20px;height:32px;color:var(--texto2);border-bottom:1px solid var(--borda);flex:none}',
+      P + ' .pc-main{flex:1;display:flex;flex-direction:column;min-width:0;overflow-x:auto}',
+      P + ' .pc-main.cols-px .pc-cab,' + P + ' .pc-main.cols-px .pc-lista{min-width:max-content}',
+      P + ' .pc-cab span .pc-rz{position:absolute;right:0;top:0;bottom:0;width:7px;cursor:col-resize;z-index:3}',
+      P + ' .pc-cab span .pc-rz:hover,' + P + ' .pc-cab span .pc-rz.ativo{background:var(--selb)}',
+      P + ' .pc-split{width:6px;flex:none;cursor:col-resize;margin-left:-3px;margin-right:-3px;z-index:3;position:relative}',
+      P + ' .pc-split:hover,' + P + ' .pc-split.ativo{background:var(--selb)}',
+      P + ' .pc-card.estreita .pc-split{display:none}',
+      P + ' .pc-cab{display:grid;grid-template-columns:var(--pc-cols,minmax(200px,1fr) 160px 190px 90px);align-items:center;padding:0 14px 0 20px;height:32px;color:var(--texto2);border-bottom:1px solid var(--borda);flex:none}',
       P + ' .pc-cab span{position:relative;cursor:pointer;user-select:none;padding:8px 8px;border-left:1px solid var(--borda);white-space:nowrap;overflow:hidden}',
       P + ' .pc-cab span:first-child{border-left:0;padding-left:30px}',
       P + ' .pc-cab span:hover{background:var(--hover)}',
@@ -243,7 +249,7 @@
       P + ' .pc-grupo .pc-sv{color:var(--texto2)}',
       P + ' .pc-grupo .pc-gn{color:var(--fraco);font-size:12px}',
       P + ' .pc-grupo.fechado .pc-sv{transform:rotate(-90deg)}',
-      P + ' .pc-row{display:grid;grid-template-columns:minmax(200px,1fr) 160px 190px 90px;align-items:center;padding:0 6px 0 12px;height:30px;border-radius:4px;cursor:default;user-select:none;border:1px solid transparent;color:var(--texto)}',
+      P + ' .pc-row{display:grid;grid-template-columns:var(--pc-cols,minmax(200px,1fr) 160px 190px 90px);align-items:center;padding:0 6px 0 12px;height:30px;border-radius:4px;cursor:default;user-select:none;border:1px solid transparent;color:var(--texto)}',
       P + ' .pc-row:hover{background:var(--hover)}',
       P + ' .pc-row.sel{background:var(--sel);border-color:var(--selb)}',
       P + ' .pc-row .pc-n{display:flex;align-items:center;gap:8px;min-width:0;padding-right:8px}',
@@ -415,10 +421,45 @@
       /* ----- corpo: navegação | lista | detalhes ----- */
       var corpo = el('div', 'pc-corpo'); card.appendChild(corpo);
       var lado = el('aside', 'pc-lado'); corpo.appendChild(lado);
+      var split = el('div', 'pc-split'); split.title = 'Arraste para mudar a largura do painel · duplo clique volta ao padrão'; corpo.appendChild(split);
       var main = el('section', 'pc-main'); corpo.appendChild(main);
+      (function () {
+        var lw = +lsGet('ppcpm:arquivos:painel'); if (lw >= 140 && lw <= 600) lado.style.width = lw + 'px';
+        split.addEventListener('dblclick', function () { lado.style.width = ''; lsSet('ppcpm:arquivos:painel', ''); });
+        split.addEventListener('pointerdown', function (e) {
+          if (e.button !== 0) return; e.preventDefault(); var x0 = e.clientX, w0 = lado.getBoundingClientRect().width, w = w0;
+          split.classList.add('ativo'); split.setPointerCapture(e.pointerId);
+          function mv(ev) { w = Math.min(600, Math.max(140, w0 + ev.clientX - x0)); lado.style.width = w + 'px'; }
+          function up(ev) { split.removeEventListener('pointermove', mv); split.removeEventListener('pointerup', up); split.classList.remove('ativo'); try { split.releasePointerCapture(ev.pointerId); } catch (_) { } lsSet('ppcpm:arquivos:painel', String(Math.round(w))); }
+          split.addEventListener('pointermove', mv); split.addEventListener('pointerup', up);
+        });
+      })();
       var cab = el('div', 'pc-cab');
       var hN = el('span', null, 'Nome'), hD = el('span', 'pc-d', 'Data de modificação'), hTi = el('span', 'pc-ti', 'Tipo'), hT = el('span', 'pc-tm', 'Tamanho');
       [hN, hD, hTi, hT].forEach(function (h) { cab.appendChild(h); }); main.appendChild(cab);
+
+      /* V149 — como no Explorador: arrastar a divisória das colunas e a borda do painel da esquerda (cursor ↔).
+         Cada usuário guarda o seu tamanho; duplo clique na divisória volta ao padrão. */
+      var COLS_PADRAO = [null, 160, 190, 90];
+      function aplicarCols(w) {
+        if (!w) { card.style.removeProperty('--pc-cols'); main.classList.remove('cols-px'); return; }
+        card.style.setProperty('--pc-cols', w.map(function (x) { return Math.round(x) + 'px'; }).join(' ')); main.classList.add('cols-px');
+      }
+      try { var wc = JSON.parse(lsGet('ppcpm:arquivos:colunas') || 'null'); if (Array.isArray(wc) && wc.length === 4) aplicarCols(wc); } catch (e) { }
+      var arrastouCol = false;
+      [hN, hD, hTi, hT].forEach(function (h, i) {
+        var rz = el('span', 'pc-rz'); rz.title = 'Arraste para mudar a largura · duplo clique volta ao padrão'; h.appendChild(rz);
+        rz.addEventListener('click', function (e) { e.stopPropagation(); });
+        rz.addEventListener('dblclick', function (e) { e.stopPropagation(); aplicarCols(null); lsSet('ppcpm:arquivos:colunas', ''); });
+        rz.addEventListener('pointerdown', function (e) {
+          if (e.button !== 0) return; e.preventDefault(); e.stopPropagation();
+          var ws = [hN, hD, hTi, hT].map(function (x) { return x.getBoundingClientRect().width; }), x0 = e.clientX, w0 = ws[i];
+          rz.classList.add('ativo'); rz.setPointerCapture(e.pointerId); arrastouCol = false;
+          function mv(ev) { arrastouCol = true; ws[i] = Math.max(i === 0 ? 120 : 60, w0 + ev.clientX - x0); aplicarCols(ws); }
+          function up(ev) { rz.removeEventListener('pointermove', mv); rz.removeEventListener('pointerup', up); rz.classList.remove('ativo'); try { rz.releasePointerCapture(ev.pointerId); } catch (_) { } if (arrastouCol) lsSet('ppcpm:arquivos:colunas', JSON.stringify(ws.map(Math.round))); }
+          rz.addEventListener('pointermove', mv); rz.addEventListener('pointerup', up);
+        });
+      });
       var cbTodos = null;
       if (op.multiple) {   // caixa "selecionar todos" no cabeçalho, como no Explorador
         hN.classList.add('pc-nm'); cbTodos = el('span', 'pc-cb pc-cbt'); cbTodos.title = 'Selecionar todos os arquivos (Ctrl + A)'; hN.appendChild(cbTodos);
@@ -838,7 +879,7 @@
       busca.oninput = function () { if (!estado.busca) desenhar(); };
       busca.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); procurar(); } else if (e.key === 'Escape' && (busca.value || estado.busca)) { e.preventDefault(); e.stopPropagation(); if (estado.busca) ir(estado.caminho, true); else { busca.value = ''; desenhar(); } } };
       tipoSel.onchange = function () { estado.soAceitos = tipoSel.value === '1'; desenhar(); };
-      [[hN, 'nome'], [hD, 'data'], [hTi, 'tipo'], [hT, 'tam']].forEach(function (p) { p[0].onclick = function () { setOrdem(p[1]); }; });
+      [[hN, 'nome'], [hD, 'data'], [hTi, 'tipo'], [hT, 'tam']].forEach(function (p) { p[0].onclick = function () { if (arrastouCol) { arrastouCol = false; return; } setOrdem(p[1]); }; });
       bCan.onclick = function () { fechar(null); };
       bWin.onclick = function () { fechar({ windows: true, deJanela: !!J }); };
       bOk.onclick = confirmar; bAbrirC.onclick = confirmar;
