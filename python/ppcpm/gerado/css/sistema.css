@@ -32,6 +32,13 @@ header #out svg.ic{color:inherit;margin:0;vertical-align:0;width:18px;height:18p
 html[data-theme=light] header #out{color:#dc2626;background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.3)}
 .us-r{color:#fff;font-weight:400}
 html[data-theme=light] .us-r{color:#10306a}
+/* V158: tema claro — menu lateral e "Sistema online" visíveis */
+html[data-theme=light] #nv button.n,html[data-theme=light] #nv button.n span,html[data-theme=light] #nv button.n svg{color:#10306a!important}
+html[data-theme=light] #nv button.n:hover{background:rgba(16,48,106,.08)!important}
+html[data-theme=light] #nv button.n.on{background:rgba(29,95,196,.12)!important;box-shadow:inset 3px 0 0 #1d5fc4!important;color:#0b3d91!important}
+html[data-theme=light] #nv button.n.on span,html[data-theme=light] #nv button.n.on svg{color:#0b3d91!important}
+html[data-theme=light] #nv .grp.in{background:rgba(16,48,106,.06)!important}
+html[data-theme=light] main .onl,html[data-theme=light] main .onl.off{color:#10306a}
 header .meta .ic.cap{fill:none;stroke-width:2}
 header .t b{text-transform:uppercase;letter-spacing:.02em}
 header .chip img{height:34px}header .t{flex:0 1 auto;min-width:150px}header .t b{font-size:clamp(15px,2vw,22px);display:block}header .t span{color:var(--mu);font-size:12px}
