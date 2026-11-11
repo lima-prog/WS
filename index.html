@@ -2135,6 +2135,8 @@ function processarPaginasOrdens(paginas) {
       atual = mOf[1];
       ordens[atual] = ordens[atual] || { posicoes: new Set(), paginas: [], obra: null };
       if (!ordens[atual].obra) ordens[atual].obra = primeiroPadrao(texto, PADROES_PACOTE.obra);
+      if (!ordens[atual].trecho) { const mt = /\b(\d{3,7}-\d{1,4}-\d{1,4})\b/.exec(texto); if (mt) ordens[atual].trecho = mt[1]; }
+      if (!ordens[atual].lote) { const ml = /\b(?:LOTE(?:\s*OF)?|PACOTE|PCT)\s*[:=.]?\s*(\d{2,7})\b/i.exec(texto); if (ml) ordens[atual].lote = ml[1]; }
       const rp = /\bPOS:\s*([A-Za-z0-9@_.\-\[\]]+)/g; let m;
       while ((m = rp.exec(texto))) {
         const np = normPosCasamento(separarParte(m[1])[0]); if (!np) continue;
@@ -2178,12 +2180,21 @@ function agruparCncs(mapa, p2o, unir, exigir) {
   grupos.sort((a, b) => ce(a.espessura) - ce(b.espessura) || +a.cncs[0] - +b.cncs[0]);
   return grupos;
 }
+const segsObra = v => String(v || '').toUpperCase().replace(/^OF/, '').split(/[-_.\s]+/).filter(Boolean).map(x => /^\d+$/.test(x) ? String(+x) : x);
+function mesmaObraLantek(e, o) {
+  const a = segsObra(e.of); if (!a.length) return false;
+  if (o.trecho) { const b = segsObra(o.trecho); return a.length === b.length && a.every((x, i) => x === b[i]); }
+  if (o.obra) return a[0] === String(+o.obra || o.obra);
+  return false;                       // ordem sem obra: não dá para garantir que é a mesma — não considera programada
+}
+function mesmoLoteLantek(e, o) { return !(e.lote && o.lote) || String(+e.lote || e.lote) === String(+o.lote || o.lote); }
 async function lerRelatorioLantek(file) {
   const pl = await lerArquivoTabular(file);
   if (!pl.length || !pl[0].rows.length) throw new Error('relatório do Lantek vazio');
   const rows = pl[0].rows; const header = (rows[0] || []).map(h => norm(h).replace(/^\uFEFF/, ''));
   const idx = (...ns) => { for (const n of ns) { const i = header.indexOf(norm(n)); if (i >= 0) return i; } return -1; };
   const iR = idx('REFERENCIA', 'REFERÊNCIA'), iM = idx('MAQUINA', 'MÁQUINA'), iD = idx('DATA PROG NESTING'), iN = idx('ID NESTING');
+  const iL = idx('LOTE', 'LOTE OF', 'PACOTE', 'PCT', 'NUM LOTE', 'Nº LOTE', 'N LOTE');
   if (iR < 0) throw new Error('não encontrei a coluna "REFERENCIA" — é mesmo o "Análise de Nestings" do Lantek?');
   const prog = {};
   for (const r of rows.slice(1)) {
@@ -2192,7 +2203,9 @@ async function lerRelatorioLantek(file) {
     const mo = /OF([A-Za-z0-9\-_.]+)/.exec(ref); if (!mo) continue;
     const pos = norm(posBase(separarParte(m[1])[0])), of = norm(mo[1]);
     const mq = /-\s*Q(\d+)/.exec(ref);
-    const e = prog[of + '|' + pos] = prog[of + '|' + pos] || { pos, qtd: 0, maquina: null, data: null, nesting_ids: [] };
+    const lt = iL >= 0 && r[iL] != null && String(r[iL]).trim() ? String(r[iL]).trim().replace(/\.0+$/, '') : null;
+    const ch = of + '|' + pos + '|' + (lt || '');
+    const e = prog[ch] = prog[ch] || { pos, of: mo[1], lote: lt, qtd: 0, maquina: null, data: null, nesting_ids: [] };
     e.qtd += mq ? +mq[1] : 0;
     if (iM >= 0 && r[iM]) e.maquina = String(r[iM]);
     if (iD >= 0 && r[iD]) e.data = String(r[iD]);
@@ -2257,12 +2270,13 @@ async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = 
   if (arqLantek) {
     progresso('Lendo relatório do Lantek…');
     const prog = await lerRelatorioLantek(arqLantek);
-    const posProg = new Set(Object.values(prog).map(e => e.pos));
+    // V143: só vale a programação da MESMA obra (OF/trecho) e do MESMO lote da ordem — posição igual de outra obra não conta
+    const entradas = Object.values(prog);
     for (const of of orfas) {
-      const pn = [...ordens[of].posicoes].map(p => norm(posBase(p)));
-      const pr = pn.filter(p => posProg.has(p));
-      const item = { ordem: of, posicoes: [...ordens[of].posicoes].sort().join(', ') };
-      if (pr.length) { item.detalhe = Object.values(prog).find(e => pr.includes(e.pos)) || null; progSemCnc.push(item); }
+      const o = ordens[of], pn = new Set([...o.posicoes].map(p => norm(posBase(p))));
+      const casa = entradas.filter(e => pn.has(e.pos) && mesmaObraLantek(e, o) && mesmoLoteLantek(e, o));
+      const item = { ordem: of, obra: o.trecho || o.obra || '', lote: o.lote || '', posicoes: [...o.posicoes].sort().join(', ') };
+      if (casa.length) { item.detalhe = casa[0]; progSemCnc.push(item); }
       else semProg.push(item);
     }
   }
@@ -2347,10 +2361,10 @@ async function gerarImpressaoCasada(arqCnc, arqOrdens, opc, progresso) {
 }
 function textoPendencias(semProg, progSemCnc) {
   const l = ['PENDÊNCIAS LANTEK — ordens que ficaram de fora desta impressão casada', `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
-  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem} — ${d.posicoes}`)); l.push(''); }
+  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${d.posicoes}`)); l.push(''); }
   if (progSemCnc.length) {
     l.push(`🟡 PROGRAMADA NO LANTEK, MAS SEM O CNC CARREGADO AQUI (${progSemCnc.length})`);
-    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem} — ${det}`); });
+    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${det}`); });
   }
   return l.join('\n');
 }
@@ -4444,6 +4458,8 @@ function processarPaginasOrdens(paginas) {
       atual = mOf[1];
       ordens[atual] = ordens[atual] || { posicoes: new Set(), paginas: [], obra: null };
       if (!ordens[atual].obra) ordens[atual].obra = primeiroPadrao(texto, PADROES_PACOTE.obra);
+      if (!ordens[atual].trecho) { const mt = /\b(\d{3,7}-\d{1,4}-\d{1,4})\b/.exec(texto); if (mt) ordens[atual].trecho = mt[1]; }
+      if (!ordens[atual].lote) { const ml = /\b(?:LOTE(?:\s*OF)?|PACOTE|PCT)\s*[:=.]?\s*(\d{2,7})\b/i.exec(texto); if (ml) ordens[atual].lote = ml[1]; }
       const rp = /\bPOS:\s*([A-Za-z0-9@_.\-\[\]]+)/g; let m;
       while ((m = rp.exec(texto))) {
         const np = normPosCasamento(separarParte(m[1])[0]); if (!np) continue;
@@ -4487,12 +4503,21 @@ function agruparCncs(mapa, p2o, unir, exigir) {
   grupos.sort((a, b) => ce(a.espessura) - ce(b.espessura) || +a.cncs[0] - +b.cncs[0]);
   return grupos;
 }
+const segsObra = v => String(v || '').toUpperCase().replace(/^OF/, '').split(/[-_.\s]+/).filter(Boolean).map(x => /^\d+$/.test(x) ? String(+x) : x);
+function mesmaObraLantek(e, o) {
+  const a = segsObra(e.of); if (!a.length) return false;
+  if (o.trecho) { const b = segsObra(o.trecho); return a.length === b.length && a.every((x, i) => x === b[i]); }
+  if (o.obra) return a[0] === String(+o.obra || o.obra);
+  return false;                       // ordem sem obra: não dá para garantir que é a mesma — não considera programada
+}
+function mesmoLoteLantek(e, o) { return !(e.lote && o.lote) || String(+e.lote || e.lote) === String(+o.lote || o.lote); }
 async function lerRelatorioLantek(file) {
   const pl = await lerArquivoTabular(file);
   if (!pl.length || !pl[0].rows.length) throw new Error('relatório do Lantek vazio');
   const rows = pl[0].rows; const header = (rows[0] || []).map(h => norm(h).replace(/^\uFEFF/, ''));
   const idx = (...ns) => { for (const n of ns) { const i = header.indexOf(norm(n)); if (i >= 0) return i; } return -1; };
   const iR = idx('REFERENCIA', 'REFERÊNCIA'), iM = idx('MAQUINA', 'MÁQUINA'), iD = idx('DATA PROG NESTING'), iN = idx('ID NESTING');
+  const iL = idx('LOTE', 'LOTE OF', 'PACOTE', 'PCT', 'NUM LOTE', 'Nº LOTE', 'N LOTE');
   if (iR < 0) throw new Error('não encontrei a coluna "REFERENCIA" — é mesmo o "Análise de Nestings" do Lantek?');
   const prog = {};
   for (const r of rows.slice(1)) {
@@ -4501,7 +4526,9 @@ async function lerRelatorioLantek(file) {
     const mo = /OF([A-Za-z0-9\-_.]+)/.exec(ref); if (!mo) continue;
     const pos = norm(posBase(separarParte(m[1])[0])), of = norm(mo[1]);
     const mq = /-\s*Q(\d+)/.exec(ref);
-    const e = prog[of + '|' + pos] = prog[of + '|' + pos] || { pos, qtd: 0, maquina: null, data: null, nesting_ids: [] };
+    const lt = iL >= 0 && r[iL] != null && String(r[iL]).trim() ? String(r[iL]).trim().replace(/\.0+$/, '') : null;
+    const ch = of + '|' + pos + '|' + (lt || '');
+    const e = prog[ch] = prog[ch] || { pos, of: mo[1], lote: lt, qtd: 0, maquina: null, data: null, nesting_ids: [] };
     e.qtd += mq ? +mq[1] : 0;
     if (iM >= 0 && r[iM]) e.maquina = String(r[iM]);
     if (iD >= 0 && r[iD]) e.data = String(r[iD]);
@@ -4566,12 +4593,13 @@ async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = 
   if (arqLantek) {
     progresso('Lendo relatório do Lantek…');
     const prog = await lerRelatorioLantek(arqLantek);
-    const posProg = new Set(Object.values(prog).map(e => e.pos));
+    // V143: só vale a programação da MESMA obra (OF/trecho) e do MESMO lote da ordem — posição igual de outra obra não conta
+    const entradas = Object.values(prog);
     for (const of of orfas) {
-      const pn = [...ordens[of].posicoes].map(p => norm(posBase(p)));
-      const pr = pn.filter(p => posProg.has(p));
-      const item = { ordem: of, posicoes: [...ordens[of].posicoes].sort().join(', ') };
-      if (pr.length) { item.detalhe = Object.values(prog).find(e => pr.includes(e.pos)) || null; progSemCnc.push(item); }
+      const o = ordens[of], pn = new Set([...o.posicoes].map(p => norm(posBase(p))));
+      const casa = entradas.filter(e => pn.has(e.pos) && mesmaObraLantek(e, o) && mesmoLoteLantek(e, o));
+      const item = { ordem: of, obra: o.trecho || o.obra || '', lote: o.lote || '', posicoes: [...o.posicoes].sort().join(', ') };
+      if (casa.length) { item.detalhe = casa[0]; progSemCnc.push(item); }
       else semProg.push(item);
     }
   }
@@ -4656,10 +4684,10 @@ async function gerarImpressaoCasada(arqCnc, arqOrdens, opc, progresso) {
 }
 function textoPendencias(semProg, progSemCnc) {
   const l = ['PENDÊNCIAS LANTEK — ordens que ficaram de fora desta impressão casada', `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
-  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem} — ${d.posicoes}`)); l.push(''); }
+  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${d.posicoes}`)); l.push(''); }
   if (progSemCnc.length) {
     l.push(`🟡 PROGRAMADA NO LANTEK, MAS SEM O CNC CARREGADO AQUI (${progSemCnc.length})`);
-    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem} — ${det}`); });
+    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${det}`); });
   }
   return l.join('\n');
 }
@@ -7404,6 +7432,8 @@ function processarPaginasOrdens(paginas) {
       atual = mOf[1];
       ordens[atual] = ordens[atual] || { posicoes: new Set(), paginas: [], obra: null };
       if (!ordens[atual].obra) ordens[atual].obra = primeiroPadrao(texto, PADROES_PACOTE.obra);
+      if (!ordens[atual].trecho) { const mt = /\b(\d{3,7}-\d{1,4}-\d{1,4})\b/.exec(texto); if (mt) ordens[atual].trecho = mt[1]; }
+      if (!ordens[atual].lote) { const ml = /\b(?:LOTE(?:\s*OF)?|PACOTE|PCT)\s*[:=.]?\s*(\d{2,7})\b/i.exec(texto); if (ml) ordens[atual].lote = ml[1]; }
       const rp = /\bPOS:\s*([A-Za-z0-9@_.\-\[\]]+)/g; let m;
       while ((m = rp.exec(texto))) {
         const np = normPosCasamento(separarParte(m[1])[0]); if (!np) continue;
@@ -7447,12 +7477,21 @@ function agruparCncs(mapa, p2o, unir, exigir) {
   grupos.sort((a, b) => ce(a.espessura) - ce(b.espessura) || +a.cncs[0] - +b.cncs[0]);
   return grupos;
 }
+const segsObra = v => String(v || '').toUpperCase().replace(/^OF/, '').split(/[-_.\s]+/).filter(Boolean).map(x => /^\d+$/.test(x) ? String(+x) : x);
+function mesmaObraLantek(e, o) {
+  const a = segsObra(e.of); if (!a.length) return false;
+  if (o.trecho) { const b = segsObra(o.trecho); return a.length === b.length && a.every((x, i) => x === b[i]); }
+  if (o.obra) return a[0] === String(+o.obra || o.obra);
+  return false;                       // ordem sem obra: não dá para garantir que é a mesma — não considera programada
+}
+function mesmoLoteLantek(e, o) { return !(e.lote && o.lote) || String(+e.lote || e.lote) === String(+o.lote || o.lote); }
 async function lerRelatorioLantek(file) {
   const pl = await lerArquivoTabular(file);
   if (!pl.length || !pl[0].rows.length) throw new Error('relatório do Lantek vazio');
   const rows = pl[0].rows; const header = (rows[0] || []).map(h => norm(h).replace(/^\uFEFF/, ''));
   const idx = (...ns) => { for (const n of ns) { const i = header.indexOf(norm(n)); if (i >= 0) return i; } return -1; };
   const iR = idx('REFERENCIA', 'REFERÊNCIA'), iM = idx('MAQUINA', 'MÁQUINA'), iD = idx('DATA PROG NESTING'), iN = idx('ID NESTING');
+  const iL = idx('LOTE', 'LOTE OF', 'PACOTE', 'PCT', 'NUM LOTE', 'Nº LOTE', 'N LOTE');
   if (iR < 0) throw new Error('não encontrei a coluna "REFERENCIA" — é mesmo o "Análise de Nestings" do Lantek?');
   const prog = {};
   for (const r of rows.slice(1)) {
@@ -7461,7 +7500,9 @@ async function lerRelatorioLantek(file) {
     const mo = /OF([A-Za-z0-9\-_.]+)/.exec(ref); if (!mo) continue;
     const pos = norm(posBase(separarParte(m[1])[0])), of = norm(mo[1]);
     const mq = /-\s*Q(\d+)/.exec(ref);
-    const e = prog[of + '|' + pos] = prog[of + '|' + pos] || { pos, qtd: 0, maquina: null, data: null, nesting_ids: [] };
+    const lt = iL >= 0 && r[iL] != null && String(r[iL]).trim() ? String(r[iL]).trim().replace(/\.0+$/, '') : null;
+    const ch = of + '|' + pos + '|' + (lt || '');
+    const e = prog[ch] = prog[ch] || { pos, of: mo[1], lote: lt, qtd: 0, maquina: null, data: null, nesting_ids: [] };
     e.qtd += mq ? +mq[1] : 0;
     if (iM >= 0 && r[iM]) e.maquina = String(r[iM]);
     if (iD >= 0 && r[iD]) e.data = String(r[iD]);
@@ -7526,12 +7567,13 @@ async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = 
   if (arqLantek) {
     progresso('Lendo relatório do Lantek…');
     const prog = await lerRelatorioLantek(arqLantek);
-    const posProg = new Set(Object.values(prog).map(e => e.pos));
+    // V143: só vale a programação da MESMA obra (OF/trecho) e do MESMO lote da ordem — posição igual de outra obra não conta
+    const entradas = Object.values(prog);
     for (const of of orfas) {
-      const pn = [...ordens[of].posicoes].map(p => norm(posBase(p)));
-      const pr = pn.filter(p => posProg.has(p));
-      const item = { ordem: of, posicoes: [...ordens[of].posicoes].sort().join(', ') };
-      if (pr.length) { item.detalhe = Object.values(prog).find(e => pr.includes(e.pos)) || null; progSemCnc.push(item); }
+      const o = ordens[of], pn = new Set([...o.posicoes].map(p => norm(posBase(p))));
+      const casa = entradas.filter(e => pn.has(e.pos) && mesmaObraLantek(e, o) && mesmoLoteLantek(e, o));
+      const item = { ordem: of, obra: o.trecho || o.obra || '', lote: o.lote || '', posicoes: [...o.posicoes].sort().join(', ') };
+      if (casa.length) { item.detalhe = casa[0]; progSemCnc.push(item); }
       else semProg.push(item);
     }
   }
@@ -7885,10 +7927,10 @@ function criarPainelConferencia(host, aoComparar) {
 
 function textoPendencias(semProg, progSemCnc) {
   const l = ['PENDÊNCIAS LANTEK — ordens que ficaram de fora desta impressão casada', `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
-  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem} — ${d.posicoes}`)); l.push(''); }
+  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${d.posicoes}`)); l.push(''); }
   if (progSemCnc.length) {
     l.push(`🟡 PROGRAMADA NO LANTEK, MAS SEM O CNC CARREGADO AQUI (${progSemCnc.length})`);
-    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem} — ${det}`); });
+    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${det}`); });
   }
   return l.join('\n');
 }
@@ -8473,8 +8515,8 @@ function montarImpressao(painel, multi) {
     if (r.cncsSemOrdem.length) nos.push({ label: `⚠️ CNC(s) sem ordem casada (${r.cncsSemOrdem.length})`, det: r.cncsSemOrdem.join(', '), cor: AM, check: false });
     sec(`🔗 Partes complementares [B]/[C]... (${r.partes.length})`, AM, r.partes, x => ({ label: `CNC ${x.cnc}`, det: x.pos, check: false }));
     sec(`🗑️ Ordens descartadas — sem CNC casado (${r.descartadas.length})`, AM, r.descartadas, d => ({ label: `Ordem ${d.ordem}`, det: d.posicoes, check: false }));
-    sec(`🚨 SEM PROGRAMAÇÃO NO LANTEK (${r.semProg.length})`, VM, r.semProg, d => ({ label: `Ordem ${d.ordem}`, det: d.posicoes, check: false }), 'ninguém programou essa peça em nenhum nesting ainda');
-    sec(`🟡 Programada no Lantek, mas sem CNC carregado aqui (${r.progSemCnc.length})`, AM, r.progSemCnc, d => { const i = d.detalhe; return { label: `Ordem ${d.ordem}`, det: d.posicoes + (i ? ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}` : ''), check: false }; });
+    sec(`🚨 SEM PROGRAMAÇÃO NO LANTEK (${r.semProg.length})`, VM, r.semProg, d => ({ label: `Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''}`, det: d.posicoes, check: false }), 'nenhum nesting programou essa peça para esta obra/lote');
+    sec(`🟡 Programada no Lantek, mas sem CNC carregado aqui (${r.progSemCnc.length})`, AM, r.progSemCnc, d => { const i = d.detalhe; return { label: `Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''}`, det: d.posicoes + (i ? ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}` : ''), check: false }; });
     renderArvore(id('arvore'), nos);
     if (r.conf) painelConf.popular(r.conf, r.verif || null, r.verifNome);
   };
@@ -10034,6 +10076,8 @@ function processarPaginasOrdens(paginas) {
       atual = mOf[1];
       ordens[atual] = ordens[atual] || { posicoes: new Set(), paginas: [], obra: null };
       if (!ordens[atual].obra) ordens[atual].obra = primeiroPadrao(texto, PADROES_PACOTE.obra);
+      if (!ordens[atual].trecho) { const mt = /\b(\d{3,7}-\d{1,4}-\d{1,4})\b/.exec(texto); if (mt) ordens[atual].trecho = mt[1]; }
+      if (!ordens[atual].lote) { const ml = /\b(?:LOTE(?:\s*OF)?|PACOTE|PCT)\s*[:=.]?\s*(\d{2,7})\b/i.exec(texto); if (ml) ordens[atual].lote = ml[1]; }
       const rp = /\bPOS:\s*([A-Za-z0-9@_.\-\[\]]+)/g; let m;
       while ((m = rp.exec(texto))) {
         const np = normPosCasamento(separarParte(m[1])[0]); if (!np) continue;
@@ -10077,12 +10121,21 @@ function agruparCncs(mapa, p2o, unir, exigir) {
   grupos.sort((a, b) => ce(a.espessura) - ce(b.espessura) || +a.cncs[0] - +b.cncs[0]);
   return grupos;
 }
+const segsObra = v => String(v || '').toUpperCase().replace(/^OF/, '').split(/[-_.\s]+/).filter(Boolean).map(x => /^\d+$/.test(x) ? String(+x) : x);
+function mesmaObraLantek(e, o) {
+  const a = segsObra(e.of); if (!a.length) return false;
+  if (o.trecho) { const b = segsObra(o.trecho); return a.length === b.length && a.every((x, i) => x === b[i]); }
+  if (o.obra) return a[0] === String(+o.obra || o.obra);
+  return false;                       // ordem sem obra: não dá para garantir que é a mesma — não considera programada
+}
+function mesmoLoteLantek(e, o) { return !(e.lote && o.lote) || String(+e.lote || e.lote) === String(+o.lote || o.lote); }
 async function lerRelatorioLantek(file) {
   const pl = await lerArquivoTabular(file);
   if (!pl.length || !pl[0].rows.length) throw new Error('relatório do Lantek vazio');
   const rows = pl[0].rows; const header = (rows[0] || []).map(h => norm(h).replace(/^\uFEFF/, ''));
   const idx = (...ns) => { for (const n of ns) { const i = header.indexOf(norm(n)); if (i >= 0) return i; } return -1; };
   const iR = idx('REFERENCIA', 'REFERÊNCIA'), iM = idx('MAQUINA', 'MÁQUINA'), iD = idx('DATA PROG NESTING'), iN = idx('ID NESTING');
+  const iL = idx('LOTE', 'LOTE OF', 'PACOTE', 'PCT', 'NUM LOTE', 'Nº LOTE', 'N LOTE');
   if (iR < 0) throw new Error('não encontrei a coluna "REFERENCIA" — é mesmo o "Análise de Nestings" do Lantek?');
   const prog = {};
   for (const r of rows.slice(1)) {
@@ -10091,7 +10144,9 @@ async function lerRelatorioLantek(file) {
     const mo = /OF([A-Za-z0-9\-_.]+)/.exec(ref); if (!mo) continue;
     const pos = norm(posBase(separarParte(m[1])[0])), of = norm(mo[1]);
     const mq = /-\s*Q(\d+)/.exec(ref);
-    const e = prog[of + '|' + pos] = prog[of + '|' + pos] || { pos, qtd: 0, maquina: null, data: null, nesting_ids: [] };
+    const lt = iL >= 0 && r[iL] != null && String(r[iL]).trim() ? String(r[iL]).trim().replace(/\.0+$/, '') : null;
+    const ch = of + '|' + pos + '|' + (lt || '');
+    const e = prog[ch] = prog[ch] || { pos, of: mo[1], lote: lt, qtd: 0, maquina: null, data: null, nesting_ids: [] };
     e.qtd += mq ? +mq[1] : 0;
     if (iM >= 0 && r[iM]) e.maquina = String(r[iM]);
     if (iD >= 0 && r[iD]) e.data = String(r[iD]);
@@ -10156,12 +10211,13 @@ async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = 
   if (arqLantek) {
     progresso('Lendo relatório do Lantek…');
     const prog = await lerRelatorioLantek(arqLantek);
-    const posProg = new Set(Object.values(prog).map(e => e.pos));
+    // V143: só vale a programação da MESMA obra (OF/trecho) e do MESMO lote da ordem — posição igual de outra obra não conta
+    const entradas = Object.values(prog);
     for (const of of orfas) {
-      const pn = [...ordens[of].posicoes].map(p => norm(posBase(p)));
-      const pr = pn.filter(p => posProg.has(p));
-      const item = { ordem: of, posicoes: [...ordens[of].posicoes].sort().join(', ') };
-      if (pr.length) { item.detalhe = Object.values(prog).find(e => pr.includes(e.pos)) || null; progSemCnc.push(item); }
+      const o = ordens[of], pn = new Set([...o.posicoes].map(p => norm(posBase(p))));
+      const casa = entradas.filter(e => pn.has(e.pos) && mesmaObraLantek(e, o) && mesmoLoteLantek(e, o));
+      const item = { ordem: of, obra: o.trecho || o.obra || '', lote: o.lote || '', posicoes: [...o.posicoes].sort().join(', ') };
+      if (casa.length) { item.detalhe = casa[0]; progSemCnc.push(item); }
       else semProg.push(item);
     }
   }
@@ -10515,10 +10571,10 @@ function criarPainelConferencia(host, aoComparar) {
 
 function textoPendencias(semProg, progSemCnc) {
   const l = ['PENDÊNCIAS LANTEK — ordens que ficaram de fora desta impressão casada', `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
-  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem} — ${d.posicoes}`)); l.push(''); }
+  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${d.posicoes}`)); l.push(''); }
   if (progSemCnc.length) {
     l.push(`🟡 PROGRAMADA NO LANTEK, MAS SEM O CNC CARREGADO AQUI (${progSemCnc.length})`);
-    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem} — ${det}`); });
+    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${det}`); });
   }
   return l.join('\n');
 }
@@ -11102,8 +11158,8 @@ function montarImpressao(painel, multi) {
     if (r.cncsSemOrdem.length) nos.push({ label: `⚠️ CNC(s) sem ordem casada (${r.cncsSemOrdem.length})`, det: r.cncsSemOrdem.join(', '), cor: AM, check: false });
     sec(`🔗 Partes complementares [B]/[C]... (${r.partes.length})`, AM, r.partes, x => ({ label: `CNC ${x.cnc}`, det: x.pos, check: false }));
     sec(`🗑️ Ordens descartadas — sem CNC casado (${r.descartadas.length})`, AM, r.descartadas, d => ({ label: `Ordem ${d.ordem}`, det: d.posicoes, check: false }));
-    sec(`🚨 SEM PROGRAMAÇÃO NO LANTEK (${r.semProg.length})`, VM, r.semProg, d => ({ label: `Ordem ${d.ordem}`, det: d.posicoes, check: false }), 'ninguém programou essa peça em nenhum nesting ainda');
-    sec(`🟡 Programada no Lantek, mas sem CNC carregado aqui (${r.progSemCnc.length})`, AM, r.progSemCnc, d => { const i = d.detalhe; return { label: `Ordem ${d.ordem}`, det: d.posicoes + (i ? ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}` : ''), check: false }; });
+    sec(`🚨 SEM PROGRAMAÇÃO NO LANTEK (${r.semProg.length})`, VM, r.semProg, d => ({ label: `Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''}`, det: d.posicoes, check: false }), 'nenhum nesting programou essa peça para esta obra/lote');
+    sec(`🟡 Programada no Lantek, mas sem CNC carregado aqui (${r.progSemCnc.length})`, AM, r.progSemCnc, d => { const i = d.detalhe; return { label: `Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''}`, det: d.posicoes + (i ? ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}` : ''), check: false }; });
     renderArvore(id('arvore'), nos);
     if (r.conf) painelConf.popular(r.conf, r.verif || null, r.verifNome);
   };
@@ -12660,6 +12716,8 @@ function processarPaginasOrdens(paginas) {
       atual = mOf[1];
       ordens[atual] = ordens[atual] || { posicoes: new Set(), paginas: [], obra: null };
       if (!ordens[atual].obra) ordens[atual].obra = primeiroPadrao(texto, PADROES_PACOTE.obra);
+      if (!ordens[atual].trecho) { const mt = /\b(\d{3,7}-\d{1,4}-\d{1,4})\b/.exec(texto); if (mt) ordens[atual].trecho = mt[1]; }
+      if (!ordens[atual].lote) { const ml = /\b(?:LOTE(?:\s*OF)?|PACOTE|PCT)\s*[:=.]?\s*(\d{2,7})\b/i.exec(texto); if (ml) ordens[atual].lote = ml[1]; }
       const rp = /\bPOS:\s*([A-Za-z0-9@_.\-\[\]]+)/g; let m;
       while ((m = rp.exec(texto))) {
         const np = normPosCasamento(separarParte(m[1])[0]); if (!np) continue;
@@ -12703,12 +12761,21 @@ function agruparCncs(mapa, p2o, unir, exigir) {
   grupos.sort((a, b) => ce(a.espessura) - ce(b.espessura) || +a.cncs[0] - +b.cncs[0]);
   return grupos;
 }
+const segsObra = v => String(v || '').toUpperCase().replace(/^OF/, '').split(/[-_.\s]+/).filter(Boolean).map(x => /^\d+$/.test(x) ? String(+x) : x);
+function mesmaObraLantek(e, o) {
+  const a = segsObra(e.of); if (!a.length) return false;
+  if (o.trecho) { const b = segsObra(o.trecho); return a.length === b.length && a.every((x, i) => x === b[i]); }
+  if (o.obra) return a[0] === String(+o.obra || o.obra);
+  return false;                       // ordem sem obra: não dá para garantir que é a mesma — não considera programada
+}
+function mesmoLoteLantek(e, o) { return !(e.lote && o.lote) || String(+e.lote || e.lote) === String(+o.lote || o.lote); }
 async function lerRelatorioLantek(file) {
   const pl = await lerArquivoTabular(file);
   if (!pl.length || !pl[0].rows.length) throw new Error('relatório do Lantek vazio');
   const rows = pl[0].rows; const header = (rows[0] || []).map(h => norm(h).replace(/^\uFEFF/, ''));
   const idx = (...ns) => { for (const n of ns) { const i = header.indexOf(norm(n)); if (i >= 0) return i; } return -1; };
   const iR = idx('REFERENCIA', 'REFERÊNCIA'), iM = idx('MAQUINA', 'MÁQUINA'), iD = idx('DATA PROG NESTING'), iN = idx('ID NESTING');
+  const iL = idx('LOTE', 'LOTE OF', 'PACOTE', 'PCT', 'NUM LOTE', 'Nº LOTE', 'N LOTE');
   if (iR < 0) throw new Error('não encontrei a coluna "REFERENCIA" — é mesmo o "Análise de Nestings" do Lantek?');
   const prog = {};
   for (const r of rows.slice(1)) {
@@ -12717,7 +12784,9 @@ async function lerRelatorioLantek(file) {
     const mo = /OF([A-Za-z0-9\-_.]+)/.exec(ref); if (!mo) continue;
     const pos = norm(posBase(separarParte(m[1])[0])), of = norm(mo[1]);
     const mq = /-\s*Q(\d+)/.exec(ref);
-    const e = prog[of + '|' + pos] = prog[of + '|' + pos] || { pos, qtd: 0, maquina: null, data: null, nesting_ids: [] };
+    const lt = iL >= 0 && r[iL] != null && String(r[iL]).trim() ? String(r[iL]).trim().replace(/\.0+$/, '') : null;
+    const ch = of + '|' + pos + '|' + (lt || '');
+    const e = prog[ch] = prog[ch] || { pos, of: mo[1], lote: lt, qtd: 0, maquina: null, data: null, nesting_ids: [] };
     e.qtd += mq ? +mq[1] : 0;
     if (iM >= 0 && r[iM]) e.maquina = String(r[iM]);
     if (iD >= 0 && r[iD]) e.data = String(r[iD]);
@@ -12782,12 +12851,13 @@ async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = 
   if (arqLantek) {
     progresso('Lendo relatório do Lantek…');
     const prog = await lerRelatorioLantek(arqLantek);
-    const posProg = new Set(Object.values(prog).map(e => e.pos));
+    // V143: só vale a programação da MESMA obra (OF/trecho) e do MESMO lote da ordem — posição igual de outra obra não conta
+    const entradas = Object.values(prog);
     for (const of of orfas) {
-      const pn = [...ordens[of].posicoes].map(p => norm(posBase(p)));
-      const pr = pn.filter(p => posProg.has(p));
-      const item = { ordem: of, posicoes: [...ordens[of].posicoes].sort().join(', ') };
-      if (pr.length) { item.detalhe = Object.values(prog).find(e => pr.includes(e.pos)) || null; progSemCnc.push(item); }
+      const o = ordens[of], pn = new Set([...o.posicoes].map(p => norm(posBase(p))));
+      const casa = entradas.filter(e => pn.has(e.pos) && mesmaObraLantek(e, o) && mesmoLoteLantek(e, o));
+      const item = { ordem: of, obra: o.trecho || o.obra || '', lote: o.lote || '', posicoes: [...o.posicoes].sort().join(', ') };
+      if (casa.length) { item.detalhe = casa[0]; progSemCnc.push(item); }
       else semProg.push(item);
     }
   }
@@ -12872,10 +12942,10 @@ async function gerarImpressaoCasada(arqCnc, arqOrdens, opc, progresso) {
 }
 function textoPendencias(semProg, progSemCnc) {
   const l = ['PENDÊNCIAS LANTEK — ordens que ficaram de fora desta impressão casada', `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
-  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem} — ${d.posicoes}`)); l.push(''); }
+  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${d.posicoes}`)); l.push(''); }
   if (progSemCnc.length) {
     l.push(`🟡 PROGRAMADA NO LANTEK, MAS SEM O CNC CARREGADO AQUI (${progSemCnc.length})`);
-    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem} — ${det}`); });
+    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${det}`); });
   }
   return l.join('\n');
 }
@@ -14938,6 +15008,8 @@ function processarPaginasOrdens(paginas) {
       atual = mOf[1];
       ordens[atual] = ordens[atual] || { posicoes: new Set(), paginas: [], obra: null };
       if (!ordens[atual].obra) ordens[atual].obra = primeiroPadrao(texto, PADROES_PACOTE.obra);
+      if (!ordens[atual].trecho) { const mt = /\b(\d{3,7}-\d{1,4}-\d{1,4})\b/.exec(texto); if (mt) ordens[atual].trecho = mt[1]; }
+      if (!ordens[atual].lote) { const ml = /\b(?:LOTE(?:\s*OF)?|PACOTE|PCT)\s*[:=.]?\s*(\d{2,7})\b/i.exec(texto); if (ml) ordens[atual].lote = ml[1]; }
       const rp = /\bPOS:\s*([A-Za-z0-9@_.\-\[\]]+)/g; let m;
       while ((m = rp.exec(texto))) {
         const np = normPosCasamento(separarParte(m[1])[0]); if (!np) continue;
@@ -14981,12 +15053,21 @@ function agruparCncs(mapa, p2o, unir, exigir) {
   grupos.sort((a, b) => ce(a.espessura) - ce(b.espessura) || +a.cncs[0] - +b.cncs[0]);
   return grupos;
 }
+const segsObra = v => String(v || '').toUpperCase().replace(/^OF/, '').split(/[-_.\s]+/).filter(Boolean).map(x => /^\d+$/.test(x) ? String(+x) : x);
+function mesmaObraLantek(e, o) {
+  const a = segsObra(e.of); if (!a.length) return false;
+  if (o.trecho) { const b = segsObra(o.trecho); return a.length === b.length && a.every((x, i) => x === b[i]); }
+  if (o.obra) return a[0] === String(+o.obra || o.obra);
+  return false;                       // ordem sem obra: não dá para garantir que é a mesma — não considera programada
+}
+function mesmoLoteLantek(e, o) { return !(e.lote && o.lote) || String(+e.lote || e.lote) === String(+o.lote || o.lote); }
 async function lerRelatorioLantek(file) {
   const pl = await lerArquivoTabular(file);
   if (!pl.length || !pl[0].rows.length) throw new Error('relatório do Lantek vazio');
   const rows = pl[0].rows; const header = (rows[0] || []).map(h => norm(h).replace(/^\uFEFF/, ''));
   const idx = (...ns) => { for (const n of ns) { const i = header.indexOf(norm(n)); if (i >= 0) return i; } return -1; };
   const iR = idx('REFERENCIA', 'REFERÊNCIA'), iM = idx('MAQUINA', 'MÁQUINA'), iD = idx('DATA PROG NESTING'), iN = idx('ID NESTING');
+  const iL = idx('LOTE', 'LOTE OF', 'PACOTE', 'PCT', 'NUM LOTE', 'Nº LOTE', 'N LOTE');
   if (iR < 0) throw new Error('não encontrei a coluna "REFERENCIA" — é mesmo o "Análise de Nestings" do Lantek?');
   const prog = {};
   for (const r of rows.slice(1)) {
@@ -14995,7 +15076,9 @@ async function lerRelatorioLantek(file) {
     const mo = /OF([A-Za-z0-9\-_.]+)/.exec(ref); if (!mo) continue;
     const pos = norm(posBase(separarParte(m[1])[0])), of = norm(mo[1]);
     const mq = /-\s*Q(\d+)/.exec(ref);
-    const e = prog[of + '|' + pos] = prog[of + '|' + pos] || { pos, qtd: 0, maquina: null, data: null, nesting_ids: [] };
+    const lt = iL >= 0 && r[iL] != null && String(r[iL]).trim() ? String(r[iL]).trim().replace(/\.0+$/, '') : null;
+    const ch = of + '|' + pos + '|' + (lt || '');
+    const e = prog[ch] = prog[ch] || { pos, of: mo[1], lote: lt, qtd: 0, maquina: null, data: null, nesting_ids: [] };
     e.qtd += mq ? +mq[1] : 0;
     if (iM >= 0 && r[iM]) e.maquina = String(r[iM]);
     if (iD >= 0 && r[iD]) e.data = String(r[iD]);
@@ -15060,12 +15143,13 @@ async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = 
   if (arqLantek) {
     progresso('Lendo relatório do Lantek…');
     const prog = await lerRelatorioLantek(arqLantek);
-    const posProg = new Set(Object.values(prog).map(e => e.pos));
+    // V143: só vale a programação da MESMA obra (OF/trecho) e do MESMO lote da ordem — posição igual de outra obra não conta
+    const entradas = Object.values(prog);
     for (const of of orfas) {
-      const pn = [...ordens[of].posicoes].map(p => norm(posBase(p)));
-      const pr = pn.filter(p => posProg.has(p));
-      const item = { ordem: of, posicoes: [...ordens[of].posicoes].sort().join(', ') };
-      if (pr.length) { item.detalhe = Object.values(prog).find(e => pr.includes(e.pos)) || null; progSemCnc.push(item); }
+      const o = ordens[of], pn = new Set([...o.posicoes].map(p => norm(posBase(p))));
+      const casa = entradas.filter(e => pn.has(e.pos) && mesmaObraLantek(e, o) && mesmoLoteLantek(e, o));
+      const item = { ordem: of, obra: o.trecho || o.obra || '', lote: o.lote || '', posicoes: [...o.posicoes].sort().join(', ') };
+      if (casa.length) { item.detalhe = casa[0]; progSemCnc.push(item); }
       else semProg.push(item);
     }
   }
@@ -15150,10 +15234,10 @@ async function gerarImpressaoCasada(arqCnc, arqOrdens, opc, progresso) {
 }
 function textoPendencias(semProg, progSemCnc) {
   const l = ['PENDÊNCIAS LANTEK — ordens que ficaram de fora desta impressão casada', `Gerado em: ${new Date().toLocaleString('pt-BR')}`, ''];
-  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem} — ${d.posicoes}`)); l.push(''); }
+  if (semProg.length) { l.push(`🚨 SEM PROGRAMAÇÃO NO LANTEK — nunca foi pro CAM (${semProg.length})`); semProg.forEach(d => l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${d.posicoes}`)); l.push(''); }
   if (progSemCnc.length) {
     l.push(`🟡 PROGRAMADA NO LANTEK, MAS SEM O CNC CARREGADO AQUI (${progSemCnc.length})`);
-    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem} — ${det}`); });
+    progSemCnc.forEach(d => { let det = d.posicoes; const i = d.detalhe; if (i) det += ` · OF${i.of || '—'}${i.lote ? ' · lote ' + i.lote : ''} · ${i.maquina || '—'} · ${i.data || '—'} · nesting ${(i.nesting_ids || []).join(', ')}`; l.push(`   Ordem ${d.ordem}${d.obra ? ' · obra ' + d.obra : ''}${d.lote ? ' · lote ' + d.lote : ''} — ${det}`); });
   }
   return l.join('\n');
 }
@@ -25266,7 +25350,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 142';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 143';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
