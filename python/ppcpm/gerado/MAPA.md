@@ -1,10 +1,10 @@
-# Mapa do sistema — Versão 144
+# Mapa do sistema — Versão 145
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
 | Parte | Tamanho |
 |---|---|
-| `css/sistema.css` | 163 KB |
+| `css/sistema.css` | 164 KB |
 | `js/supabase.js` | 213 KB |
 | `modulos/pg1.html` | 151 KB |
 | `modulos/pg2.html` | 159 KB |
@@ -18,7 +18,7 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `modulos/pg12.html` | 1.061 KB |
 | `modulos/pg13.html` | 151 KB |
 | `modulos/pg14.html` | 158 KB |
-| `js/sistema.js` | 107 KB |
+| `js/sistema.js` | 108 KB |
 | `molde.html` | 54 KB |
 | `config.json` | 2 KB |
 
