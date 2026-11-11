@@ -59,7 +59,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{color:var(--mu);text
 dialog{margin:auto;background:var(--p1);color:var(--tx);border:1px solid var(--ln);border-radius:16px;padding:20px;width:min(440px,94vw)}dialog::backdrop{background:rgba(0,0,0,.6)}
 dialog label{display:block;font-size:12px;font-weight:600;margin-bottom:10px}dialog input,dialog select{width:100%;margin-top:4px;font-size:14px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
 .empty{text-align:center;color:var(--mu);padding:40px 10px}.empty b{display:block;font-size:40px}
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--gr);color:#041;padding:10px 18px;border-radius:10px;font-weight:700;z-index:99}
+#toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#1a2233;border:1px solid #000;border-left:6px solid #22a55a;padding:16px 26px;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.4);font:700 14px Arial,Helvetica,sans-serif;z-index:2147483000;max-width:min(460px,90vw);text-align:center;animation:toastIn .18s ease-out}@keyframes toastIn{from{opacity:0;transform:translate(-50%,-46%)}to{opacity:1;transform:translate(-50%,-50%)}}
 .st{margin-top:16px;color:var(--mu);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}.st i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--gr);margin-right:6px}
 @media(max-width:900px){#login{grid-template-columns:1fr}.hero:after{background:linear-gradient(0deg,var(--bg),transparent 70%)}.hero{padding:18px}.slogan,.pil{display:none}
 #app{grid-template-columns:1fr}header{grid-column:1}#bg{display:block}.meta .x{display:none}
