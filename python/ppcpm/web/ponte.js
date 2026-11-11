@@ -222,6 +222,17 @@
       P + ' .pc-main.cols-px .pc-cab,' + P + ' .pc-main.cols-px .pc-lista{min-width:max-content}',
       P + ' .pc-cab span .pc-rz{position:absolute;right:0;top:0;bottom:0;width:7px;cursor:col-resize;z-index:3}',
       P + ' .pc-cab span .pc-rz:hover,' + P + ' .pc-cab span .pc-rz.ativo{background:var(--selb)}',
+      P + ' .pc-cab span .pc-fb{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:20px;height:22px;display:none;align-items:center;justify-content:center;border-left:1px solid var(--borda);border-radius:0 3px 3px 0;color:var(--texto2);z-index:2}',
+      P + ' .pc-cab span:hover .pc-fb,' + P + ' .pc-cab span.filtrado .pc-fb{display:flex}',
+      P + ' .pc-cab span .pc-fb:hover{background:var(--hover);color:var(--texto)}',
+      P + ' .pc-cab span.filtrado .pc-fb{color:var(--acento)}',
+      P + ' .pc-cab span.filtrado{font-weight:700}',
+      P + ' .pc-cab span.pc-tm .pc-fb{right:8px}',
+      P + ' .pc-menu.pc-filtro div{padding:6px 12px}',
+      P + ' .pc-menu.pc-filtro .pc-cb{position:static;display:inline-flex;margin:0;opacity:1!important}',
+      P + ' .pc-menu.pc-filtro .pc-cb svg{opacity:0}',
+      P + ' .pc-menu.pc-filtro .pc-cb.on{background:var(--acento);border-color:var(--acento)}',
+      P + ' .pc-menu.pc-filtro .pc-cb.on svg{opacity:1;color:#fff}',
       P + ' .pc-split{width:9px;flex:none;cursor:col-resize;z-index:3;position:relative;background:linear-gradient(var(--borda),var(--borda)) center/1px 100% no-repeat}',
       P + ' .pc-split:after{content:"";position:absolute;left:2px;top:50%;width:5px;height:38px;transform:translateY(-50%);border-radius:3px;background:radial-gradient(circle,var(--texto2) 1.2px,transparent 1.6px) center/5px 7px repeat-y;opacity:.75}',
       P + ' .pc-split:hover,' + P + ' .pc-split.ativo{background:var(--selb)}',
@@ -449,6 +460,11 @@
       }
       try { var wc = JSON.parse(lsGet('ppcpm:arquivos:colunas') || 'null'); if (Array.isArray(wc) && wc.length === 4) aplicarCols(wc); } catch (e) { }
       var arrastouCol = false;
+      [[hN, 'nome'], [hD, 'data'], [hTi, 'tipo'], [hT, 'tam']].forEach(function (p) {
+        var fb = el('span', 'pc-fb'); fb.appendChild(svg('chevron', 12)); fb.title = 'Filtrar por ' + p[0].firstChild.textContent;
+        fb.addEventListener('click', function (e) { e.stopPropagation(); abrirFiltro(p[0], p[1]); });
+        p[0].appendChild(fb);
+      });
       [hN, hD, hTi, hT].forEach(function (h, i) {
         var rz = el('span', 'pc-rz'); rz.title = 'Arraste para mudar a largura · duplo clique volta ao padrão'; h.appendChild(rz);
         rz.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -657,12 +673,67 @@
           return r * s;
         });
       }
+      /* V149 — filtro por coluna, como no Explorador (setinha ⌄ no título da coluna, caixinhas para marcar) */
+      estado.filtros = {};
+      var KB = 1024, FAIXAS_TAM = ['Vazio (0 KB)', 'Minúsculo (0 - 16 KB)', 'Pequeno (16 KB - 1 MB)', 'Médio (1 - 128 MB)', 'Grande (128 MB - 1 GB)', 'Enorme (1 - 4 GB)', 'Gigantesco (> 4 GB)', 'Não especificado'];
+      var FAIXAS_NOME = ['0 - 9', 'A - H', 'I - P', 'Q - Z', 'Outros'];
+      function chaveFiltro(col, i) {
+        if (col === 'nome') {
+          var c = String(i.nome || '').trim().charAt(0).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          return /[0-9]/.test(c) ? '0 - 9' : c >= 'A' && c <= 'H' ? 'A - H' : c >= 'I' && c <= 'P' ? 'I - P' : c >= 'Q' && c <= 'Z' ? 'Q - Z' : 'Outros';
+        }
+        if (col === 'data') return grupoData(i.modificado)[1];
+        if (col === 'tipo') return tipoDe(i);
+        if (i.pasta) return 'Não especificado';
+        var b = +i.tamanho || 0;
+        return !b ? FAIXAS_TAM[0] : b < 16 * KB ? FAIXAS_TAM[1] : b < KB * KB ? FAIXAS_TAM[2] : b < 128 * KB * KB ? FAIXAS_TAM[3] : b < KB * KB * KB ? FAIXAS_TAM[4] : b < 4 * KB * KB * KB ? FAIXAS_TAM[5] : FAIXAS_TAM[6];
+      }
+      function opcoesFiltro(col) {
+        var aceitos = filtro ? filtro.split(',') : [], vistos = {}, lista_ = [];
+        estado.itens.forEach(function (i) {
+          if (op.pasta && !i.pasta) return;
+          if (!i.pasta && !i.pacote && estado.soAceitos && aceitos.length && aceitos.indexOf(ext(i.nome)) < 0) return;
+          var k = chaveFiltro(col, i); if (!vistos[k]) { vistos[k] = 1; lista_.push(k); }
+        });
+        var ordem = col === 'nome' ? FAIXAS_NOME : col === 'tam' ? FAIXAS_TAM : null;
+        if (ordem) lista_.sort(function (a, b) { return ordem.indexOf(a) - ordem.indexOf(b); });
+        else if (col === 'data') lista_.sort(function (a, b) { var g = function (t) { var x = estado.itens.find(function (i) { return grupoData(i.modificado)[1] === t; }); return x ? grupoData(x.modificado)[0] : 99; }; return g(a) - g(b); });
+        else lista_.sort(function (a, b) { return a === 'Pasta de arquivos' ? -1 : b === 'Pasta de arquivos' ? 1 : a.localeCompare(b, 'pt-BR'); });
+        (estado.filtros[col] || []).forEach(function (k) { if (lista_.indexOf(k) < 0) lista_.push(k); });
+        return lista_;
+      }
+      function marcarFiltros() { [[hN, 'nome'], [hD, 'data'], [hTi, 'tipo'], [hT, 'tam']].forEach(function (p) { var f = estado.filtros[p[1]]; p[0].classList.toggle('filtrado', !!(f && f.length)); }); }
+      function abrirFiltro(h, col) {
+        var era = menu && menu.dataset.b === 'filtro-' + col; fecharMenu(); if (era) return;
+        menu = el('div', 'pc-menu pc-filtro'); menu.dataset.b = 'filtro-' + col;
+        var ops = opcoesFiltro(col);
+        if (!ops.length) menu.appendChild(el('div', 'pc-mt', 'Nada para filtrar nesta pasta'));
+        ops.forEach(function (k) {
+          var d = el('div'), cb = el('span', 'pc-cb'); cb.appendChild(svg('ok', 12));
+          var marc = function () { var f = estado.filtros[col] || []; cb.classList.toggle('on', f.indexOf(k) >= 0); };
+          d.appendChild(cb); d.appendChild(el('span', null, k)); marc();
+          d.onclick = function (e) {
+            e.stopPropagation(); var f = estado.filtros[col] = estado.filtros[col] || [], ix = f.indexOf(k);
+            if (ix >= 0) f.splice(ix, 1); else f.push(k);
+            marc(); marcarFiltros(); desenhar();
+          };
+          menu.appendChild(d);
+        });
+        if ((estado.filtros[col] || []).length) {
+          menu.appendChild(el('hr')); var lp = el('div'); lp.appendChild(el('span', 'pc-ok')); lp.appendChild(el('span', null, 'Limpar filtro'));
+          lp.onclick = function () { estado.filtros[col] = []; fecharMenu(); marcarFiltros(); desenhar(); }; menu.appendChild(lp);
+        }
+        card.appendChild(menu);
+        var r0 = h.getBoundingClientRect(), rc = card.getBoundingClientRect(), w = menu.offsetWidth;
+        menu.style.left = Math.max(4, Math.min(r0.right - rc.left - w, rc.width - w - 6)) + 'px'; menu.style.top = (r0.bottom - rc.top + 2) + 'px';
+      }
       function visiveis() {
         var aceitos = filtro ? filtro.split(',') : [], q = estado.busca ? '' : busca.value.trim().toLowerCase();
         return ordenar(estado.itens.filter(function (i) {
           if (q && i.nome.toLowerCase().indexOf(q) < 0) return false;
           if (op.pasta && !i.pasta) return false;
           if (!i.pasta && !i.pacote && estado.soAceitos && aceitos.length && aceitos.indexOf(ext(i.nome)) < 0) return false;
+          for (var col in estado.filtros) { var fs = estado.filtros[col]; if (fs && fs.length && fs.indexOf(chaveFiltro(col, i)) < 0) return false; }
           return true;
         }));
       }
@@ -788,7 +859,8 @@
       function desenhar() {
         lista.innerHTML = '';
         var v = visiveis(); ultimaLista = v;
-        if (!v.length) lista.appendChild(el('div', 'pc-vazio', estado.busca ? 'Nada encontrado com "' + estado.busca + '".' : 'Esta pasta está vazia ou não tem arquivos dos tipos aceitos.'));
+        var comFiltro = Object.keys(estado.filtros).some(function (k) { return estado.filtros[k] && estado.filtros[k].length; });
+        if (!v.length) lista.appendChild(el('div', 'pc-vazio', estado.busca ? 'Nada encontrado com "' + estado.busca + '".' : comFiltro ? 'Nenhum item corresponde aos filtros marcados nas colunas.' : 'Esta pasta está vazia ou não tem arquivos dos tipos aceitos.'));
         var grupos = [];
         if (estado.agrupar === 'nenhum' || !v.length) grupos = [{ k: '', t: '', itens: v }];
         else {
@@ -841,7 +913,7 @@
       function erro(msg) { lista.innerHTML = ''; lista.appendChild(el('div', 'pc-erro', msg)); stTxt.textContent = ''; }
 
       function ir(c, semHist) {
-        estado.busca = null; busca.value = '';
+        estado.busca = null; busca.value = ''; estado.filtros = {}; marcarFiltros();
         lista.innerHTML = ''; lista.appendChild(el('div', 'pc-vazio', 'Abrindo pasta…'));
         api('listar', { caminho: c }).then(function (j) {
           if (!semHist && estado.caminho && estado.caminho !== j.caminho) { estado.atras.push(estado.caminho); estado.frente = []; }
