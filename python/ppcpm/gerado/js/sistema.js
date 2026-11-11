@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 154';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 155';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -700,8 +700,12 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
  <div class="pkcol"><div class="kg pk3">${R}</div><section class="pcc"><div class="pch"><h3>Obras</h3><span class="pcnt" id="pkCntO">${c.n} ${c.n===1?'obra':'obras'}</span><span class="phint">${lote==='TODOS'?'obras de todos os pacotes':'obras listadas no pacote '+(lote?esc(lote):'')}</span></div><div class="pklist" id="pkO"><div class="pkrow2 pth"><span>OF-trecho</span><span>Ano - semana</span><span>Peso LIC / lote</span><span class="num">Qtd kg prep</span><span class="num">Qtd kg ñprep</span><span>Início Artia</span><span>Status</span><span>Impressão</span></div>${det}</div></section></div>
  </div></div>`}
 (function(){const st=document.createElement('style');st.textContent=`
-.hw .pkgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
-.hw .pkcol{display:flex;flex-direction:column;gap:14px;min-width:0}
+.hw .pkgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto;grid-auto-flow:column;gap:14px;align-items:stretch}
+.hw .pkcol{display:contents}
+.hw .pkgrid > .pkcol > *{min-width:0}
+.hw .pkgrid .kg.pk3{margin:0;align-items:stretch}
+.hw .pkgrid .pcc{margin:0;display:flex;flex-direction:column}
+.hw .pkgrid .pch{min-height:58px;box-sizing:border-box;align-items:center}
 .hw .kg.pk3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .hw .pkpac{display:flex;align-items:center;gap:10px;justify-content:space-between}
 .hw .pksel{font:600 14px Arial,Helvetica,sans-serif;padding:5px 8px;border:1px solid #c7cfdb;border-radius:7px;background:#fff;color:#1a2233;max-width:110px;cursor:pointer}
@@ -725,7 +729,8 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .hw .pkcfg,.hw .pkinfo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;border-radius:8px;background:#cfdcee;color:#1c2a38;font-size:13.5px;margin-bottom:14px}
 .hw .pkinfo{background:transparent;padding:0 2px;color:#4b5563;font-size:12.5px}
 .hw .pkerr{color:#b42318;font-weight:700}
-.hw .pklink{background:none;border:0;color:#0b5cad;font:600 12.5px Arial,Helvetica,sans-serif;cursor:pointer;text-decoration:underline;padding:0}
+.hw .pklink{background:#fff;border:1px solid #b8bfc8;border-radius:6px;box-shadow:0 1px 3px rgba(90,100,115,.35);color:#0b5cad;font:600 12.5px Arial,Helvetica,sans-serif;cursor:pointer;text-decoration:none;padding:3px 10px}
+.hw .pklink:hover{background:#eef3fa;border-color:#8f99a6;box-shadow:0 2px 5px rgba(90,100,115,.4)}
 .hw .pvz{padding:22px;text-align:center;color:#5a6b7c}
 .hw .pkbusca{display:flex;align-items:center;gap:8px;flex:1;max-width:320px;min-width:180px;height:34px;padding:0 11px;border:1px solid #c7cfdb;border-radius:8px;background:#fff;color:#5a6b7c;cursor:text}
 .hw .pkbusca:focus-within{border-color:#0b5cad;box-shadow:0 0 0 3px rgba(11,92,173,.15);color:#0b5cad}
@@ -741,7 +746,7 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .hw .pkvalk{text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%;margin:0;appearance:none}
 .hw .pkvalk:hover{filter:brightness(.97)}.hw .pkvalk.pkon{outline:3px solid #f59e0b;outline-offset:-3px}
 .hw .pkvalk #pkVal{color:#b45309}
-@media (max-width:1250px){.hw .pkgrid{grid-template-columns:1fr}.hw .pklist{max-height:none}}
+@media (max-width:1250px){.hw .pkgrid{grid-template-columns:1fr;grid-auto-flow:row}.hw .pklist{max-height:none}}
 `;document.head.appendChild(st)})();
 document.addEventListener('change',e=>{const t=e.target;if(!t||cur!=='home')return;
  if(t.id==='pkLote'){PK.lote=t.value;PK.busca='';PK.soValidar=false;try{localStorage.setItem('ppcpm:home:lote',t.value)}catch(_){}render();return}
