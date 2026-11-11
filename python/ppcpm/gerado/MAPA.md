@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 141
+# Mapa do sistema — Versão 142
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
