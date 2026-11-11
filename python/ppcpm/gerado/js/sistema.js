@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 151';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 152';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -582,7 +582,7 @@ function zerarTodas(){const pool=$('#pgpool');if(pool)pool.innerHTML=''}
 
 function render(){if(cur==='cap'||cur==='kpi'||cur==='rel')cur='home';if(cur==='prod')cur='pg3';if(cur==='val'||cur==='pg8')cur='pg1';if(cur==='rot')cur='pg10';if(cur==='exp')cur='pg12';{const f=$('#ppcp');if(/^pg/.test(cur)&&f&&f.dataset.pg===cur&&$('#vtop .prh'))return}if(cur==='usr'&&!(USER&&USER.adm))cur='home';const nb=$('nav .n[data-v=usr]');if(nb){const q=USER&&USER.adm?pend().length:0;nb.innerHTML=ico('usr')+'<span>Usuários</span>'+(q?`<span class="nb" title="Cadastros aguardando aprovação">${q}</span>`:'')}
  const isP=/^pg/.test(cur);const V=isP?prodV:{home,ops:opsV,plan:planV,cfg:cfgV,usr:usrV}[cur];const nm=isP?'':NAV.find(n=>n[0]===cur)[1];
- $('#vtop').innerHTML=V?V():`<h2>${nm}</h2><div class="pn empty"><b>${ico('cone')}</b>Este módulo chega em uma versão futura.<br>Diga o que ele precisa fazer e montamos o próximo.</div>`;
+ const _sc={};['pkL','pkO'].forEach(id=>{const e=document.getElementById(id);if(e)_sc[id]=e.scrollTop}); $('#vtop').innerHTML=V?V():`<h2>${nm}</h2><div class="pn empty"><b>${ico('cone')}</b>Este módulo chega em uma versão futura.<br>Diga o que ele precisa fazer e montamos o próximo.</div>`;['pkL','pkO'].forEach(id=>{const e=document.getElementById(id);if(e&&_sc[id])e.scrollTop=_sc[id]});
  $('#vst').innerHTML=(`<div class="st"><span><i style="${NET==='ok'?'':NET==='slow'?'background:#e0a21a':'background:#ef4444'}"></i>${NETTXT[NET]} · dados salvos no servidor · ${VERSAO}</span></div>`);{const u=$('#upd');if(u)u.innerHTML=`<span><i class="dt">•</i> Última atualização: <b>${hm(DB.meta().atualizado_em)}</b></span>`}if(/^pg/.test(cur)){telaViva(cur);mostrarPool(cur)}else mostrarPool('');if(cur==='ops')lst();if(cur==='home')initPk();applyI18n($('#app'));markUI();if(cur==='home'&&INTRO){INTRO=false;coverIntro();runIntro()}}
 const filt=()=>`<div class="tb"><select id="xp" aria-label="Processo"><option value="">Todos os processos</option>${[['Corte','OF - Obra'],['Solda','N° Lote']].map(p=>`<option value="${p[0]}" ${F.p===p[0]?'selected':''}>${p[1]}</option>`).join('')}</select><select id="xs" aria-label="Status"><option value="">Status</option>${[['Em aberto','PCT - Impresso'],['Em produção','PCT - Não Impresso'],['Concluída','Concluído'],['Dobra','Sub - trecho']].map(p=>`<option value="${p[0]}" ${F.s===p[0]?'selected':''}>${p[1]}</option>`).join('')}</select>`;
 $('#view').addEventListener('change',e=>{if(e.target.id==='anim'&&USER&&USER.adm){ANIM=e.target.checked;savePrefs();toast(ANIM?'Animação de abertura ligada':'Animação de abertura desligada')}if(e.target.id==='xp'){F.p=e.target.value;render();savePrefs()}if(e.target.id==='xs'){F.s=e.target.value;render();savePrefs()}});
@@ -626,12 +626,105 @@ function initPk(){const V=$('#view'),listP=$('#listP',V),listO=$('#listO',V),inf
   info.innerHTML=`<span>Pacote <b>${esc(k)}</b> · ${p.n} ${p.n===1?'obra':'obras'} · ${p.p}% impresso${rows.length?` · ${rows.length} ${rows.length===1?'obra':'obras'} nesta lista`:' · nenhuma obra dele nesta lista'}</span>`}
  listP.addEventListener('click',e=>{const b=e.target.closest('.ppac');if(b)pickPac(b)});listO.addEventListener('click',e=>{const b=e.target.closest('.pobr');if(b)pickObra(b)});
  info.textContent=TXT0}
-/* INÍCIO */
-function home(){const A=ops.slice(),c=k=>A.filter(o=>stat(o)===k).length,pl=sum(A,'qtde'),rl=sum(A,'feito'),pc=pl?Math.round(rl/pl*100):0,n=A.length||1;
- const kp=(t,v,s,c,x='')=>`<div class="k" style="--c:${c}"><small>${t}</small><div class="v">${v}</div>${x}<small>${s}</small></div>`;
- const q=f=>nf(sum(A.filter(f),'qtde')),pend=nf(sum(A.filter(o=>o.st!=='Concluída'),'qtde')-sum(A.filter(o=>o.st!=='Concluída'),'feito'));
- const kc=`<div class="kg">${kp('Pacote atual',nf(PACOTE_ATUAL),'Pacote listado','#2b8cff')}${kp('% Porcentagem impresso',(A.length?Math.round(c('Concluída')/n*100):0)+'%','em produção agora','#22c55e')}${kp('Total já realizados',nf(rl),pc+'% de '+nf(pl),'#8b5cf6',`<div class="bar" style="--c:#8b5cf6"><i style="width:${Math.min(100,pc)}%"></i></div>`)}${kp('Obras para impressão',`<span style="white-space:nowrap;font-size:.9em">${esc(OBRA_IMPRESSAO)}</span>`,'ainda por produzir','#38bdf8')}${kp('Obras impressas',q(o=>stat(o)==='Atrasada'),'','#ef4444')}${kp('Obras pendente',q(o=>stat(o)==='Em aberto'),'aguardando início','#64748b')}</div>`;
- return`<div class="prh"><h2 class="up" style="text-align:center">Visão geral do dia</h2><span class="onl${NET==='ok'?'':' '+NET}" role="status"><i></i>${NETTXT[NET]}</span></div><div class="hw">${kc}<div class="pcw"><div class="pinfo" id="pinfo" aria-live="polite">Clique em uma obra: as duas listas rolam até ela e o pacote dela fica marcado.</div><section class="pcc"><div class="pch"><h3>Pacote impresso</h3><span class="pcnt">${pkList().length} ${pkList().length===1?'pacote':'pacotes'}</span><span class="phint">clique no pacote para ver as obras dele</span></div><div class="psb" id="boxP"><div class="plist" id="listP"><div class="pth ppac"><span>Pacote</span><span>Obras</span><span>Impressão</span><span style="text-align:right">%</span></div>${pkHTML()}</div><div class="ptrack"><div class="pthumb"></div></div></div></section><section class="pcc"><div class="pch"><h3>Obras</h3><span class="pcnt">${ops.length} ${ops.length===1?'obra':'obras'}</span><span class="phint">clique na obra</span></div><div class="psb" id="boxO"><div class="plist" id="listO"><div class="pth pobr"><span>Obra</span><span>Sub-trecho</span><span>Pacote</span><span>Status</span></div>${obHTML()}</div><div class="ptrack"><div class="pthumb"></div></div></div></section></div></div>`}
+/* INÍCIO — V152: ligada à PLANILHA DE CONTROLE DE PACOTES ENTREGUES (aba LIBERAÇÃO DE PCTS, no drive do PPCPM).
+   O sistema instalado (Python) lê a planilha a cada minuto e manda para o servidor; todos os usuários veem os mesmos pacotes.
+   A marcação "impresso" de cada obra fica no servidor (vale para todos). */
+const PY_LOCAL=/^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+const PK={linhas:[],marcas:{},meta:null,sincLido:null,lote:null,caminho:'',erro:'',carregando:false,ok:false,timer:null,scroll:{},lidoEm:null};
+try{PK.lote=localStorage.getItem('ppcpm:home:lote')}catch(e){}
+const pkNum=v=>v==null||v===''?'—':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:3,maximumFractionDigits:3});
+const pkKey=(l,o)=>l+'|'+o;
+function pkLotes(){const m={};PK.linhas.forEach(r=>{m[r.lote]=1});return Object.keys(m).sort((a,b)=>{const na=/^\d+$/.test(a)?+a:-1,nb=/^\d+$/.test(b)?+b:-1;return nb-na})}
+function pkLoteAtual(){const ls=pkLotes();if(PK.lote&&ls.includes(PK.lote))return PK.lote;return ls.find(l=>l!=='9999'&&/^\d+$/.test(l))||ls[0]||null}
+async function pkTudo(tab,cols,ordem){let out=[],de=0;for(;;){let q=SB.from(tab).select(cols).range(de,de+999);if(ordem)q=q.order(ordem[0],{ascending:true}).order(ordem[1],{ascending:true});const {data,error}=await q;if(error)throw error;out=out.concat(data||[]);if(!data||data.length<1000)break;de+=1000}return out}
+async function pkCarregar(){if(!SB)return false;let mudou=false;
+ const {data:m}=await SB.from('pacotes_meta').select('*').eq('id',1).maybeSingle();PK.meta=m||null;
+ if(!PK.ok||((m&&m.sinc)||null)!==PK.sincLido){PK.linhas=await pkTudo('pacotes_obras','lote,of_trecho,ano_semana,peso_lic,kg_prep,kg_nprep,data_inicio,status,linha',['linha','of_trecho']);PK.sincLido=(m&&m.sinc)||null;mudou=true}
+ const mk=await pkTudo('pacotes_impressao','lote,of_trecho,impresso');const novo={};mk.forEach(x=>{if(x.impresso)novo[pkKey(x.lote,x.of_trecho)]=1});
+ if(JSON.stringify(novo)!==JSON.stringify(PK.marcas)){PK.marcas=novo;mudou=true}
+ PK.ok=true;PK.lidoEm=new Date();return mudou}
+/* sistema instalado: lê a planilha do drive e manda para o servidor quando ela mudou */
+async function pkSincPlanilha(){if(!PY_LOCAL||!SB)return false;let j;
+ try{const r=await fetch('/api/pc/pacotes?linhas=1&desde='+encodeURIComponent((PK.meta&&PK.meta.modificado)||''),{cache:'no-store',headers:{'X-PPCPM':'1'}});if(!r.ok)return false;j=await r.json()}catch(e){return false}
+ PK.caminho=j.caminho||'';PK.erro=j.erro||'';if(!j.linhas)return false;
+ const sinc=j.modificado+'@'+Date.now(),m={};j.linhas.forEach(r=>{m[pkKey(r.lote,r.of_trecho)]={...r,sinc,atualizado_em:new Date().toISOString()}});const rows=Object.values(m);
+ for(let i=0;i<rows.length;i+=500){const {error}=await SB.from('pacotes_obras').upsert(rows.slice(i,i+500),{onConflict:'lote,of_trecho'});if(error){PK.erro='Não consegui enviar os pacotes ao servidor: '+error.message;return false}}
+ await SB.from('pacotes_obras').delete().neq('sinc',sinc);
+ await SB.from('pacotes_meta').upsert({id:1,arquivo:j.caminho,modificado:j.modificado,sinc,linhas:rows.length,em:new Date().toISOString()});
+ return true}
+async function pkTick(forcar){if(PK.carregando)return;PK.carregando=true;let mudou=false;
+ try{if(!PK.meta&&PY_LOCAL){try{const {data}=await SB.from('pacotes_meta').select('*').eq('id',1).maybeSingle();PK.meta=data||null}catch(e){}}
+  const s=await pkSincPlanilha();mudou=(await pkCarregar())||s||forcar}catch(e){console.warn('[pacotes]',e);PK.erro=PK.erro||('Não consegui ler os pacotes: '+(e.message||e))}
+ PK.carregando=false;if(mudou&&cur==='home')render()}
+function pkIniciar(){if(PK.timer)return;PK.timer=setInterval(()=>pkTick(),60000);pkTick(true)}
+async function pkMarcar(lote,obra,on){const k=pkKey(lote,obra);if(on)PK.marcas[k]=1;else delete PK.marcas[k];pkAtualizarNumeros();
+ const {error}=await SB.from('pacotes_impressao').upsert({lote,of_trecho:obra,impresso:!!on,em:new Date().toISOString()},{onConflict:'lote,of_trecho'});
+ if(error){if(on)delete PK.marcas[k];else PK.marcas[k]=1;pkAtualizarNumeros();window.__avisa?__avisa('Não consegui salvar a marcação: '+error.message):alert(error.message)}else DB.log&&DB.log('pacotes_impressao',null,on?'marcar_impresso':'desmarcar_impresso',{lote,obra})}
+function pkContas(lote){const ob=PK.linhas.filter(r=>r.lote===lote),imp=ob.filter(r=>PK.marcas[pkKey(r.lote,r.of_trecho)]).length;
+ const geral=PK.linhas.filter(r=>r.lote!=='9999'),gimp=geral.filter(r=>PK.marcas[pkKey(r.lote,r.of_trecho)]).length;
+ return{ob,n:ob.length,imp,pend:ob.length-imp,pct:ob.length?Math.round(imp/ob.length*100):0,gn:geral.length,gimp,gpct:geral.length?Math.round(gimp/geral.length*100):0}}
+function pkAtualizarNumeros(){const V=$('#view'),l=pkLoteAtual();if(!V||!l||!$('#pkPct',V))return;const c=pkContas(l);
+ $('#pkPct',V).textContent=c.pct+'%';$('#pkPctS',V).textContent=`${c.imp} de ${c.n} ${c.n===1?'obra impressa':'obras impressas'}`;$('#pkPctB',V).style.width=c.pct+'%';
+ $('#pkTot',V).textContent=nf(c.gimp);$('#pkTotS',V).textContent=`${c.gpct}% de ${nf(c.gn)} obras (todos os pacotes)`;$('#pkTotB',V).style.width=c.gpct+'%';
+ $('#pkImp',V).textContent=c.imp;$('#pkPend',V).textContent=c.pend;
+ V.querySelectorAll('[data-pkobra]').forEach(el=>{const on=!!PK.marcas[pkKey(l,el.dataset.pkobra)];el.classList.toggle('on',on);const ch=el.querySelector('.pkchip');if(ch){ch.textContent=on?'Impressa':'Pendente';ch.className='pkchip '+(on?'c-imp':'c-pen')}const cb=el.querySelector('input.pkchk');if(cb)cb.checked=on})}
+function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[],n:0,imp:0,pend:0,pct:0,gn:0,gimp:0,gpct:0},ls=pkLotes();
+ const kp=(t,v,s,cor,x='',ids={})=>`<div class="k" style="--c:${cor}"><small>${t}</small><div class="v"${ids.v?` id="${ids.v}"`:''}>${v}</div>${x}<small${ids.s?` id="${ids.s}"`:''}>${s}</small></div>`;
+ const bar=(id,p,cor)=>`<div class="bar" style="--c:${cor}"><i id="${id}" style="width:${p}%"></i></div>`;
+ const sel=`<select id="pkLote" class="pksel" aria-label="Filtrar pacote (coluna LOTE)">${ls.map(l=>`<option value="${esc(l)}"${l===lote?' selected':''}>${esc(l)}</option>`).join('')}</select>`;
+ const cardPac=`<div class="k" style="--c:#2b8cff"><small>Pacote atual</small><div class="pkpac"><div class="v">${lote?esc(lote):'—'}</div>${ls.length?sel:''}</div><small>${ls.length?'filtre o pacote para ver as obras dele':'nenhum pacote lido ainda'}</small></div>`;
+ const L=kp('% Porcentagem impresso',c.pct+'%',`${c.imp} de ${c.n} ${c.n===1?'obra impressa':'obras impressas'}`,'#22c55e',bar('pkPctB',c.pct,'#22c55e'),{v:'pkPct',s:'pkPctS'})+kp('Total já realizados',nf(c.gimp),`${c.gpct}% de ${nf(c.gn)} obras (todos os pacotes)`,'#8b5cf6',bar('pkTotB',c.gpct,'#8b5cf6'),{v:'pkTot',s:'pkTotS'});
+ const R=kp('Obras para impressão',c.n,lote?'obras no pacote '+esc(lote):'—','#38bdf8')+kp('Obras impressas',c.imp,'marcadas como impressas','#ef4444',`` ,{v:'pkImp'})+kp('Obras pendente',c.pend,'aguardando impressão','#64748b','',{v:'pkPend'});
+ const marc=c.ob.map(r=>{const on=!!PK.marcas[pkKey(r.lote,r.of_trecho)];return`<label class="pkrow${on?' on':''}" data-pkobra="${esc(r.of_trecho)}"><input type="checkbox" class="pkchk" data-lote="${esc(r.lote)}" data-obra="${esc(r.of_trecho)}"${on?' checked':''}><span class="pcode">${esc(r.of_trecho)}</span><span>${esc(r.ano_semana||'—')}</span><span class="pkchip ${on?'c-imp':'c-pen'}">${on?'Impressa':'Pendente'}</span></label>`}).join('')||`<div class="pvz">${ls.length?'Nenhuma obra neste pacote.':'Os pacotes aparecem aqui quando a planilha de controle for ligada.'}</div>`;
+ const det=c.ob.map(r=>{const on=!!PK.marcas[pkKey(r.lote,r.of_trecho)];return`<div class="pkrow2${on?' on':''}" data-pkobra="${esc(r.of_trecho)}"><span class="pcode">${esc(r.of_trecho)}</span><span>${esc(r.ano_semana||'—')}</span><span>${esc(r.peso_lic||'—')}</span><span class="num">${pkNum(r.kg_prep)}</span><span class="num">${pkNum(r.kg_nprep)}</span><span>${esc(r.data_inicio||'—')}</span><span>${esc(r.status||'—')}</span><span class="pkchip ${on?'c-imp':'c-pen'}">${on?'Impressa':'Pendente'}</span></div>`}).join('')||'<div class="pvz">Nenhuma obra.</div>';
+ const nomeArq=(PK.caminho||(PK.meta&&PK.meta.arquivo)||'').split(/[\\/]/).pop();
+ const faixa=PY_LOCAL&&!PK.caminho&&PK.ok?`<div class="pkcfg"><b>Ligar a planilha de pacotes:</b> escolha a <i>PLANILHA DE CONTROLE DE PACOTES ENTREGUES</i> no drive do PPCPM. O sistema lê ela sozinho a cada minuto. <button type="button" class="btn" data-pk="plan">Escolher planilha…</button></div>`
+  :`<div class="pkinfo">${PK.erro?`<span class="pkerr">⚠ ${esc(PK.erro)}</span>`:''}${nomeArq?`<span>Planilha: <b>${esc(nomeArq)}</b> · aba LIBERAÇÃO DE PCTS${PK.meta&&PK.meta.em?' · lida '+hm(PK.meta.em):''}</span>`:'<span>Carregando pacotes…</span>'}${PY_LOCAL?'<button type="button" class="pklink" data-pk="plan">trocar planilha</button><button type="button" class="pklink" data-pk="ler">ler agora</button>':''}</div>`;
+ return`<div class="prh"><h2 class="up" style="text-align:center">Visão geral do dia</h2><span class="onl${NET==='ok'?'':' '+NET}" role="status"><i></i>${NETTXT[NET]}</span></div><div class="hw">${faixa}<div class="pkgrid">
+ <div class="pkcol"><div class="kg pk3">${cardPac}${L}</div><section class="pcc"><div class="pch"><h3>Pacote impresso</h3><span class="pcnt">${c.n} ${c.n===1?'obra':'obras'}</span><span class="phint">marque as obras já impressas</span></div><div class="pklist" id="pkL"><div class="pkrow pth"><span></span><span>Obra (OF-TRECHO)</span><span>Ano - semana</span><span>Impressão</span></div>${marc}</div></section></div>
+ <div class="pkcol"><div class="kg pk3">${R}</div><section class="pcc"><div class="pch"><h3>Obras</h3><span class="pcnt">${c.n} ${c.n===1?'obra':'obras'}</span><span class="phint">obras listadas no pacote ${lote?esc(lote):''}</span></div><div class="pklist" id="pkO"><div class="pkrow2 pth"><span>OF-trecho</span><span>Ano - semana</span><span>Peso LIC / lote</span><span class="num">Qtd kg prep</span><span class="num">Qtd kg ñprep</span><span>Início Artia</span><span>Status</span><span>Impressão</span></div>${det}</div></section></div>
+ </div></div>`}
+(function(){const st=document.createElement('style');st.textContent=`
+.hw .pkgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.hw .pkcol{display:flex;flex-direction:column;gap:14px;min-width:0}
+.hw .kg.pk3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.hw .pkpac{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.hw .pksel{font:600 14px Arial,Helvetica,sans-serif;padding:5px 8px;border:1px solid #c7cfdb;border-radius:7px;background:#fff;color:#1a2233;max-width:110px;cursor:pointer}
+.hw .pklist{max-height:calc(100vh - 430px);min-height:260px;overflow:auto}
+.hw .pkrow,.hw .pkrow2{display:grid;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line-soft,#edf0f3);font-size:14px;color:#1c2a38}
+.hw .pkrow{grid-template-columns:22px minmax(110px,1fr) 100px 96px;cursor:pointer}
+.hw .pkrow2{grid-template-columns:minmax(0,1.3fr) minmax(0,.75fr) minmax(0,1.15fr) minmax(0,1fr) minmax(0,1.1fr) minmax(0,.85fr) minmax(0,.85fr) minmax(0,1fr);gap:8px;font-size:12.5px;padding:7px 12px}
+.hw .pkrow2 > span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.hw .pkrow2 .pkchip{overflow:visible}
+.hw .pkrow2 .pcode{font-size:12.5px}
+.hw .pkrow2 > span:nth-child(3){font-size:11.5px;line-height:1.25}
+.hw .pkrow.pth,.hw .pkrow2.pth{position:sticky;top:0;z-index:1;font-size:12px;font-weight:700;color:#5a6b7c;background:#dfe3e9;cursor:default}
+.hw .pkrow:not(.pth):hover{background:#e3eefa}
+.hw .pkrow.on,.hw .pkrow2.on{background:#eaf6ee}
+.hw .pkrow input{width:17px;height:17px;accent-color:#0b5cad;color-scheme:light;cursor:pointer;margin:0}
+.hw .pksel{color-scheme:light}
+.hw .pcode{font-family:ui-monospace,Consolas,monospace;font-weight:600}
+.hw .num{text-align:right;font-variant-numeric:tabular-nums}
+.hw .pkchip{justify-self:start;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}
+.hw .pkchip.c-imp{background:#dcf3e4;color:#1d8a4a}.hw .pkchip.c-pen{background:#fdf0dc;color:#b06d0b}
+.hw .pkcfg,.hw .pkinfo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;border-radius:8px;background:#cfdcee;color:#1c2a38;font-size:13.5px;margin-bottom:14px}
+.hw .pkinfo{background:transparent;padding:0 2px;color:#4b5563;font-size:12.5px}
+.hw .pkerr{color:#b42318;font-weight:700}
+.hw .pklink{background:none;border:0;color:#0b5cad;font:600 12.5px Arial,Helvetica,sans-serif;cursor:pointer;text-decoration:underline;padding:0}
+.hw .pvz{padding:22px;text-align:center;color:#5a6b7c}
+@media (max-width:1250px){.hw .pkgrid{grid-template-columns:1fr}.hw .pklist{max-height:none}}
+`;document.head.appendChild(st)})();
+document.addEventListener('change',e=>{const t=e.target;if(!t||cur!=='home')return;
+ if(t.id==='pkLote'){PK.lote=t.value;try{localStorage.setItem('ppcpm:home:lote',t.value)}catch(_){}render();return}
+ if(t.classList&&t.classList.contains('pkchk'))pkMarcar(t.dataset.lote,t.dataset.obra,t.checked)});
+document.addEventListener('click',async e=>{const b=e.target.closest&&e.target.closest('[data-pk]');if(!b||cur!=='home')return;
+ if(b.dataset.pk==='ler'){toast('Lendo a planilha…');PK.meta=null;await pkTick(true);return}
+ if(b.dataset.pk==='plan'){if(!window.PPCPM_PC){alert('Essa opção é do sistema instalado no PC.');return}
+  const fs=await window.PPCPM_PC.abrir({accept:'.xlsx,.xlsm',multiple:false});const f=fs&&fs[0];if(!f)return;const c=f.ppcpmCaminho;if(!c){alert('Não consegui pegar o caminho do arquivo.');return}
+  const r=await fetch('/api/pc/pacotes_config?caminho='+encodeURIComponent(c),{cache:'no-store',headers:{'X-PPCPM':'1'}});const j=await r.json().catch(()=>({}));
+  if(!r.ok){window.__avisa?__avisa(j.erro||'Não consegui usar essa planilha.'):alert(j.erro);return}
+  toast('Planilha ligada — lendo os pacotes…');PK.caminho=j.caminho;PK.meta=null;await pkTick(true)}});
+
 
 /* OPs */
 function opsV(){return`<h2>Ordens de Produção</h2>${filt()}<input id="xq" placeholder="Buscar por OP ou produto" value="${esc(F.q)}" aria-label="Buscar"><button class="btn" data-a="new">+ Nova OP</button></div><div class="pn" id="opl"></div>`}

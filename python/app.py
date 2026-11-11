@@ -250,6 +250,17 @@ class Sistema(BaseHTTPRequestHandler):
         if not self._do_proprio_pc():
             return self._json({"erro": "Arquivos do PC só abrem no próprio computador do sistema."}, 403)
         try:
+            if acao == "pacotes":   # Tela inicial: planilha de controle de pacotes (linhas só quando mudou)
+                from ppcpm import pacotes
+                return self._json(pacotes.estado(q.get("linhas") == "1", q.get("desde", "")))
+            if acao == "pacotes_config":   # guarda o caminho da planilha (escolhida na Tela inicial)
+                from ppcpm import pacotes
+                try:
+                    return self._json(pacotes.definir(q.get("caminho", "")))
+                except ValueError as e:
+                    return self._json({"erro": str(e)}, 400)
+                except Exception as e:  # noqa: BLE001
+                    return self._json({"erro": f"Não consegui ler essa planilha: {e}"}, 400)
             if acao == "locais":   # rapido=1: resposta imediata (liga a ponte sem esperar o Acesso rápido do Windows)
                 return self._json(arquivos_pc.locais(rapido=q.get("rapido") == "1"))
             if acao == "listar":   # todos=1: pasta inteira, sem marcar nos recentes (leitura de pastas pelos programas)
