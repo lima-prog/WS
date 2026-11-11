@@ -1649,7 +1649,8 @@ async function analisarImpressaoBase(arqCnc, arqOrdens, { unir = true, exigir = 
     for (const of of orfas) {
       const o = ordens[of], pn = new Set([...o.posicoes].map(p => norm(posBase(p))));
       const casa = entradas.filter(e => pn.has(e.pos) && mesmaObraLantek(e, o) && mesmoLoteLantek(e, o));
-      const item = { ordem: of, obra: o.trecho || o.obra || '', lote: o.lote || '', posicoes: [...o.posicoes].sort().join(', ') };
+      const ob = o.trecho || o.obra || '';
+      const item = { ordem: of, obra: ob, lote: o.lote || '', posicoes: [...o.posicoes].sort().map(p => ob ? `${p} (obra ${ob})` : p).join(', ') };
       if (casa.length) { item.detalhe = casa[0]; progSemCnc.push(item); }
       else semProg.push(item);
     }
