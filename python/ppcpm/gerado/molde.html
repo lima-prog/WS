@@ -10,15 +10,25 @@ function arrastavel(card,alca){var dx=0,dy=0,x0,y0,b0;alca.style.cursor='move';a
  alca.addEventListener('pointerup',function(e){try{alca.releasePointerCapture(e.pointerId)}catch(_){}});
  alca.addEventListener('dblclick',function(){dx=dy=0;pos()})}
 window.__arrastavel=arrastavel;
+/* V157: quadros de aviso no modelo "Modal Azul Projeart" — branco, borda preta, faixa azul em cima, ícone azul */
+var __pjCaixa='background:#fff;color:#000;border-radius:10px;border:1.5px solid #000;border-top:6px solid #0b3d91;box-shadow:0 12px 32px rgba(0,0,0,.18);max-width:420px;width:100%;padding:20px 22px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
+var __pjBtn='font:600 14px "Segoe UI",Roboto,Arial,sans-serif;padding:9px 16px;border-radius:6px;cursor:pointer;transition:background .15s,transform .1s;';
+var __pjSim=__pjBtn+'background:#0b3d91;color:#fff;border:1px solid #0b3d91;',__pjNao=__pjBtn+'background:#fff;color:#000;border:1px solid #c5cfdd;';
+var __pjIcones={info:'<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/>',ajuda:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5 2.6 2.6 0 1 0-3-4"/>',refresh:'<path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>',alerta:'<path d="M12 9v4M12 17h.01"/><path d="M10.24 3.96 2.7 16.5A2 2 0 0 0 4.4 19.5h15.2a2 2 0 0 0 1.7-3L13.76 3.96a2 2 0 0 0-3.52 0z"/>'};
+function __pjTitulo(d,txt,ic){var t=d.createElement('div');t.style.cssText='display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:18px;font-weight:600;color:#000';
+ t.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="flex:none;fill:none;stroke:#0b3d91;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">'+(__pjIcones[ic]||__pjIcones.info)+'</svg>';
+ var s=d.createElement('span');s.textContent=txt;t.appendChild(s);return t}
+function __pjEntrar(c){try{c.animate([{opacity:0,translate:'0 12px',scale:'.98'},{opacity:1,translate:'0 0',scale:'1'}],{duration:250,easing:'ease-out'})}catch(_){}
+ c.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('button');if(b){b.style.transform='scale(.97)';setTimeout(function(){b.style.transform=''},120)}})}
 function avisa(msg){try{
  var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
- fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(5,10,25,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,Helvetica,sans-serif';
- var c=d.createElement('div');c.style.cssText='background:#fff;color:#1a2233;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.4);max-width:460px;width:100%;padding:22px 24px 18px;border:4px solid #0b5cad';
- var t=d.createElement('div');t.textContent='SISTEMA PPCPM - AVISA';t.style.cssText='font-weight:700;font-size:15px;color:#1f2547;letter-spacing:.3px;margin-bottom:12px';
- var m=d.createElement('div');m.textContent=String(msg==null?'':msg);m.style.cssText='font-size:14px;font-weight:600;line-height:1.45;white-space:pre-wrap;word-break:break-word;max-height:55vh;overflow:auto;color:#1a2233';
- var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;margin-top:18px';
- var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText='background:#0b5cad;color:#ffffff;border:1px solid #0b5cad;border-radius:7px;padding:8px 28px;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer';
- b.onmouseenter=function(){b.style.background='#1a6dc0'};b.onmouseleave=function(){b.style.background='#0b5cad'};
+ fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
+ var c=d.createElement('div');c.style.cssText=__pjCaixa;__pjEntrar(c);
+ var t=__pjTitulo(d,'SISTEMA PPCPM - AVISA','info');
+ var m=d.createElement('div');m.textContent=String(msg==null?'':msg);m.style.cssText='font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:55vh;overflow:auto;color:#000';
+ var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;gap:10px;margin-top:18px';
+ var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText=__pjSim+'padding:9px 26px';
+ b.onmouseenter=function(){b.style.background='#082e6e'};b.onmouseleave=function(){b.style.background='#0b3d91'};
  function fecha(){d.removeEventListener('keydown',tecla,true);fundo.remove()}
  function tecla(e){if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();e.stopPropagation();fecha()}}
  b.onclick=fecha;d.addEventListener('keydown',tecla,true);
@@ -28,14 +38,14 @@ window.__avisa=avisa;window.alert=avisa;
 /* V147: pergunta (Sim/Cancelar) no mesmo padrão, no centro do app — devolve Promise<boolean> */
 window.__pergunta=function(msg,op){op=op||{};return new Promise(function(res){try{
  var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
- fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(5,10,25,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,Helvetica,sans-serif';
- var c=d.createElement('div');c.style.cssText='background:#fff;color:#1a2233;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.4);max-width:460px;width:100%;padding:22px 24px 18px;border:4px solid #0b5cad';
- var t=d.createElement('div');t.textContent=op.titulo||'SISTEMA PPCPM - AVISA';t.style.cssText='font-weight:700;font-size:15px;color:#1f2547;letter-spacing:.3px;margin-bottom:12px';
- var m=d.createElement('div');m.textContent=String(msg==null?'':msg);m.style.cssText='font-size:14px;font-weight:600;line-height:1.45;white-space:pre-wrap;word-break:break-word;color:#1a2233';
+ fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
+ var c=d.createElement('div');c.style.cssText=__pjCaixa;__pjEntrar(c);
+ var t=__pjTitulo(d,op.titulo||'SISTEMA PPCPM - AVISA',op.icone||'ajuda');
+ var m=d.createElement('div');m.textContent=String(msg==null?'':msg);m.style.cssText='font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word;color:#000';
  var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;gap:10px;margin-top:18px';
- var n=d.createElement('button');n.type='button';n.textContent=op.nao||'Cancelar';n.style.cssText='background:#fff;color:#1f2547;border:1px solid #c7cfdb;border-radius:7px;padding:8px 20px;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer';
- var b=d.createElement('button');b.type='button';b.textContent=op.sim||'OK';b.style.cssText='background:#0b5cad;color:#ffffff;border:1px solid #0b5cad;border-radius:7px;padding:8px 24px;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer';
- b.onmouseenter=function(){b.style.background='#1a6dc0'};b.onmouseleave=function(){b.style.background='#0b5cad'};
+ var n=d.createElement('button');n.type='button';n.textContent=op.nao||'Cancelar';n.style.cssText=__pjNao;n.onmouseenter=function(){n.style.background='#f1f4f8'};n.onmouseleave=function(){n.style.background='#fff'};
+ var b=d.createElement('button');b.type='button';b.textContent=op.sim||'OK';b.style.cssText=__pjSim;
+ b.onmouseenter=function(){b.style.background='#082e6e'};b.onmouseleave=function(){b.style.background='#0b3d91'};
  function fecha(v){d.removeEventListener('keydown',tecla,true);fundo.remove();res(v)}
  function tecla(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();fecha(false)}else if(e.key==='Enter'){e.preventDefault();e.stopPropagation();fecha(true)}}
  b.onclick=function(){fecha(true)};n.onclick=function(){fecha(false)};d.addEventListener('keydown',tecla,true);
