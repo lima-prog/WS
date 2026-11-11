@@ -13,7 +13,7 @@ window.__arrastavel=arrastavel;
 function avisa(msg){try{
  var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
  fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(5,10,25,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,Helvetica,sans-serif';
- var c=d.createElement('div');c.style.cssText='background:#fff;color:#1a2233;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.4);max-width:460px;width:100%;padding:22px 24px 18px;border:1px solid #000000';
+ var c=d.createElement('div');c.style.cssText='background:#fff;color:#1a2233;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.4);max-width:460px;width:100%;padding:22px 24px 18px;border:2px solid #0b5cad';
  var t=d.createElement('div');t.textContent='SISTEMA PPCPM - AVISA';t.style.cssText='font-weight:700;font-size:15px;color:#1f2547;letter-spacing:.3px;margin-bottom:12px';
  var m=d.createElement('div');m.textContent=String(msg==null?'':msg);m.style.cssText='font-size:14px;font-weight:600;line-height:1.45;white-space:pre-wrap;word-break:break-word;max-height:55vh;overflow:auto;color:#1a2233';
  var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;margin-top:18px';
@@ -29,7 +29,7 @@ window.__avisa=avisa;window.alert=avisa;
 window.__pergunta=function(msg,op){op=op||{};return new Promise(function(res){try{
  var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
  fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(5,10,25,.55);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Arial,Helvetica,sans-serif';
- var c=d.createElement('div');c.style.cssText='background:#fff;color:#1a2233;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.4);max-width:460px;width:100%;padding:22px 24px 18px;border:1px solid #000000';
+ var c=d.createElement('div');c.style.cssText='background:#fff;color:#1a2233;border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.4);max-width:460px;width:100%;padding:22px 24px 18px;border:2px solid #0b5cad';
  var t=d.createElement('div');t.textContent=op.titulo||'SISTEMA PPCPM - AVISA';t.style.cssText='font-weight:700;font-size:15px;color:#1f2547;letter-spacing:.3px;margin-bottom:12px';
  var m=d.createElement('div');m.textContent=String(msg==null?'':msg);m.style.cssText='font-size:14px;font-weight:600;line-height:1.45;white-space:pre-wrap;word-break:break-word;color:#1a2233';
  var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;gap:10px;margin-top:18px';
