@@ -570,7 +570,7 @@
       function locItem(nomeL, caminho, ic, opc) {
         opc = opc || {};
         var d = el('div', 'pc-loc' + (opc.top ? ' top' : '')); d.title = nomeL + (caminho && caminho !== nomeL ? '\n' + caminho : '');
-        var sv = svg(ic, 16); if (ic === 'pasta' || ic === 'favorito' || ic === 'desktop' || ic === 'documentos' || ic === 'downloads') sv.style.color = 'var(--pasta)';
+        var sv = svg(ic, 20); if (ic === 'pasta' || ic === 'favorito' || ic === 'desktop' || ic === 'documentos' || ic === 'downloads') sv.style.color = 'var(--pasta)';
         if (ic === 'disco' || ic === 'rede') sv.style.color = 'var(--acento)';
         d.appendChild(sv); d.appendChild(el('span', 'pc-ln', nomeL));
         if (opc.remover) {
@@ -590,7 +590,7 @@
         function sec(t, ic, arr, fn) {
           if (!arr.length) return;
           var h = el('div', 'pc-sec'); var ch = svg(secFechada[t] ? 'direita' : 'chevron', 12); h.appendChild(ch);
-          var si = svg(ic, 16); si.style.color = ic === 'pc' ? 'var(--acento)' : 'var(--pasta)'; h.appendChild(si); h.appendChild(el('span', null, t));
+          var si = svg(ic, 19); si.style.color = ic === 'pc' ? 'var(--acento)' : 'var(--pasta)'; h.appendChild(si); h.appendChild(el('span', null, t));
           h.onclick = function () { secFechada[t] = !secFechada[t]; lsSet('ppcpm:pc:secoes', JSON.stringify(secFechada)); montarLado(); };
           lado.appendChild(h);
           if (!secFechada[t]) arr.forEach(function (a) { lado.appendChild(fn(a)); });
