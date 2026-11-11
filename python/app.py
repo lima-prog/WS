@@ -253,6 +253,9 @@ class Sistema(BaseHTTPRequestHandler):
             if acao == "pacotes":   # Tela inicial: planilha de controle de pacotes (linhas só quando mudou)
                 from ppcpm import pacotes
                 return self._json(pacotes.estado(q.get("linhas") == "1", q.get("desde", "")))
+            if acao == "pacotes_limpar":   # Atualizar da Tela inicial: zera para colocar uma planilha nova
+                from ppcpm import pacotes
+                return self._json(pacotes.limpar())
             if acao == "pacotes_config":   # guarda o caminho da planilha (escolhida na Tela inicial)
                 from ppcpm import pacotes
                 try:

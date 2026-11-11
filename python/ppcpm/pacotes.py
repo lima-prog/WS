@@ -47,6 +47,18 @@ def definir(c: str) -> dict:
     return estado()
 
 
+def limpar() -> dict:
+    """Botão Atualizar da Tela inicial: desliga a planilha (para colocar uma nova, com novos lotes)."""
+    try:
+        ARQ_CFG.unlink()
+    except OSError:
+        pass
+    with _trava:
+        _cache["chave"] = None
+        _cache["dados"] = None
+    return {"caminho": "", "erro": ""}
+
+
 def _col(ref: str) -> int:
     n = 0
     for ch in re.match(r"[A-Z]+", ref).group(0):
