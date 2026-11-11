@@ -203,7 +203,7 @@
       P + ' .pc-menu .pc-mt:hover{background:transparent}',
       /* corpo */
       P + ' .pc-corpo{flex:1;display:flex;min-height:0;background:var(--fundo)}',
-      P + ' .pc-lado{width:240px;flex:none;border-right:1px solid var(--borda);overflow:auto;padding:6px 0;background:var(--fundo)}',
+      P + ' .pc-lado{width:240px;flex:none;overflow:auto;padding:6px 0;background:var(--fundo)}',
       P + ' .pc-sep{height:1px;background:var(--borda);margin:8px 12px}',
       P + ' .pc-sec{display:flex;align-items:center;gap:6px;padding:7px 12px 4px;color:var(--texto2);cursor:pointer;user-select:none}',
       P + ' .pc-sec .pc-sv{color:var(--fraco)}',
@@ -222,8 +222,10 @@
       P + ' .pc-main.cols-px .pc-cab,' + P + ' .pc-main.cols-px .pc-lista{min-width:max-content}',
       P + ' .pc-cab span .pc-rz{position:absolute;right:0;top:0;bottom:0;width:7px;cursor:col-resize;z-index:3}',
       P + ' .pc-cab span .pc-rz:hover,' + P + ' .pc-cab span .pc-rz.ativo{background:var(--selb)}',
-      P + ' .pc-split{width:6px;flex:none;cursor:col-resize;margin-left:-3px;margin-right:-3px;z-index:3;position:relative}',
+      P + ' .pc-split{width:9px;flex:none;cursor:col-resize;z-index:3;position:relative;background:linear-gradient(var(--borda),var(--borda)) center/1px 100% no-repeat}',
+      P + ' .pc-split:after{content:"";position:absolute;left:2px;top:50%;width:5px;height:38px;transform:translateY(-50%);border-radius:3px;background:radial-gradient(circle,var(--texto2) 1.2px,transparent 1.6px) center/5px 7px repeat-y;opacity:.75}',
       P + ' .pc-split:hover,' + P + ' .pc-split.ativo{background:var(--selb)}',
+      P + ' .pc-split:hover:after,' + P + ' .pc-split.ativo:after{opacity:1}',
       P + ' .pc-card.estreita .pc-split{display:none}',
       P + ' .pc-cab{display:grid;grid-template-columns:var(--pc-cols,minmax(200px,1fr) 160px 190px 90px);align-items:center;padding:0 14px 0 20px;height:32px;color:var(--texto2);border-bottom:1px solid var(--borda);flex:none}',
       P + ' .pc-cab span{position:relative;cursor:pointer;user-select:none;padding:8px 8px;border-left:1px solid var(--borda);white-space:nowrap;overflow:hidden}',
@@ -425,7 +427,7 @@
       var main = el('section', 'pc-main'); corpo.appendChild(main);
       (function () {
         var lw = +lsGet('ppcpm:arquivos:painel'); if (lw >= 140 && lw <= 600) lado.style.width = lw + 'px';
-        split.addEventListener('dblclick', function () { lado.style.width = ''; lsSet('ppcpm:arquivos:painel', ''); });
+        split.addEventListener('dblclick', function () { lsSet('ppcpm:arquivos:painel', ''); ajustarLado(); });
         split.addEventListener('pointerdown', function (e) {
           if (e.button !== 0) return; e.preventDefault(); var x0 = e.clientX, w0 = lado.getBoundingClientRect().width, w = w0;
           split.classList.add('ativo'); split.setPointerCapture(e.pointerId);
@@ -551,7 +553,7 @@
       /* ----- painel da esquerda (Acesso rápido, Este Computador, Recentes) ----- */
       function locItem(nomeL, caminho, ic, opc) {
         opc = opc || {};
-        var d = el('div', 'pc-loc' + (opc.top ? ' top' : '')); d.title = caminho;
+        var d = el('div', 'pc-loc' + (opc.top ? ' top' : '')); d.title = nomeL + (caminho && caminho !== nomeL ? '\n' + caminho : '');
         var sv = svg(ic, 16); if (ic === 'pasta' || ic === 'favorito' || ic === 'desktop' || ic === 'documentos' || ic === 'downloads') sv.style.color = 'var(--pasta)';
         if (ic === 'disco' || ic === 'rede') sv.style.color = 'var(--acento)';
         d.appendChild(sv); d.appendChild(el('span', 'pc-ln', nomeL));
@@ -593,7 +595,17 @@
         sec('Este Computador', 'pc', L.unidades, function (a) { return locItem(a.nome, a.caminho, iconeLocal(a)); });
         if (L.recentes.length) lado.appendChild(el('div', 'pc-sep'));
         sec('Recentes', 'recente', L.recentes, function (a) { var p = a.split(/[\\/]/).filter(Boolean); return locItem(p.length > 1 ? p[p.length - 2] + ' › ' + p[p.length - 1] : (p[0] || a), a, 'recente'); });
-        marcarLado();
+        marcarLado(); ajustarLado(); setTimeout(ajustarLado, 60); setTimeout(ajustarLado, 400);
+      }
+      /* V149 — sem tamanho escolhido pelo usuário, o painel abre largo o bastante para ler o nome inteiro das pastas (até 460px) */
+      function ajustarLado() {
+        if (+lsGet('ppcpm:arquivos:painel')) return;
+        var maior = 240;
+        Array.prototype.forEach.call(lado.querySelectorAll('.pc-loc,.pc-sec'), function (d) {
+          var t = d.querySelector('.pc-ln') || d.querySelector('span'); if (!t || !t.offsetParent) return;
+          var w = t.getBoundingClientRect().left - lado.getBoundingClientRect().left + t.scrollWidth + 48; if (w > maior) maior = w;
+        });
+        lado.style.width = Math.min(460, Math.ceil(maior)) + 'px';
       }
       function marcarLado() {
         Array.prototype.forEach.call(lado.querySelectorAll('.pc-loc'), function (d) { d.classList.toggle('on', d.dataset.c === estado.caminho); });
