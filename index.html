@@ -25404,7 +25404,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 171';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 172';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -26002,6 +26002,16 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .hw .pkpcc .pkrow{grid-template-columns:150px minmax(110px,1.1fr) minmax(80px,.75fr) minmax(130px,1.1fr) minmax(150px,1.6fr) minmax(80px,.8fr) minmax(80px,.8fr) minmax(80px,.8fr) minmax(70px,.7fr) 100px 128px;gap:10px;cursor:default;min-width:1320px}
 .hw .pkobsb{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid #f3b4b4;background:#fff5f5;color:#991b1b;border-radius:6px;padding:3px 8px;font:600 12px Arial,Helvetica,sans-serif;cursor:pointer;text-align:left}
 .hw .pkobsb:hover{background:#fde2e2;border-color:#dc2626}
+/* V172: cabeçalho da tabela no cinza-azulado e barra da planilha com faixa azul */
+.hw .pkpcc .pkrow.pth{background:#5f6b7a!important;color:#fff!important;font-size:12.5px;padding-top:10px;padding-bottom:10px;border-bottom:0}
+.hw .pkpcc .pkrow.pth > *{position:relative;overflow:visible!important}
+.hw .pkpcc .pkrow.pth > *:not(:first-child)::before{content:'';position:absolute;left:-5px;top:-10px;bottom:-10px;width:1px;background:#74808f}
+.hw .pkpcc .pkrow.pth .pkall{color:#fff}
+.hw .pkpcc .pkrow.pth .pkall input{accent-color:#fff}
+.hw .pkinfo{background:#fff!important;border:1px solid #e3e8ef;border-left:4px solid #0b3d91;border-radius:6px!important;padding:9px 14px!important;color:#4b5563;font-size:12.5px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.hw .pkinfo b{color:#000;margin:0 4px}
+.hw .pklink{background:#e6ecf5!important;border:1px solid #c3d1e8!important;border-radius:4px!important;box-shadow:none!important;color:#0b3d91!important;font:600 12.5px 'Segoe UI',Arial,Helvetica,sans-serif!important;padding:4px 12px!important}
+.hw .pklink:hover{background:#d6e1f1!important;border-color:#9fb4d8!important}
 .hw .pkpcc .pklist{overflow:auto}
 .hw .pkpcc .pkrow .num{text-align:right}
 .hw .pkpcc .pkrow > span{min-width:0;overflow:hidden;text-overflow:ellipsis}
