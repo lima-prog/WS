@@ -25404,7 +25404,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 163';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 164';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -25769,23 +25769,28 @@ function pkAplicarAlt(){const alt={};(PK.altRaw||[]).forEach(a=>{alt[pkKey(a.lot
  return PK.base.map(r=>{const p=alt[pkKey(r.lote,r.of_trecho)];return p&&p!==r.lote&&!ex.has(pkKey(p,r.of_trecho))?{...r,lote:p,lote_orig:r.lote}:r})}
 const ALT={lote:null,busca:'',soRev:false,sel:new Set(),el:null};
 /* V163: a Alteração de LOTE abre numa janela própria (dá para arrastar para a segunda tela). Se o navegador bloquear, abre dentro do sistema. */
-function pkAltHtml(){return`<div class="pkalt-t"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg><b>Alteração de LOTE</b><span>escolha o pacote, marque as obras e mande para o novo lote</span><button type="button" class="pkalt-x" data-alt="fechar" title="Fechar (Esc)">✕</button></div><div class="pkalt-c"><aside class="pkalt-l"></aside><section class="pkalt-r"></section></div><div class="pkalt-p"></div>`}
+function pkAltHtml(janela){return`<div class="pkalt-t"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg><b>Alteração de LOTE</b><span>escolha o pacote, marque as obras e mande para o novo lote</span>${janela?'':'<button type="button" class="pkalt-x" data-alt="fechar" title="Fechar (Esc)">✕</button>'}</div><div class="pkalt-c"><aside class="pkalt-l"></aside><section class="pkalt-r"></section></div><div class="pkalt-p"></div>`}
 function pkAltLigar(raiz,doc){raiz.addEventListener('click',pkAltClique);raiz.addEventListener('change',pkAltMuda);raiz.addEventListener('input',e=>{if(e.target.id==='altBusca'){ALT.busca=e.target.value;pkAltTabela()}else if(e.target.id==='altLoteBusca'){pkAltLotes(e.target.value)}else if(e.target.id==='altPara')pkAltPe()});
  ALT.tecla=e=>{if(e.key==='Escape'&&ALT.el&&!doc.querySelector('[role=alertdialog]')){e.preventDefault();pkFecharAlt()}};doc.addEventListener('keydown',ALT.tecla,true)}
 function pkAbrirAlt(){if(ALT.win&&!ALT.win.closed){ALT.win.focus();return}if(ALT.el){ALT.el.querySelector('#altBusca')?.focus();return}
  const ls=pkLotes();if(!ls.length){window.__avisa?__avisa('Nenhum pacote lido ainda.'):alert('Nenhum pacote lido ainda.');return}
  const l=pkLoteAtual();ALT.lote=l&&l!=='TODOS'?l:ls[0];ALT.busca='';ALT.sel=new Set();ALT.soRev=false;
  const W=Math.min(1500,(screen.availWidth||1500)-40),H=Math.min(900,(screen.availHeight||900)-60);let w=null;
- try{w=window.open('','ppcpm_alteracao_lote',`popup=yes,width=${W},height=${H},left=${Math.max(0,((screen.availWidth||W)-W)/2)},top=30`)}catch(_){w=null}
- if(w&&w.document){const css=[...document.querySelectorAll('style')].filter(x=>x.textContent.includes('.pkalt{')).map(x=>x.textContent).join('\n');
-  w.document.open();w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Alteração de LOTE — SISTEMA PPCPM</title><style>'+css.replace(/<\/style/gi,'<\\/style')+'\nhtml,body{margin:0;height:100%;background:#fff;color-scheme:light}body{overflow:hidden}.pkalt.pkalt-win{width:100vw;height:100vh;border:0;border-top:6px solid #0b3d91;border-radius:0;box-shadow:none}.pkalt-win .pkalt-t{cursor:default}</style></head><body><div class="pkalt pkalt-win"></div></body></html>');w.document.close();
-  try{const ic=document.querySelector('link[rel~=icon]');if(ic){const li=w.document.createElement('link');li.rel='icon';li.href=ic.href;w.document.head.appendChild(li)}}catch(_){}
-  const raiz=w.document.querySelector('.pkalt');raiz.innerHTML=pkAltHtml();ALT.win=w;ALT.doc=w.document;ALT.el=raiz;pkAltLigar(raiz,w.document);
-  w.addEventListener('pagehide',()=>{if(ALT.win===w){ALT.win=null;ALT.el=null;ALT.doc=null}});
-  clearInterval(ALT.vigia);ALT.vigia=setInterval(()=>{if(!ALT.win||ALT.win.closed){clearInterval(ALT.vigia);if(ALT.win===w||!ALT.win){ALT.win=null;ALT.el=null;ALT.doc=null}}},1000);
-  pkAltDesenhar();w.focus();return}
+ const feat=`popup=yes,width=${W},height=${H},left=${Math.max(0,((screen.availWidth||W)-W)/2)},top=30`;
+ /* no sistema instalado a janela abre em /pc/janela (tem o ícone da Projeart); no site abre em branco com o ícone embutido */
+ try{w=window.open(PY_LOCAL?'/pc/janela':'','ppcpm_alteracao_lote',feat)}catch(_){w=null}
+ if(w){const montar=()=>{const d=w.document,css=[...document.querySelectorAll('style')].filter(x=>x.textContent.includes('.pkalt{')).map(x=>x.textContent).join('\n');
+   if(!PY_LOCAL){d.open();d.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"></head><body></body></html>');d.close();const ic=document.querySelector('link[rel~=icon]');if(ic){const li=d.createElement('link');li.rel='icon';li.href=ic.href;d.head.appendChild(li)}}
+   d.title='Alteração de LOTE — SISTEMA PPCPM';const st=d.createElement('style');st.textContent=css+'\nhtml,body{margin:0;height:100%;background:#fff;color-scheme:light}body{overflow:hidden}.pkalt.pkalt-win{width:100vw;height:100vh;border:0;border-top:6px solid #0b3d91;border-radius:0;box-shadow:none}.pkalt-win .pkalt-t{cursor:default}';d.head.appendChild(st);
+   d.body.innerHTML='<div class="pkalt pkalt-win"></div>';const raiz=d.querySelector('.pkalt');raiz.innerHTML=pkAltHtml(true);ALT.win=w;ALT.doc=d;ALT.el=raiz;pkAltLigar(raiz,d);
+   w.addEventListener('pagehide',()=>{if(ALT.win===w){ALT.win=null;ALT.el=null;ALT.doc=null}});
+   clearInterval(ALT.vigia);ALT.vigia=setInterval(()=>{if(!ALT.win||ALT.win.closed){clearInterval(ALT.vigia);if(ALT.win===w||!ALT.win){ALT.win=null;ALT.el=null;ALT.doc=null}}},1000);
+   pkAltDesenhar();w.focus()};
+  if(!PY_LOCAL){try{montar();return}catch(e){console.warn('[alteração de lote]',e)}}
+  else{ALT.win=w;let n=0;const esp=setInterval(()=>{n++;let ok=false;try{ok=w.closed||(w.location.pathname==='/pc/janela'&&w.document.readyState==='complete'&&w.document.body)}catch(_){}
+   if(ok){clearInterval(esp);if(!w.closed){try{montar()}catch(e){console.warn('[alteração de lote]',e)}}else ALT.win=null}else if(n>100){clearInterval(esp);ALT.win=null}},50);return}}
  const f=document.createElement('div');f.className='pkalt-fundo';f.setAttribute('role','dialog');f.setAttribute('aria-modal','true');f.setAttribute('aria-label','Alteração de LOTE');
- f.innerHTML=`<div class="pkalt">${pkAltHtml()}</div>`;document.body.appendChild(f);ALT.el=f;ALT.doc=document;try{arrastavel(f.querySelector('.pkalt'),f.querySelector('.pkalt-t'))}catch(_){}
+ f.innerHTML=`<div class="pkalt">${pkAltHtml(false)}</div>`;document.body.appendChild(f);ALT.el=f;ALT.doc=document;try{arrastavel(f.querySelector('.pkalt'),f.querySelector('.pkalt-t'))}catch(_){}
  pkAltLigar(f,document);pkAltDesenhar()}
 function pkFecharAlt(){if(ALT.win){const w=ALT.win;ALT.win=null;ALT.el=null;ALT.doc=null;try{w.close()}catch(_){}return}if(!ALT.el)return;document.removeEventListener('keydown',ALT.tecla,true);ALT.el.remove();ALT.el=null;ALT.doc=null}
 function pkAltDesenhar(){if(!ALT.el)return;const ls=pkLotes();if(!ls.includes(ALT.lote))ALT.lote=ls[0]||null;
