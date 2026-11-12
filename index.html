@@ -25404,7 +25404,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 166';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 167';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -25680,12 +25680,77 @@ function telaViva(pg){const pool=$('#pgpool');let box=pool.querySelector(`.pgbox
  return box}
 function mostrarPool(pg){const pool=$('#pgpool');if(!pool)return;pool.querySelectorAll('.pgbox').forEach(b=>{const on=b.dataset.pg===pg;b.style.display=on?'':'none';const f=b.firstChild;if(on)f.id='ppcp';else if(f.id==='ppcp')f.removeAttribute('id')});pool.style.display=pg?'':'none'}
 function zerarTela(pg){const b=$('#pgpool')&&$('#pgpool').querySelector(`.pgbox[data-pg="${pg}"]`);if(b)b.remove()}
+/* V167: VERIFICAÇÃO DA INSTALAÇÃO — no sistema instalado no PC, confere se falta algo (bibliotecas, arquivos, atalho,
+   conexões) e oferece para instalar. Abre sozinho quando falta algo; depois fica no rodapé ("Instalação"). */
+const INST={r:null,pedido:false,carregando:false,el:null,poll:null,tudo:false};
+function instChip(){if(!PY_LOCAL)return'';const r=INST.r;if(!r)return INST.carregando?`<button type="button" class="instb" data-inst="abrir" title="Conferindo a instalação deste PC">Instalação: conferindo…</button>`:'';
+ return r.faltam?`<button type="button" class="instb warn" data-inst="abrir" title="Ver o que falta na instalação deste PC">⚠ Instalação: ${r.faltam} ${r.faltam===1?'item faltando':'itens faltando'}</button>`:`<button type="button" class="instb ok" data-inst="abrir" title="Ver a verificação da instalação deste PC">✔ Instalação completa</button>`}
+function instAgendar(){if(!PY_LOCAL||INST.pedido||!USER)return;INST.pedido=true;setTimeout(()=>instChecar(true),2500)}
+async function instChecar(auto){INST.carregando=true;instRodape();try{const r=await fetch('/api/pc/instalacao',{cache:'no-store',headers:{'X-PPCPM':'1'}});if(!r.ok)throw new Error('HTTP '+r.status);INST.r=await r.json()}catch(e){console.warn('[instalação]',e);INST.carregando=false;instRodape();return}
+ INST.carregando=false;instRodape();if(INST.el){instDesenhar();return}
+ let adiado=0;try{adiado=+localStorage.getItem('ppcpm:inst:adiar')||0}catch(_){}
+ if(auto&&INST.r.faltam&&Date.now()>adiado)instAbrir()}
+function instRodape(){const st=document.querySelector('#vst .st');if(!st)return;const v=st.querySelector('.instb');const h=instChip();if(v)v.outerHTML=h||'';else if(h)st.insertAdjacentHTML('beforeend',h)}
+const INST_BOTAO={bibliotecas:'Instalar bibliotecas',arquivos:'Baixar arquivos que faltam',atalho:'Criar atalho',instalar_pc:'Instalar no PC'};
+function instAbrir(){if(INST.el){return}const f=document.createElement('div');f.className='inst-fundo';f.innerHTML=`<div class="inst" role="dialog" aria-modal="true" aria-labelledby="instT"><div class="inst-t" id="instT"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg><span>Verificação da instalação</span></div><div class="inst-c"></div></div>`;
+ document.body.appendChild(f);INST.el=f;try{arrastavel(f.querySelector('.inst'),f.querySelector('.inst-t'))}catch(_){}
+ f.addEventListener('click',instClique);INST.tecla=e=>{if(e.key==='Escape'&&INST.el&&!document.querySelector('[role=alertdialog]')){e.preventDefault();instFechar()}};document.addEventListener('keydown',INST.tecla,true);instDesenhar();if(INST.r&&INST.r.trabalho&&INST.r.trabalho.rodando)instAcompanhar()}
+function instFechar(){if(!INST.el)return;document.removeEventListener('keydown',INST.tecla,true);INST.el.remove();INST.el=null;clearInterval(INST.poll);INST.poll=null}
+function instDesenhar(){if(!INST.el)return;const c=INST.el.querySelector('.inst-c'),r=INST.r;if(!r){c.innerHTML='<p class="inst-m">Conferindo a instalação deste PC…</p>';return}
+ const prob=r.itens.filter(i=>!i.ok&&i.nivel!=='info'),info=r.itens.filter(i=>!i.ok&&i.nivel==='info'),oks=r.itens.filter(i=>i.ok);
+ const acoes=[...new Set(r.itens.filter(i=>!i.ok&&i.acao).map(i=>i.acao))];const tr=r.trabalho||{};
+ const icon=n=>n==='ok'?'<b class="ic ok">✔</b>':n==='erro'?'<b class="ic er">✖</b>':n==='info'?'<b class="ic in">i</b>':'<b class="ic av">!</b>';
+ const linha=i=>`<li class="${i.nivel}">${icon(i.nivel)}<div><b>${esc(i.nome)}</b><small>${esc(i.detalhe||'')}</small></div></li>`;
+ const grupos=lista=>{const g={};lista.forEach(i=>{(g[i.grupo]=g[i.grupo]||[]).push(i)});return Object.entries(g).map(([n,it])=>`<h5>${esc(n)}</h5><ul>${it.map(linha).join('')}</ul>`).join('')};
+ c.innerHTML=`<p class="inst-m">${r.faltam?`Este PC está com <b>${r.faltam} ${r.faltam===1?'item faltando':'itens faltando'}</b> na instalação do sistema${r.erros?` (${r.erros} ${r.erros===1?'importante':'importantes'})`:''}. Veja abaixo e clique para instalar o que falta.`:'<b>Está tudo instalado neste PC.</b> O sistema está pronto para usar.'}</p>
+ <div class="inst-l">${prob.length?grupos(prob):''}${info.length?grupos(info):''}${INST.tudo||!prob.length?`<div class="inst-ok">${grupos(oks)}</div>`:`<button type="button" class="inst-lk" data-inst="tudo">Mostrar também o que está certo (${oks.length})</button>`}</div>
+ ${tr.acao&&(tr.rodando||tr.msg)?`<div class="inst-p ${tr.rodando?'':tr.ok?'ok':'er'}"><b>${tr.rodando?'⏳ '+(tr.acao==='arquivos'?'Baixando os arquivos do sistema…':'Instalando as bibliotecas…'):(tr.ok?'✔ ':'✖ ')+esc(tr.msg)}</b><pre>${esc((tr.log||[]).slice(-12).join('\n'))}</pre></div>`:''}
+ <div class="inst-q">verificado ${esc(r.quando||'')}</div><div class="inst-b">${acoes.map(a=>`<button type="button" class="inst-ok-b" data-inst="acao" data-a="${a}"${tr.rodando?' disabled':''}>${INST_BOTAO[a]||a}</button>`).join('')}<span class="inst-sp"></span><button type="button" class="inst-no" data-inst="checar"${tr.rodando?' disabled':''}>Verificar de novo</button>${r.faltam?'<button type="button" class="inst-no" data-inst="depois">Lembrar depois</button>':''}<button type="button" class="inst-no" data-inst="fechar">Fechar</button></div>`;
+ const pre=c.querySelector('pre');if(pre)pre.scrollTop=pre.scrollHeight}
+async function instClique(e){const b=e.target.closest('[data-inst]');if(!b||!INST.el.contains(b))return;const a=b.dataset.inst;
+ if(a==='fechar')return instFechar();
+ if(a==='depois'){try{localStorage.setItem('ppcpm:inst:adiar',String(Date.now()+8*3600e3))}catch(_){}toast('Aviso da instalação adiado por 8 horas — fica no rodapé (Instalação)');return instFechar()}
+ if(a==='tudo'){INST.tudo=true;return instDesenhar()}
+ if(a==='checar'){INST.r=null;instDesenhar();return instChecar(false)}
+ if(a==='acao'){const ac=b.dataset.a;
+  if(ac==='arquivos'&&window.__pergunta&&!await __pergunta('Vou baixar de novo os arquivos do sistema (do GitHub) e repor os que faltam. Depois o sistema reinicia sozinho.',{titulo:'Baixar arquivos que faltam',icone:'refresh',sim:'Baixar e reiniciar',nao:'Cancelar'}))return;
+  b.disabled=true;let j={};try{j=await (await fetch('/api/pc/instalacao_acao?acao='+encodeURIComponent(ac),{cache:'no-store',headers:{'X-PPCPM':'1'}})).json()}catch(err){j={ok:false,msg:String(err)}}
+  if(j.andamento){INST.r.trabalho={rodando:true,acao:ac,log:[],msg:''};instDesenhar();return instAcompanhar()}
+  if(j.msg)(window.__avisa?__avisa(j.msg):alert(j.msg));INST.r=null;instDesenhar();instChecar(false)}}
+function instAcompanhar(){clearInterval(INST.poll);INST.poll=setInterval(async()=>{let t;try{t=await (await fetch('/api/pc/instalacao_estado',{cache:'no-store',headers:{'X-PPCPM':'1'}})).json()}catch(_){return}
+ if(INST.r)INST.r.trabalho=t;instDesenhar();if(!t.rodando){clearInterval(INST.poll);INST.poll=null;if(t.acao!=='arquivos'||!t.ok)instChecar(false)}},1000)}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#vst [data-inst=abrir]');if(b){instAbrir();if(!INST.r&&!INST.carregando)instChecar(false)}});
+(function(){const st=document.createElement('style');st.textContent=`
+#vst .st{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.instb{border:1px solid #c5cfdd;background:#fff;color:#1c2a38;border-radius:999px;padding:2px 11px;font:600 12px 'Segoe UI',Arial,sans-serif;cursor:pointer}
+.instb.warn{background:#fff4e0;border-color:#f59e0b;color:#92400e}.instb.ok{color:#15803d;border-color:#9fd8b2;background:#f0fbf4}.instb:hover{filter:brightness(.96)}
+.inst-fundo{position:fixed;inset:0;z-index:2147482500;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.inst{width:min(760px,96vw);max-height:90vh;display:flex;flex-direction:column;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.18);font-family:'Segoe UI',Roboto,Arial,sans-serif}
+.inst-t{display:flex;align-items:center;gap:8px;padding:18px 22px 6px;font-size:18px;font-weight:600;cursor:move;user-select:none}.inst-t svg{width:21px;height:21px;fill:none;stroke:#0b3d91;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.inst-c{display:flex;flex-direction:column;min-height:0;padding:0 22px 18px}
+.inst-m{margin:4px 0 12px;font-size:14px;line-height:1.55}
+.inst-l{overflow:auto;min-height:0;flex:1;border:1px solid #e3e8ef;border-radius:8px;padding:4px 12px 10px;max-height:46vh}
+.inst-l h5{margin:12px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:#5a6b7c}
+.inst-l ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.inst-l li{display:flex;gap:10px;align-items:flex-start;padding:7px 9px;border-radius:7px;background:#f6f8fb}
+.inst-l li.erro{background:#fdecec}.inst-l li.aviso{background:#fff6e6}.inst-l li.ok{background:#f3faf5}
+.inst-l li b{font-size:13.5px}.inst-l li small{display:block;font-size:12.5px;color:#4b5563;margin-top:2px;line-height:1.4}
+.inst-l .ic{flex:none;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;color:#fff;margin-top:1px}
+.ic.ok{background:#16a34a}.ic.er{background:#dc2626}.ic.av{background:#f59e0b}.ic.in{background:#64748b;font-style:italic}
+.inst-lk{margin:10px 0 2px;border:0;background:none;color:#0b3d91;font:600 13px 'Segoe UI',Arial,sans-serif;cursor:pointer;text-decoration:underline;padding:0}
+.inst-p{margin-top:12px;border:1px solid #c5cfdd;border-radius:8px;padding:10px 12px;background:#f6f8fb;font-size:13.5px}.inst-p.ok{border-color:#16a34a;background:#f0fbf4}.inst-p.er{border-color:#dc2626;background:#fdf2f2}
+.inst-p pre{margin:8px 0 0;max-height:150px;overflow:auto;background:#0f172a;color:#d1e4ff;border-radius:6px;padding:8px 10px;font:12px Consolas,monospace;white-space:pre-wrap}
+.inst-b{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+.inst-b button{font:600 14px 'Segoe UI',Arial,sans-serif;padding:9px 16px;border-radius:6px;cursor:pointer}
+.inst-ok-b{background:#0b3d91;border:1px solid #0b3d91;color:#fff}.inst-ok-b:hover{background:#082e6e}.inst-b button:disabled{opacity:.45;cursor:not-allowed}
+.inst-no{background:#fff;border:1px solid #c5cfdd;color:#000}.inst-no:hover{background:#f1f4f8}
+.inst-q{margin-top:8px;font-size:12px;color:#5a6b7c;text-align:right}.inst-sp{flex:1}`;document.head.appendChild(st)})();
 function zerarTodas(){const pool=$('#pgpool');if(pool)pool.innerHTML=''}
 
 function render(){if(cur==='cap'||cur==='kpi'||cur==='rel')cur='home';if(cur==='prod')cur='pg3';if(cur==='val'||cur==='pg8')cur='pg1';if(cur==='rot')cur='pg10';if(cur==='exp')cur='pg12';{const f=$('#ppcp');if(/^pg/.test(cur)&&f&&f.dataset.pg===cur&&$('#vtop .prh'))return}if(cur==='usr'&&!(USER&&USER.adm))cur='home';const nb=$('nav .n[data-v=usr]');if(nb){const q=USER&&USER.adm?pend().length:0;nb.innerHTML=ico('usr')+'<span>Usuários</span>'+(q?`<span class="nb" title="Cadastros aguardando aprovação">${q}</span>`:'')}
  const isP=/^pg/.test(cur);const V=isP?prodV:{home,ops:opsV,plan:planV,cfg:cfgV,usr:usrV}[cur];const nm=isP?'':NAV.find(n=>n[0]===cur)[1];
  const _sc={};['pkL','pkO'].forEach(id=>{const e=document.getElementById(id);if(e)_sc[id]=e.scrollTop}); $('#vtop').innerHTML=V?V():`<h2>${nm}</h2><div class="pn empty"><b>${ico('cone')}</b>Este módulo chega em uma versão futura.<br>Diga o que ele precisa fazer e montamos o próximo.</div>`;['pkL','pkO'].forEach(id=>{const e=document.getElementById(id);if(e&&_sc[id])e.scrollTop=_sc[id]});if(cur==='home')pkFiltrar();
- $('#vst').innerHTML=(`<div class="st"><span><i style="${NET==='ok'?'':NET==='slow'?'background:#e0a21a':'background:#ef4444'}"></i>${NETTXT[NET]} · dados salvos no servidor · ${VERSAO}</span></div>`);{const u=$('#upd');if(u)u.innerHTML=`<span><i class="dt">•</i> Última atualização: <b>${hm(DB.meta().atualizado_em)}</b></span>`}if(/^pg/.test(cur)){telaViva(cur);mostrarPool(cur)}else mostrarPool('');if(cur==='ops')lst();if(cur==='home')initPk();applyI18n($('#app'));markUI();if(cur==='home'&&INTRO){INTRO=false;coverIntro();runIntro()}}
+ $('#vst').innerHTML=(`<div class="st"><span><i style="${NET==='ok'?'':NET==='slow'?'background:#e0a21a':'background:#ef4444'}"></i>${NETTXT[NET]} · dados salvos no servidor · ${VERSAO}</span>${instChip()}</div>`);instAgendar();{const u=$('#upd');if(u)u.innerHTML=`<span><i class="dt">•</i> Última atualização: <b>${hm(DB.meta().atualizado_em)}</b></span>`}if(/^pg/.test(cur)){telaViva(cur);mostrarPool(cur)}else mostrarPool('');if(cur==='ops')lst();if(cur==='home')initPk();applyI18n($('#app'));markUI();if(cur==='home'&&INTRO){INTRO=false;coverIntro();runIntro()}}
 const filt=()=>`<div class="tb"><select id="xp" aria-label="Processo"><option value="">Todos os processos</option>${[['Corte','OF - Obra'],['Solda','N° Lote']].map(p=>`<option value="${p[0]}" ${F.p===p[0]?'selected':''}>${p[1]}</option>`).join('')}</select><select id="xs" aria-label="Status"><option value="">Status</option>${[['Em aberto','PCT - Impresso'],['Em produção','PCT - Não Impresso'],['Concluída','Concluído'],['Dobra','Sub - trecho']].map(p=>`<option value="${p[0]}" ${F.s===p[0]?'selected':''}>${p[1]}</option>`).join('')}</select>`;
 $('#view').addEventListener('change',e=>{if(e.target.id==='anim'&&USER&&USER.adm){ANIM=e.target.checked;savePrefs();toast(ANIM?'Animação de abertura ligada':'Animação de abertura desligada')}if(e.target.id==='xp'){F.p=e.target.value;render();savePrefs()}if(e.target.id==='xs'){F.s=e.target.value;render();savePrefs()}});
 $('#view').addEventListener('input',e=>{if(e.target.id==='xq'){F.q=e.target.value;lst();clearTimeout(window._pq);window._pq=setTimeout(savePrefs,500)}});

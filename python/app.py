@@ -253,6 +253,15 @@ class Sistema(BaseHTTPRequestHandler):
             if acao == "pacotes":   # Tela inicial: planilha de controle de pacotes (linhas só quando mudou)
                 from ppcpm import pacotes
                 return self._json(pacotes.estado(q.get("linhas") == "1", q.get("desde", "")))
+            if acao == "instalacao":   # o sistema confere se a instalação deste PC está completa
+                from ppcpm import instalacao
+                return self._json(instalacao.verificar(q.get("rede") != "0"))
+            if acao == "instalacao_acao":   # resolve o que falta (bibliotecas, arquivos, atalho, instalar no PC)
+                from ppcpm import instalacao
+                return self._json(instalacao.executar(q.get("acao", "")))
+            if acao == "instalacao_estado":
+                from ppcpm import instalacao
+                return self._json(instalacao.estado())
             if acao == "pacotes_limpar":   # Atualizar da Tela inicial: zera para colocar uma planilha nova
                 from ppcpm import pacotes
                 return self._json(pacotes.limpar())
@@ -466,6 +475,8 @@ def main(args: list[str]) -> int:
             servidor.shutdown()
 
         ESTADO["agendador"] = Agendador(pedir_reinicio)
+        from ppcpm import instalacao
+        instalacao.REINICIAR["fn"] = pedir_reinicio
         ESTADO["agendador"].start()
 
     threading.Thread(target=pagina, daemon=True).start()   # já deixa a página pronta na memória

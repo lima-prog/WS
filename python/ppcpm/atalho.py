@@ -114,6 +114,20 @@ def _criar_ctypes(lnk: Path, bat: Path, icone: Path) -> None:
         chamar(link, 2, c_ulong)(link)
 
 
+def existe() -> bool:
+    """Tem um atalho na Área de Trabalho que abre o sistema DESTA pasta? (só confere, não cria)"""
+    if not sys.platform.startswith("win"):
+        return True
+    bat = PASTA_APP / "ABRIR_SISTEMA.bat"
+    for pasta in _areas_de_trabalho():
+        try:
+            if any(_aponta_para_mim(lnk, bat) for lnk in pasta.glob("*.lnk")):
+                return True
+        except OSError:
+            continue
+    return False
+
+
 def garantir(forcar: bool = False) -> str:
     """Confere/cria o atalho. Devolve uma frase com o que aconteceu."""
     if not sys.platform.startswith("win"):
