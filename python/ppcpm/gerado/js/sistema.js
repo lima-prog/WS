@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 164';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 165';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -807,7 +807,11 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .pkalt-tb{flex:1;overflow:auto}
 .pkalt-row{display:grid;grid-template-columns:130px minmax(190px,1.3fr) minmax(100px,.75fr) minmax(130px,1.1fr) minmax(140px,1.4fr) minmax(80px,.75fr) minmax(80px,.75fr) minmax(80px,.75fr) minmax(60px,.6fr) 96px 100px;gap:10px;align-items:center;padding:7px 14px;border-bottom:1px solid #edf0f3;font-size:13px;color:#1c2a38;min-width:1250px;cursor:pointer}
 .pkalt-row > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pkalt-row .num{text-align:right}.pkalt-row .pcode{font-family:Consolas,monospace;font-weight:700;overflow:visible}
-.pkalt-row.pth{position:sticky;top:0;z-index:1;background:#dfe3e9;font-size:12px;font-weight:700;color:#5a6b7c;cursor:default}
+.pkalt-row.pth{position:sticky;top:0;z-index:1;background:#5f6b7a;font-size:12.5px;font-weight:700;color:#fff;cursor:default;border-bottom:0;padding-top:9px;padding-bottom:9px}
+.pkalt-row.pth > *{position:relative;overflow:visible}
+.pkalt-row.pth > *:not(:first-child)::before{content:'';position:absolute;left:-5px;top:-9px;bottom:-9px;width:1px;background:#fff}
+.pkalt-row.pth .pkall{color:#fff}
+.pkalt-row.pth input{accent-color:#fff}
 .pkalt-row input{width:16px;height:16px;accent-color:#0b3d91;color-scheme:light;cursor:pointer;margin:0}
 .pkalt-row:not(.pth):hover{background:#eef4fb}.pkalt-row.sel{background:#dbe8fb}.pkalt-row.rv{box-shadow:inset 4px 0 0 #dc2626}
 .pkalt-row .pkall{display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;color:#1c2a38}
