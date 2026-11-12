@@ -20,8 +20,8 @@ function __pjTitulo(d,txt,ic){var t=d.createElement('div');t.style.cssText='disp
  var s=d.createElement('span');s.textContent=txt;t.appendChild(s);return t}
 function __pjEntrar(c){try{c.animate([{opacity:0,translate:'0 12px',scale:'.98'},{opacity:1,translate:'0 0',scale:'1'}],{duration:250,easing:'ease-out'})}catch(_){}
  c.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('button');if(b){b.style.transform='scale(.97)';setTimeout(function(){b.style.transform=''},120)}})}
-function avisa(msg){try{
- var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
+function avisa(msg,op){try{
+ var d=(op&&op.doc)||document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
  fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
  var c=d.createElement('div');c.style.cssText=__pjCaixa;__pjEntrar(c);
  var t=__pjTitulo(d,'SISTEMA PPCPM - AVISA','info');
@@ -37,7 +37,7 @@ function avisa(msg){try{
 window.__avisa=avisa;window.alert=avisa;
 /* V147: pergunta (Sim/Cancelar) no mesmo padrão, no centro do app — devolve Promise<boolean> */
 window.__pergunta=function(msg,op){op=op||{};return new Promise(function(res){try{
- var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
+ var d=op.doc||document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
  fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
  var c=d.createElement('div');c.style.cssText=__pjCaixa;__pjEntrar(c);
  var t=__pjTitulo(d,op.titulo||'SISTEMA PPCPM - AVISA',op.icone||'ajuda');
@@ -25404,7 +25404,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 162';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 163';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -25759,7 +25759,7 @@ async function pkSincPlanilha(){if(!PY_LOCAL||!SB)return false;let j;
 async function pkTick(forcar){if(PK.carregando)return;PK.carregando=true;let mudou=false;
  try{if(!PK.meta&&PY_LOCAL){try{const {data}=await SB.from('pacotes_meta').select('*').eq('id',1).maybeSingle();PK.meta=data||null}catch(e){}}
   const s=await pkSincPlanilha();mudou=(await pkCarregar())||s||forcar}catch(e){console.warn('[pacotes]',e);PK.erro=PK.erro||('Não consegui ler os pacotes: '+(e.message||e))}
- PK.carregando=false;if(mudou&&cur==='home')render()}
+ PK.carregando=false;if(mudou&&cur==='home')render();if(mudou&&ALT.el){try{pkAltLotes(ALT.el.querySelector('#altLoteBusca')?.value||'');pkAltTabela()}catch(_){}}}
 function pkIniciar(){if(PK.timer)return;PK.timer=setInterval(()=>pkTick(),60000);pkTick(true)}
 async function pkMarcar(lote,obra,on){const k=pkKey(lote,obra);if(on)PK.marcas[k]=1;else delete PK.marcas[k];pkAtualizarNumeros();
  const {error}=await SB.from('pacotes_impressao').upsert({lote,of_trecho:obra,impresso:!!on,em:new Date().toISOString()},{onConflict:'lote,of_trecho'});
@@ -25768,15 +25768,26 @@ async function pkMarcar(lote,obra,on){const k=pkKey(lote,obra);if(on)PK.marcas[k
 function pkAplicarAlt(){const alt={};(PK.altRaw||[]).forEach(a=>{alt[pkKey(a.lote_de,a.of_trecho)]=a.lote_para});const ex=new Set(PK.base.map(r=>pkKey(r.lote,r.of_trecho)));
  return PK.base.map(r=>{const p=alt[pkKey(r.lote,r.of_trecho)];return p&&p!==r.lote&&!ex.has(pkKey(p,r.of_trecho))?{...r,lote:p,lote_orig:r.lote}:r})}
 const ALT={lote:null,busca:'',soRev:false,sel:new Set(),el:null};
-function pkAbrirAlt(){if(ALT.el){ALT.el.querySelector('#altBusca')?.focus();return}const ls=pkLotes();if(!ls.length){window.__avisa?__avisa('Nenhum pacote lido ainda.'):alert('Nenhum pacote lido ainda.');return}
+/* V163: a Alteração de LOTE abre numa janela própria (dá para arrastar para a segunda tela). Se o navegador bloquear, abre dentro do sistema. */
+function pkAltHtml(){return`<div class="pkalt-t"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg><b>Alteração de LOTE</b><span>escolha o pacote, marque as obras e mande para o novo lote</span><button type="button" class="pkalt-x" data-alt="fechar" title="Fechar (Esc)">✕</button></div><div class="pkalt-c"><aside class="pkalt-l"></aside><section class="pkalt-r"></section></div><div class="pkalt-p"></div>`}
+function pkAltLigar(raiz,doc){raiz.addEventListener('click',pkAltClique);raiz.addEventListener('change',pkAltMuda);raiz.addEventListener('input',e=>{if(e.target.id==='altBusca'){ALT.busca=e.target.value;pkAltTabela()}else if(e.target.id==='altLoteBusca'){pkAltLotes(e.target.value)}else if(e.target.id==='altPara')pkAltPe()});
+ ALT.tecla=e=>{if(e.key==='Escape'&&ALT.el&&!doc.querySelector('[role=alertdialog]')){e.preventDefault();pkFecharAlt()}};doc.addEventListener('keydown',ALT.tecla,true)}
+function pkAbrirAlt(){if(ALT.win&&!ALT.win.closed){ALT.win.focus();return}if(ALT.el){ALT.el.querySelector('#altBusca')?.focus();return}
+ const ls=pkLotes();if(!ls.length){window.__avisa?__avisa('Nenhum pacote lido ainda.'):alert('Nenhum pacote lido ainda.');return}
  const l=pkLoteAtual();ALT.lote=l&&l!=='TODOS'?l:ls[0];ALT.busca='';ALT.sel=new Set();ALT.soRev=false;
+ const W=Math.min(1500,(screen.availWidth||1500)-40),H=Math.min(900,(screen.availHeight||900)-60);let w=null;
+ try{w=window.open('','ppcpm_alteracao_lote',`popup=yes,width=${W},height=${H},left=${Math.max(0,((screen.availWidth||W)-W)/2)},top=30`)}catch(_){w=null}
+ if(w&&w.document){const css=[...document.querySelectorAll('style')].filter(x=>x.textContent.includes('.pkalt{')).map(x=>x.textContent).join('\n');
+  w.document.open();w.document.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Alteração de LOTE — SISTEMA PPCPM</title><style>'+css.replace(/<\/style/gi,'<\\/style')+'\nhtml,body{margin:0;height:100%;background:#fff;color-scheme:light}body{overflow:hidden}.pkalt.pkalt-win{width:100vw;height:100vh;border:0;border-top:6px solid #0b3d91;border-radius:0;box-shadow:none}.pkalt-win .pkalt-t{cursor:default}</style></head><body><div class="pkalt pkalt-win"></div></body></html>');w.document.close();
+  try{const ic=document.querySelector('link[rel~=icon]');if(ic){const li=w.document.createElement('link');li.rel='icon';li.href=ic.href;w.document.head.appendChild(li)}}catch(_){}
+  const raiz=w.document.querySelector('.pkalt');raiz.innerHTML=pkAltHtml();ALT.win=w;ALT.doc=w.document;ALT.el=raiz;pkAltLigar(raiz,w.document);
+  w.addEventListener('pagehide',()=>{if(ALT.win===w){ALT.win=null;ALT.el=null;ALT.doc=null}});
+  clearInterval(ALT.vigia);ALT.vigia=setInterval(()=>{if(!ALT.win||ALT.win.closed){clearInterval(ALT.vigia);if(ALT.win===w||!ALT.win){ALT.win=null;ALT.el=null;ALT.doc=null}}},1000);
+  pkAltDesenhar();w.focus();return}
  const f=document.createElement('div');f.className='pkalt-fundo';f.setAttribute('role','dialog');f.setAttribute('aria-modal','true');f.setAttribute('aria-label','Alteração de LOTE');
- f.innerHTML=`<div class="pkalt"><div class="pkalt-t"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg><b>Alteração de LOTE</b><span>escolha o pacote, marque as obras e mande para o novo lote</span><button type="button" class="pkalt-x" data-alt="fechar" title="Fechar (Esc)">✕</button></div><div class="pkalt-c"><aside class="pkalt-l"></aside><section class="pkalt-r"></section></div><div class="pkalt-p"></div></div>`;
- document.body.appendChild(f);ALT.el=f;const card=f.querySelector('.pkalt');try{arrastavel(card,f.querySelector('.pkalt-t'))}catch(_){}
- f.addEventListener('click',pkAltClique);f.addEventListener('change',pkAltMuda);f.addEventListener('input',e=>{if(e.target.id==='altBusca'){ALT.busca=e.target.value;pkAltTabela()}else if(e.target.id==='altLoteBusca'){pkAltLotes(e.target.value)}});
- ALT.tecla=e=>{if(e.key==='Escape'&&ALT.el&&!document.querySelector('[role=alertdialog]')){e.preventDefault();pkFecharAlt()}};document.addEventListener('keydown',ALT.tecla,true);
- pkAltDesenhar()}
-function pkFecharAlt(){if(!ALT.el)return;document.removeEventListener('keydown',ALT.tecla,true);ALT.el.remove();ALT.el=null}
+ f.innerHTML=`<div class="pkalt">${pkAltHtml()}</div>`;document.body.appendChild(f);ALT.el=f;ALT.doc=document;try{arrastavel(f.querySelector('.pkalt'),f.querySelector('.pkalt-t'))}catch(_){}
+ pkAltLigar(f,document);pkAltDesenhar()}
+function pkFecharAlt(){if(ALT.win){const w=ALT.win;ALT.win=null;ALT.el=null;ALT.doc=null;try{w.close()}catch(_){}return}if(!ALT.el)return;document.removeEventListener('keydown',ALT.tecla,true);ALT.el.remove();ALT.el=null;ALT.doc=null}
 function pkAltDesenhar(){if(!ALT.el)return;const ls=pkLotes();if(!ls.includes(ALT.lote))ALT.lote=ls[0]||null;
  ALT.el.querySelector('.pkalt-l').innerHTML=`<label class="pkalt-lb">Pacote atual</label><input type="search" id="altLoteBusca" placeholder="Filtrar pacote" autocomplete="off"><div class="pkalt-ll"></div>`;pkAltLotes('');
  ALT.el.querySelector('.pkalt-r').innerHTML=`<div class="pkalt-rh"><h4>Obras do pacote <span id="altLoteT"></span></h4><span class="pcnt" id="altCnt"></span><label class="pkbusca"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="altBusca" placeholder="Pesquisar obra" autocomplete="off" value="${esc(ALT.busca)}"></label><label class="pkalt-so"><input type="checkbox" id="altSoRev"${ALT.soRev?' checked':''}> só obras em revisão</label></div><div class="pkalt-tb" id="altTb"></div>`;
@@ -25792,8 +25803,8 @@ function pkAltTabela(){if(!ALT.el)return;const rows=pkAltLinhas(),tot=PK.linhas.
  ALT.el.querySelector('#altTb').innerHTML=`<div class="pkalt-row pth"><label class="pkall"><input type="checkbox" data-alt="todos"${todos?' checked':''}${rows.length?'':' disabled'}>Selecionar todos</label><span>OF-trecho</span><span>Ano - semana</span><span>Peso LIC / lote</span><span>Observação</span><span class="num">Qtd kg prep</span><span class="num">Qtd kg ñprep</span><span>Início Artia</span><span>Status</span><span>Impressão</span><span>Revisão</span></div>`+
  (rows.map(r=>{const k=pkKey(r.lote,r.of_trecho),on=!!PK.marcas[k],rv=!!PK.rev[k],sl=ALT.sel.has(r.of_trecho);return`<label class="pkalt-row${sl?' sel':''}${rv?' rv':''}"><span><input type="checkbox" data-alt="sel" data-o="${esc(r.of_trecho)}"${sl?' checked':''}></span><span class="pcode">${esc(r.of_trecho)}${r.lote_orig?`<span class="pkde" title="Lote original na planilha: ${esc(r.lote_orig)}">veio do ${esc(r.lote_orig)}</span>`:''}</span><span>${esc(r.ano_semana||'—')}</span><span class="pkpeso">${pkValida(r)?esc(r.peso_lic):`<span class="pkchip c-val">${esc(r.peso_lic||'Validar')}</span>`}</span><span class="pkobst" title="${esc(rv?PK.obs[k]||'':'')}">${rv&&PK.obs[k]?esc(PK.obs[k]):'—'}</span><span class="num">${pkNum(r.kg_prep)}</span><span class="num">${pkNum(r.kg_nprep)}</span><span>${esc(r.data_inicio||'—')}</span><span>${esc(r.status||'—')}</span><span><span class="pkchip ${on?'c-imp':'c-pen'}">${on?'Impressa':'Pendente'}</span></span><span>${rv?'<span class="pkchip c-rev">Em revisão</span>':'—'}</span></label>`}).join('')||`<div class="pkalt-v">${ALT.soRev?'Nenhuma obra em revisão neste pacote.':'Nenhuma obra.'}</div>`);
  pkAltPe()}
-function pkAltPe(){if(!ALT.el)return;const n=ALT.sel.size,dest=String(ALT.el.querySelector('#altPara').value||'').trim();ALT.el.querySelector('#altSel').textContent=`${n} ${n===1?'obra selecionada':'obras selecionadas'}`;ALT.el.querySelector('[data-alt=mover]').disabled=!n||!dest||dest===ALT.lote}
-function pkAltMuda(e){const t=e.target;if(t.dataset.alt==='sel'){if(t.checked)ALT.sel.add(t.dataset.o);else ALT.sel.delete(t.dataset.o);t.closest('.pkalt-row').classList.toggle('sel',t.checked);const tt=ALT.el.querySelector('[data-alt=todos]'),rows=pkAltLinhas();if(tt)tt.checked=rows.length&&rows.every(r=>ALT.sel.has(r.of_trecho));pkAltPe()}
+function pkAltPe(){if(!ALT.el)return;const n=ALT.sel.size,dest=String(ALT.el.querySelector('#altPara').value||'').trim(),se=ALT.el.querySelector('#altSel');se.textContent=ALT.ok?'✔ '+ALT.ok:`${n} ${n===1?'obra selecionada':'obras selecionadas'}`;se.classList.toggle('pkalt-msg',!!ALT.ok);if(ALT.ok){clearTimeout(ALT.okT);ALT.okT=setTimeout(()=>{ALT.ok='';pkAltPe()},4000)}ALT.el.querySelector('[data-alt=mover]').disabled=!n||!dest||dest===ALT.lote}
+function pkAltMuda(e){const t=e.target;ALT.ok='';if(t.dataset.alt==='sel'){if(t.checked)ALT.sel.add(t.dataset.o);else ALT.sel.delete(t.dataset.o);t.closest('.pkalt-row').classList.toggle('sel',t.checked);const tt=ALT.el.querySelector('[data-alt=todos]'),rows=pkAltLinhas();if(tt)tt.checked=rows.length&&rows.every(r=>ALT.sel.has(r.of_trecho));pkAltPe()}
  else if(t.dataset.alt==='todos'){pkAltLinhas().forEach(r=>{if(t.checked)ALT.sel.add(r.of_trecho);else ALT.sel.delete(r.of_trecho)});pkAltTabela()}
  else if(t.id==='altSoRev'){ALT.soRev=t.checked;pkAltTabela()}
  else if(t.id==='altPara')pkAltPe()}
@@ -25801,22 +25812,21 @@ async function pkAltClique(e){const b=e.target.closest('[data-alt]');if(e.target
  if(a==='fechar')return pkFecharAlt();
  if(a==='lote'){ALT.lote=b.dataset.l;ALT.sel=new Set();ALT.busca='';const bi=ALT.el.querySelector('#altBusca');if(bi)bi.value='';ALT.el.querySelectorAll('.pkalt-li').forEach(x=>x.classList.toggle('on',x===b));return pkAltTabela()}
  if(a==='mover')return pkAltMover()}
-document.addEventListener('input',e=>{if(e.target&&e.target.id==='altPara')pkAltPe()});
 async function pkAltMover(){const dest=String(ALT.el.querySelector('#altPara').value||'').trim().replace(/\s+/g,'');if(!dest||!ALT.sel.size)return;
- if(!/^[0-9A-Za-z._-]{1,20}$/.test(dest)){window.__avisa&&__avisa('Lote inválido: use só números (ex.: 707).');return}
+ const dd={doc:ALT.doc||document};if(!/^[0-9A-Za-z._-]{1,20}$/.test(dest)){window.__avisa&&__avisa('Lote inválido: use só números (ex.: 707).',dd);return}
  const rows=PK.linhas.filter(r=>r.lote===ALT.lote&&ALT.sel.has(r.of_trecho)),ja=new Set(PK.linhas.filter(r=>r.lote===dest).map(r=>r.of_trecho));
  const mover=rows.filter(r=>!ja.has(r.of_trecho)),pular=rows.filter(r=>ja.has(r.of_trecho));
- if(!mover.length){window.__avisa&&__avisa(`Essas obras já estão no lote ${dest}.`);return}
+ if(!mover.length){window.__avisa&&__avisa(`Essas obras já estão no lote ${dest}.`,dd);return}
  const novo=!pkLotes().includes(dest);
- const ok=!window.__pergunta||await __pergunta(`Mover ${mover.length} ${mover.length===1?'obra':'obras'} do lote ${ALT.lote} para o lote ${dest}${novo?' (lote novo)':''}?\n\n${mover.slice(0,12).map(r=>'• '+r.of_trecho).join('\n')}${mover.length>12?'\n…':''}${pular.length?`\n\n${pular.length} já ${pular.length===1?'está':'estão'} no lote ${dest} e não ${pular.length===1?'vai':'vão'} ser movida(s).`:''}\n\nNo lote novo a obra começa como Pendente de impressão. A planilha não é alterada.`,{titulo:'Alteração de LOTE',icone:'refresh',sim:'Alterar lote',nao:'Cancelar'});
+ const ok=!window.__pergunta||await __pergunta(`Mover ${mover.length} ${mover.length===1?'obra':'obras'} do lote ${ALT.lote} para o lote ${dest}${novo?' (lote novo)':''}?\n\n${mover.slice(0,12).map(r=>'• '+r.of_trecho).join('\n')}${mover.length>12?'\n…':''}${pular.length?`\n\n${pular.length} já ${pular.length===1?'está':'estão'} no lote ${dest} e não ${pular.length===1?'vai':'vão'} ser movida(s).`:''}\n\nNo lote novo a obra começa como Pendente de impressão. A planilha não é alterada.`,{titulo:'Alteração de LOTE',icone:'refresh',sim:'Alterar lote',nao:'Cancelar',doc:dd.doc});
  if(!ok)return;
  const volta=mover.filter(r=>(r.lote_orig||r.lote)===dest),vai=mover.filter(r=>(r.lote_orig||r.lote)!==dest);let erro=null;
  if(vai.length){const {error}=await SB.from('pacotes_alteracoes').upsert(vai.map(r=>({lote_de:r.lote_orig||r.lote,of_trecho:r.of_trecho,lote_para:dest,em:new Date().toISOString()})),{onConflict:'lote_de,of_trecho'});if(error)erro=error}
  for(const r of volta){if(erro)break;const {error}=await SB.from('pacotes_alteracoes').delete().eq('lote_de',r.lote_orig).eq('of_trecho',r.of_trecho);if(error)erro=error}
- if(erro){window.__avisa?__avisa('Não consegui alterar o lote: '+erro.message):alert(erro.message);return}
+ if(erro){window.__avisa?__avisa('Não consegui alterar o lote: '+erro.message,dd):alert(erro.message);return}
  DB.log&&DB.log('pacotes_alteracoes',null,'alterar_lote',{de:ALT.lote,para:dest,obras:mover.map(r=>r.of_trecho)});
  PK.altRaw=await pkTudo('pacotes_alteracoes','lote_de,of_trecho,lote_para');PK.linhas=pkAplicarAlt();ALT.sel=new Set();
- toast(`${mover.length} ${mover.length===1?'obra movida':'obras movidas'} para o lote ${dest}`);if(cur==='home')render();pkAltDesenhar()}
+ const msg=`${mover.length} ${mover.length===1?'obra movida':'obras movidas'} para o lote ${dest}`;if(ALT.win)ALT.ok=msg;else toast(msg);if(cur==='home')render();pkAltDesenhar()}
 /* V160: Revisão — marcação manual de cada usuário quando tem erro (independente do Impresso) */
 async function pkMotivo(obra,valor){return window.__pergunta?__pergunta(`Obra ${obra}: escreva o motivo da revisão. Todos os usuários vão ver esta observação.`,{titulo:valor?'Editar observação da revisão':'Colocar obra em revisão',icone:'alerta',sim:'Salvar',nao:'Cancelar',campo:{rotulo:'Observação (obrigatório)',valor:valor||'',placeholder:'Ex.: peso divergente, faltou posição, desenho errado…',obrigatorio:true,erro:'O motivo é obrigatório para colocar a obra em revisão.'}}):(window.prompt('Motivo da revisão da obra '+obra,valor||'')||'').trim()||false}
 async function pkRevisar(lote,obra,on,cb){const k=pkKey(lote,obra);let obs=null;
@@ -25864,7 +25874,7 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
  const faixa=PY_LOCAL&&!PK.caminho&&PK.ok?`<div class="pkcfg"><b>Ligar a planilha de pacotes:</b> escolha a <i>PLANILHA DE CONTROLE DE PACOTES ENTREGUES</i> no drive do PPCPM. O sistema lê ela sozinho a cada minuto. <button type="button" class="btn" data-pk="plan">Escolher planilha…</button></div>`
   :`<div class="pkinfo">${PK.erro?`<span class="pkerr">⚠ ${esc(PK.erro)}</span>`:''}${nomeArq?`<span>Planilha: <b>${esc(nomeArq)}</b> · aba LIBERAÇÃO DE PCTS${PK.meta&&PK.meta.em?' · lida '+hm(PK.meta.em):''}</span>`:'<span>Carregando pacotes…</span>'}${PY_LOCAL?'<button type="button" class="pklink" data-pk="plan">trocar planilha</button><button type="button" class="pklink" data-pk="ler">ler agora</button>':''}</div>`;
  return`<div class="prh"><h2 class="up" style="text-align:center">Visão geral do dia</h2><div class="prr"><button type="button" class="pgreset" data-pk="${PY_LOCAL?'zerar':'ler'}" title="${PY_LOCAL?'Zerar a tela inicial para colocar uma planilha nova (novos lotes)':'Ler os pacotes de novo agora'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>Atualizar</button><span class="onl${NET==='ok'?'':' '+NET}" role="status"><i></i>${NETTXT[NET]}</span></div></div><div class="hw">${faixa}<div class="kg pk6">${cardPac}${L}${R}</div>
- <section class="pcc pkpcc"><div class="pch"><h3>Pacote para revisão</h3><span class="pcnt" id="pkCntL">${c.n} ${c.n===1?'obra':'obras'}</span><label class="pkbusca" title="Digite uma ou várias obras (separe por espaço, vírgula ou ;)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="pkBusca" placeholder="Pesquisar obra" autocomplete="off" spellcheck="false" value="${esc(PK.busca||'')}" aria-label="Pesquisar obra"></label><button type="button" class="pkaltb" data-pk="alt" title="Mudar obras de um pacote para outro lote (ex.: obra que voltou da revisão)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg>Alteração de LOTE</button><span class="phint">${lote==='TODOS'?'obras de todos os pacotes':'obras listadas no pacote '+(lote?esc(lote):'')} · marque as impressas e as que precisam de revisão</span></div>
+ <section class="pcc pkpcc"><div class="pch"><h3>Pacote para revisão</h3><span class="pcnt" id="pkCntL">${c.n} ${c.n===1?'obra':'obras'}</span><label class="pkbusca" title="Digite uma ou várias obras (separe por espaço, vírgula ou ;)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input type="search" id="pkBusca" placeholder="Pesquisar obra" autocomplete="off" spellcheck="false" value="${esc(PK.busca||'')}" aria-label="Pesquisar obra"></label><button type="button" class="pkaltb" data-pk="alt" title="Abre numa janela própria (dá para levar para a segunda tela): mudar obras de um pacote para outro lote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg>Alteração de LOTE</button><span class="phint">${lote==='TODOS'?'obras de todos os pacotes':'obras listadas no pacote '+(lote?esc(lote):'')} · marque as impressas e as que precisam de revisão</span></div>
  <div class="pklist" id="pkL"><div class="pkrow pth"><label class="pkall" title="Marcar ou desmarcar todas as obras da lista como impressas"><input type="checkbox" id="pkTodos" aria-label="Selecionar todos">Selecionar todos</label><span>OF-trecho</span><span>Ano - semana</span><span>Peso LIC / lote</span><span>Observação</span><span class="num">Qtd kg prep</span><span class="num">Qtd kg ñprep</span><span>Início Artia</span><span>Status</span><span>Impressão</span><span>Revisão</span></div>${marc}</div></section>
  </div>`}
 (function(){const st=document.createElement('style');st.textContent=`
@@ -25892,7 +25902,7 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .pkalt .pkbusca input::placeholder{text-transform:uppercase;letter-spacing:.5px;font-size:12px;color:#7b8794}
 .pkalt-so{display:flex;align-items:center;gap:6px;margin-left:auto;font-size:13px;font-weight:600;cursor:pointer}.pkalt-so input{accent-color:#dc2626;width:15px;height:15px}
 .pkalt-tb{flex:1;overflow:auto}
-.pkalt-row{display:grid;grid-template-columns:130px minmax(190px,1.3fr) minmax(80px,.7fr) minmax(130px,1.1fr) minmax(140px,1.4fr) minmax(80px,.75fr) minmax(80px,.75fr) minmax(80px,.75fr) minmax(60px,.6fr) 96px 100px;gap:10px;align-items:center;padding:7px 14px;border-bottom:1px solid #edf0f3;font-size:13px;color:#1c2a38;min-width:1250px;cursor:pointer}
+.pkalt-row{display:grid;grid-template-columns:130px minmax(190px,1.3fr) minmax(100px,.75fr) minmax(130px,1.1fr) minmax(140px,1.4fr) minmax(80px,.75fr) minmax(80px,.75fr) minmax(80px,.75fr) minmax(60px,.6fr) 96px 100px;gap:10px;align-items:center;padding:7px 14px;border-bottom:1px solid #edf0f3;font-size:13px;color:#1c2a38;min-width:1250px;cursor:pointer}
 .pkalt-row > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pkalt-row .num{text-align:right}.pkalt-row .pcode{font-family:Consolas,monospace;font-weight:700;overflow:visible}
 .pkalt-row.pth{position:sticky;top:0;z-index:1;background:#dfe3e9;font-size:12px;font-weight:700;color:#5a6b7c;cursor:default}
 .pkalt-row input{width:16px;height:16px;accent-color:#0b3d91;color-scheme:light;cursor:pointer;margin:0}
@@ -25904,6 +25914,7 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .pkalt-v{padding:26px;text-align:center;color:#5a6b7c}
 .pkalt-p{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #e3e8ef;background:#f6f8fb;flex-wrap:wrap}
 .pkalt-p #altSel{font-weight:700;margin-right:auto}
+.pkalt-p #altSel.pkalt-msg{color:#15803d}
 .pkalt-p label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
 .pkalt-p input{width:120px;height:36px;border:1px solid #c5cfdd;border-radius:6px;padding:0 10px;font:600 15px 'Segoe UI',Arial,sans-serif;color:#000;background:#fff;color-scheme:light}
 .pkalt-p input:focus{outline:0;border-color:#0b3d91;box-shadow:0 0 0 3px rgba(11,61,145,.15)}

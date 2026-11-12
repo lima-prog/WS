@@ -20,8 +20,8 @@ function __pjTitulo(d,txt,ic){var t=d.createElement('div');t.style.cssText='disp
  var s=d.createElement('span');s.textContent=txt;t.appendChild(s);return t}
 function __pjEntrar(c){try{c.animate([{opacity:0,translate:'0 12px',scale:'.98'},{opacity:1,translate:'0 0',scale:'1'}],{duration:250,easing:'ease-out'})}catch(_){}
  c.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('button');if(b){b.style.transform='scale(.97)';setTimeout(function(){b.style.transform=''},120)}})}
-function avisa(msg){try{
- var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
+function avisa(msg,op){try{
+ var d=(op&&op.doc)||document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
  fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
  var c=d.createElement('div');c.style.cssText=__pjCaixa;__pjEntrar(c);
  var t=__pjTitulo(d,'SISTEMA PPCPM - AVISA','info');
@@ -37,7 +37,7 @@ function avisa(msg){try{
 window.__avisa=avisa;window.alert=avisa;
 /* V147: pergunta (Sim/Cancelar) no mesmo padrão, no centro do app — devolve Promise<boolean> */
 window.__pergunta=function(msg,op){op=op||{};return new Promise(function(res){try{
- var d=document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
+ var d=op.doc||document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
  fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
  var c=d.createElement('div');c.style.cssText=__pjCaixa;__pjEntrar(c);
  var t=__pjTitulo(d,op.titulo||'SISTEMA PPCPM - AVISA',op.icone||'ajuda');
