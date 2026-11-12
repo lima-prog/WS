@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 169';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 170';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -881,7 +881,7 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .pkalt-row:not(.pth):hover{background:#eef4fb}.pkalt-row.sel{background:#dbe8fb}.pkalt-row.rv{box-shadow:inset 4px 0 0 #dc2626}
 .pkalt-row .pkall{display:flex;align-items:center;gap:7px;white-space:nowrap;cursor:pointer;color:#1c2a38}
 .pkalt-row .pkchip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
-.pkalt .c-imp{background:#dcf5e3;color:#15803d;border-radius:3px!important}.pkalt .c-pen{background:#fff1d6;color:#b45309;border-radius:3px!important}.pkalt .c-val{background:#fde7c7;color:#a85a00}.pkalt .c-rev{background:#dc2626;color:#fff}
+.pkalt .c-imp{background:#dcf5e3;color:#15803d;border-radius:3px!important}.pkalt .c-pen{background:#fff1d6;color:#b45309;border-radius:3px!important}.pkalt .c-val{background:#fde7c7;color:#a85a00}.pkalt .c-rev{background:#dc2626;color:#fff;border-radius:3px!important}
 .pkalt-row .pkobst{color:#991b1b;font-weight:600}
 .pkalt-v{padding:26px;text-align:center;color:#5a6b7c}
 .pkalt-p{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #e3e8ef;background:#f6f8fb;flex-wrap:wrap}
@@ -906,7 +906,7 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .hw .pkpcc .pkpeso{font-size:12.5px}
 .hw .pkpcc .pkrow > span.pcode{overflow:visible;white-space:normal;line-height:1.5}
 .hw .pkck{display:flex;align-items:center;height:100%;cursor:pointer}
-.hw .pkrv{display:inline-flex;align-items:center;gap:7px;cursor:pointer;padding:3px 10px 3px 8px;border:1px solid #d5dbe4;border-radius:999px;background:#fff;font:700 12px Arial,Helvetica,sans-serif;color:#5a6b7c;width:max-content}
+.hw .pkrv{display:inline-flex;align-items:center;gap:7px;cursor:pointer;padding:3px 10px 3px 8px;border:1px solid #d5dbe4;border-radius:3px;background:#fff;font:700 12px Arial,Helvetica,sans-serif;color:#5a6b7c;width:max-content}
 .hw .pkrv input{width:15px;height:15px;accent-color:#dc2626;color-scheme:light;cursor:pointer;margin:0}
 .hw .pkrow.rv{background:#fdecec;box-shadow:inset 4px 0 0 #dc2626}
 .hw .pkrow.rv:not(.pth):hover{background:#fbdcdc}
