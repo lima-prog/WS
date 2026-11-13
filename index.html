@@ -15,20 +15,38 @@ var __pjCaixa='background:#fff;color:#000;border-radius:10px;border:1.5px solid 
 var __pjBtn='font:600 14px "Segoe UI",Roboto,Arial,sans-serif;padding:9px 16px;border-radius:6px;cursor:pointer;transition:background .15s,transform .1s;';
 var __pjSim=__pjBtn+'background:#0b3d91;color:#fff;border:1px solid #0b3d91;',__pjNao=__pjBtn+'background:#fff;color:#000;border:1px solid #c5cfdd;';
 var __pjIcones={info:'<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/>',ajuda:'<circle cx="12" cy="12" r="9"/><path d="M12 17v.01M12 13.5a1.5 1.5 0 0 1 1-1.5 2.6 2.6 0 1 0-3-4"/>',refresh:'<path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>',alerta:'<path d="M12 9v4M12 17h.01"/><path d="M10.24 3.96 2.7 16.5A2 2 0 0 0 4.4 19.5h15.2a2 2 0 0 0 1.7-3L13.76 3.96a2 2 0 0 0-3.52 0z"/>'};
-function __pjTitulo(d,txt,ic){var t=d.createElement('div');t.style.cssText='display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:18px;font-weight:600;color:#000';
- t.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="flex:none;fill:none;stroke:#0b3d91;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">'+(__pjIcones[ic]||__pjIcones.info)+'</svg>';
+function __pjTitulo(d,txt,ic,cor){var t=d.createElement('div');t.style.cssText='display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:18px;font-weight:600;color:#000';
+ t.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="flex:none;fill:none;stroke:'+(cor||'#0b3d91')+';stroke-width:2;stroke-linecap:round;stroke-linejoin:round">'+(__pjIcones[ic]||__pjIcones.info)+'</svg>';
  var s=d.createElement('span');s.textContent=txt;t.appendChild(s);return t}
 function __pjEntrar(c){try{c.animate([{opacity:0,translate:'0 12px',scale:'.98'},{opacity:1,translate:'0 0',scale:'1'}],{duration:250,easing:'ease-out'})}catch(_){}
  c.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('button');if(b){b.style.transform='scale(.97)';setTimeout(function(){b.style.transform=''},120)}})}
+/* V180: quando algo dá errado, o aviso vira "SISTEMA PPCPM - ERRO" (faixa vermelha), com a frase principal e a explicação embaixo */
+var __pjErros=[
+ [/NotFoundError|could not be found|not found|n[ãa]o (foi|foram) encontrad|n[ãa]o encontr|ENOENT|no such file|FileNotFound|n[ãa]o existe mais/i,'O arquivo ou a pasta não foi encontrado.','Ele pode ter sido movido, renomeado, apagado ou salvo de novo pelo Excel. Se estiver na rede, confira se a unidade está conectada. Carregue o arquivo novamente.'],
+ [/NotReadableError|NotAllowedError|SecurityError|permission|permiss[ãa]o|acesso negado|EACCES|EPERM|another process|em uso|bloquead/i,'Não consegui abrir o arquivo.','Ele pode estar aberto no Excel ou em outro programa, ou você não tem permissão nessa pasta. Feche o arquivo e tente de novo.'],
+ [/Failed to fetch|NetworkError|Load failed|ERR_INTERNET|ERR_CONNECTION|sem conex|timeout|tempo esgotado|offline|fetch failed/i,'Sem conexão com o servidor.','Confira a internet ou a rede da empresa e tente de novo. O que você já fez neste PC continua salvo.'],
+ [/out of memory|mem[óo]ria insuficiente|RangeError: Array buffer|allocation failed/i,'O arquivo é grande demais para abrir aqui.','Use o sistema instalado no PC (ele aguenta arquivos maiores) ou divida o arquivo em partes menores.'],
+ [/JWT|token.*expir|sess[ãa]o expir|not authenticated|401/i,'Sua sessão expirou.','Saia e entre de novo no sistema para continuar.']];
+function __pjErro(msg,op){var t=String(msg==null?'':msg).trim();if(op&&op.erro===false)return null;
+ for(var i=0;i<__pjErros.length;i++)if(__pjErros[i][0].test(t))return{p:__pjErros[i][1],d:__pjErros[i][2],tec:t};
+ if(!(op&&op.erro)&&!/^(erro|error|falh)|n[ãa]o consegui|n[ãa]o foi poss[íi]vel|falhou|deu errado|n[ãa]o carreg|inv[áa]lid|exception|TypeError|ReferenceError|SyntaxError|undefined is not|cannot read/i.test(t))return null;
+ var lin=t.split(/\n+/),pri=lin.shift(),m=pri.match(/^(.{12,}?[.!:])\s+(.+)$/);if(m&&!lin.length){pri=m[1];lin=[m[2]]}
+ pri=pri.replace(/^(erro|error)\s*[:\-–]\s*/i,'');pri=pri.charAt(0).toUpperCase()+pri.slice(1);
+ return{p:pri,d:lin.join('\n')||'Tente de novo. Se continuar, mande um print deste aviso para o PCP.',tec:''}}
 function avisa(msg,op){try{
+ var er=__pjErro(msg,op);
  var d=(op&&op.doc)||document,fundo=d.createElement('div');fundo.setAttribute('role','alertdialog');fundo.setAttribute('aria-modal','true');
  fundo.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
- var c=d.createElement('div');c.style.cssText=__pjCaixa;__pjEntrar(c);
- var t=__pjTitulo(d,'SISTEMA PPCPM - AVISA','info');
- var m=d.createElement('div');m.textContent=String(msg==null?'':msg);m.style.cssText='font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:55vh;overflow:auto;color:#000';
+ var c=d.createElement('div');c.style.cssText=__pjCaixa+(er?';border-top-color:#dc2626':'');__pjEntrar(c);
+ var t=er?__pjTitulo(d,'SISTEMA PPCPM - ERRO','info','#dc2626'):__pjTitulo(d,'SISTEMA PPCPM - AVISA','info');
+ var m=d.createElement('div');m.style.cssText='font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:55vh;overflow:auto;color:#000';
+ if(er){var p1=d.createElement('div');p1.textContent=er.p;p1.style.cssText='font-size:15px;color:#000;margin-bottom:8px';m.appendChild(p1);
+  var p2=d.createElement('div');p2.textContent=er.d;p2.style.cssText='font-size:13.5px;color:#4b5563;line-height:1.55';m.appendChild(p2);
+  if(er.tec&&er.tec!==er.p){var p3=d.createElement('div');p3.textContent='Detalhe técnico: '+er.tec;p3.style.cssText='margin-top:10px;font-size:11.5px;color:#8a94a3;word-break:break-word';m.appendChild(p3)}}
+ else m.textContent=String(msg==null?'':msg);
  var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;gap:10px;margin-top:18px';
- var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText=__pjSim+'padding:9px 26px';
- b.onmouseenter=function(){b.style.background='#082e6e'};b.onmouseleave=function(){b.style.background='#0b3d91'};
+ var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText=__pjSim+'padding:9px 26px'+(er?';background:#5f6b7a;border:1.5px solid #1f2937;border-radius:6px;outline:none':'');
+ var c1=er?'#4c5664':'#082e6e',c0=er?'#5f6b7a':'#0b3d91';b.onmouseenter=function(){b.style.background=c1};b.onmouseleave=function(){b.style.background=c0};
  function fecha(){d.removeEventListener('keydown',tecla,true);fundo.remove()}
  function tecla(e){if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();e.stopPropagation();fecha()}}
  b.onclick=fecha;d.addEventListener('keydown',tecla,true);
@@ -25454,7 +25472,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 179';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 180';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
