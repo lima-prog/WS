@@ -851,6 +851,31 @@ html,body{background:#eef1f6!important}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}.cx.out .linha{flex-wrap:wrap}}
 input[type=text]:focus,input[type=text]:active,#an-nome:focus,#an-nome:active{border-color:#000!important;outline:none!important;box-shadow:0 0 0 1px #000!important}
 #an-focco-lbl{display:block;margin:0 0 14px;padding:8px 11px;background:#fff;border:1px solid #c5cbe0;border-radius:8px;font-size:13px;font-weight:700;color:#222}#an-focco-lbl.ok{color:#0a7a3a}
+
+/* V179: Análise DBF × Focco no padrão novo — quadros brancos com faixa azul e borda leve, botões cinza-azulado */
+html body{background:#eef1f5!important}
+html body .cx{background:#fff!important;border:1px solid rgba(0,0,0,.45)!important;border-top:3px solid #0b3d91!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(15,23,42,.05)!important}
+html body .cx h3{color:#111827!important}
+html body .badge,html body .num{background:#0b3d91!important;color:#fff!important}
+html body button.b{background:#5f6b7a!important;border:1px solid #5f6b7a!important;color:#fff!important;border-radius:4px!important;box-shadow:none!important}
+html body button.b:hover:not(:disabled){background:#4c5664!important;border-color:#4c5664!important}
+html body button.b:disabled{background:#aab3bf!important;border-color:#aab3bf!important;opacity:1!important}
+html body #an-add,html body #an-focco-btn,html body #an-analisar,html body #an-exportar{background:#5f6b7a!important;border:1px solid #5f6b7a!important;color:#fff!important;border-radius:4px!important;box-shadow:none!important}
+html body #an-add:hover,html body #an-focco-btn:hover,html body #an-analisar:hover:not(:disabled),html body #an-exportar:hover:not(:disabled){background:#4c5664!important}
+html body #an-exportar:disabled,html body #an-analisar:disabled{background:#aab3bf!important;border-color:#aab3bf!important;opacity:1!important}
+html body #an-limpar,html body #an-focco-limpar{border-radius:4px!important}
+html body .cx .lista li{background:transparent!important;border:0!important}
+html body #an-limpar,html body #an-focco-limpar,html body #an-atualizar,html body #btn-cores{background:#fff!important;border:1px solid #d3dbe5!important;color:#111827!important}
+html body #an-limpar svg,html body #an-focco-limpar svg,html body #an-atualizar svg{stroke:#111827!important}
+html body #an-limpar:hover,html body #an-focco-limpar:hover{background:#f1f4f8!important;border-color:#aab4c2!important}
+html body .drop{background:#f3f5f7!important;border:1px dashed #b9c3d0!important;border-radius:4px!important;color:#4b5563!important}
+html body .drop *{color:#4b5563!important}html body .drop svg{stroke:#4b5563!important}
+html body .drop.on,html body .drop.over,html body .drop.sobre,html body .drop.drag{background:#e6ecf5!important;border-color:#5f6b7a!important}
+html body .cx .lista,html body .cx .fraco,html body .cx input:not([type=checkbox]):not([type=radio]),html body .cx textarea,html body .cx select{background:#f3f5f7!important;border:1px solid #d6dee7!important;border-radius:4px!important;color:#111827!important}
+html body .cx input:focus{border-color:#5f6b7a!important;box-shadow:0 0 0 3px rgba(95,107,122,.18)!important;outline:none!important}
+html body .rtabs{background:#f3f5f7!important;border-bottom:1px solid #d6dee7!important;padding:0!important;gap:0!important}
+html body .rtabs button{color:#4b5563!important;padding:13px 18px 10px!important;font-size:13.5px!important}
+html body .rtabs button.on{color:#111827!important;border-bottom-color:#5f6b7a!important;background:#fff!important}
 </style>
 </head>
 <body>
@@ -3033,6 +3058,7 @@ window.addEventListener('load', () => {
     }
   }
   function iniciar() {
+    return; /* V179: Análise DBF × Focco usa o padrão novo (quadros brancos) — sem o tema cinza */
     aplicar();
     var espera;
     new MutationObserver(function () { clearTimeout(espera); espera = setTimeout(aplicar, 60); })
@@ -25428,7 +25454,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 178';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 179';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
