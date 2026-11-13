@@ -126,6 +126,21 @@ input[type=text]:focus,textarea:focus,select:focus{border-color:#000!important;o
 @media(max-width:1000px){.grid2,.grid3{grid-template-columns:1fr}}
 .modal .b{background:#0b5cad!important;color:#ffffff!important;border:1px solid #0b5cad!important;border-radius:7px;padding:8px 18px;font-weight:700;font-size:13px;box-shadow:none;cursor:pointer}
 .modal .b:hover{background:#1a6dc0!important;border-color:#1a6dc0!important}
+
+/* V176: Agrupador | Base no padrão novo — quadros brancos com faixa azul, botões cinza-azulado */
+html body{background:#eef1f5!important}
+html body .cx{background:#fff!important;border:1px solid #d6dee7!important;border-top:3px solid #0b3d91!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(15,23,42,.05)!important}
+html body .cx h3{color:#111827!important}
+html body .badge{background:#0b3d91!important;color:#fff!important}
+html body button.b{background:#5f6b7a!important;border:1px solid #5f6b7a!important;color:#fff!important;border-radius:4px!important;box-shadow:none!important}
+html body button.b:hover:not(:disabled){background:#4c5664!important;border-color:#4c5664!important}
+html body button.b.sec,html body button.b.bz.sec{background:#fff!important;border:1px solid #d3dbe5!important;color:#111827!important}
+html body button.b.sec:hover:not(:disabled){background:#f1f4f8!important;border-color:#aab4c2!important}
+html body .drop{background:#f3f5f7!important;border:1px dashed #c3ccd8!important;border-radius:4px!important;color:#4b5563!important}
+html body .drop.on,html body .drop.over,html body .drop.sobre{background:#e6ecf5!important;border-color:#5f6b7a!important}
+html body .cx input:not([type=checkbox]):not([type=radio]),html body .cx textarea,html body .cx select{background:#f3f5f7!important;border:1px solid #d6dee7!important;border-radius:4px!important;color:#111827!important}
+html body .cx input:focus,html body .cx textarea:focus{border-color:#5f6b7a!important;box-shadow:0 0 0 3px rgba(95,107,122,.18)!important;outline:none!important}
+html body .cx .cx{border-top:1px solid #d6dee7!important;box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -2469,6 +2484,7 @@ window.addEventListener('load', () => {
     }
   }
   function iniciar() {
+    return; /* V176: Agrupador | Base usa o padrão novo (quadros brancos) — sem o tema cinza */
     aplicar();
     var espera;
     new MutationObserver(function () { clearTimeout(espera); espera = setTimeout(aplicar, 60); })
