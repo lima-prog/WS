@@ -43,10 +43,10 @@ function avisa(msg,op){try{
  if(er){var p1=d.createElement('div');p1.textContent=er.p;p1.style.cssText='font-size:15px;color:#000;margin-bottom:8px';m.appendChild(p1);
   var p2=d.createElement('div');p2.textContent=er.d;p2.style.cssText='font-size:13.5px;color:#4b5563;line-height:1.55';m.appendChild(p2);
   if(er.tec&&er.tec!==er.p){var p3=d.createElement('div');p3.textContent='Detalhe técnico: '+er.tec;p3.style.cssText='margin-top:10px;font-size:11.5px;color:#8a94a3;word-break:break-word';m.appendChild(p3)}}
- else m.textContent=String(msg==null?'':msg);
+ else{m.textContent=String(msg==null?'':msg);m.style.fontSize='15px'}
  var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;gap:10px;margin-top:18px';
- var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText=__pjSim+'padding:9px 26px'+(er?';background:#5f6b7a;border:1.5px solid #1f2937;border-radius:6px;outline:none':'');
- var c1=er?'#4c5664':'#082e6e',c0=er?'#5f6b7a':'#0b3d91';b.onmouseenter=function(){b.style.background=c1};b.onmouseleave=function(){b.style.background=c0};
+ var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText=__pjSim+'padding:9px 26px;background:#5f6b7a;border:1.5px solid #1f2937;border-radius:6px;outline:none';
+ var c1='#4c5664',c0='#5f6b7a';b.onmouseenter=function(){b.style.background=c1};b.onmouseleave=function(){b.style.background=c0};
  function fecha(){d.removeEventListener('keydown',tecla,true);fundo.remove()}
  function tecla(e){if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();e.stopPropagation();fecha()}}
  b.onclick=fecha;d.addEventListener('keydown',tecla,true);
@@ -66,9 +66,9 @@ window.__pergunta=function(msg,op){op=op||{};return new Promise(function(res){tr
   q.onfocus=function(){q.style.borderColor='#0b3d91';q.style.boxShadow='0 0 0 3px rgba(11,61,145,.15)'};q.onblur=function(){q.style.borderColor='#c5cfdd';q.style.boxShadow='none'};
   qe=d.createElement('div');qe.style.cssText='display:none;margin-top:6px;font-size:12.5px;font-weight:600;color:#b91c1c';qe.textContent=cp.erro||'Preencha este campo.';
   q.oninput=function(){qe.style.display='none'};m.appendChild(lb);m.appendChild(q);m.appendChild(qe)}
- var n=d.createElement('button');n.type='button';n.textContent=op.nao||'Cancelar';n.style.cssText=__pjNao;n.onmouseenter=function(){n.style.background='#f1f4f8'};n.onmouseleave=function(){n.style.background='#fff'};
- var b=d.createElement('button');b.type='button';b.textContent=op.sim||'OK';b.style.cssText=__pjSim;
- b.onmouseenter=function(){b.style.background='#082e6e'};b.onmouseleave=function(){b.style.background='#0b3d91'};
+ var n=d.createElement('button');n.type='button';n.textContent=op.nao||'Cancelar';n.style.cssText=__pjNao+'border-radius:6px;outline:none;';n.onmouseenter=function(){n.style.background='#f1f4f8'};n.onmouseleave=function(){n.style.background='#fff'};
+ var b=d.createElement('button');b.type='button';b.textContent=op.sim||'OK';b.style.cssText=__pjSim+'background:#5f6b7a;border:1.5px solid #1f2937;border-radius:6px;outline:none';
+ b.onmouseenter=function(){b.style.background='#4c5664'};b.onmouseleave=function(){b.style.background='#5f6b7a'};
  function fecha(v){if(v&&q){var tx=q.value.trim();if(op.campo.obrigatorio&&!tx){qe.style.display='block';q.focus();return}v=tx}d.removeEventListener('keydown',tecla,true);fundo.remove();res(v)}
  function tecla(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();fecha(false)}else if(e.key==='Enter'&&(!q||e.target!==q||e.ctrlKey)){e.preventDefault();e.stopPropagation();fecha(true)}}
  b.onclick=function(){fecha(true)};n.onclick=function(){fecha(false)};d.addEventListener('keydown',tecla,true);
