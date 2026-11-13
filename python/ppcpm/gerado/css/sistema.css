@@ -183,6 +183,11 @@ nav .sub .n{position:relative;margin-left:0;padding:8px 6px 8px 30px;gap:8px;fon
 nav .sub .n::before{content:'';position:absolute;left:0;top:50%;width:16px;border-top:1.5px solid rgba(143,166,207,.4)}
 nav .sub .n .ic{width:16px;height:16px}
 nav .grp .chv{margin-left:auto;width:16px;height:16px;transition:transform .2s}nav .grp.opn .chv{transform:rotate(180deg)}
+/* V178: grupo aberto do menu fica dentro de um quadro com borda (as cores continuam as mesmas) */
+nav .grp.opn{border:1px solid rgba(143,166,207,.5)!important;border-bottom:0!important;border-radius:8px 8px 0 0!important}
+nav .grp.opn + .sub.open{border:1px solid rgba(143,166,207,.5);border-top:0;border-radius:0 0 8px 8px;margin:0 0 6px 0;padding:2px 6px 6px 21px}
+nav .grp.opn + .sub.open::before{left:21px;top:2px}
+html[data-theme=light] nav .grp.opn,html[data-theme=light] nav .grp.opn + .sub.open{border-color:rgba(16,48,106,.3)!important}
 nav .grp.in{color:var(--tx);font-weight:600;background:var(--p2)}
 nav button.n{display:flex;align-items:center;gap:10px}nav button.n .ic{color:var(--nic)}nav button.n.on .ic{color:#fff}
 main .prh{position:relative}main .prh .prr{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:16px}main .prh .prr .onl{position:static;transform:none}main .prh .pgreset{display:inline-flex;align-items:center;gap:8px;background:#f6f7f9;color:#1f2937;border:1px solid #d5dbe4;border-radius:8px;padding:6px 14px;font:600 13px 'Segoe UI',Arial,Helvetica,sans-serif;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08)}main .prh .pgreset svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}main .prh .pgreset:hover{background:#fff;border-color:#b9c3d1}main .onl{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:inline-flex;align-items:center;gap:8px;background:none;color:#fff;padding:0;font:700 13px Arial,Helvetica,sans-serif}main .onl i{width:9px;height:9px;border-radius:50%;background:#22a55a}main .onl.slow i{background:#e0a21a}main .onl.buf i,main .onl.off i{background:#ef4444}main .onl.off{background:none;color:#fff}main .onl.off i{background:#dc2626}@media(max-width:760px){main .onl{position:static;transform:none;margin:6px auto 0;display:flex;width:max-content}}

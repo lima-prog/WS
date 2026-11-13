@@ -1,10 +1,10 @@
-# Mapa do sistema — Versão 177
+# Mapa do sistema — Versão 178
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
 | Parte | Tamanho |
 |---|---|
-| `css/sistema.css` | 165 KB |
+| `css/sistema.css` | 166 KB |
 | `js/supabase.js` | 213 KB |
 | `modulos/pg1.html` | 151 KB |
 | `modulos/pg2.html` | 161 KB |
