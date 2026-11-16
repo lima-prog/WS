@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 186
+# Mapa do sistema — Versão 187
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -8,16 +8,16 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `js/supabase.js` | 213 KB |
 | `modulos/pg1.html` | 154 KB |
 | `modulos/pg2.html` | 164 KB |
-| `modulos/pg3.html` | 27 KB |
-| `modulos/pg4.html` | 182 KB |
-| `modulos/pg5.html` | 181 KB |
-| `modulos/pg6.html` | 144 KB |
-| `modulos/pg7.html` | 146 KB |
-| `modulos/pg10.html` | 291 KB |
-| `modulos/pg11.html` | 106 KB |
-| `modulos/pg12.html` | 1.061 KB |
-| `modulos/pg13.html` | 151 KB |
-| `modulos/pg14.html` | 158 KB |
+| `modulos/pg3.html` | 31 KB |
+| `modulos/pg4.html` | 186 KB |
+| `modulos/pg5.html` | 186 KB |
+| `modulos/pg6.html` | 148 KB |
+| `modulos/pg7.html` | 151 KB |
+| `modulos/pg10.html` | 297 KB |
+| `modulos/pg11.html` | 112 KB |
+| `modulos/pg12.html` | 1.067 KB |
+| `modulos/pg13.html` | 155 KB |
+| `modulos/pg14.html` | 164 KB |
 | `js/sistema.js` | 191 KB |
 | `molde.html` | 63 KB |
 | `config.json` | 2 KB |

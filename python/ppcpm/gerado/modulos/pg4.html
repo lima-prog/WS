@@ -2587,53 +2587,76 @@ window.addEventListener('load', () => {
 });
 <\/script>
 <script>
-/* ===== TEMA CINZA – troca o branco das telas por cinza claro ===== */
+/* ===== PADRÃO NOVO (V187) – quadros brancos com faixa azul e borda leve, botões cinza-azulado ===== */
 (function () {
-  var CORES = { pagina: "#d9dee5", quadro: "#e8ebef", dentro: "#eef0f3", campo: "#f2f4f6", borda: "#c9d0d9" };
-  function quaseBranco(cor, minimo) {
-    minimo = minimo || 244;
-    var m = cor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
-    if (!m) return false;
-    if (m[4] !== undefined && parseFloat(m[4]) < 0.9) return false;
-    var r = +m[1], g = +m[2], b = +m[3];
-    return Math.min(r, g, b) >= minimo && Math.max(r, g, b) - Math.min(r, g, b) <= 20;
-  }
-  function aplicar(raiz) {
-    document.body.style.setProperty("background-color", CORES.pagina, "important");
-    document.documentElement.style.setProperty("background-color", CORES.pagina, "important");
-    var todos = (raiz || document.body).querySelectorAll("*");
+  var css = document.createElement('style'); css.textContent =
+    'html,body{background:#eef1f5!important}' +
+    '.ppn-q{background:#fff!important;border:1px solid rgba(0,0,0,.45)!important;border-top:3px solid #0b3d91!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(15,23,42,.05)!important}' +
+    '.ppn-q2{background:#fff!important;border:1px solid rgba(0,0,0,.35)!important;border-radius:4px!important;box-shadow:none!important}' +
+    '.ppn-p{background:#5f6b7a!important;border:1px solid #5f6b7a!important;color:#fff!important;border-radius:4px!important;box-shadow:none!important;background-image:none!important}' +
+    '.ppn-p *{color:#fff!important}.ppn-p svg{stroke:#fff!important}' +
+    '.ppn-p:hover:not(:disabled){background:#4c5664!important;border-color:#4c5664!important}' +
+    '.ppn-p:disabled,.ppn-p[disabled]{background:#aab3bf!important;border-color:#aab3bf!important;opacity:1!important}' +
+    '.ppn-s{background:#fff!important;border:1px solid #d3dbe5!important;color:#111827!important;border-radius:4px!important;box-shadow:none!important}' +
+    '.ppn-s:hover:not(:disabled){background:#f1f4f8!important;border-color:#aab4c2!important}' +
+    '.ppn-s.ppn-on{background:#5f6b7a!important;border-color:#5f6b7a!important;color:#fff!important}' +
+    '.ppn-d{background:#f3f5f7!important;border:1px dashed #b9c3d0!important;border-radius:4px!important;color:#4b5563!important}' +
+    '.ppn-d *{color:#4b5563!important}.ppn-d svg{stroke:#4b5563!important}' +
+    '.ppn-d .ppn-p,.ppn-d .ppn-p *{color:#fff!important}.ppn-d .ppn-p svg{stroke:#fff!important}' +
+    '.ppn-n{background:#0b3d91!important;color:#fff!important;border-color:#0b3d91!important}' +
+    '.ppn-c{background:#f3f5f7!important;border:1px solid #d6dee7!important;border-radius:4px!important;color:#111827!important}' +
+    '.ppn-c:focus{border-color:#5f6b7a!important;box-shadow:0 0 0 3px rgba(95,107,122,.18)!important;outline:none!important}';
+  (document.head || document.documentElement).appendChild(css);
+  function rgb(c) { var m = String(c).match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/); if (!m) return null; return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] }; }
+  function claro(c, min) { return c && c.a > .85 && Math.min(c.r, c.g, c.b) >= (min || 218) && Math.max(c.r, c.g, c.b) - Math.min(c.r, c.g, c.b) <= 26; }
+  function azul(c) { return c && c.a > .5 && c.b > 110 && c.b - c.r > 55 && c.b > c.g; }
+  var BOT = /^(BUTTON)$/;
+  function eBotao(el) { return el.tagName === 'BUTTON' || (el.tagName === 'A' && /btn|bot/i.test(el.className)) || (el.tagName === 'LABEL' && /btn|bot|b\b/i.test(el.className)) || (el.tagName === 'INPUT' && /^(button|submit)$/.test(el.type)); }
+  function dentro(el, cls) { var p = el.parentElement; while (p && p !== document.body) { if (p.classList && p.classList.contains(cls)) return true; p = p.parentElement; } return false; }
+  var P = { bg: '#5f6b7a', hv: '#4c5664', dis: '#aab3bf' };
+  function pinta(el) { var d = el.disabled || el.getAttribute('aria-disabled') === 'true', c = d ? P.dis : (el._ppnHv ? P.hv : P.bg);
+    el.style.setProperty('background', c, 'important'); el.style.setProperty('border-color', c, 'important'); el.style.setProperty('color', '#fff', 'important'); el.style.setProperty('box-shadow', 'none', 'important'); el.style.setProperty('opacity', '1', 'important'); }
+  function prim(el) { el.classList.add('ppn-p'); pinta(el);
+    el.addEventListener('mouseenter', function () { el._ppnHv = true; pinta(el); }); el.addEventListener('mouseleave', function () { el._ppnHv = false; pinta(el); });
+    try { new MutationObserver(function () { pinta(el); }).observe(el, { attributes: true, attributeFilter: ['disabled', 'aria-disabled'] }); } catch (e) { } }
+  function aplicar() {
+    var todos = document.body.querySelectorAll('*');
     for (var i = 0; i < todos.length; i++) {
-      var el = todos[i];
-      if (el.dataset.temaCinza) continue;
-      var cs = getComputedStyle(el);
-      if (!quaseBranco(cs.backgroundColor)) continue;
-      var tag = el.tagName, cor;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON") {
-        cor = CORES.campo;
-      } else {
-        var pai = el.parentElement, dentroDeQuadro = false;
-        while (pai && pai !== document.body) {
-          if (pai.dataset.temaCinza === "quadro") { dentroDeQuadro = true; break; }
-          pai = pai.parentElement;
-        }
-        cor = dentroDeQuadro ? CORES.dentro : CORES.quadro;
-        el.dataset.temaCinza = "quadro";
+      var el = todos[i]; if (el.dataset.ppn) continue;
+      if (el.closest && el.closest('[role=alertdialog],[role=dialog],.modal,.ppn-livre,svg')) { if (el.tagName !== 'svg') el.dataset.ppn = '-'; continue; }
+      var cs = getComputedStyle(el), bg = rgb(cs.backgroundColor), t = el.tagName;
+      if (cs.display === 'none') continue;
+      var w1 = el.offsetWidth, h1 = el.offsetHeight;
+      if (azul(bg) && (eBotao(el) || (w1 > 40 && h1 >= 18 && h1 <= 64 && w1 <= 460 && (el.textContent || '').trim()))) { prim(el); el.dataset.ppn = 'b'; continue; }
+      if (eBotao(el)) {
+        if (azul(bg)) prim(el);
+        else if (claro(bg, 210) && parseFloat(cs.borderTopWidth) > 0) el.classList.add('ppn-s');
+        el.dataset.ppn = 'b'; continue;
       }
-      el.style.setProperty("background-color", cor, "important");
-      if (!el.dataset.temaCinza) el.dataset.temaCinza = "campo";
-      if (parseFloat(cs.borderTopWidth) > 0 && quaseBranco(cs.borderTopColor, 215)) {
-        el.style.setProperty("border-color", CORES.borda, "important");
+      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') { if (!/^(checkbox|radio|file|range|color|hidden)$/.test(el.type) && (claro(bg, 200))) el.classList.add('ppn-c'); el.dataset.ppn = 'c'; continue; }
+      if (/^(TABLE|THEAD|TBODY|TR|TD|TH|LI|UL|OL|SPAN|B|I|STRONG|EM|SMALL|P|H1|H2|H3|H4|H5|LABEL|IMG|CANVAS|IFRAME|PRE|CODE)$/.test(t)) {
+        var w0 = el.offsetWidth, h0 = el.offsetHeight;
+        if ((t === 'SPAN' || t === 'B' || t === 'DIV') && azul(bg) && w0 <= 40 && h0 <= 40 && parseFloat(cs.borderTopLeftRadius) >= w0 / 3) el.classList.add('ppn-n');
+        continue;
+      }
+      var w = el.offsetWidth, h = el.offsetHeight;
+      if (w <= 40 && h <= 40 && azul(bg) && parseFloat(cs.borderTopLeftRadius) >= w / 3) { el.classList.add('ppn-n'); el.dataset.ppn = 'n'; continue; }
+      if (cs.borderTopStyle === 'dashed' || cs.borderLeftStyle === 'dashed') { if (w > 120 && h > 30) { el.classList.add('ppn-d'); el.dataset.ppn = 'd'; continue; } }
+      if (w < 160 || h < 50) continue;
+      var raio = parseFloat(cs.borderTopLeftRadius) || 0, borda = parseFloat(cs.borderTopWidth) || 0, sombra = cs.boxShadow && cs.boxShadow !== 'none';
+      if (claro(bg, 205) && (raio > 0 || borda > 0 || sombra) && w < document.documentElement.clientWidth - 8) {
+        if (dentro(el, 'ppn-q') || dentro(el, 'ppn-q2')) { if (borda > 0 || sombra) el.classList.add('ppn-q2'); }
+        else el.classList.add('ppn-q');
+        el.dataset.ppn = 'q';
       }
     }
   }
   function iniciar() {
-    aplicar();
-    var espera;
-    new MutationObserver(function () { clearTimeout(espera); espera = setTimeout(aplicar, 60); })
-      .observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    aplicar(); var espera;
+    new MutationObserver(function () { clearTimeout(espera); espera = setTimeout(aplicar, 80); })
+      .observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
-  else iniciar();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
 })();
 <\/script>
 </body>
