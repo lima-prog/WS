@@ -132,6 +132,20 @@ input[type=text]:focus,textarea:focus,select:focus,.cf-busca:focus{border-color:
 .cf-det{background:#f3f5f9}
 .modal .b{background:#0b5cad!important;color:#ffffff!important}
 @media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+
+/* V191 — Impressão Casada no padrão da imagem 02 */
+.lblbox{background:#f1f3f6!important;border:0!important;border-radius:4px!important;padding:9px 12px!important;margin:0 0 10px!important;font:600 12.5px 'Segoe UI',Inter,system-ui,sans-serif!important;color:#374151!important;min-height:0!important}
+.lblbox .fraco{color:#4b5563!important}
+.lista{background:#f1f3f6!important;border:0!important;border-radius:4px!important;padding:9px 12px!important;margin:0 0 10px!important;font-weight:600;color:#374151}
+.lista li{padding:2px 0!important}.lista li:nth-child(even){background:transparent!important}
+.lista li.fraco{color:#4b5563!important}
+.cx-ajuda{margin:-2px 0 10px;font:500 12px 'Segoe UI',Inter,system-ui,sans-serif;color:#4b5563}
+.cx-h h3 .cx-sub{font-size:12px;font-weight:500;color:#5f6b7a;margin-left:4px}
+.chk{margin:0 0 14px!important;column-gap:12px!important}
+.chk:last-child{margin-bottom:4px!important}
+.chk input{accent-color:#5f6b7a!important}
+.cx.out .status{display:flex;align-items:center;gap:10px;font-weight:600}
+.cx.out .status::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:#c3c9d2}
 </style>
 </head>
 <body>
@@ -2438,21 +2452,22 @@ function montarImpressao(painel, multi) {
   painel.innerHTML = `
   <div class="grid2">
   <div class="cx"><div class="cx-h"><span class="badge">1</span><h3>PDF(s) dos CNCs (nesting)${multi ? ' — pode misturar várias obras' : ''}</h3>${multi ? '' : '<button class="b bz" data-id="atualizar" title="Zerar a aba para uma nova validação" style="display:none"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg><span>Atualizar</span></button>'}</div>
-    <div class="linha"><button class="b bz" data-id="cnc-add"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6M9 15h6"/></svg><span>Adicionar PDF(s) de CNC…</span></button><button class="b bz sec" data-id="cnc-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <div class="linha"><button class="b bz" data-id="cnc-add"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6M9 15h6"/></svg><span>Adicionar PDF(s) de CNC</span></button><button class="b bz sec" data-id="cnc-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
     <ul class="lista" data-id="cnc-lista"></ul><div class="drop" data-id="cnc-drop"><div>arraste PDF(s) de CNC aqui</div></div></div>
   <div class="cx"><div class="cx-h"><span class="badge">2</span><h3>PDF das Ordens de Fabricação${multi ? ' — pode misturar várias obras' : ''}</h3></div>
-    <div class="linha"><button class="b bz" data-id="ord-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span>Escolher PDF das Ordens…</span></button><button class="b bz sec" data-id="ord-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <div class="linha"><button class="b bz" data-id="ord-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span>Escolher PDF das Ordens</span></button><button class="b bz sec" data-id="ord-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
     <div class="lblbox"><span data-id="ord-lbl" class="fraco">nenhum arquivo carregado</span></div>
     <div class="drop" data-id="ord-drop"><div>arraste o PDF das Ordens aqui</div></div></div>
   </div>
   ${multi ? `<div class="cx"><div class="cx-h"><span class="badge">3</span><h3>Relatório de Fluxos — organiza por Obra → Fluxo</h3></div>
-    <div class="linha"><button class="b bz" data-id="rel-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.3"/><circle cx="6" cy="18" r="2.3"/><circle cx="18" cy="12" r="2.3"/><path d="M6 8.3v7.4M8.3 6H12a3 3 0 0 1 3 3v.7M8.3 18H12a3 3 0 0 0 3-3v-.7"/></svg><span>Escolher Relatório de Fluxos…</span></button><button class="b bz sec" data-id="rel-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <div class="linha"><button class="b bz" data-id="rel-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.3"/><circle cx="6" cy="18" r="2.3"/><circle cx="18" cy="12" r="2.3"/><path d="M6 8.3v7.4M8.3 6H12a3 3 0 0 1 3 3v.7M8.3 18H12a3 3 0 0 0 3-3v-.7"/></svg><span>Escolher Relatório de Fluxos</span></button><button class="b bz sec" data-id="rel-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
     <div class="lblbox"><span data-id="rel-lbl" class="fraco">nenhum relatório carregado</span></div>
     <div class="drop" data-id="rel-drop"><div>arraste o Relatório de Fluxos aqui</div></div></div>` : ''}
   <div class="grid2">
-  <div class="cx"><div class="cx-h"><span class="badge">${multi ? 4 : 3}</span><h3>Relatório do Lantek (opcional) — segurança extra contra peça sem programação</h3></div>
-    <div class="linha"><button class="b bz" data-id="lan-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg><span>Escolher Relatório do Lantek…</span></button><button class="b bz sec" data-id="lan-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
-    <div class="lblbox"><span data-id="lan-lbl" class="fraco">sem ele, a conferência de "programado ou não" fica desligada</span></div>
+  <div class="cx"><div class="cx-h"><span class="badge">${multi ? 4 : 3}</span><h3>Relatório do Lantek <span class="cx-sub">(opcional) — segurança extra contra peça sem programação</span></h3></div>
+    <div class="linha"><button class="b bz" data-id="lan-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg><span>Escolher Relatório do Lantek</span></button><button class="b bz sec" data-id="lan-limpar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Limpar</span></button></div>
+    <div class="lblbox"><span data-id="lan-lbl" class="fraco">nenhum arquivo carregado</span></div>
+    <div class="cx-ajuda">Sem ele, a conferência de "programado ou não" fica desligada.</div>
     <div class="drop" data-id="lan-drop"><div>arraste o Relatório do Lantek (.csv) aqui</div></div></div>
   <div class="cx"><div class="cx-h"><span class="badge">${multi ? 5 : 4}</span><h3>Opções de impressão</h3></div>
     <label class="chk"><input type="checkbox" data-id="o-duplex" checked> Frente e verso <small>insere página em branco pra fechar bloco ímpar</small></label>
@@ -2481,7 +2496,7 @@ function montarImpressao(painel, multi) {
   if (multi) { const sRel = setArq('rel', 'rel-lbl'); id('rel-btn').onclick = async () => { const f = await escolherArquivos('.xlsx,.xlsm,.xlsb,.xls'); if (f[0]) sRel(f[0]); }; areaSoltar(id('rel-drop'), f => sRel(f[0]), '.xlsx,.xlsm,.xlsb,.xls', false); }
   const limp = (k, lblId, txt, btnId) => { id(btnId).onclick = () => { st[k] = null; const l = id(lblId); l.textContent = txt; l.className = 'fraco'; }; };
   limp('ord', 'ord-lbl', 'nenhum arquivo carregado', 'ord-limpar');
-  limp('lan', 'lan-lbl', 'sem ele, a conferência de "programado ou não" fica desligada', 'lan-limpar');
+  limp('lan', 'lan-lbl', 'nenhum arquivo carregado', 'lan-limpar');
   if (multi) limp('rel', 'rel-lbl', 'nenhum relatório carregado', 'rel-limpar');
   rl();
   const opc = () => ({ duplex: id('o-duplex').checked, folhaDedicada: id('o-folha').checked, a4: id('o-a4').checked, exigir: id('o-completa').checked, unir: id('o-unir').checked, arqRelatorio: multi ? st.rel : null, arqLantek: st.lan });

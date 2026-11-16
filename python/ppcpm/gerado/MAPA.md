@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 190
+# Mapa do sistema — Versão 191
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -9,8 +9,8 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `modulos/pg1.html` | 154 KB |
 | `modulos/pg2.html` | 164 KB |
 | `modulos/pg3.html` | 31 KB |
-| `modulos/pg4.html` | 186 KB |
-| `modulos/pg5.html` | 186 KB |
+| `modulos/pg4.html` | 187 KB |
+| `modulos/pg5.html` | 187 KB |
 | `modulos/pg6.html` | 148 KB |
 | `modulos/pg7.html` | 151 KB |
 | `modulos/pg10.html` | 297 KB |
