@@ -5362,10 +5362,13 @@ $('#ag-suporte').textContent = window.showDirectoryPicker
 /* V185: as pastas raiz ficam FIXADAS no servidor — valem para todos os usuários e PCs (e para quem instalar o sistema depois).
    O ✕ tira a pasta para todos. Só pastas do sistema instalado (caminho do PC/rede) são fixadas. */
 const AG_CFG = 'agrupador_raizes';
+const agChave = r => String(r.unc || r.original || r.caminho || '').toLowerCase();
+async function agPc(acao, q) { const r = await fetch('/api/pc/' + acao + '?' + new URLSearchParams(q), { cache: 'no-store', headers: { 'X-PPCPM': '1' } }); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+async function agAcharAqui(x) { try { return (await agPc('achar_pasta', { c: [x.unc, x.caminho].filter(Boolean).join('|') })).caminho || ''; } catch (e) { return ''; } }
 function agCfg() { try { return window.top.__ppcpmCfg || null; } catch (e) { return null; } }
 async function agSalvarRaizes() {
   const c = agCfg(); if (!c) return;
-  const lista = S.ag.raizes.filter(r => r.caminho).map(r => ({ nome: r.nome, caminho: r.caminho }));
+  const lista = S.ag.raizes.filter(r => r.caminho).map(r => ({ nome: r.nome, caminho: r.original || r.caminho, unc: r.unc || '' }));
   try { await c.gravar(AG_CFG, lista); } catch (e) { alert('Não consegui fixar as pastas para todos: ' + (e.message || e)); }
 }
 async function agCarregarRaizes(tent = 0) {
@@ -5373,19 +5376,23 @@ async function agCarregarRaizes(tent = 0) {
   if (!c || typeof window.PPCPM_PASTA !== 'function') return de_novo();   // espera a ligação com o PC e o login
   try {
     const lista = await c.ler(AG_CFG); if (!Array.isArray(lista)) return de_novo();
-    const ja = new Set(S.ag.raizes.map(r => (r.caminho || '').toLowerCase()));
-    lista.forEach(x => { if (x && x.caminho && !ja.has(x.caminho.toLowerCase())) S.ag.raizes.push({ nome: x.nome, caminho: x.caminho, ref: { tipo: 'fs', handle: window.PPCPM_PASTA(x.caminho, x.nome) } }); });
+    const ja = new Set(S.ag.raizes.map(r => agChave(r)));
+    for (const x of lista) {
+      if (!x || !x.caminho || ja.has(agChave(x))) continue;
+      const aqui = await agAcharAqui(x);   // neste PC a pasta pode estar em outra letra (X:, Z:...)
+      S.ag.raizes.push({ nome: x.nome, caminho: aqui || x.caminho, original: x.caminho, unc: x.unc || '', faltando: !aqui, ref: { tipo: 'fs', handle: window.PPCPM_PASTA(aqui || x.caminho, x.nome) } });
+    }
     agRenderRaizes();
   } catch (e) { console.warn('[pastas raiz]', e); de_novo(); }
 }
 function agRenderRaizes() {
   const ul = $('#ag-raizes'); ul.innerHTML = S.ag.raizes.length ? '' : '<li class="fraco">nenhuma pasta adicionada</li>';
-  S.ag.raizes.forEach((r, i) => { const li = document.createElement('li'); li.title = (r.caminho || r.nome) + (r.caminho ? '\nFixada para todos os usuários' : ''); li.innerHTML = `<span>📁 ${esc(r.nome)}</span><span class="x" title="Tirar esta pasta (para todos)">✕</span>`; li.querySelector('.x').onclick = () => { S.ag.raizes.splice(i, 1); agRenderRaizes(); if (r.caminho) agSalvarRaizes(); }; ul.appendChild(li); });
+  S.ag.raizes.forEach((r, i) => { const li = document.createElement('li'); li.title = (r.caminho || r.nome) + (r.unc && r.unc !== r.caminho ? '\nNa rede: ' + r.unc : '') + (r.caminho ? '\nFixada para todos os usuários' : ''); li.innerHTML = `<span>📁 ${esc(r.nome)}${r.faltando ? ' <b style="color:#b91c1c;font-weight:600">· não encontrada neste PC (confira se a unidade de rede está conectada)</b>' : ''}</span><span class="x" title="Tirar esta pasta (para todos)">✕</span>`; li.querySelector('.x').onclick = () => { S.ag.raizes.splice(i, 1); agRenderRaizes(); if (r.caminho) agSalvarRaizes(); }; ul.appendChild(li); });
 }
 agCarregarRaizes();
 $('#ag-add-raiz').onclick = async () => {
   if (window.showDirectoryPicker) {
-    try { const h = await showDirectoryPicker({ mode: 'read' }); const c = h.ppcpmCaminho || null; if (c && S.ag.raizes.some(r => (r.caminho || '').toLowerCase() === c.toLowerCase())) return; S.ag.raizes.push({ nome: h.name, caminho: c, ref: { tipo: 'fs', handle: h } }); agRenderRaizes(); if (c) agSalvarRaizes(); }
+    try { const h = await showDirectoryPicker({ mode: 'read' }); const c = h.ppcpmCaminho || null; let unc = ''; if (c) { try { unc = (await agPc('caminho_unc', { caminho: c })).unc || ''; } catch (e) { } } const nova = { nome: h.name, caminho: c, unc, ref: { tipo: 'fs', handle: h } }; if (c && S.ag.raizes.some(r => agChave(r) === agChave(nova) || (r.caminho || '').toLowerCase() === c.toLowerCase())) return; S.ag.raizes.push(nova); agRenderRaizes(); if (c) agSalvarRaizes(); }
     catch (e) { if (e.name !== 'AbortError') alert('Não foi possível abrir a pasta: ' + e.message + (window.top !== window ? '\n(Se esta página estiver dentro de um iframe, o navegador pode bloquear o seletor de pastas.)' : '')); }
     return;
   }
@@ -25492,7 +25499,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 185';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 186';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});

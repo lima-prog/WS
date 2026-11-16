@@ -253,6 +253,12 @@ class Sistema(BaseHTTPRequestHandler):
             if acao == "pacotes":   # Tela inicial: planilha de controle de pacotes (linhas só quando mudou)
                 from ppcpm import pacotes
                 return self._json(pacotes.estado(q.get("linhas") == "1", q.get("desde", "")))
+            if acao == "caminho_unc":   # caminho de rede verdadeiro (vale em qualquer PC, qualquer letra)
+                from ppcpm import caminhos
+                return self._json({"unc": caminhos.para_unc(q.get("caminho", ""))})
+            if acao == "achar_pasta":   # acha neste PC uma pasta fixada por outro usuário (outra letra)
+                from ppcpm import caminhos
+                return self._json({"caminho": caminhos.achar(q.get("c", "").split("|"))})
             if acao == "bloco_notas":   # Tela inicial > Obras para validar: abre o Bloco de Notas do Windows
                 if not sys.platform.startswith("win"):
                     return self._json({"ok": False, "msg": "O Bloco de Notas só abre no Windows."})
