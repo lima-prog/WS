@@ -16571,6 +16571,48 @@ select.action-select option{background:#fff;color:#1f2937;font-weight:600}
 @media(prefers-reduced-motion:reduce){.spin{animation-duration:2s}}
 /* V78 */
 .preview-table thead th,.preview-table th{font-weight:800!important;color:#1f2937!important;font-size:11.5px}
+
+/* V194 — Alteração de Roteiros no modelo da imagem 02 (cartões brancos, borda preta, faixa azul em cima) */
+body{background:#eef1f5!important}
+.wrap{padding:14px 16px 30px!important}
+.topbar,.databar,.step{background:#fff!important;border:1px solid #1f2937!important;border-top:4px solid #0b3d91!important;border-radius:4px!important;box-shadow:none!important}
+.topbar .brand h1{font-size:18px!important;font-weight:700!important;color:#111827!important;margin:0}
+.topbar .brand p{font-size:12.5px!important;font-weight:500;color:#4b5563!important;margin-top:4px!important}
+.stat-chip{background:#f1f3f6!important;border:1px solid #d6dee7!important;border-radius:4px!important;padding:5px 10px!important;font:500 12.5px 'Segoe UI',Inter,system-ui,sans-serif!important;color:#4b5563!important;box-shadow:none!important}
+.stat-chip b{font-family:Consolas,'IBM Plex Mono',monospace!important;font-weight:700!important;color:#111827!important}
+#statRow .stat-chip .dot{background:#5f6b7a!important}#statRow .stat-chip:first-child .dot{background:#16a34a!important}
+.databar{padding:14px 18px!important;margin:0 0 12px!important;display:flex;align-items:center;justify-content:space-between}
+.databar-label{color:#4b5563!important;font-size:13px;font-weight:500}
+.databar-value{font-family:Consolas,'IBM Plex Mono',monospace!important;font-weight:700;color:#111827!important;font-size:13.5px}
+label.gr-upd{display:inline-flex!important;align-items:center;gap:7px;background:#fff!important;color:#111827!important;border:1px solid #c5cbd6!important;border-radius:4px!important;padding:8px 14px!important;font-weight:700!important;box-shadow:none!important}
+label.gr-upd:hover{background:#f3f5f8!important;border-color:#9aa3b5!important}
+.step{padding:12px 16px 16px!important;margin:0 0 12px!important;border-radius:4px!important}
+.step .step-head{margin-bottom:12px!important;gap:8px!important}
+.step .step-num{background:#0b3d91!important;color:#fff!important;width:24px;height:24px;font-size:12px!important}
+.step .step-head h2{font-size:16px!important;font-weight:700!important;color:#111827!important}
+.step .step-sub{font-size:12.5px!important;color:#5f6b7a!important;font-weight:500}
+.step .btn:not(.btn-accent):not(.ppn-p){background:#fff!important;border-radius:4px!important}
+.step .btn{border-radius:4px!important}
+.footer-note{margin-top:14px!important;padding-top:12px!important;border-top:1px solid #c9d0d9!important;font-weight:500;color:#4b5563!important}
+
+.topbar{padding:14px 18px!important;margin:0 0 12px!important;align-items:flex-start!important}
+.step{margin-bottom:12px!important}
+
+/* V194 — tabela de resultados no padrão (cabeçalho cinza, linhas zebradas) */
+.results-scroll{background:#fff!important;border:1px solid #c5cbd6!important;border-radius:4px!important}
+.results-scroll thead th{background:#5f6b7a!important;color:#fff!important;font:700 11.5px 'Segoe UI',Inter,system-ui,sans-serif!important;letter-spacing:.02em;border-bottom:0!important;border-right:1px solid #737e8c;padding:9px 10px!important}
+.results-scroll thead th:last-child{border-right:0}
+.results-scroll tbody tr.order-row:nth-child(even) td{background:#eef0f3}
+.results-scroll tbody tr.order-row:hover td{background:#e5e8ec!important}
+.results-scroll tbody td{border-bottom:1px solid #e1e5ea!important;font-size:12.5px;font-weight:600;color:#1f2937;padding:6px 10px!important}
+.search-row{align-items:center!important}
+.results-scroll tbody td.mono{font-family:Consolas,'IBM Plex Mono',monospace;font-weight:700}
+#resultsTable th:nth-last-child(2),#resultsTable td:nth-last-child(2){text-align:right}
+#resultsTable td:last-child,#resultsTable th:last-child{text-align:right}
+#resultsTable .chev{color:#5f6b7a;font-size:9px}
+#resultsTable .add-btn,#resultsTable .btn-sm{display:inline-flex;align-items:center;gap:6px;border-radius:4px!important}
+#searchInput{padding-left:34px!important;background:#f1f3f6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 11px center/15px!important;border:1px solid #d6dee7!important;border-radius:4px!important}
+.search-row .btn,.search-row label.btn{display:inline-flex;align-items:center;gap:8px;border-radius:4px!important}
 </style>
 </head>
 <body>
@@ -16592,8 +16634,8 @@ select.action-select option{background:#fff;color:#1f2937;font-weight:600}
       <span class="databar-label">Base de ordens (BI_PROD_V2 ou Situação das Ordens):</span>
       <span class="databar-value" id="zcoisSourceLabel">arquivo padrão embutido</span>
     </div>
-    <label class="btn btn-sm upload-btn">
-      ⇪ Atualizar base BI_PROD_V2
+    <label class="btn btn-sm upload-btn gr-upd">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> Atualizar base BI_PROD_V2
       <input type="file" id="zcoisFileInput" accept=".xlsx,.xlsb,.xls,.csv">
     </label>
   </div>
@@ -16608,7 +16650,7 @@ select.action-select option{background:#fff;color:#1f2937;font-weight:600}
     <div class="panel">
       <div class="search-row">
         <label class="btn btn-accent upload-btn" style="flex:none;">
-          ⇪ Enviar planilha de roteirização (PCT)
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg> Enviar planilha de roteirização (PCT)
           <input type="file" id="targetFileInput" accept=".xlsx,.xlsm">
         </label>
         <span class="databar-value" id="targetSourceLabel" style="color:var(--text-dim);">nenhuma planilha enviada</span>
@@ -16639,7 +16681,7 @@ select.action-select option{background:#fff;color:#1f2937;font-weight:600}
     <div class="panel">
       <div class="search-row">
         <input class="input" id="searchInput" type="text" placeholder="Ex: 3925228, JATEAR, torre, 1502... ou cole vários números separados por vírgula">
-        <button class="btn btn-accent" id="addAllResultsBtn">+ Adicionar todos os resultados</button>
+        <button class="btn btn-accent" id="addAllResultsBtn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex:none"><path d="M12 5v14M5 12h14"/></svg> Adicionar todos os resultados</button>
         <button class="btn" id="clearSearchBtn">Limpar busca</button>
       </div>
       <div class="search-hint">Dica: cole uma lista de números de ordem separados por vírgula (ex: 4331834,4331835,4331836) para localizar e adicionar várias de uma vez.</div>
@@ -18555,6 +18597,22 @@ label.gr-upd:hover{background:#f3f5f8!important;border-color:#9aa3b5!important}
 .step[data-aba] .btn:not(.btn-accent):not(.ppn-p){background:#fff!important;border-radius:4px!important}
 .step[data-aba] .btn{border-radius:4px!important}
 .footer-note{margin-top:14px!important;padding-top:12px!important;border-top:1px solid #c9d0d9!important;font-weight:500;color:#4b5563!important}
+
+/* V194 — tabela de resultados no padrão (cabeçalho cinza, linhas zebradas) */
+.results-scroll{background:#fff!important;border:1px solid #c5cbd6!important;border-radius:4px!important}
+.results-scroll thead th{background:#5f6b7a!important;color:#fff!important;font:700 11.5px 'Segoe UI',Inter,system-ui,sans-serif!important;letter-spacing:.02em;border-bottom:0!important;border-right:1px solid #737e8c;padding:9px 10px!important}
+.results-scroll thead th:last-child{border-right:0}
+.results-scroll tbody tr.order-row:nth-child(even) td{background:#eef0f3}
+.results-scroll tbody tr.order-row:hover td{background:#e5e8ec!important}
+.results-scroll tbody td{border-bottom:1px solid #e1e5ea!important;font-size:12.5px;font-weight:600;color:#1f2937;padding:6px 10px!important}
+.search-row{align-items:center!important}
+.results-scroll tbody td.mono{font-family:Consolas,'IBM Plex Mono',monospace;font-weight:700}
+#resultsTable th:nth-last-child(2),#resultsTable td:nth-last-child(2){text-align:right}
+#resultsTable td:last-child,#resultsTable th:last-child{text-align:right}
+#resultsTable .chev{color:#5f6b7a;font-size:9px}
+#resultsTable .add-btn,#resultsTable .btn-sm{display:inline-flex;align-items:center;gap:6px;border-radius:4px!important}
+#searchInput{padding-left:34px!important;background:#f1f3f6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 11px center/15px!important;border:1px solid #d6dee7!important;border-radius:4px!important}
+.search-row .btn,.search-row label.btn{display:inline-flex;align-items:center;gap:8px;border-radius:4px!important}
 </style>
 </head>
 <body>
@@ -18599,7 +18657,7 @@ label.gr-upd:hover{background:#f3f5f8!important;border-color:#9aa3b5!important}
     <div class="panel">
       <div class="search-row">
         <label class="btn btn-accent upload-btn" style="flex:none;">
-          ⇪ Enviar planilha de roteirização (PCT)
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg> Enviar planilha de roteirização (PCT)
           <input type="file" id="targetFileInput" accept=".xlsx,.xlsm">
         </label>
         <span class="databar-value" id="targetSourceLabel" style="color:var(--text-dim);">nenhuma planilha enviada</span>
@@ -18631,7 +18689,7 @@ label.gr-upd:hover{background:#f3f5f8!important;border-color:#9aa3b5!important}
       <div class="search-row">
         <input class="input" id="searchInput" type="text" placeholder="Ex: 3925228, JATEAR, torre, 1502... ou cole vários números separados por vírgula">
         <button class="btn btn-accent" id="grAddSel" disabled>+ Adicionar selecionadas</button>
-        <button class="btn btn-accent" id="addAllResultsBtn">+ Adicionar todos os resultados</button>
+        <button class="btn btn-accent" id="addAllResultsBtn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex:none"><path d="M12 5v14M5 12h14"/></svg> Adicionar todos os resultados</button>
         <button class="btn" id="clearSearchBtn">Limpar busca</button>
       </div>
       <div class="search-hint">Dica: cole uma lista de números de ordem separados por vírgula (ex: 4331834,4331835,4331836) para localizar e adicionar várias de uma vez. Marque as caixinhas para adicionar só as escolhidas; clique na linha para ver o roteiro atual.</div>
@@ -28118,7 +28176,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 193';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 194';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});

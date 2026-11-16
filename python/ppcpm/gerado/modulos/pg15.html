@@ -452,6 +452,22 @@ label.gr-upd:hover{background:#f3f5f8!important;border-color:#9aa3b5!important}
 .step[data-aba] .btn:not(.btn-accent):not(.ppn-p){background:#fff!important;border-radius:4px!important}
 .step[data-aba] .btn{border-radius:4px!important}
 .footer-note{margin-top:14px!important;padding-top:12px!important;border-top:1px solid #c9d0d9!important;font-weight:500;color:#4b5563!important}
+
+/* V194 — tabela de resultados no padrão (cabeçalho cinza, linhas zebradas) */
+.results-scroll{background:#fff!important;border:1px solid #c5cbd6!important;border-radius:4px!important}
+.results-scroll thead th{background:#5f6b7a!important;color:#fff!important;font:700 11.5px 'Segoe UI',Inter,system-ui,sans-serif!important;letter-spacing:.02em;border-bottom:0!important;border-right:1px solid #737e8c;padding:9px 10px!important}
+.results-scroll thead th:last-child{border-right:0}
+.results-scroll tbody tr.order-row:nth-child(even) td{background:#eef0f3}
+.results-scroll tbody tr.order-row:hover td{background:#e5e8ec!important}
+.results-scroll tbody td{border-bottom:1px solid #e1e5ea!important;font-size:12.5px;font-weight:600;color:#1f2937;padding:6px 10px!important}
+.search-row{align-items:center!important}
+.results-scroll tbody td.mono{font-family:Consolas,'IBM Plex Mono',monospace;font-weight:700}
+#resultsTable th:nth-last-child(2),#resultsTable td:nth-last-child(2){text-align:right}
+#resultsTable td:last-child,#resultsTable th:last-child{text-align:right}
+#resultsTable .chev{color:#5f6b7a;font-size:9px}
+#resultsTable .add-btn,#resultsTable .btn-sm{display:inline-flex;align-items:center;gap:6px;border-radius:4px!important}
+#searchInput{padding-left:34px!important;background:#f1f3f6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 11px center/15px!important;border:1px solid #d6dee7!important;border-radius:4px!important}
+.search-row .btn,.search-row label.btn{display:inline-flex;align-items:center;gap:8px;border-radius:4px!important}
 </style>
 </head>
 <body>
@@ -496,7 +512,7 @@ label.gr-upd:hover{background:#f3f5f8!important;border-color:#9aa3b5!important}
     <div class="panel">
       <div class="search-row">
         <label class="btn btn-accent upload-btn" style="flex:none;">
-          ⇪ Enviar planilha de roteirização (PCT)
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg> Enviar planilha de roteirização (PCT)
           <input type="file" id="targetFileInput" accept=".xlsx,.xlsm">
         </label>
         <span class="databar-value" id="targetSourceLabel" style="color:var(--text-dim);">nenhuma planilha enviada</span>
@@ -528,7 +544,7 @@ label.gr-upd:hover{background:#f3f5f8!important;border-color:#9aa3b5!important}
       <div class="search-row">
         <input class="input" id="searchInput" type="text" placeholder="Ex: 3925228, JATEAR, torre, 1502... ou cole vários números separados por vírgula">
         <button class="btn btn-accent" id="grAddSel" disabled>+ Adicionar selecionadas</button>
-        <button class="btn btn-accent" id="addAllResultsBtn">+ Adicionar todos os resultados</button>
+        <button class="btn btn-accent" id="addAllResultsBtn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="flex:none"><path d="M12 5v14M5 12h14"/></svg> Adicionar todos os resultados</button>
         <button class="btn" id="clearSearchBtn">Limpar busca</button>
       </div>
       <div class="search-hint">Dica: cole uma lista de números de ordem separados por vírgula (ex: 4331834,4331835,4331836) para localizar e adicionar várias de uma vez. Marque as caixinhas para adicionar só as escolhidas; clique na linha para ver o roteiro atual.</div>
