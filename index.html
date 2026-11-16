@@ -25472,7 +25472,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 183';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 184';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -25915,7 +25915,7 @@ function pkAbrirAlt(){if(ALT.win&&!ALT.win.closed){ALT.win.focus();return}if(ALT
  if(w){const montar=()=>{const d=w.document,css=[...document.querySelectorAll('style')].filter(x=>x.textContent.includes('.pkalt{')).map(x=>x.textContent).join('\n');
    if(!PY_LOCAL){d.open();d.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"></head><body></body></html>');d.close();const ic=document.querySelector('link[rel~=icon]');if(ic){const li=d.createElement('link');li.rel='icon';li.href=ic.href;d.head.appendChild(li)}}
    d.title='Alteração de LOTE — SISTEMA PPCPM';const st=d.createElement('style');st.textContent=css+'\nhtml,body{margin:0;height:100%;background:#fff;color-scheme:light}body{overflow:hidden}.pkalt.pkalt-win{width:100vw;height:100vh;border:0;border-top:6px solid #0b3d91;border-radius:0;box-shadow:none}.pkalt-win .pkalt-t{cursor:default}';d.head.appendChild(st);
-   d.body.innerHTML='<div class="pkalt pkalt-win"></div>';const raiz=d.querySelector('.pkalt');raiz.innerHTML=pkAltHtml(true);ALT.win=w;ALT.doc=d;ALT.el=raiz;pkAltLigar(raiz,d);
+   janTema(d);d.body.innerHTML='<div class="pkalt pkalt-win"></div>';const raiz=d.querySelector('.pkalt');raiz.innerHTML=pkAltHtml(true);ALT.win=w;ALT.doc=d;ALT.el=raiz;pkAltLigar(raiz,d);
    w.addEventListener('pagehide',()=>{if(ALT.win===w){ALT.win=null;ALT.el=null;ALT.doc=null}});
    clearInterval(ALT.vigia);ALT.vigia=setInterval(()=>{if(!ALT.win||ALT.win.closed){clearInterval(ALT.vigia);if(ALT.win===w||!ALT.win){ALT.win=null;ALT.el=null;ALT.doc=null}}},1000);
    pkAltDesenhar();w.focus()};
@@ -25967,6 +25967,8 @@ async function pkAltMover(){const dest=String(ALT.el.querySelector('#altPara').v
  const msg=`${mover.length} ${mover.length===1?'obra movida':'obras movidas'} para o lote ${dest}`;if(ALT.win)ALT.ok=msg;else toast(msg);if(cur==='home')render();pkAltDesenhar()}
 /* V183: BLOCO DE NOTAS do próprio sistema — abre numa janela própria (dá para levar para a segunda tela),
    com abas, salvar/abrir .txt, localizar e substituir, zoom e quebra de linha. O texto fica guardado neste PC sozinho. */
+function janTema(d){try{d.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')||'dark')}catch(_){}}
+try{new MutationObserver(()=>{[NT&&NT.win&&NT.doc,ALT&&ALT.win&&ALT.doc].forEach(d=>{if(d)janTema(d)})}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']})}catch(_){}
 const NT={win:null,el:null,doc:null,abas:[],at:0,zoom:100,quebra:true,salvoT:null,vigia:null};
 const NT_CHAVE='ppcpm:notas';
 function ntCarregar(){try{const j=JSON.parse(localStorage.getItem(NT_CHAVE)||'null');if(j&&Array.isArray(j.abas)&&j.abas.length){NT.abas=j.abas;NT.at=Math.min(j.at||0,j.abas.length-1);NT.zoom=j.zoom||100;NT.quebra=j.quebra!==false;return}}catch(_){}
@@ -26002,6 +26004,20 @@ const NT_CSS=`
 .nt-st{display:flex;align-items:center;gap:18px;padding:5px 14px;border-top:1px solid #e3e8ef;background:#f6f8fb;font-size:12px;color:#4b5563}
 .nt-st b{font-weight:600;color:#111827}.nt-st #ntSalvo{margin-left:auto;color:#15803d;font-weight:600}
 .nt-fundo{position:fixed;inset:0;z-index:2147482000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:18px}
+
+html[data-theme=dark],html[data-theme=dark] body{background:#0f1626!important;color-scheme:dark}
+html[data-theme=dark] .nt{background:#0f1626;color:#e5e9f0;border-color:#000;border-top-color:#0b3d91}
+html[data-theme=dark] .nt-t{border-color:#26314a}html[data-theme=dark] .nt-t span{color:#9aa6b8}html[data-theme=dark] .nt-t .tic{color:#7aa7ff}
+html[data-theme=dark] .nt-x{background:#162033;border-color:#33405c;color:#e5e9f0}
+html[data-theme=dark] .nt-abas{background:#0b1120;border-color:#26314a}
+html[data-theme=dark] .nt-aba{background:#162033;border-color:#26314a;color:#9aa6b8}html[data-theme=dark] .nt-aba.on{background:#0f1626;color:#fff;box-shadow:inset 0 3px 0 #7aa7ff}
+html[data-theme=dark] .nt-aba u{color:#9aa6b8}html[data-theme=dark] .nt-aba u:hover{background:#26314a;color:#fff}html[data-theme=dark] .nt-nova{color:#9aa6b8}html[data-theme=dark] .nt-nova:hover{background:#1c2740}
+html[data-theme=dark] .nt-bar,html[data-theme=dark] .nt-ach{border-color:#26314a}html[data-theme=dark] .nt-ach{background:#121b2d}
+html[data-theme=dark] .nt-b{background:#162033;border-color:#33405c;color:#e5e9f0}html[data-theme=dark] .nt-b:hover{background:#1c2740;border-color:#4a5878}
+html[data-theme=dark] .nt-b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}html[data-theme=dark] .nt-b.on{background:#24324f;border-color:#7aa7ff}html[data-theme=dark] .nt-sep{background:#26314a}
+html[data-theme=dark] .nt-ach input{background:#0b1120;border-color:#33405c;color:#e5e9f0;color-scheme:dark}html[data-theme=dark] .nt-ach small{color:#9aa6b8}
+html[data-theme=dark] .nt-tx{background:#0f1626;color:#e5e9f0;color-scheme:dark}html[data-theme=dark] .nt-tx::placeholder{color:#5d6a82}
+html[data-theme=dark] .nt-st{background:#0b1120;border-color:#26314a;color:#9aa6b8}html[data-theme=dark] .nt-st b{color:#e5e9f0}html[data-theme=dark] .nt-st #ntSalvo{color:#4ade80}
 @media print{.nt-t,.nt-abas,.nt-bar,.nt-ach,.nt-st{display:none!important}.nt,.nt.nt-win{border:0;height:auto}.nt-tx{overflow:visible;height:auto}}`;
 function ntHtml(janela){return`<div class="nt-t"><svg class="tic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2M12 3v2M15 3v2M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg><b>Blocos de notas</b><span>SISTEMA PPCPM · o texto fica guardado neste PC</span>${janela?'':'<button type="button" class="nt-x" data-nt="fechar" title="Fechar (Esc)">✕</button>'}</div>
 <div class="nt-abas" id="ntAbas"></div>
@@ -26017,7 +26033,7 @@ function ntAbrir(){if(NT.win&&!NT.win.closed){NT.win.focus();return}if(NT.el){NT
  if(w){const montar=()=>{const d=w.document;
    if(!PY_LOCAL){d.open();d.write('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"></head><body></body></html>');d.close();const ic=document.querySelector('link[rel~=icon]');if(ic){const li=d.createElement('link');li.rel='icon';li.href=ic.href;d.head.appendChild(li)}}
    d.title='Blocos de notas — SISTEMA PPCPM';const st=d.createElement('style');st.textContent=NT_CSS+'\nhtml,body{margin:0;height:100%;background:#fff;color-scheme:light}body{overflow:hidden}';d.head.appendChild(st);
-   d.body.innerHTML='<div class="nt nt-win"></div>';const raiz=d.querySelector('.nt');raiz.innerHTML=ntHtml(true);NT.win=w;NT.doc=d;NT.el=raiz;ntLigar(raiz,d);
+   janTema(d);d.body.innerHTML='<div class="nt nt-win"></div>';const raiz=d.querySelector('.nt');raiz.innerHTML=ntHtml(true);NT.win=w;NT.doc=d;NT.el=raiz;ntLigar(raiz,d);
    w.addEventListener('beforeunload',()=>ntGuardar());w.addEventListener('pagehide',()=>{if(NT.win===w){NT.win=null;NT.el=null;NT.doc=null}});
    clearInterval(NT.vigia);NT.vigia=setInterval(()=>{if(!NT.win||NT.win.closed){clearInterval(NT.vigia);if(NT.win===w||!NT.win){NT.win=null;NT.el=null;NT.doc=null}}},1000);
    ntDesenhar();w.focus();NT.el.querySelector('#ntTx').focus()};
@@ -26185,6 +26201,22 @@ function home(){pkIniciar();const lote=pkLoteAtual(),c=lote?pkContas(lote):{ob:[
 .pkalt-ok,.pkalt-no{font:600 14px 'Segoe UI',Arial,sans-serif;padding:9px 18px;border-radius:6px;cursor:pointer}
 .pkalt-ok{background:#5f6b7a;border:1px solid #5f6b7a;color:#fff;font-weight:700}.pkalt-ok:hover{background:#4c5664}.pkalt-ok:disabled{opacity:.45;cursor:not-allowed}
 .pkalt-no{background:#fff;border:1px solid #c5cfdd;color:#000}.pkalt-no:hover{background:#f1f4f8}
+/* V184: Alteração de LOTE / Blocos de notas acompanham o tema do sistema (escuro ou claro) */
+html[data-theme=dark] .pkalt,html[data-theme=dark] .pkalt.pkalt-win{background:#0f1626;color:#e5e9f0;border-color:#000;border-top-color:#0b3d91}
+html[data-theme=dark] .pkalt-t{border-color:#26314a}html[data-theme=dark] .pkalt-t span{color:#9aa6b8}html[data-theme=dark] .pkalt-t svg{color:#7aa7ff}html[data-theme=dark] .pkalt-x{background:#162033;border-color:#33405c;color:#e5e9f0}
+html[data-theme=dark] .pkalt-l{background:#0b1120;border-color:#26314a}html[data-theme=dark] .pkalt-lb{color:#9aa6b8}
+html[data-theme=dark] .pkalt-l input,html[data-theme=dark] .pkalt-p input,html[data-theme=dark] .pkalt .pkbusca{background:#0b1120!important;border-color:#33405c!important;color:#e5e9f0!important;color-scheme:dark}
+html[data-theme=dark] .pkalt .pkbusca input{color:#e5e9f0;color-scheme:dark}
+html[data-theme=dark] .pkalt-li{color:#c9d2e0}html[data-theme=dark] .pkalt-li:hover{background:#1c2740}html[data-theme=dark] .pkalt-li.on{background:#5f6b7a;color:#fff}
+html[data-theme=dark] .pkalt-rh{border-color:#26314a}html[data-theme=dark] .pkalt-rh .pcnt{background:#1c2740;color:#e5e9f0}
+html[data-theme=dark] .pkalt-row{color:#e5e9f0;border-color:#1f2a40}html[data-theme=dark] .pkalt-row:not(.pth):hover{background:#16223a}html[data-theme=dark] .pkalt-row.sel{background:#1d3157}
+html[data-theme=dark] .pkalt-row .pkall{color:#fff}html[data-theme=dark] .pkalt-row .pkobst{color:#fca5a5}html[data-theme=dark] .pkalt-v{color:#9aa6b8}
+html[data-theme=dark] .pkalt .pkchip{background:#162033!important;border-color:#33405c!important;color:#e5e9f0!important}
+html[data-theme=dark] .pkde{background:#162033;border-color:#33405c;color:#e5e9f0}
+html[data-theme=dark] .pkalt-so{background:#162033;border-color:#33405c;color:#c9d2e0}
+html[data-theme=dark] .pkalt-p{background:#0b1120;border-color:#26314a}html[data-theme=dark] .pkalt-p label{color:#e5e9f0}
+html[data-theme=dark] .pkalt-no{background:#162033;border-color:#33405c;color:#e5e9f0}html[data-theme=dark] .pkalt-no:hover{background:#1c2740}
+html[data-theme=dark] .pkalt-win{color-scheme:dark}html[data-theme=dark] body:has(.pkalt-win){background:#0f1626!important}
 .hw .kg.pk6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin:0 0 14px}
 @media (max-width:1250px){.hw .kg.pk6{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .hw .pkpcc{margin:0;display:flex;flex-direction:column}
