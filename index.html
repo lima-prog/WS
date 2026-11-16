@@ -20974,10 +20974,10 @@ body.embed{background:#d9dee5}body.embed .faixa h1,body.embed .faixa .online,bod
 .etq-v196 table.t tbody tr:hover td{background:#e8ebf0!important}
 .etq-v196 table.t td.etq-obra{font-family:Consolas,'IBM Plex Mono',monospace;font-weight:700}
 .etq-v196 table.t input[type=checkbox]{width:15px;height:15px;accent-color:#5f6b7a}
-.etq-v196 .etq-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;line-height:16px}
-.etq-v196 .etq-pill svg{width:11px;height:11px;stroke-width:2.6}
-.etq-v196 .etq-pill.ok{background:#dcf2e3;color:#15803d;border:1px solid #b5e0c3}
-.etq-v196 .etq-pill.pend{background:#fde9cf;color:#b45309;border:1px solid #f5cf9a}
+.etq-v196 .etq-pill{display:inline-flex;align-items:center;gap:7px;padding:2px 10px 2px 7px;border:1px solid #d5dbe4;border-radius:3px;background:#fff;color:#1c2a38;font-size:12.5px;font-weight:600;line-height:18px;white-space:nowrap}
+.etq-v196 .etq-pill::before{content:'';width:10px;height:10px;border-radius:50%;flex:none;background:var(--pd,#94a3b8);box-shadow:0 0 0 2.5px var(--pr,#e2e8f0)}
+.etq-v196 .etq-pill.ok{--pd:#16a34a;--pr:#bbf7d0}
+.etq-v196 .etq-pill.pend{--pd:#f59e0b;--pr:#fde68a}
 </style>
 </head>
 <body>
@@ -23597,7 +23597,7 @@ if (typeof module !== 'undefined') module.exports = PP;
     }
     var colunas = [{ chave: 'id', titulo: 'ID', alinhar: 'c' }, { chave: 'data_hora', titulo: 'Data' }, { chave: 'pacote', titulo: 'Pacote' }, { chave: 'obra', titulo: 'Obra', celula: function (r) { return { texto: r.obra, classe: 'etq-obra' }; } }, { chave: 'tipo', titulo: 'Etapa', celula: function (r) { return ETAPAS[r.tipo] || ''; } }, { chave: 'fluxo', titulo: 'Máquina / Setor' },
       { chave: 'observacao', titulo: 'Observação', celula: function (r) { return r.observacao || ''; } }, { chave: 'usuario', titulo: 'Operador' },
-      { chave: 'impresso', titulo: 'Status', celula: function (r) { var p = h('span', { class: 'etq-pill ' + (r.impresso === 1 ? 'ok' : 'pend') }); p.innerHTML = r.impresso === 1 ? EIC.ok + 'Impresso' : EIC.clk + 'Pendente'; return { el: p }; } }];
+      { chave: 'impresso', titulo: 'Status', celula: function (r) { var p = h('span', { class: 'etq-pill ' + (r.impresso === 1 ? 'ok' : 'pend') }); p.textContent = r.impresso === 1 ? 'Impresso' : 'Pendente'; return { el: p }; } }];
     var tEmit = new ui.Tabela({ selecao: 'nenhuma', altura: 'calc(100vh - 420px)', vazio: 'Nenhuma etiqueta — importe uma planilha ou ajuste os filtros.', colunas: [{ chave: 'sel', titulo: 'Sel', alinhar: 'c', celula: chk }].concat(colunas), aoDuploClique: previa });
     tEmit.el.style.minHeight = '260px';
     aba(['prn', 'Emitir etiqueta'], h('div', { class: 'card' },
@@ -28248,7 +28248,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 196';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 197';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
