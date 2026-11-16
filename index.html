@@ -20487,6 +20487,44 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',Inter,system-ui
 .pp-guia .pg-av b{display:block;color:#5e3a00}
 @media (max-width:820px){.pp-guia .pg-box{grid-template-columns:1fr}.pp-guia .pg-nav{border-right:none;border-bottom:1px solid var(--pg-borda)}.pp-guia .pg-palco{min-height:380px}.pp-guia .pg-ajuda{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.pp-guia *{animation:none!important;transition:none!important}}
+/* V195 — Acesso ao Intranet no modelo da imagem 01 */
+body{background:#eef1f5!important}
+.topbar{align-items:center!important;margin-bottom:12px!important}
+.btns{gap:10px!important}
+.btns .btn{min-width:0!important;padding:8px 14px!important;border-radius:4px!important;font-size:13px!important}
+.btns .btn-secondary{background:#fff!important;border:1px solid #c5cbd6!important;color:#111827!important}
+.pp-transf .pt-trilho{background:#5f6b7a!important}
+.pp-transf .pt-cheio{background:#5f6b7a!important}
+.pp-transf .pt-pac{background:#fff!important;box-shadow:0 0 0 2px #5f6b7a!important}
+.pp-transf .pt-rot{color:#5f6b7a!important}
+.pp-transf .pt-ic{color:#0b3d91}
+.pp-transf .pt-no b{font-size:11px!important;color:#111827}
+.row .zone{background:#f1f3f6!important;border:1px solid #d6dee7!important;border-left:3px solid #5f6b7a!important;border-radius:3px!important;padding:12px 14px!important;min-height:0!important;box-shadow:none!important}
+.zone .k{font-size:11px!important;color:#4b5563!important;margin-bottom:6px!important}
+.zone .t{font-size:14px!important;color:#111827!important;margin-bottom:4px!important}
+.zone .u{color:#1f2937!important;font-size:11px!important;margin-top:8px!important}
+.pp-guia .pg-box{background:#fff!important;border:1px solid #d6dee7!important;border-radius:4px!important;min-height:330px!important;grid-template-columns:210px 1fr!important}
+.pp-guia .pg-nav{background:#eef0f3!important;border-right:1px solid #d6dee7!important;padding:8px!important;gap:2px!important}
+.pp-guia .pg-nav button{padding:7px 10px!important;border-radius:4px!important;grid-template-columns:22px 1fr!important;gap:8px!important;background:transparent!important;box-shadow:none!important;border:0!important}
+.pp-guia .pg-nav button:hover{background:#e2e6ec!important}
+.pp-guia .pg-nav .c{width:20px!important;height:20px!important;font-size:11px!important;border:1.5px solid #9aa8b8!important;background:transparent!important;color:#6b7a89!important;transform:none!important}
+.pp-guia .pg-nav .t{font-size:12.5px!important;color:#5f6b7a!important;font-weight:600!important}
+.pp-guia .pg-nav .bar{display:none!important}
+.pp-guia .pg-nav button.on{background:#5f6b7a!important}
+.pp-guia .pg-nav button.on .c{background:#fff!important;border-color:#fff!important;color:#374151!important}
+.pp-guia .pg-nav button.on .t{color:#fff!important}
+.pp-guia .pg-ctrl button{border-radius:4px!important;width:28px!important;height:28px!important;min-width:0!important;padding:0!important;flex:none!important;border:1px solid #c9d0d9!important;background:#fff!important}
+.pp-guia .pg-ctrl span{white-space:nowrap}
+.pp-guia .pg-nav .t{white-space:nowrap}
+.pp-guia .pg-palco{padding:14px 16px!important}
+.pp-guia .pg-slide{inset:14px 16px!important;gap:8px!important}
+.pp-guia .pg-slide h4{font-size:15px!important;color:#111827}
+.pp-guia .pg-slide h4 small{color:#5f6b7a!important;font-size:10.5px!important}
+.pp-guia .pg-slide p{font-size:12.5px!important;color:#1f2937!important}
+.pp-guia .pg-img{border:1px solid #d6dee7!important;border-radius:4px!important}
+.pp-guia .pg-fake .b{background:#5f6b7a!important;border-radius:4px!important;padding:9px 16px!important;font-size:13px}
+.pp-guia .pg-fake small{font-size:11px}
+.pp-guia .pg-ajuda{display:none!important}
 </style>
 
 <section class="pp-guia" id="ppGuia">
@@ -28176,7 +28214,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 194';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 195';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
