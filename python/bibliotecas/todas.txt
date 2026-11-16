@@ -16,4 +16,5 @@ pdfplumber>=0.11                           # Ler texto e tabelas de dentro do PD
 reportlab>=4.2                             # Gerar PDF (etiquetas centralizadas, relatórios)
 lxml>=5.2                                  # Ler o export do FOCCO que vem como .xls em HTML
 ezdxf>=1.3                                 # Ler os arquivos DXF roteirizados (peças, medidas) direto no Python
+playwright>=1.45                           # Abrir o intranet já com a planilha de roteiro anexada (usa o Edge ou o Chrome do PC)
 requests>=2.32                             # Enviar arquivos para a Intranet PCP

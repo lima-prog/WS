@@ -27,6 +27,7 @@ LIBS = {
     "reportlab":  ("reportlab", "reportlab>=4.2", "Gerar PDF (etiquetas centralizadas, relatórios)"),
     "pywin32":    ("win32print", "pywin32>=306; sys_platform == 'win32'", "Imprimir direto na Zebra ZD220 (ZPL), listar impressoras e ler/fixar pastas no Acesso rápido do Windows"),
     "ezdxf":      ("ezdxf", "ezdxf>=1.3", "Ler os arquivos DXF roteirizados (peças, medidas) direto no Python"),
+    "playwright": ("playwright", "playwright>=1.45", "Abrir o intranet já com a planilha de roteiro anexada (usa o Edge ou o Chrome do PC)"),
     "requests":   ("requests", "requests>=2.32", "Enviar arquivos para a Intranet PCP"),
     "waitress":   ("waitress", "waitress>=3.0", "Servidor mais forte quando muitos usuários acessam pela rede"),
     "py7zr":      ("py7zr", "py7zr>=0.22", "Abrir arquivos compactados .7z como pasta"),
@@ -49,6 +50,7 @@ SECOES = [
     ("pg13", "Gerenciador de Roteiros › Gerar relatórios das ordens", ["pandas", "openpyxl", "XlsxWriter", "xlrd", "lxml", "ezdxf"], []),
     ("pg14", "Área de impressão › Engenharia (desenhos PDF)", ["pypdf", "pywin32"], ["py7zr", "rarfile"]),
     ("pg10", "Gerenciador de Roteiros › Alteração de Roteiros", ["pandas", "openpyxl", "XlsxWriter", "xlrd"], []),
+    ("pg15", "Gerenciador de Roteiros › Gerenciamento de roteiro - ERP", ["openpyxl"], ["playwright"]),
     ("pg11", "Gerenciador de Roteiros › Acesso ao Intranet", ["requests"], []),
     ("pg12", "Área de impressão › Impressão de Etiquetas", ["pandas", "openpyxl", "xlrd", "dbfread", "reportlab", "pywin32"], []),
 ]

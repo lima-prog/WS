@@ -189,6 +189,17 @@ class Sistema(BaseHTTPRequestHandler):
                 return self._json({"ok": True, "enviadas": len(zpls), "metodo": metodo})
             except Exception as e:
                 return self._json({"erro": str(e)}, 500)
+        if caminho == "/api/pc/roteiro_salvar":
+            # Gerenciamento de roteiro - ERP: guarda a planilha essencial no local fixo de envio (+ histórico)
+            if not self._do_proprio_pc():
+                return self._json({"erro": "Só no próprio computador do sistema."}, 403)
+            import base64
+            from ppcpm import roteiro_envio
+            try:
+                conteudo = base64.b64decode(self._corpo_json().get("xlsx") or "")
+                return self._json(roteiro_envio.salvar(conteudo))
+            except Exception as e:  # noqa: BLE001
+                return self._json({"erro": f"Não consegui gravar a planilha: {e}"}, 500)
         if caminho == "/api/pc/janela3d":
             # VISUALIZAR 3D: guarda a página e o arquivo e abre numa janela de aplicativo (sem barra de endereço)
             if not self._do_proprio_pc():
@@ -253,6 +264,15 @@ class Sistema(BaseHTTPRequestHandler):
             if acao == "pacotes":   # Tela inicial: planilha de controle de pacotes (linhas só quando mudou)
                 from ppcpm import pacotes
                 return self._json(pacotes.estado(q.get("linhas") == "1", q.get("desde", "")))
+            if acao in ("roteiro_envio", "roteiro_abrir", "roteiro_pasta", "roteiro_info"):
+                from ppcpm import roteiro_envio as RE
+                if acao == "roteiro_envio":
+                    return self._json(RE.abrir_envio())
+                if acao == "roteiro_abrir":
+                    return self._json(RE.abrir_planilha())
+                if acao == "roteiro_pasta":
+                    return self._json(RE.mostrar_pasta())
+                return self._json({"ultima": RE.ultima(), "playwright": RE.tem_playwright(), "url": RE.URL_ENVIO})
             if acao == "caminho_unc":   # caminho de rede verdadeiro (vale em qualquer PC, qualquer letra)
                 from ppcpm import caminhos
                 return self._json({"unc": caminhos.para_unc(q.get("caminho", ""))})

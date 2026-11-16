@@ -21,6 +21,7 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | Gerenciador de Roteiros › Gerar relatórios das ordens | `pg13.txt` | pandas, openpyxl, XlsxWriter, xlrd, lxml, ezdxf |
 | Área de impressão › Engenharia (desenhos PDF) | `pg14.txt` | pypdf, pywin32 (opcional: py7zr, rarfile) |
 | Gerenciador de Roteiros › Alteração de Roteiros | `pg10.txt` | pandas, openpyxl, XlsxWriter, xlrd |
+| Gerenciador de Roteiros › Gerenciamento de roteiro - ERP | `pg15.txt` | openpyxl (opcional: playwright) |
 | Gerenciador de Roteiros › Acesso ao Intranet | `pg11.txt` | requests |
 | Área de impressão › Impressão de Etiquetas | `pg12.txt` | pandas, openpyxl, xlrd, dbfread, reportlab, pywin32 |
 
@@ -43,4 +44,5 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | `reportlab` | Gerar PDF (etiquetas centralizadas, relatórios) |
 | `lxml` | Ler o export do FOCCO que vem como .xls em HTML |
 | `ezdxf` | Ler os arquivos DXF roteirizados (peças, medidas) direto no Python |
+| `playwright` | Abrir o intranet já com a planilha de roteiro anexada (usa o Edge ou o Chrome do PC) |
 | `requests` | Enviar arquivos para a Intranet PCP |

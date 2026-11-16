@@ -1,0 +1,5 @@
+# Gerenciador de Roteiros › Gerenciamento de roteiro - ERP
+# Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
+
+openpyxl>=3.1                              # Ler e gravar Excel .xlsx (mantém abas e formatação)
+playwright>=1.45                           # Abrir o intranet já com a planilha de roteiro anexada (usa o Edge ou o Chrome do PC)

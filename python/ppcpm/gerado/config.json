@@ -1,5 +1,5 @@
 {
-  "versao": "Versão 188",
+  "versao": "Versão 189",
   "pacote_atual": 700,
   "obra_impressao": "2139-5-01",
   "supabase_url": "https://zlbgiodxpywrqapjlldg.supabase.co",
@@ -54,6 +54,12 @@
       "arquivo": "modulos/pg10.html"
     },
     {
+      "id": "pg15",
+      "nome": "Gerenciamento de roteiro - ERP",
+      "titulo": "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP",
+      "arquivo": "modulos/pg15.html"
+    },
+    {
       "id": "pg11",
       "nome": "Acesso ao Intranet",
       "titulo": "PPCPM - ACESSO AO INTRANET",
@@ -87,6 +93,7 @@
     "pg6",
     "pg7",
     "pg10",
+    "pg15",
     "pg11",
     "pg12",
     "pg13",
