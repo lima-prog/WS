@@ -2268,13 +2268,33 @@ async function lerPacote(arq, p) {
 $('#ag-suporte').textContent = window.showDirectoryPicker
   ? 'O sistema permite escolher pastas (inclusive unidades de rede mapeadas). Os arquivos são lidos só no seu computador — nada é enviado pra internet.'
   : 'Seu navegador não tem o seletor de pastas completo (use Chrome ou Edge pra melhor desempenho). Aqui a pasta inteira é listada de uma vez ao escolher.';
+/* V185: as pastas raiz ficam FIXADAS no servidor — valem para todos os usuários e PCs (e para quem instalar o sistema depois).
+   O ✕ tira a pasta para todos. Só pastas do sistema instalado (caminho do PC/rede) são fixadas. */
+const AG_CFG = 'agrupador_raizes';
+function agCfg() { try { return window.top.__ppcpmCfg || null; } catch (e) { return null; } }
+async function agSalvarRaizes() {
+  const c = agCfg(); if (!c) return;
+  const lista = S.ag.raizes.filter(r => r.caminho).map(r => ({ nome: r.nome, caminho: r.caminho }));
+  try { await c.gravar(AG_CFG, lista); } catch (e) { alert('Não consegui fixar as pastas para todos: ' + (e.message || e)); }
+}
+async function agCarregarRaizes(tent = 0) {
+  const c = agCfg(), de_novo = () => { if (tent < 30) setTimeout(() => agCarregarRaizes(tent + 1), 1000); };
+  if (!c || typeof window.PPCPM_PASTA !== 'function') return de_novo();   // espera a ligação com o PC e o login
+  try {
+    const lista = await c.ler(AG_CFG); if (!Array.isArray(lista)) return de_novo();
+    const ja = new Set(S.ag.raizes.map(r => (r.caminho || '').toLowerCase()));
+    lista.forEach(x => { if (x && x.caminho && !ja.has(x.caminho.toLowerCase())) S.ag.raizes.push({ nome: x.nome, caminho: x.caminho, ref: { tipo: 'fs', handle: window.PPCPM_PASTA(x.caminho, x.nome) } }); });
+    agRenderRaizes();
+  } catch (e) { console.warn('[pastas raiz]', e); de_novo(); }
+}
 function agRenderRaizes() {
   const ul = $('#ag-raizes'); ul.innerHTML = S.ag.raizes.length ? '' : '<li class="fraco">nenhuma pasta adicionada</li>';
-  S.ag.raizes.forEach((r, i) => { const li = document.createElement('li'); li.innerHTML = `<span>📁 ${esc(r.nome)}</span><span class="x">✕</span>`; li.querySelector('.x').onclick = () => { S.ag.raizes.splice(i, 1); agRenderRaizes(); }; ul.appendChild(li); });
+  S.ag.raizes.forEach((r, i) => { const li = document.createElement('li'); li.title = (r.caminho || r.nome) + (r.caminho ? '\nFixada para todos os usuários' : ''); li.innerHTML = `<span>📁 ${esc(r.nome)}</span><span class="x" title="Tirar esta pasta (para todos)">✕</span>`; li.querySelector('.x').onclick = () => { S.ag.raizes.splice(i, 1); agRenderRaizes(); if (r.caminho) agSalvarRaizes(); }; ul.appendChild(li); });
 }
+agCarregarRaizes();
 $('#ag-add-raiz').onclick = async () => {
   if (window.showDirectoryPicker) {
-    try { const h = await showDirectoryPicker({ mode: 'read' }); S.ag.raizes.push({ nome: h.name, ref: { tipo: 'fs', handle: h } }); agRenderRaizes(); }
+    try { const h = await showDirectoryPicker({ mode: 'read' }); const c = h.ppcpmCaminho || null; if (c && S.ag.raizes.some(r => (r.caminho || '').toLowerCase() === c.toLowerCase())) return; S.ag.raizes.push({ nome: h.name, caminho: c, ref: { tipo: 'fs', handle: h } }); agRenderRaizes(); if (c) agSalvarRaizes(); }
     catch (e) { if (e.name !== 'AbortError') alert('Não foi possível abrir a pasta: ' + e.message + (window.top !== window ? '\n(Se esta página estiver dentro de um iframe, o navegador pode bloquear o seletor de pastas.)' : '')); }
     return;
   }
