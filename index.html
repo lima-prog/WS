@@ -20947,6 +20947,37 @@ table.t td.manual{color:var(--marca);font-weight:700}
 .acoes-faixa button{background:transparent;border:1px solid #2a3a6c;color:#c9d3f0;border-radius:8px;padding:4px 9px;cursor:pointer;font-size:11px}
 .acoes-faixa button:hover{background:#15234d}
 body.embed{background:#d9dee5}body.embed .faixa h1,body.embed .faixa .online,body.embed .faixa .modo{display:none}
+
+/* V196 — Impressão de Etiquetas no modelo novo */
+.etq-v196 .abas{border-bottom:1px solid #c9d0d9!important;gap:2px!important}
+.etq-v196 .abas>button{display:inline-flex;align-items:center;gap:7px;color:#6b7280!important;font-weight:600!important;font-size:13px!important;border-bottom:2px solid transparent!important;padding:8px 12px!important;background:transparent!important}
+.etq-v196 .abas>button.ativa{color:#111827!important;font-weight:700!important;border-bottom-color:#5f6b7a!important}
+.etq-v196 .abas>button svg{flex:none}
+.etq-v196 .btn{display:inline-flex;align-items:center;gap:7px;border-radius:4px!important}
+.etq-v196 .btn svg{flex:none}
+.etq-v196 .btn.mini{background:#fff!important;border:1px solid #c5cbd6!important;color:#111827!important;font-weight:700!important;padding:6px 10px!important}
+.etq-v196 .card{background:#fff!important;border:1px solid #1f2937!important;border-top:4px solid #0b3d91!important;border-radius:4px!important;box-shadow:none!important;padding:14px 16px!important}
+.etq-v196 .card h2{font-size:15px!important;color:#111827}
+.etq-v196 .card h2 .num{width:22px;height:22px;font-size:12px;background:#0b3d91!important}
+.etq-v196 .etq-sub{font-size:12px;font-weight:500;color:#6b7280;margin-left:2px}
+.etq-v196 .etq-pac{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151}
+.etq-v196 .status{color:#4b5563!important;font-size:12px!important}
+.etq-v196 .etq-rod{display:inline-flex;align-items:center;gap:6px}.etq-v196 .etq-rod svg{width:13px;height:13px}.etq-v196 .etq-rod i{font-style:normal;margin:0 4px;color:#9aa3b5}
+.etq-v196 .etq-filtros{gap:8px!important;align-items:center}
+.etq-v196 .etq-filtros>b{font-size:12.5px;color:#111827}
+.etq-v196 .etq-filtros input.campo{width:150px!important;min-width:0!important;padding-top:6px!important;padding-bottom:6px!important}
+.etq-v196 .etq-filtros .btn{padding:6px 12px!important}
+.etq-v196 .tabela-caixa{border:1px solid #c5cbd6!important;border-radius:4px!important}
+.etq-v196 table.t th{background:#5f6b7a!important;color:#fff!important;font-size:11px!important;text-transform:uppercase;letter-spacing:.02em;border-bottom:0!important;padding:9px 10px!important}
+.etq-v196 table.t td{padding:7px 10px!important;border-bottom:1px solid #e1e5ea!important;vertical-align:middle!important;font-weight:500;color:#111827}
+.etq-v196 table.t tr:nth-child(even) td{background:#f3f5f8!important}
+.etq-v196 table.t tbody tr:hover td{background:#e8ebf0!important}
+.etq-v196 table.t td.etq-obra{font-family:Consolas,'IBM Plex Mono',monospace;font-weight:700}
+.etq-v196 table.t input[type=checkbox]{width:15px;height:15px;accent-color:#5f6b7a}
+.etq-v196 .etq-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;line-height:16px}
+.etq-v196 .etq-pill svg{width:11px;height:11px;stroke-width:2.6}
+.etq-v196 .etq-pill.ok{background:#dcf2e3;color:#15803d;border:1px solid #b5e0c3}
+.etq-v196 .etq-pill.pend{background:#fde9cf;color:#b45309;border:1px solid #f5cf9a}
 </style>
 </head>
 <body>
@@ -23466,31 +23497,34 @@ if (typeof module !== 'undefined') module.exports = PP;
 
   function montar(raiz) {
     var ui = PP.ui, h = ui.h, arquivo = null, df = null;
+    raiz.classList.add('etq-v196');
+    var EIC={'home':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>', 'prn':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>', 'clk':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>', 'lay':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h6M7 13h10M7 16h4"/></svg>', 'pen':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/></svg>', 'usr':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>', 'dl':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>', 'srch':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>', 'trash':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>', 'box':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>', 'chk':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="m8 12 3 3 5-6"/></svg>', 'x':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>', 'file':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>', 'ok':'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>'};
+    function ebt(ic, txt, op) { var bb = ui.botao(txt, op); bb.insertAdjacentHTML('afterbegin', EIC[ic]); return bb; }
     var status = h('div', { class: 'status mt' });
-    function rodape() { var imp = cfgTab().get('ultima_impressora', '') || 'nenhuma'; status.textContent = '👤 ' + usuario() + ' | 🖨️ Última impressora: ' + imp; }
+    function rodape() { var imp = cfgTab().get('ultima_impressora', '') || 'nenhuma'; status.innerHTML = '<span class="etq-rod">' + EIC.usr + U.esc(usuario()) + '<i>|</i>' + EIC.prn + 'Última impressora: ' + U.esc(imp) + '</span>'; }
     raiz.appendChild(ui.cabecalhoFerramenta('Impressão de Etiquetas', 'Importa o Relatório de Ordens e Fluxos (Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx), grava as etiquetas do pacote no histórico e imprime na Zebra (203 dpi).\n\n1) Início: escolha o relatório (o nº do pacote vem da coluna LOTE) e clique em IMPORTAR DADOS.\n2) Emitir etiqueta: filtre, marque e clique em Imprimir selecionadas.\n3) Histórico: tudo que já foi importado/impresso.\n\nAba Preparação: uma etiqueta por obra e máquina de corte. Aba Não Preparação: uma etiqueta por obra e setor. Aba PS PREP (COD ITEM = PS_PREP): uma etiqueta PERFIL SOLDADO por obra. Mais o saquinho DEMANDA/LCT.\n\nImpressão direta precisa do "Zebra Browser Print" instalado no computador (serviço gratuito da Zebra). Sem ele, as etiquetas saem como arquivo .zpl para enviar à impressora.'));
     var abas = h('div', { class: 'abas', style: { alignItems: 'center' } }), paineis = [];
     raiz.appendChild(abas);
     var acoes = h('div', { class: 'linha', style: { marginLeft: 'auto', paddingBottom: '6px' } },
-      ui.botao('⚙️ Layout da etiqueta', { classe: 'mini', click: dlgConfig }), ui.botao('🧪 Imprimir teste', { classe: 'mini', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') testeZpl(); else teste(); } }), ui.botao('👤 Operador', { classe: 'mini', click: dlgOperador }));
+      ebt('lay', 'Layout da etiqueta', { classe: 'mini', click: dlgConfig }), ebt('pen', 'Imprimir teste', { classe: 'mini', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') testeZpl(); else teste(); } }), ebt('usr', 'Operador', { classe: 'mini', click: dlgOperador }));
     function aba(titulo, el, aoAbrir) {
-      var b = h('button', { type: 'button' }, titulo), i = paineis.length;
+      var b = h('button', { type: 'button' }), i = paineis.length; b.innerHTML = (EIC[titulo[0]] || '') + '<span>' + titulo[1] + '</span>';
       b.addEventListener('click', function () { ativar(i); });
       abas.appendChild(b); paineis.push({ b: b, el: el, abrir: aoAbrir }); raiz.appendChild(el);
     }
     function ativar(i) { paineis.forEach(function (p, k) { p.b.classList.toggle('ativa', k === i); p.el.style.display = k === i ? '' : 'none'; }); if (paineis[i].abrir) paineis[i].abrir(); }
 
     /* Início */
-    var lblPac = h('div', { class: 'forte mt' }, 'Pacote: ---');
+    var lblPac = h('div', { class: 'forte mt etq-pac' }, 'Pacote: ---');
     var sel = new ui.SeletorArquivo({ id: 'etq-planilha', textoDrop: 'arraste o Relatório de Ordens e Fluxos (.xlsx)', tipos: { 'application/vnd.ms-excel': ['.xlsx', '.xls'] }, descricao: 'Excel',
       aoEscolher: function (fs) { arquivo = fs[0]; lblPac.textContent = 'Pacote: ' + extrair_pacote_do_nome_arquivo(arquivo.name); btnImp.disabled = false; },
       aoLimpar: function () { arquivo = null; lblPac.textContent = 'Pacote: ---'; btnImp.disabled = true; } });
     var eObs = h('input', { class: 'campo', maxlength: String(OBSERVACAO_MAX), placeholder: 'Observação (opcional)' });
-    var btnImp = ui.botao('📥 IMPORTAR DADOS', { classe: 'prim grande', desabilitado: true, click: importarClick });
-    aba('🏠 Início', h('div', null,
+    var btnImp = ebt('dl', 'IMPORTAR DADOS', { classe: 'prim grande', desabilitado: true, click: importarClick });
+    aba(['home', 'Início'], h('div', null,
       h('div', { class: 'grade g2' },
         h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '1'), 'Relatório de Ordens e Fluxos'), sel.el, lblPac),
-        h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '2'), 'Observação (opcional, até ' + OBSERVACAO_MAX + ' caracteres)'), eObs,
+        h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '2'), 'Observação', h('small', { class: 'etq-sub' }, '(opcional, até ' + OBSERVACAO_MAX + ' caracteres)')), eObs,
           h('div', { class: 'mt' }, btnImp),
           h('div', { class: 'fraco mt' }, 'Depois de importar, vá em “Emitir etiqueta” para imprimir.\nOrdem de impressão: 1º saquinho DEMANDA/LCT · 2º Preparação, obra por obra (máquinas em sequência) · 3º Não Preparação, obra por obra (setor por setor).')))));
     async function importarClick() {
@@ -23561,18 +23595,18 @@ if (typeof module !== 'undefined') module.exports = PP;
       c.addEventListener('change', function () { if (c.checked) marcados.add(r.id); else marcados.delete(r.id); contador(); });
       return { el: c };
     }
-    var colunas = [{ chave: 'id', titulo: 'ID', alinhar: 'c' }, { chave: 'data_hora', titulo: 'Data' }, { chave: 'pacote', titulo: 'Pacote' }, { chave: 'obra', titulo: 'Obra' }, { chave: 'tipo', titulo: 'Etapa', celula: function (r) { return ETAPAS[r.tipo] || ''; } }, { chave: 'fluxo', titulo: 'Máquina / Setor' },
+    var colunas = [{ chave: 'id', titulo: 'ID', alinhar: 'c' }, { chave: 'data_hora', titulo: 'Data' }, { chave: 'pacote', titulo: 'Pacote' }, { chave: 'obra', titulo: 'Obra', celula: function (r) { return { texto: r.obra, classe: 'etq-obra' }; } }, { chave: 'tipo', titulo: 'Etapa', celula: function (r) { return ETAPAS[r.tipo] || ''; } }, { chave: 'fluxo', titulo: 'Máquina / Setor' },
       { chave: 'observacao', titulo: 'Observação', celula: function (r) { return r.observacao || ''; } }, { chave: 'usuario', titulo: 'Operador' },
-      { chave: 'impresso', titulo: 'Status', celula: function (r) { return r.impresso === 1 ? { texto: '✅ Impresso', classe: 'ok' } : { texto: '⏳ Pendente', classe: 'fraco' }; } }];
+      { chave: 'impresso', titulo: 'Status', celula: function (r) { var p = h('span', { class: 'etq-pill ' + (r.impresso === 1 ? 'ok' : 'pend') }); p.innerHTML = r.impresso === 1 ? EIC.ok + 'Impresso' : EIC.clk + 'Pendente'; return { el: p }; } }];
     var tEmit = new ui.Tabela({ selecao: 'nenhuma', altura: 'calc(100vh - 420px)', vazio: 'Nenhuma etiqueta — importe uma planilha ou ajuste os filtros.', colunas: [{ chave: 'sel', titulo: 'Sel', alinhar: 'c', celula: chk }].concat(colunas), aoDuploClique: previa });
     tEmit.el.style.minHeight = '260px';
-    aba('🖨️ Emitir etiqueta', h('div', { class: 'card' },
-      h('div', { class: 'linha' }, h('span', null, 'Pacote:'), digitavel(cbPac), h('span', null, 'Obra:'), digitavel(cbObra), h('span', null, 'Etapa:'), digitavel(cbEtapa), h('span', null, 'Máquina / Setor:'), digitavel(cbFl),
-        ui.botao('🔍 Buscar', { click: buscarClick }), ui.botao('🗑️ Limpar', { click: function () { [cbPac, cbObra, cbFl, cbEtapa].forEach(function (c) { c.selectedIndex = 0; }); buscarClick(); } }),
-        ui.botao('📦 DEMANDA/LCT', { click: demanda })),
+    aba(['prn', 'Emitir etiqueta'], h('div', { class: 'card' },
+      h('div', { class: 'linha etq-filtros' }, h('b', null, 'Pacote:'), digitavel(cbPac), h('b', null, 'Obra:'), digitavel(cbObra), h('b', null, 'Etapa:'), digitavel(cbEtapa), h('b', null, 'Máquina / Setor:'), digitavel(cbFl),
+        ebt('srch', 'Buscar', { classe: 'prim', click: buscarClick }), ebt('trash', 'Limpar', { click: function () { [cbPac, cbObra, cbFl, cbEtapa].forEach(function (c) { c.selectedIndex = 0; }); buscarClick(); } }),
+        ebt('box', 'DEMANDA/LCT', { click: demanda })),
       h('div', { class: 'mt' }, tEmit.el),
-      h('div', { class: 'linha mt' }, ui.botao('✅ Marcar todas', { click: function () { marcar(true); } }), ui.botao('❌ Desmarcar todas', { click: function () { marcar(false); } }), lblTot,
-        h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ui.botao('⬇ Baixar PDF', { click: function () { imprimir('pdf'); } }), ui.botao('🖨️ Imprimir selecionadas', { classe: 'prim', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') imprimirZpl(false); else imprimir(false); } }))), combos);
+      h('div', { class: 'linha mt' }, ebt('chk', 'Marcar todas', { click: function () { marcar(true); } }), ebt('x', 'Desmarcar todas', { click: function () { marcar(false); } }), lblTot,
+        h('div', { class: 'espaco' }), h('span', { class: 'fraco' }, 'duplo clique = prévia'), ebt('dl', 'Baixar PDF', { click: function () { imprimir('pdf'); } }), ebt('prn', 'Imprimir selecionadas', { classe: 'prim', click: function () { if (typeof window.PPCP_IMPRIMIR_ZPL === 'function') imprimirZpl(false); else imprimir(false); } }))), combos);
     function combos() {
       [[cbPac, TODOS, distintos('pacote', true)], [cbObra, TODAS, distintos('obra')], [cbFl, TODOS, comGrupos(distintos('fluxo'))]].forEach(function (x) {
         var atual = x[0].value; x[0].innerHTML = '';
@@ -23705,8 +23739,8 @@ if (typeof module !== 'undefined') module.exports = PP;
     /* Histórico */
     var tHist = new ui.Tabela({ selecao: 'multipla', altura: 'calc(100vh - 360px)', vazio: 'Histórico vazio.', colunas: colunas.map(function (c) { return Object.assign({ ordenavel: true }, c); }), aoDuploClique: previa });
     tHist.el.style.minHeight = '260px';
-    aba('📜 Histórico', h('div', { class: 'card' }, tHist.el,
-      h('div', { class: 'linha mt' }, h('div', { class: 'espaco' }), ui.botao('Exportar CSV', { click: function () {
+    aba(['clk', 'Histórico'], h('div', { class: 'card' }, tHist.el,
+      h('div', { class: 'linha mt' }, h('div', { class: 'espaco' }), ebt('file', 'Exportar CSV', { click: function () {
         var l = [['ID', 'Data', 'Pacote', 'Obra', 'Máquina / Setor', 'Observação', 'Operador', 'Status']].concat(tHist.linhas.map(function (r) { return [r.id, r.data_hora, r.pacote, r.obra, r.fluxo, r.observacao || '', r.usuario, r.impresso === 1 ? 'Impresso' : 'Pendente']; }));
         PP.fs.baixar(new Blob(['﻿' + PL.escreverCSV(l, ';')], { type: 'text/csv' }), 'historico_etiquetas.csv');
       } }))), function () { tHist.definirLinhas(buscar()); });
@@ -28214,7 +28248,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 195';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 196';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
