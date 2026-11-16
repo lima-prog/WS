@@ -18611,6 +18611,22 @@ table.t td.manual{color:var(--marca);font-weight:700}
 .modal footer{padding:12px 20px 16px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #eef0f5}
 .modal .ic-info{color:var(--azul)}.modal .ic-ok{color:var(--verde)}.modal .ic-alerta{color:#c27b0a}.modal .ic-erro{color:var(--vermelho)}
 @keyframes aparece{from{opacity:0}to{opacity:1}}
+/* V188: avisos no modelo do sistema (branco, borda preta, faixa azul em cima, botão cinza-azulado) */
+.fundo-modal{background:rgba(20,30,50,.45)!important}
+.modal{border-radius:10px!important;border:1.5px solid #000!important;border-top:6px solid #0b3d91!important;box-shadow:0 12px 32px rgba(0,0,0,.18)!important;font-family:'Segoe UI',Roboto,Arial,sans-serif;animation:modalEntra .25s ease-out}
+@keyframes modalEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.modal header{padding:20px 22px 10px!important;font-size:18px!important;font-weight:600!important;color:#000!important;gap:9px!important}
+.modal header .ic-info,.modal header .ic-ok{color:#0b3d91!important}
+.modal .corpo{padding:4px 22px 16px!important;font-size:14px!important;color:#000!important}
+.modal .corpo .mb{font-weight:600;margin-bottom:8px;color:#000}
+.modal .corpo .campo{border:1px solid #0b3d91!important;border-radius:6px!important;background:#fff!important;padding:10px 12px!important;font-size:14px!important;color:#000!important}
+.modal .corpo .campo:focus{box-shadow:0 0 0 3px rgba(11,61,145,.15)!important}
+.modal footer{border-top:1px solid #e3e8ef!important;margin:0 22px;padding:14px 0 18px!important;gap:10px!important}
+.modal footer .btn{font-family:inherit;font-size:14px!important;font-weight:600!important;padding:9px 18px!important;border-radius:6px!important;background:#fff!important;border:1px solid #c5cfdd!important;color:#000!important;box-shadow:none!important}
+.modal footer .btn:hover{background:#f1f4f8!important}
+.modal footer .btn.prim{background:#5f6b7a!important;border:1.5px solid #1f2937!important;color:#fff!important}
+.modal footer .btn.prim:hover{background:#4c5664!important}
+.modal footer .btn:active{transform:scale(.97)}
 .toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:1100}
 .toast{background:#101935;color:#fff;border-radius:10px;padding:10px 14px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:420px}
 .toast.ok{background:#14532d}.toast.erro{background:#7f1d1d}
@@ -20439,7 +20455,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       var fundo = h('div', { class: 'fundo-modal' });
       var caixa = h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true' });
       if (op.largura) caixa.style.width = 'min(' + op.largura + 'px,100%)';
-      var tipoIc = { info: 'info', ok: 'check', alerta: 'alerta', erro: 'alerta', pergunta: 'ajuda' }[op.tipo || 'info'];
+      var tipoIc = op.icone || { info: 'info', ok: 'check', alerta: 'alerta', erro: 'alerta', pergunta: 'ajuda' }[op.tipo || 'info'];
       var cab = h('header', null);
       cab.innerHTML = '<span class="ic-' + (op.tipo === 'pergunta' ? 'info' : (op.tipo || 'info')) + '">' + icone(tipoIc, 22) + '</span><span>' + U.esc(op.titulo || '') + '</span>';
       var corpo = h('div', { class: 'corpo' + (typeof op.corpo === 'string' ? '' : ' html') });
@@ -21355,7 +21371,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       var cb = h('select', { class: 'campo' }); lista.forEach(function (p, i) { cb.appendChild(h('option', { value: String(i) }, p.name + (p.connection ? '  (' + p.connection + ')' : ''))); });
       var ult = cfgTab().get('ultima_impressora', '');
       lista.forEach(function (p, i) { if (p.name === ult) cb.value = String(i); });
-      var ok = await ui.modal({ titulo: 'Selecionar impressora', corpo: h('div', null, h('div', { class: 'mb' }, 'Selecione a impressora:'), cb), botoes: [{ texto: 'Cancelar', valor: false }, { texto: '✓ Selecionar', valor: true, classe: 'prim' }] });
+      var ok = await ui.modal({ titulo: 'Selecionar impressora', icone: 'impressora', corpo: h('div', null, h('div', { class: 'mb' }, 'Selecione a impressora:'), cb), botoes: [{ texto: 'Cancelar', valor: false }, { texto: '✓ Selecionar', valor: true, classe: 'prim' }] });
       return ok ? { via: r.via, imp: lista[+cb.value] } : null;
     }
     async function imprimir(modo) {
@@ -25929,7 +25945,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 187';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 188';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
