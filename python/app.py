@@ -253,6 +253,15 @@ class Sistema(BaseHTTPRequestHandler):
             if acao == "pacotes":   # Tela inicial: planilha de controle de pacotes (linhas só quando mudou)
                 from ppcpm import pacotes
                 return self._json(pacotes.estado(q.get("linhas") == "1", q.get("desde", "")))
+            if acao == "bloco_notas":   # Tela inicial > Obras para validar: abre o Bloco de Notas do Windows
+                if not sys.platform.startswith("win"):
+                    return self._json({"ok": False, "msg": "O Bloco de Notas só abre no Windows."})
+                import subprocess
+                try:
+                    subprocess.Popen(["notepad.exe"], close_fds=True)
+                    return self._json({"ok": True})
+                except OSError as e:
+                    return self._json({"ok": False, "msg": f"Não consegui abrir o Bloco de Notas ({e})."})
             if acao == "instalacao":   # o sistema confere se a instalação deste PC está completa
                 from ppcpm import instalacao
                 return self._json(instalacao.verificar(q.get("rede") != "0"))
