@@ -19,6 +19,7 @@ Usa só o que já vem com o Python: não precisa de pip nem de administrador.
 from __future__ import annotations
 
 import gzip
+import os
 import json
 import socket
 import sys
@@ -140,6 +141,8 @@ class Sistema(BaseHTTPRequestHandler):
                                    "rede": ESTADO["rede"], "ultima_verificacao": getattr(ag, "ultimo", None)})
             if caminho.startswith("/api/pc/"):
                 return self._arquivos_pc(caminho[len("/api/pc/"):], q)
+            if caminho.startswith("/api/prod/"):
+                return self._producao_get(caminho[len("/api/prod/"):], q)
             if caminho == "/api/zebra/impressoras":
                 if not self._do_proprio_pc():
                     return self._json({"erro": "Impressoras só neste computador."}, 403)
@@ -246,6 +249,8 @@ class Sistema(BaseHTTPRequestHandler):
             del corpo
             return self._enviar(200, arq, "application/octet-stream",
                                 extra={"X-Resultado": quote(json.dumps(r)), "Access-Control-Expose-Headers": "X-Resultado"})
+        if caminho.startswith("/api/prod/"):
+            return self._producao_post(caminho[len("/api/prod/"):])
         if caminho == "/api/encerrar":
             # Botão "Sair" → [S] Sim: desliga o sistema por completo neste PC (só o próprio PC pode)
             if not self._do_proprio_pc():
@@ -256,6 +261,58 @@ class Sistema(BaseHTTPRequestHandler):
             threading.Timer(0.5, ESTADO["servidor"].shutdown).start()
             return None
         return self._json({"erro": "Página não encontrada."}, 404)
+
+    # ---------------- PRODUÇÃO (Agrupador | Base, Impressão Casada, Multi obra, Grupo LIC, Fluxo 4)
+    # A tela do Validador de Fluxos roda no Python deste PC (ppcpm/producao/motor.py). Só o próprio PC.
+    def _producao_get(self, acao: str, q: dict):
+        if not self._do_proprio_pc():
+            return self._json({"erro": "Os programas de Produção rodam só no próprio computador do sistema."}, 403)
+        from ppcpm.producao import motor
+        def inteiro(v):
+            try:
+                return int(v or 0)
+            except ValueError:
+                return 0
+        if acao == "estado":
+            return self._json(motor.estado(q.get("aba", ""), inteiro(q.get("desde")), inteiro(q.get("msg"))))
+        if acao == "abrir":
+            return self._json(motor.abrir(q.get("caminho", ""), q.get("mostrar") == "1"))
+        if acao == "baixar":
+            c = q.get("caminho", "")
+            if not c or not os.path.isfile(c):
+                return self._json({"erro": "Arquivo não encontrado."}, 404)
+            with open(c, "rb") as f:
+                dados = f.read()
+            return self._enviar(200, dados, "application/octet-stream",
+                                extra={"X-Nome": quote(os.path.basename(c)), "Access-Control-Expose-Headers": "X-Nome"})
+        return self._json({"erro": "Ação desconhecida."}, 404)
+
+    def _producao_post(self, acao: str):
+        if not self._do_proprio_pc():
+            return self._json({"erro": "Os programas de Produção rodam só no próprio computador do sistema."}, 403)
+        from ppcpm.producao import motor
+        if acao == "enviar":       # arquivo arrastado do navegador -> arquivo local
+            n = int(self.headers.get("Content-Length") or 0)
+            if n <= 0 or n > 1536 * 1024 * 1024:
+                return self._json({"erro": "Arquivo vazio ou grande demais."}, 400)
+            from urllib.parse import unquote
+            return self._json(motor.receber_arquivo(unquote(self.headers.get("X-Nome") or "arquivo"), self.rfile.read(n)))
+        d = self._corpo_json()
+        if acao == "chamar":
+            return self._json(motor.chamar(str(d.get("aba", "")), str(d.get("metodo", "")), d.get("args") or [],
+                                           d.get("valores") or {}, int(d.get("desde") or 0), int(d.get("msg") or 0)))
+        if acao == "arvore":
+            return self._json(motor.arvore(str(d.get("aba", "")), str(d.get("widget", "")), d.get("caminho") or [],
+                                           str(d.get("evento") or "clique"), int(d.get("col") or 0), d.get("valor"),
+                                           int(d.get("desde") or 0), int(d.get("msg") or 0)))
+        if acao == "lista":
+            return self._json(motor.lista(str(d.get("aba", "")), str(d.get("widget", "")), int(d.get("idx") or 0),
+                                          d.get("valor"), int(d.get("desde") or 0), int(d.get("msg") or 0)))
+        if acao == "responder":
+            return self._json(motor.responder(int(d.get("id") or 0), d.get("resposta")))
+        if acao == "pasta_dados":
+            return self._json(motor.definir_pasta_dados(str(d.get("pasta") or "")))
+        return self._json({"erro": "Ação desconhecida."}, 404)
 
     def _arquivos_pc(self, acao: str, q: dict):
         if not self._do_proprio_pc():

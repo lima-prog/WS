@@ -11,12 +11,12 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | Seção do sistema | Arquivo | Bibliotecas |
 |---|---|---|
 | Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas, compactados e Acesso rápido do Windows) e atualização automática | `nucleo.txt` | nenhuma obrigatória (opcional: py7zr, rarfile, waitress, pywin32) |
-| Produção › Agrupador ¦ Base | `pg2.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber |
+| Produção › Agrupador ¦ Base | `pg2.txt` | pandas, openpyxl, xlrd, pyxlsb, dbfread, numpy, pymupdf, pypdf (opcional: pywin32) |
 | Produção › Roteirização produção | `pg3.txt` | pandas, openpyxl, XlsxWriter |
-| Produção › Impressão Casada - ERP | `pg4.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
-| Produção › Impressão Casada ¦ Multi obra | `pg5.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
-| Produção › Impressão Grupo - LIC | `pg6.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
-| Produção › Impressão - FLUXO 04 | `pg7.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, pypdf, pdfplumber, reportlab |
+| Produção › Impressão Casada - ERP | `pg4.txt` | pandas, openpyxl, xlrd, pyxlsb, dbfread, numpy, pymupdf, pypdf |
+| Produção › Impressão Casada ¦ Multi obra | `pg5.txt` | pandas, openpyxl, xlrd, pyxlsb, dbfread, numpy, pymupdf, pypdf |
+| Produção › Impressão Grupo - LIC | `pg6.txt` | pandas, openpyxl, xlrd, pyxlsb, dbfread, numpy, pymupdf, pypdf |
+| Produção › Impressão - FLUXO 04 | `pg7.txt` | pandas, openpyxl, xlrd, pyxlsb, dbfread, numpy, pymupdf, pypdf |
 | Processo de validação › Análise da DBF X Focco - ERP | `pg1.txt` | pandas, openpyxl, XlsxWriter, xlrd, pyxlsb, dbfread, lxml, pypdf, pdfplumber |
 | Gerenciador de Roteiros › Gerar relatórios das ordens | `pg13.txt` | pandas, openpyxl, XlsxWriter, xlrd, lxml, ezdxf |
 | Área de impressão › Engenharia (desenhos PDF) | `pg14.txt` | pypdf, pywin32 (opcional: py7zr, rarfile) |
@@ -35,14 +35,16 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | `pywin32` | Imprimir direto na Zebra ZD220 (ZPL), listar impressoras e ler/fixar pastas no Acesso rápido do Windows |
 | `pandas` | Tabelas: ler, cruzar, somar e filtrar planilhas e DBF com rapidez |
 | `openpyxl` | Ler e gravar Excel .xlsx (mantém abas e formatação) |
-| `XlsxWriter` | Gerar o Excel de saída com cores (verde/vermelho), larguras e filtros |
 | `xlrd` | Ler Excel antigo .xls |
 | `pyxlsb` | Ler Excel binário .xlsb |
 | `dbfread` | Ler arquivos .DBF (CNC/ERP) |
+| `numpy` | Contas rápidas com as tabelas dos programas de Produção |
+| `pymupdf` | Ler e montar os PDFs das ordens e dos CNCs (Impressão Casada, Multi obra, Grupo LIC, Fluxo 04) |
 | `pypdf` | Juntar, separar e reordenar páginas de PDF (ordens, impressão casada) |
-| `pdfplumber` | Ler texto e tabelas de dentro do PDF (conferência do PDF gerado) |
-| `reportlab` | Gerar PDF (etiquetas centralizadas, relatórios) |
+| `XlsxWriter` | Gerar o Excel de saída com cores (verde/vermelho), larguras e filtros |
 | `lxml` | Ler o export do FOCCO que vem como .xls em HTML |
+| `pdfplumber` | Ler texto e tabelas de dentro do PDF (conferência do PDF gerado) |
 | `ezdxf` | Ler os arquivos DXF roteirizados (peças, medidas) direto no Python |
 | `playwright` | Abrir o intranet já com a planilha de roteiro anexada (usa o Edge ou o Chrome do PC) |
 | `requests` | Enviar arquivos para a Intranet PCP |
+| `reportlab` | Gerar PDF (etiquetas centralizadas, relatórios) |

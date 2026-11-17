@@ -1,0 +1,62 @@
+{
+ "app": "Impressão Casada",
+ "chave": "validador_fluxos/Impressao_Casada",
+ "gerado_em": "17/11/2026 11:46",
+ "gerador": "1.0",
+ "origem": "/home/claude/build2/src/ppcp_dxf_ferramentas",
+ "pastas_de_codigo": [
+  "nucleo",
+  "validador_fluxos"
+ ],
+ "arquivos": {
+  "nucleo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nucleo/ambiente_qt.py": "b25e51c71a1deedc0ca6483ede0993e608afe6f0303d7c20e196d9efff49c0d0",
+  "nucleo/assets/icone_projeart.ico": "b7efc192189fd8e5300d4395763cc821fe5ced3b7ae7d3224c604a013fe0df2b",
+  "nucleo/assets/icone_projeart.png": "40c201d3d94c917586081a9f049a3e626994cb65032b757a70acd110d5c92632",
+  "nucleo/assets/logo_projeart.png": "b912912337502a42a86576d152459e7f6006b7b476308d6e11148b14ea7d6036",
+  "nucleo/banco_dados.py": "93c8efd7a464c15430e4f2ecd9cb2fc5a167be61964e6915f07d6feb4bf81c89",
+  "nucleo/caminhos.py": "e53bbfb0b756f903cf5318a9ee0126a2432a09b3ca4ac561a761c02915e60296",
+  "nucleo/estilo.py": "ffc8e52754432b2a6946a14bbee2caf6e5e39a2f4cc847787576ef3fdd66f45e",
+  "nucleo/logging_config.py": "2e975b06f8ff221cad98dc750d127fe71141e73a9ab86bd02ad9a42384c890bb",
+  "nucleo/modo_local.py": "c9ef47d98540c713e970eab1be09ee3031fe995933217732bb134cec5e591c5f",
+  "nucleo/normalizacao.py": "aef26a55e7a726486a9221814c67f5a0c85edb1099a0bf194087afbccd1dd992",
+  "validador_fluxos/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "validador_fluxos/executar.py": "06cb9b1f76322085e89531485c8946f742cf12b49c935ec0ebc87f9acfbce241",
+  "validador_fluxos/lancador.py": "80eec68ae500fb92dc51fc57e549d5ca8e2aa51aa1c8c9db0534ce909a6a0f4c",
+  "validador_fluxos/ska_lantek.py": "cdc43e06c14a0ffd1cbe6f6f8626477f20d6f32f783b6c09a53dd6890049f796",
+  "validador_fluxos/validador_fluxos_ppcp.py": "39310b633b997a7699ab6070080b835382d94f3bd0aff5b0c373fd2429df5130"
+ },
+ "programa_do_validador": {
+  "posicao_no_menu": 3,
+  "metodos_da_tela": [
+   "_build_impressao_tab",
+   "_imp_checkbox",
+   "_imp_adicionar_cnc",
+   "_imp_adicionar_cnc_paths",
+   "_imp_limpar_cnc",
+   "_imp_escolher_ordens",
+   "_imp_definir_ordens",
+   "_imp_escolher_lantek",
+   "_imp_definir_lantek",
+   "_imp_conferir",
+   "_imp_conferido",
+   "_preencher_kpis",
+   "_imp_texto_pendentes",
+   "_imp_texto_texto_perdido",
+   "_imp_mostrar_nada_a_imprimir",
+   "_imp_juntar",
+   "_imp_linha_pdf",
+   "_imp_resumo_posicao",
+   "_imp_popular_conferencia",
+   "_imp_filtrar_cncs",
+   "_imp_mostrar_cnc",
+   "_imp_ajustar_ultima_coluna",
+   "_imp_comparar_pdf_existente",
+   "_imp_gerar",
+   "_imp_mostrar_bloqueio_pendencias",
+   "_popular_arvore_impressao",
+   "_imp_concluido",
+   "_iniciar_trabalho_em_fundo"
+  ]
+ }
+}

@@ -1,1 +1,1 @@
-{"pacote": 38, "data": "2026-11-16", "notas": "Nova aba Gerenciamento de roteiro - ERP: planilha guardada no local de envio e intranet aberto já com ela anexada (Playwright opcional)"}
+{"pacote": 39, "data": "2026-11-17", "notas": "Produção (Agrupador | Base, Impressão Casada, Multi obra, Grupo LIC, Fluxo 04) com a lógica nova do Validador de Fluxos rodando no Python do PC (ppcpm/producao); nova biblioteca pymupdf"}

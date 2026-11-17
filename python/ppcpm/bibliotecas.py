@@ -22,6 +22,8 @@ LIBS = {
     "pyxlsb":     ("pyxlsb", "pyxlsb>=1.0.10", "Ler Excel binário .xlsb"),
     "dbfread":    ("dbfread", "dbfread>=2.0.7", "Ler arquivos .DBF (CNC/ERP)"),
     "lxml":       ("lxml", "lxml>=5.2", "Ler o export do FOCCO que vem como .xls em HTML"),
+    "pymupdf":    ("pymupdf", "pymupdf>=1.24", "Ler e montar os PDFs das ordens e dos CNCs (Impressão Casada, Multi obra, Grupo LIC, Fluxo 04)"),
+    "numpy":      ("numpy", "numpy>=1.26", "Contas rápidas com as tabelas dos programas de Produção"),
     "pypdf":      ("pypdf", "pypdf>=4.3", "Juntar, separar e reordenar páginas de PDF (ordens, impressão casada)"),
     "pdfplumber": ("pdfplumber", "pdfplumber>=0.11", "Ler texto e tabelas de dentro do PDF (conferência do PDF gerado)"),
     "reportlab":  ("reportlab", "reportlab>=4.2", "Gerar PDF (etiquetas centralizadas, relatórios)"),
@@ -36,16 +38,18 @@ LIBS = {
 
 PLANILHAS = ["pandas", "openpyxl", "XlsxWriter", "xlrd", "pyxlsb", "dbfread"]
 PDF = ["pypdf", "pdfplumber"]
+# Produção: a lógica do Validador de Fluxos roda no Python (ppcpm/producao) — estas são as que ela usa
+PRODUCAO = ["pandas", "openpyxl", "xlrd", "pyxlsb", "dbfread", "numpy", "pymupdf", "pypdf"]
 
 # (arquivo, nome da seção no sistema, bibliotecas da seção, opcionais)
 SECOES = [
     ("nucleo", "Núcleo — Login, Tela inicial, banco Supabase, Arquivos do PC (pastas, compactados e Acesso rápido do Windows) e atualização automática", [], ["py7zr", "rarfile", "waitress", "pywin32"]),
-    ("pg2", "Produção › Agrupador | Base", PLANILHAS + PDF, []),
+    ("pg2", "Produção › Agrupador | Base", PRODUCAO, ["pywin32"]),
     ("pg3", "Produção › Roteirização produção", ["pandas", "openpyxl", "XlsxWriter"], []),
-    ("pg4", "Produção › Impressão Casada - ERP", PLANILHAS + PDF + ["reportlab"], []),
-    ("pg5", "Produção › Impressão Casada | Multi obra", PLANILHAS + PDF + ["reportlab"], []),
-    ("pg6", "Produção › Impressão Grupo - LIC", PLANILHAS + PDF + ["reportlab"], []),
-    ("pg7", "Produção › Impressão - FLUXO 04", PLANILHAS + PDF + ["reportlab"], []),
+    ("pg4", "Produção › Impressão Casada - ERP", PRODUCAO, []),
+    ("pg5", "Produção › Impressão Casada | Multi obra", PRODUCAO, []),
+    ("pg6", "Produção › Impressão Grupo - LIC", PRODUCAO, []),
+    ("pg7", "Produção › Impressão - FLUXO 04", PRODUCAO, []),
     ("pg1", "Processo de validação › Análise da DBF X Focco - ERP", PLANILHAS + ["lxml"] + PDF, []),
     ("pg13", "Gerenciador de Roteiros › Gerar relatórios das ordens", ["pandas", "openpyxl", "XlsxWriter", "xlrd", "lxml", "ezdxf"], []),
     ("pg14", "Área de impressão › Engenharia (desenhos PDF)", ["pypdf", "pywin32"], ["py7zr", "rarfile"]),
