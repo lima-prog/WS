@@ -3875,6 +3875,19 @@ window.PR_ABA = 'agrupador';
   footer { margin-top:18px; font-size:12px; color:var(--muted); text-align:center; font-weight:600; }
   .btn-limpar { display:inline-flex; align-items:center; gap:8px; margin-left:14px; background:#fff; color:#1f2937; border:1px solid #c5cbd6; border-radius:7px; padding:7px 16px; font:700 13px Arial,Helvetica,sans-serif; cursor:pointer; }
   .btn-limpar:hover { background:#f1f3f8; border-color:#9aa3b5; }
+
+/* V210 — Últimos usados */
+.ult{width:100%;max-width:960px;margin:0 0 4px;background:#fff;border:1px solid #d6dee7;border-radius:6px;overflow:hidden}
+.ult[hidden]{display:none}
+.ult-h{background:#5f6b7a;color:#fff;font-weight:700;font-size:13px;padding:8px 12px}
+.ult ul{list-style:none;margin:0;padding:6px;display:flex;flex-direction:column;gap:5px}
+.ult li{display:flex;align-items:center;gap:9px;border:1px solid #dfe3ea;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:13px;font-weight:600;color:#111827;background:#fff}
+.ult li:hover{background:#f3f5f8;border-color:#b9c1cc}
+.ult li svg{flex:none;width:15px;height:15px;fill:none;stroke:#111827;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ult li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ult li .d{flex:none;font-size:11.5px;color:#6b7280;font-weight:500}
+.ult li .x{flex:none;border:0;background:none;color:#9aa3b5;cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
+.ult li .x:hover{color:#b42318}
 </style>
 </head>
 <body>
@@ -3915,6 +3928,8 @@ window.PR_ABA = 'agrupador';
 </div>
 
 <div class="ph-row"><div class="ph"><span class="nb">2</span>Liberado após carregar a planilha</div><div class="ph"><span class="nb">3</span>Liberado após carregar a planilha</div></div>
+
+<div class="ult" id="ult" hidden><div class="ult-h">Últimos usados</div><ul id="ult-l"></ul></div>
 
 <footer>Processamento 100% local</footer>
 
@@ -4347,6 +4362,30 @@ document.getElementById('btn-limpar').addEventListener('click',()=>{
       .observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
+})();
+<\/script>
+<script>
+/* V210 — ÚLTIMOS USADOS: guarda as 3 últimas planilhas (neste PC/navegador) para abrir de novo com um clique */
+(function(){
+  const MAX=3, DB='ppcpm_roteirizacao', ST='ultimos';
+  const abrir=()=>new Promise((ok,er)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(ST,{keyPath:'nome'});r.onsuccess=()=>ok(r.result);r.onerror=()=>er(r.error)});
+  const tx=async(modo,fn)=>{const db=await abrir();return new Promise((ok,er)=>{const t=db.transaction(ST,modo);const s=t.objectStore(ST);const res=fn(s);t.oncomplete=()=>ok(res&&res.result);t.onerror=()=>er(t.error)})};
+  const todos=async()=>{try{const db=await abrir();return await new Promise(ok=>{const r=db.transaction(ST).objectStore(ST).getAll();r.onsuccess=()=>ok((r.result||[]).sort((a,b)=>b.quando-a.quando));r.onerror=()=>ok([])})}catch(e){return[]}};
+  function quando(t){const d=new Date(t),h=new Date();const z=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();const dias=Math.round((z(h)-z(d))/864e5);
+    return dias<=0?'hoje':dias===1?'ontem':String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')}
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const IC='<svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>';
+  async function desenhar(){const l=await todos();const box=document.getElementById('ult'),ul=document.getElementById('ult-l');if(!box)return;
+    box.hidden=!l.length;ul.innerHTML=l.slice(0,MAX).map(x=>`<li data-n="${esc(x.nome)}" title="Abrir de novo: ${esc(x.nome)}">${IC}<span class="n">${esc(x.nome)}</span><span class="d">${quando(x.quando)}</span><button class="x" data-x="${esc(x.nome)}" title="Tirar da lista">✕</button></li>`).join('')}
+  async function guardar(file){try{const blob=new Blob([await file.arrayBuffer()],{type:file.type});await tx('readwrite',s=>s.put({nome:file.name,quando:Date.now(),blob,tipo:file.type}));
+    const l=await todos();for(const x of l.slice(MAX))await tx('readwrite',s=>s.delete(x.nome));desenhar()}catch(e){console.warn('[últimos usados]',e)}}
+  const orig=window.processFile||processFile;
+  const novo=async function(file){if(file&&!file.__ult)guardar(file);return orig.apply(this,arguments)};
+  try{processFile=novo}catch(e){}window.processFile=novo;
+  document.addEventListener('click',async e=>{const x=e.target.closest('#ult-l [data-x]');if(x){e.stopPropagation();await tx('readwrite',s=>s.delete(x.dataset.x));return desenhar()}
+    const li=e.target.closest('#ult-l li');if(!li)return;const l=await todos();const it=l.find(y=>y.nome===li.dataset.n);if(!it)return desenhar();
+    const f=new File([it.blob],it.nome,{type:it.tipo||''});f.__ult=true;await tx('readwrite',s=>s.put(Object.assign({},it,{quando:Date.now()})));desenhar();novo(f)});
+  desenhar();
 })();
 <\/script>
 </body>
@@ -18928,7 +18967,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 209';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 210';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
