@@ -88,8 +88,8 @@
       <div class="t1">Arraste o relatório do Focco aqui</div>
       <div class="ou">ou</div>
       <span class="btn-sel"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Selecionar arquivo</span>
-      <div class="nome" id="nome-focco">Nenhum arquivo escolhido</div>
     </div>
+    <ul class="pastas" id="lista-focco"><li class="vazio">Nenhum arquivo escolhido</li></ul>
   </div>
 
   <div class="card">
@@ -1724,11 +1724,20 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
     if (!file) return;
     const bytes = new Uint8Array(await file.arrayBuffer());
     focco = { nome: file.name, bytes };
-    $("nome-focco").textContent = file.name;
-    atualizar();
+    desenharFocco(); atualizar();
   }
+  function tamanhoArq(n) { return n >= 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+  function desenharFocco() {
+    const ul = $("lista-focco");
+    if (!focco) { ul.innerHTML = '<li class="vazio">Nenhum arquivo escolhido</li>'; return; }
+    ul.innerHTML = `<li><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>` +
+      `<span class="n" title="${esc(focco.nome)}">${esc(focco.nome)}</span><span class="q">${tamanhoArq(focco.bytes.length)}</span>` +
+      `<button type="button" data-f="1" title="Remover este arquivo" aria-label="Remover ${esc(focco.nome)}">×</button></li>`;
+  }
+  function limparFocco() { focco = null; $("in-focco").value = ""; desenharFocco(); atualizar(); }
+  $("lista-focco").addEventListener("click", e => { if (e.target.closest("button[data-f]")) limparFocco(); });
   $("in-focco").addEventListener("change", e => { escolherFocco(e.target.files[0]); });
-  $("limpar-focco").addEventListener("click", () => { focco = null; $("in-focco").value = ""; $("nome-focco").textContent = "Nenhum arquivo escolhido"; atualizar(); });
+  $("limpar-focco").addEventListener("click", limparFocco);
 
   // ---------------- 2. pastas dos DXF
   const ehDxf = n => /\.dxf$/i.test(n);
