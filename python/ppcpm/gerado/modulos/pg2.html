@@ -208,6 +208,12 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
   <div class="linha"><input type="text" id="pd-pasta" class="cresce" placeholder="ex: A:\PCP\ppcp_dxf_ferramentas"><button class="b" id="pd-esc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Escolher pasta…</button><button class="b p" id="pd-salvar">Salvar</button></div>
   <div class="lbl-det" id="pd-info">A Base fixa é a de maior revisão dentro de &lt;pasta de dados&gt;\base_fixa (ou a indicada no base_fixa.txt dessa pasta).</div>
 </div>
+<style>
+/* V207 — Agrupador: botões principais no modelo claro (cinza-azulado, letra preta) */
+.b.p{background:linear-gradient(#eef1f5,#dde2e9);border:1px solid #aeb7c4;color:#000;box-shadow:0 1px 1px rgba(16,24,40,.08)}
+.b.p:hover:not(:disabled){background:linear-gradient(#e6eaf0,#d3d9e1);border-color:#8f9aab;color:#000}
+.b.p:active:not(:disabled){background:#d3d9e1}
+</style>
 
 <script>
 window.PR_ABA = 'agrupador';
