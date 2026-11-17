@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 202';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 203';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -602,8 +602,8 @@ function instDesenhar(){if(!INST.el)return;const c=INST.el.querySelector('.inst-
  const grupos=lista=>{const g={};lista.forEach(i=>{(g[i.grupo]=g[i.grupo]||[]).push(i)});return Object.entries(g).map(([n,it])=>`<h5>${esc(n)}</h5><ul>${it.map(linha).join('')}</ul>`).join('')};
  c.innerHTML=`<p class="inst-m">${r.faltam?`Este PC está com <b>${r.faltam} ${r.faltam===1?'item faltando':'itens faltando'}</b> na instalação do sistema${r.erros?` (${r.erros} ${r.erros===1?'importante':'importantes'})`:''}. Veja abaixo e clique para instalar o que falta.`:'<b>Está tudo instalado neste PC.</b> O sistema está pronto para usar.'}</p>
  <div class="inst-l">${prob.length?grupos(prob):''}${info.length?grupos(info):''}${INST.tudo||!prob.length?`<div class="inst-ok">${grupos(oks)}</div>`:`<button type="button" class="inst-lk" data-inst="tudo">Mostrar também o que está certo (${oks.length})</button>`}</div>
- ${tr.acao&&(tr.rodando||tr.msg)?`<div class="inst-p ${tr.rodando?'':tr.ok?'ok':'er'}"><b>${tr.rodando?'⏳ '+(tr.acao==='arquivos'?'Baixando os arquivos do sistema…':'Instalando as bibliotecas…'):(tr.ok?'✔ ':'✖ ')+esc(tr.msg)}</b><pre>${esc((tr.log||[]).slice(-12).join('\n'))}</pre></div>`:''}
- <div class="inst-q">verificado ${esc(r.quando||'')}</div><div class="inst-b">${acoes.map(a=>`<button type="button" class="inst-ok-b" data-inst="acao" data-a="${a}"${tr.rodando?' disabled':''}>${INST_BOTAO[a]||a}</button>`).join('')}<span class="inst-sp"></span><button type="button" class="inst-no" data-inst="checar"${tr.rodando?' disabled':''}>Verificar de novo</button>${r.faltam?'<button type="button" class="inst-no" data-inst="depois">Lembrar depois</button>':''}<button type="button" class="inst-no" data-inst="fechar">Fechar</button></div>`;
+ ${tr.acao&&(tr.rodando||tr.msg)?`<div class="inst-p ${tr.rodando?'':tr.ok?'ok':'er'}"><b>${tr.rodando?'⏳ '+(tr.acao==='arquivos'?'Baixando os arquivos do sistema…':'Instalando as bibliotecas…'):(tr.ok?'✔ ':'✖ ')+esc(tr.msg)}</b><pre>${(tr.log||[]).slice(-12).map(l=>/success|instalad|conclu/i.test(l)?`<span class="ok">${esc(l)}</span>`:/error|erro|falh/i.test(l)?`<span class="er">${esc(l)}</span>`:esc(l)).join('\n')}</pre></div>`:''}
+ <div class="inst-q">verificado ${esc(r.quando||'')}</div><div class="inst-b">${acoes.map(a=>`<button type="button" class="inst-ok-b" data-inst="acao" data-a="${a}"${tr.rodando?' disabled':''}>${INST_BOTAO[a]||a}</button>`).join('')}<span class="inst-sp"></span><button type="button" class="inst-no" data-inst="checar"${tr.rodando?' disabled':''}><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Verificar de novo</button>${r.faltam?'<button type="button" class="inst-no" data-inst="depois">Lembrar depois</button>':''}<button type="button" class="inst-no" data-inst="fechar">Fechar</button></div>`;
  const pre=c.querySelector('pre');if(pre)pre.scrollTop=pre.scrollHeight}
 async function instClique(e){const b=e.target.closest('[data-inst]');if(!b||!INST.el.contains(b))return;const a=b.dataset.inst;
  if(a==='fechar')return instFechar();
@@ -642,7 +642,32 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 .inst-b button{font:600 14px 'Segoe UI',Arial,sans-serif;padding:9px 16px;border-radius:6px;cursor:pointer}
 .inst-ok-b{background:#0b3d91;border:1px solid #0b3d91;color:#fff}.inst-ok-b:hover{background:#082e6e}.inst-b button:disabled{opacity:.45;cursor:not-allowed}
 .inst-no{background:#fff;border:1px solid #c5cfdd;color:#000}.inst-no:hover{background:#f1f4f8}
-.inst-q{margin-top:8px;font-size:12px;color:#5a6b7c;text-align:right}.inst-sp{flex:1}`;document.head.appendChild(st)})();
+.inst-q{margin-top:8px;font-size:12px;color:#5a6b7c;text-align:right}.inst-sp{flex:1}
+/* V203 — Verificação da instalação no modelo novo (linhas com faixa verde à esquerda, botões cinza) */
+.inst{border:1px solid #1f2937!important;border-top:4px solid #0b3d91!important;border-radius:6px!important}
+.inst-t{font-size:17px!important;padding:16px 20px 4px!important}
+.inst-c{padding:0 20px 16px!important}
+.inst-m{font-size:13.5px!important;margin:2px 0 10px!important}
+.inst-l{border:1px solid #d6dee7!important;border-radius:4px!important;padding:2px 10px 10px!important;background:#fff;scrollbar-width:thin;scrollbar-color:#c3c9d2 transparent}
+.inst-l h5{margin:10px 0 6px!important;font-size:11px!important;font-weight:700;color:#374151!important;letter-spacing:.06em!important}
+.inst-l ul{gap:5px!important}
+.inst-l li{background:#f6f7f9!important;border:1px solid #e1e5ea;border-left:3px solid #9aa3b5;border-radius:3px!important;padding:7px 10px!important;align-items:center!important}
+.inst-l li.ok{border-left-color:#1e8e3e}.inst-l li.erro{border-left-color:#dc2626;background:#fdf6f6!important}.inst-l li.aviso{border-left-color:#f59e0b;background:#fffaf0!important}.inst-l li.info{border-left-color:#64748b}
+.inst-l li b{font-size:13px!important;font-weight:700}.inst-l li small{font-size:12px!important;color:#4b5563!important}
+.inst-l .ic{margin-top:0!important}.ic.ok{background:#1e8e3e!important}
+.inst-lk{color:#374151!important}
+.inst-p{border-radius:4px!important;border:1px solid #d6dee7!important;border-left:3px solid #5f6b7a!important;background:#f6f7f9!important;font-size:13px!important}
+.inst-p.ok{border-color:#cfe8d6!important;border-left-color:#1e8e3e!important;background:#f3faf5!important}.inst-p.ok>b{color:#1e6b34}
+.inst-p.er{border-color:#f3c7c3!important;border-left-color:#dc2626!important;background:#fdf6f6!important}
+.inst-p pre{background:#2b2f36!important;color:#e5e7eb!important;border-radius:4px!important;scrollbar-width:thin}
+.inst-p pre .ok{color:#4ade80}.inst-p pre .er{color:#f87171}
+.inst-q{font-size:11.5px!important;color:#6b7280!important}
+.inst-b button{font:700 13px 'Segoe UI',Arial,sans-serif!important;padding:8px 14px!important;border-radius:4px!important;display:inline-flex;align-items:center;gap:7px}
+.inst-ok-b,.inst-b button[data-inst=checar]{background:#5f6b7a!important;border:1px solid #5f6b7a!important;color:#fff!important}
+.inst-ok-b:hover,.inst-b button[data-inst=checar]:hover:not(:disabled){background:#4c5664!important;border-color:#4c5664!important}
+.inst-no{background:#fff!important;border:1px solid #c5cbd6!important;color:#111827!important}.inst-no:hover{background:#f3f5f8!important}
+.inst-b svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+`;document.head.appendChild(st)})();
 function zerarTodas(){const pool=$('#pgpool');if(pool)pool.innerHTML=''}
 
 function render(){if(cur==='cap'||cur==='kpi'||cur==='rel')cur='home';if(cur==='prod')cur='pg3';if(cur==='val'||cur==='pg8')cur='pg1';if(cur==='rot')cur='pg10';if(cur==='exp')cur='pg12';{const f=$('#ppcp');if(/^pg/.test(cur)&&f&&f.dataset.pg===cur&&$('#vtop .prh'))return}if(cur==='usr'&&!(USER&&USER.adm))cur='home';const nb=$('nav .n[data-v=usr]');if(nb){const q=USER&&USER.adm?pend().length:0;nb.innerHTML=ico('usr')+'<span>Usuários</span>'+(q?`<span class="nb" title="Cadastros aguardando aprovação">${q}</span>`:'')}

@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 202
+# Mapa do sistema — Versão 203
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -9,17 +9,17 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `modulos/pg1.html` | 154 KB |
 | `modulos/pg2.html` | 51 KB |
 | `modulos/pg3.html` | 31 KB |
-| `modulos/pg4.html` | 40 KB |
-| `modulos/pg5.html` | 41 KB |
+| `modulos/pg4.html` | 41 KB |
+| `modulos/pg5.html` | 42 KB |
 | `modulos/pg6.html` | 39 KB |
-| `modulos/pg7.html` | 38 KB |
+| `modulos/pg7.html` | 39 KB |
 | `modulos/pg10.html` | 302 KB |
 | `modulos/pg15.html` | 317 KB |
 | `modulos/pg11.html` | 115 KB |
 | `modulos/pg12.html` | 1.076 KB |
 | `modulos/pg13.html` | 158 KB |
 | `modulos/pg14.html` | 164 KB |
-| `js/sistema.js` | 191 KB |
+| `js/sistema.js` | 194 KB |
 | `molde.html` | 63 KB |
 | `config.json` | 2 KB |
 
