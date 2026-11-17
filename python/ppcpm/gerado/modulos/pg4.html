@@ -116,6 +116,14 @@ textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
 .saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
 .pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
 .pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
 </style>
 </head>
 <body>
@@ -495,16 +503,26 @@ window.PR_ABA = 'imp';
   }
 
   // ---------------------------------------------------------------- janelas (avisos e pedidos)
-  function janela(tipo, titulo, corpo, botoes, padrao) {
+  const IC_CHECK = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>';
+  const IC_PASTA_T = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0b3d91" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+  const IC_ARQ_T = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0b3d91" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>';
+  function janela(tipo, titulo, corpo, botoes, padrao, op) {
+    op = op || {};
     return new Promise(res => {
       const f = document.createElement('div'); f.className = 'pr-fundo'; f.setAttribute('role', 'dialog');
-      const ic = tipo === 'erro' ? IC.erro : tipo === 'pergunta' ? IC.perg : IC.info;
-      f.innerHTML = `<div class="pr-modal${tipo === 'erro' ? ' erro' : ''}"><h3>${ic}${esc(titulo || 'SISTEMA PPCPM')}</h3>${corpo}<div class="bts">${botoes.map((b, i) => `<button class="b${i === padrao ? ' p' : ''}" data-i="${i}">${esc(b)}</button>`).join('')}</div></div>`;
+      const ic = op.icone || (tipo === 'erro' ? IC.erro : tipo === 'pergunta' ? IC.perg : IC.info);
+      const ok = t => /^(usar|ok|salvar|gerar|sim|confirmar)/i.test(t);
+      f.innerHTML = `<div class="pr-modal${tipo === 'erro' ? ' erro' : ''}"><h3>${ic}${esc(titulo || 'SISTEMA PPCPM')}</h3>${corpo}<div class="bts">${botoes.map((b, i) => `<button class="b${i === padrao ? ' p' : ''}" data-i="${i}">${i === padrao && ok(b) ? IC_CHECK : ''}${esc(b)}</button>`).join('')}</div></div>`;
       document.body.appendChild(f);
       const fim = v => { f.remove(); document.removeEventListener('keydown', tecla, true); res(v); };
       const tecla = e => { if (e.key === 'Escape') { e.preventDefault(); fim(-1); } };
       document.addEventListener('keydown', tecla, true);
-      f.addEventListener('click', e => { const b = e.target.closest('.bts [data-i]'); if (b) fim(+b.dataset.i); });
+      f.addEventListener('click', e => {
+        const b = e.target.closest('.bts [data-i]'); if (!b) return;
+        const i = +b.dataset.i;
+        if (op.valida && i === padrao) { const erro = op.valida(f); if (erro) return; }
+        fim(i);
+      });
       f._fim = fim;
       const p = $(`.bts [data-i="${padrao}"]`, f) || $('.bts .b', f); if (p) setTimeout(() => p.focus(), 30);
       if (window.PR_janelaAberta) window.PR_janelaAberta(f);
@@ -536,15 +554,18 @@ window.PR_ABA = 'imp';
     }
     if (p.tipo === 'arquivos') {
       let escolhidos = null;
-      const corpo = `<div class="drop" id="pr-dz">${IC.arq}<span>Arraste ${p.multiplo ? 'o(s) arquivo(s)' : 'o arquivo'} aqui ou clique para escolher${p.aceita ? ` (${esc(p.aceita)})` : ''}</span></div><div class="campo" id="pr-esc">Nenhum arquivo escolhido</div>`;
-      const pr = janela('pergunta', p.titulo || 'Escolher arquivo', corpo, ['Cancelar', 'Usar'], 1);
+      const corpo = `<div class="drop" id="pr-dz">${IC.arq}<span>Arraste ${p.multiplo ? 'o(s) arquivo(s)' : 'o arquivo'} aqui ou clique para escolher${p.aceita ? ` (${esc(p.aceita)})` : ''}</span></div><div class="campo" id="pr-esc">Nenhum arquivo escolhido</div><div class="pr-err" id="pr-err"></div>`;
+      const pr = janela('pergunta', p.titulo || 'Escolher arquivo', corpo, ['Cancelar', 'Usar'], 1, {
+        icone: IC_ARQ_T,
+        valida: f => { const e = $('#pr-err', f); e.textContent = escolhidos ? '' : 'Arraste ou escolha ' + (p.multiplo ? 'o(s) arquivo(s).' : 'o arquivo.'); $('#pr-dz', f).classList.toggle('erro', !escolhidos); return !escolhidos; }
+      });
       const f = $$('.pr-fundo').pop(); const dz = $('#pr-dz', f), lb = $('#pr-esc', f);
       const usa = fs => {
         const ac = (p.aceita || '').split(',').filter(Boolean);
         fs = fs.filter(x => !ac.length || ac.some(a => x.name.toLowerCase().endsWith(a)));
         if (!p.multiplo) fs = fs.slice(0, 1);
         if (!fs.length) return;
-        escolhidos = fs; lb.classList.add('ok'); lb.textContent = fs.map(x => x.name).join('\n');
+        escolhidos = fs; lb.classList.add('ok'); lb.textContent = fs.map(x => x.name).join('\n'); $('#pr-err', f).textContent = ''; dz.classList.remove('erro');
       };
       dz.addEventListener('click', async () => usa(await escolherArquivos(p.aceita, p.multiplo)));
       dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
@@ -555,10 +576,17 @@ window.PR_ABA = 'imp';
       try { return await caminhos(escolhidos); } catch (e) { await aviso({ tipo: 'erro', texto: String(e.message || e) }); return null; }
     }
     if (p.tipo === 'pasta') {
-      const corpo = `<p>Cole o caminho da pasta ou clique em "Escolher pasta…".</p><div class="linha"><input type="text" id="pr-pasta" class="cresce" placeholder="ex: \\\\172.25.0.7\\lib-eng"><button class="b" id="pr-pbt" type="button">${IC.pasta} Escolher pasta…</button></div>`;
-      const pr = janela('pergunta', p.titulo || 'Escolher pasta', corpo, ['Cancelar', 'Usar'], 1);
+      const corpo = `<p>Cole o caminho da pasta ou clique em "Escolher pasta".</p><div class="linha pr-campo"><input type="text" id="pr-pasta" class="cresce" placeholder="ex: \\\\172.25.0.7\\lib-eng"><button class="b" id="pr-pbt" type="button">${IC.pasta} Escolher pasta</button></div><div class="pr-err" id="pr-err"></div>`;
+      const pr = janela('pergunta', p.titulo || 'Escolher pasta', corpo, ['Cancelar', 'Usar'], 1, {
+        icone: IC_PASTA_T,
+        valida: f => { const i = $('#pr-pasta', f), e = $('#pr-err', f); const vazio = !i.value.trim();
+          i.classList.toggle('erro', vazio); e.textContent = vazio ? 'Informe o caminho da pasta ou clique em "Escolher pasta".' : ''; if (vazio) i.focus(); return vazio; }
+      });
       const f = $$('.pr-fundo').pop(); const inp = $('#pr-pasta', f);
-      $('#pr-pbt', f).addEventListener('click', async () => { const c = await escolherPasta(); if (c) inp.value = c; });
+      setTimeout(() => inp.focus(), 40);
+      inp.addEventListener('input', () => { inp.classList.remove('erro'); $('#pr-err', f).textContent = ''; });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('.bts [data-i="1"]', f).click(); } });
+      $('#pr-pbt', f).addEventListener('click', async () => { const c = await escolherPasta(); if (c) { inp.value = c; inp.dispatchEvent(new Event('input')); } });
       const i = await pr;
       return i === 1 && inp.value.trim() ? inp.value.trim() : null;
     }
