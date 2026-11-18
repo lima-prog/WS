@@ -19047,7 +19047,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 216';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 217';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -19845,6 +19845,15 @@ html[data-theme=dark] .pkalt-win{color-scheme:dark}html[data-theme=dark] body:ha
 /* V214 — cabeçalho da tabela no tema dos botões (cinza-azulado claro, letra preta) */
 .hw .pkpcc .pkrow.pth{background:linear-gradient(#e3e8ee,#cdd4de)!important;border-top:1px solid #98a3b3!important;border-bottom:1px solid #98a3b3!important}
 .hw .pkpcc .pkrow.pth > *:not(:first-child)::before{background:#98a3b3!important}
+/* V217 — Tela inicial: faixa da planilha e busca no tema dos botões */
+html body .hw .pkinfo{background:linear-gradient(#e3e8ee,#cdd4de)!important;border:1px solid #98a3b3!important;border-radius:4px!important;color:#000!important;box-shadow:0 1px 1px rgba(16,24,40,.08)!important}
+html body .hw .pkinfo span{color:#000!important}
+html body .hw .pklink{background:linear-gradient(#f3f5f8,#e6eaf0)!important;border:1px solid #98a3b3!important;border-radius:4px!important;color:#000!important;font-weight:700!important;box-shadow:0 1px 1px rgba(16,24,40,.08)!important}
+html body .hw .pklink:hover{background:linear-gradient(#ffffff,#eef1f5)!important;border-color:#808c9e!important}
+html body .hw .pkbusca{background:linear-gradient(#f3f5f8,#e6eaf0)!important;border:1px solid #98a3b3!important;border-radius:4px!important;color:#000!important}
+html body .hw .pkbusca:focus-within{background:#fff!important;border-color:#5f6b7a!important;box-shadow:0 0 0 2px #dfe3ea!important}
+html body .hw .pkbusca input{color:#000!important;font-weight:700!important}
+html body .hw .pkbusca input::placeholder{color:#4b5563!important}
 .hw .pkpcc .pkrow.pth .pkall{justify-content:center!important;width:100%}
 .hw .pkinfo{background:#fff!important;border:1px solid #e3e8ef;border-left:4px solid #0b3d91;border-radius:6px!important;padding:9px 14px!important;color:#4b5563;font-size:12.5px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
 .hw .pkinfo b{color:#000;margin:0 4px}
