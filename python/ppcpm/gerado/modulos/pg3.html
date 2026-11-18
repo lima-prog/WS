@@ -485,7 +485,7 @@ document.getElementById('btn-limpar').addEventListener('click',()=>{
     '.ppn-q{background:#fff!important;border:1px solid rgba(0,0,0,.45)!important;border-top:3px solid #0b3d91!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(15,23,42,.05)!important}' +
     '.ppn-q2{background:#fff!important;border:1px solid rgba(0,0,0,.35)!important;border-radius:4px!important;box-shadow:none!important}' +
     '.ppn-p{background:#5f6b7a!important;border:1px solid #5f6b7a!important;color:#fff!important;border-radius:4px!important;box-shadow:none!important;background-image:none!important}' +
-    '.ppn-p *{color:#fff!important}.ppn-p svg{stroke:#fff!important}' +
+    '.ppn-p *{color:#000!important}.ppn-p svg{stroke:#000!important}' +
     '.ppn-p:hover:not(:disabled){background:#4c5664!important;border-color:#4c5664!important}' +
     '.ppn-p:disabled,.ppn-p[disabled]{background:#aab3bf!important;border-color:#aab3bf!important;opacity:1!important}' +
     '.ppn-s{background:#fff!important;border:1px solid #d3dbe5!important;color:#111827!important;border-radius:4px!important;box-shadow:none!important}' +
@@ -493,7 +493,7 @@ document.getElementById('btn-limpar').addEventListener('click',()=>{
     '.ppn-s.ppn-on{background:#5f6b7a!important;border-color:#5f6b7a!important;color:#fff!important}' +
     '.ppn-d{background:#f3f5f7!important;border:1px dashed #b9c3d0!important;border-radius:4px!important;color:#4b5563!important}' +
     '.ppn-d *{color:#4b5563!important}.ppn-d svg{stroke:#4b5563!important}' +
-    '.ppn-d .ppn-p,.ppn-d .ppn-p *{color:#fff!important}.ppn-d .ppn-p svg{stroke:#fff!important}' +
+    '.ppn-d .ppn-p,.ppn-d .ppn-p *{color:#000!important}.ppn-d .ppn-p svg{stroke:#000!important}' +
     '.ppn-n{background:#0b3d91!important;color:#fff!important;border-color:#0b3d91!important}' +
     '.ppn-c{background:#f3f5f7!important;border:1px solid #d6dee7!important;border-radius:4px!important;color:#111827!important}' +
     '.ppn-c:focus{border-color:#5f6b7a!important;box-shadow:0 0 0 3px rgba(95,107,122,.18)!important;outline:none!important}';
@@ -504,9 +504,9 @@ document.getElementById('btn-limpar').addEventListener('click',()=>{
   var BOT = /^(BUTTON)$/;
   function eBotao(el) { return el.tagName === 'BUTTON' || (el.tagName === 'A' && /btn|bot/i.test(el.className)) || (el.tagName === 'LABEL' && /btn|bot|b\b/i.test(el.className)) || (el.tagName === 'INPUT' && /^(button|submit)$/.test(el.type)); }
   function dentro(el, cls) { var p = el.parentElement; while (p && p !== document.body) { if (p.classList && p.classList.contains(cls)) return true; p = p.parentElement; } return false; }
-  var P = { bg: '#5f6b7a', hv: '#4c5664', dis: '#aab3bf' };
+  var P = { bg: 'linear-gradient(#e3e8ee,#cdd4de)', hv: 'linear-gradient(#d9dfe7,#c2cad5)', dis: 'linear-gradient(#e3e8ee,#cdd4de)' };
   function pinta(el) { var d = el.disabled || el.getAttribute('aria-disabled') === 'true', c = d ? P.dis : (el._ppnHv ? P.hv : P.bg);
-    el.style.setProperty('background', c, 'important'); el.style.setProperty('border-color', c, 'important'); el.style.setProperty('color', '#fff', 'important'); el.style.setProperty('box-shadow', 'none', 'important'); el.style.setProperty('opacity', '1', 'important'); }
+    el.style.setProperty('background', c, 'important'); el.style.setProperty('border-color', el._ppnHv && !d ? '#808c9e' : '#98a3b3', 'important'); el.style.setProperty('color', '#000', 'important'); el.style.setProperty('box-shadow', '0 1px 1px rgba(16,24,40,.08)', 'important'); el.style.setProperty('opacity', d ? '.55' : '1', 'important'); }
   function prim(el) { el.classList.add('ppn-p'); pinta(el);
     el.addEventListener('mouseenter', function () { el._ppnHv = true; pinta(el); }); el.addEventListener('mouseleave', function () { el._ppnHv = false; pinta(el); });
     try { new MutationObserver(function () { pinta(el); }).observe(el, { attributes: true, attributeFilter: ['disabled', 'aria-disabled'] }); } catch (e) { } }
