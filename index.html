@@ -131,7 +131,7 @@ nav{background:var(--p1);border-right:1px solid var(--ln);padding:12px 8px;displ
 nav button.n{text-align:left;background:none;border:0;border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--t2)}nav button.n:hover{background:var(--p2)}nav button.n.on{background:var(--bl);color:#fff;font-weight:600}
 .plant{margin-top:auto;border-radius:10px;overflow:hidden;font-size:12px;background:var(--bg)}
 /* V232: o menu lateral nunca deixa a janela mais alta que a tela (sem barra de rolagem de fora) — se faltar espaço, o menu rola por dentro, sem barra visível */
-#app>nav#nv{height:calc(100vh - 67px);max-height:calc(100vh - 67px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;position:sticky;top:67px;align-self:start}#app>nav#nv::-webkit-scrollbar{display:none}
+#app>nav#nv{contain:size;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}#app>nav#nv::-webkit-scrollbar{display:none}
 #app>nav#nv .plant{flex:none}.plant img{width:100%;height:80px;object-fit:cover;display:block}.plant div{padding:8px}
 main{padding:16px;min-width:0}main h2{font-size:18px;margin-bottom:12px}
 .kg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
@@ -19142,7 +19142,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 234';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 235';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -20319,4 +20319,17 @@ document.documentElement.lang=HL[LANG];document.documentElement.setAttribute('da
  try{if(SB){const pg=await voltaDoGoogle();if(pg){await enter(uObj(pg),true);return}}}catch(e){console.error(e);try{await SB.auth.signOut()}catch(y){}loginErro('Não foi possível entrar com o Google.','Tente de novo. Se continuar, entre com login, senha e e-mail.',['#lu'])}
  try{if(!SB)throw 0;const {data}=await SB.auth.getSession();if(data&&data.session){const p=await perfilDe(data.session.user.id);if(p&&p.ativo){await enter(uObj(p),true);return}await SB.auth.signOut()}}catch(e){if(e)console.error(e)}
  const c=document.getElementById('intro');if(c&&!USER)c.remove()})();
+
+/* V235 — nunca deixa aparecer a barra de rolagem da janela: se a fonte/escala do Windows deixar o cabeçalho maior,
+   a área da aba (ou a tabela da Tela inicial) encolhe só o necessário para caber na tela. */
+(function(){
+  function alvo(){const f=[...document.querySelectorAll('#pgpool .pgbox iframe')].find(x=>x.offsetParent);if(f)return{el:f,p:'height'};
+    const l=document.querySelector('.hw .pklist');return l&&l.offsetParent?{el:l,p:'maxHeight'}:null}
+  function ajustar(zerar){const a=alvo();if(!a)return;if(zerar)a.el.style[a.p]='';
+    const exc=Math.ceil(document.documentElement.scrollHeight-innerHeight);
+    if(exc>0){const h=a.el.getBoundingClientRect().height;a.el.style[a.p]=Math.max(240,Math.floor(h-exc-1))+'px'}}
+  let t;const ag=z=>{clearTimeout(t);t=setTimeout(()=>ajustar(z),60)};
+  addEventListener('resize',()=>ag(true));setInterval(()=>ajustar(false),1200);
+  const g=window.go;if(typeof g==='function'){window.go=function(){const r=g.apply(this,arguments);setTimeout(()=>ajustar(true),120);setTimeout(()=>ajustar(false),900);return r};try{go=window.go}catch(e){}}
+})();
 </script></body></html>
