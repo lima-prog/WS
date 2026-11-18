@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 226';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 227';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -534,17 +534,82 @@ window.__net=n=>{netSet(n)};window.__irEnvioRoteiro=()=>go('pg11');
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
   const ATUAL=VERSAO;let avisada='',ocupado=false;
+  /* V227 — aviso "Atualização obrigatória" (tema Projeart): Agora / 1 / 2 / 3 minutos, padrão = Agora.
+     Se ignorar, agenda sozinho (3 min). No fim: salva a tela (aba aberta + campos) e atualiza; depois restaura. */
+  const CHAVE_ATU='ppcpm_trabalho_antes_atualizar';
+  function cssAtu(){if(document.getElementById('atuCss'))return;const st=document.createElement('style');st.id='atuCss';st.textContent=`
+.atu-pj{position:fixed;top:16px;right:16px;z-index:99999;width:520px;max-width:calc(100vw - 32px);padding:12px 14px;background:linear-gradient(180deg,#eef1f4,#d3d9e0);border:1px solid #000;border-top:4px solid #c62828;border-radius:6px;box-shadow:0 10px 26px rgba(0,0,0,.35);font-family:'Segoe UI',Roboto,Arial,sans-serif;color:#000;font-size:13px;animation:atuEntrar .25s ease-out}
+@keyframes atuEntrar{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.atu-pj [hidden]{display:none!important}
+.atu-lin{display:flex;align-items:center;gap:12px}.atu-lin>svg{color:#c62828;flex-shrink:0}
+.atu-tit{font-weight:700;font-size:15px}.atu-sub{font-size:12px;color:#3b4450;line-height:1.45}
+.atu-rod{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid #b6bec8}
+.atu-rod label{font-size:12px;font-weight:600;color:#3b4450}
+.atu-rod select{font-family:inherit;font-size:13px;font-weight:700;color:#000;padding:6px 8px;border:1px solid #8f9aa7;border-radius:4px;background:#e2e6eb;cursor:pointer;color-scheme:light}
+.atu-rod .atu-agora{margin-left:auto}
+.atu-btn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:13px;font-weight:700;color:#000;padding:7px 14px;cursor:pointer;white-space:nowrap;background:linear-gradient(180deg,#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff}
+.atu-btn:hover{background:linear-gradient(180deg,#e7ebef,#c9d0d8)}
+.atu-btn.azul{background:linear-gradient(180deg,#1a52b0,#0b3d91);border-color:#082e6e;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.atu-btn.azul:hover{background:linear-gradient(180deg,#0f469e,#082e6e)}
+.atu-tempo{font-family:Consolas,'Courier New',monospace;font-weight:700;font-size:18px;color:#c62828;min-width:56px;text-align:right}
+.atu-barra{height:5px;margin-top:10px;background:#c3cad3;border-radius:3px;overflow:hidden}.atu-barra span{display:block;height:100%;width:100%;background:#c62828;transition:width 1s linear}
+.atu-etapas{list-style:none;margin:10px 0 0;padding:0;font-size:13px}
+.atu-etapas li{display:flex;align-items:center;gap:8px;padding:3px 0;color:#8a94a3;font-weight:600}
+.atu-etapas li.feito{color:#1e9e4a}.atu-etapas li.agora{color:#000}
+.atu-etapas li .mk{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center}
+.atu-etapas li.agora .mk::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid #000;border-top-color:transparent;animation:atuGirar .7s linear infinite}
+.atu-etapas li.feito .mk::before{content:"✓";font-weight:800}.atu-etapas li.espera .mk::before{content:"•"}
+@keyframes atuGirar{to{transform:rotate(360deg)}}
+.atu-restaurado{position:fixed;top:16px;right:16px;z-index:99999;display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(180deg,#eef1f4,#d3d9e0);border:1px solid #000;border-left:6px solid #1e9e4a;border-radius:6px;box-shadow:0 10px 26px rgba(0,0,0,.3);font-family:'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;color:#000}
+.atu-restaurado svg{color:#1e9e4a;flex:none}`;document.head.appendChild(st)}
+  function camposDe(doc){const c={};doc.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>{if(el.type==='file'||el.type==='password'||el.closest('#updAviso'))return;c[el.id]=(el.type==='checkbox'||el.type==='radio')?el.checked:el.value});return c}
+  function salvarTela(){const d={tela:typeof cur!=='undefined'?cur:'',campos:{},quando:Date.now()};
+    try{document.querySelectorAll('#pgpool .pgbox').forEach(b=>{const f=b.querySelector('iframe');try{if(f&&f.contentDocument)d.campos[b.dataset.pg]=camposDe(f.contentDocument)}catch(e){}})}catch(e){}
+    try{localStorage.setItem(CHAVE_ATU,JSON.stringify(d))}catch(e){}return d}
   function banner(nova){
-    if(document.getElementById('updAviso'))return;
-    const d=document.createElement('div');d.id='updAviso';d.setAttribute('role','status');
-    d.style.cssText='position:fixed;right:18px;top:18px;z-index:99999;display:flex;align-items:center;gap:12px;background:#e8ebef;color:#1f2937;border:1px solid #c9d0d9;border-left:5px solid #0b5cad;border-radius:10px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.35);font:600 13px "Segoe UI",Inter,system-ui,sans-serif;max-width:420px';
-    d.innerHTML='<span><b style="font-weight:800">Nova versão disponível</b><br><span style="font-weight:500;color:#4b5563">'+nova+' — salve o que estiver fazendo e atualize.</span></span>'
-      +'<button id="updOk" style="background:#0b5cad;color:#fff;border:1px solid #0b5cad;border-radius:7px;padding:8px 14px;font:700 13px inherit;cursor:pointer">Atualizar agora</button>'
-      +'<button id="updNo" aria-label="Depois" style="background:#f2f4f6;color:#1f2937;border:1px solid #c5cbd6;border-radius:7px;padding:8px 10px;font:700 13px inherit;cursor:pointer">Depois</button>';
+    if(document.getElementById('updAviso'))return;cssAtu();
+    const IC_ATU='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 0 0 5.6 6.3L4 8M4 4v4h4M4 13a8 8 0 0 0 14.4 4.7L20 16m0 4v-4h-4"/></svg>';
+    const d=document.createElement('div');d.id='updAviso';d.className='atu-pj';d.setAttribute('role','alertdialog');d.setAttribute('aria-live','assertive');
+    const v=String(nova).replace(/[^\wÀ-ú .-]/g,'');
+    d.innerHTML='<div data-e="escolha"><div class="atu-lin">'+IC_ATU+'<div><div class="atu-tit">Atualização obrigatória</div><div class="atu-sub"><b>'+v+'</b> — salve o que estiver fazendo e atualize. Seu trabalho fica guardado.</div></div></div>'
+      +'<div class="atu-rod"><label for="atuQuando">Atualizar em</label><select id="atuQuando"><option value="0" selected>Agora</option><option value="1">1 minuto</option><option value="2">2 minutos</option><option value="3">3 minutos</option></select>'
+      +'<button class="atu-btn" data-a="ok">OK</button><button class="atu-btn azul atu-agora" data-a="agora"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></svg>Atualizar agora</button></div></div>'
+      +'<div data-e="contagem" hidden><div class="atu-lin"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div style="flex:1"><div class="atu-tit">Atualização obrigatória</div><div class="atu-sub" data-msg>O sistema vai salvar seu trabalho e atualizar sozinho.</div></div><span class="atu-tempo" data-tempo>3:00</span></div>'
+      +'<div class="atu-barra"><span data-barra></span></div><div class="atu-rod"><span class="atu-sub">Pode continuar trabalhando. Nada será perdido.</span><button class="atu-btn azul atu-agora" data-a="agora">Atualizar agora</button></div></div>'
+      +'<div data-e="final" hidden><div class="atu-lin"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="m9 12 2 2 4-4"/></svg><div><div class="atu-tit">Atualizando o sistema</div><div class="atu-sub">Não feche o sistema. Isso leva alguns segundos.</div></div></div>'
+      +'<ul class="atu-etapas"><li data-p="1" class="espera"><span class="mk"></span>Salvando o que você estava fazendo</li><li data-p="2" class="espera"><span class="mk"></span>Baixando a versão nova</li><li data-p="3" class="espera"><span class="mk"></span>Reiniciando o sistema</li></ul></div>';
     document.body.appendChild(d);
-    d.querySelector('#updOk').onclick=()=>location.reload();
-    d.querySelector('#updNo').onclick=()=>d.remove();
+    const q=x=>d.querySelector(x),etapa=e=>d.querySelectorAll('[data-e]').forEach(x=>x.hidden=x.dataset.e!==e);
+    let relogio=null,emAndamento=false;
+    let prazo=setTimeout(()=>contar(3),30000);   // ignorou o aviso: agenda sozinho em 3 minutos
+    function contar(min){clearTimeout(prazo);if(min<=0)return executar();etapa('contagem');
+      const total=min*60;let resta=total;
+      const mostrar=()=>{q('[data-tempo]').textContent=Math.floor(resta/60)+':'+String(resta%60).padStart(2,'0');q('[data-barra]').style.width=(resta/total*100)+'%';
+        if(resta<=30)q('[data-msg]').innerHTML='<b>Faltam menos de 30 segundos.</b> O sistema vai salvar seu trabalho e atualizar.'};
+      mostrar();clearInterval(relogio);relogio=setInterval(()=>{resta--;mostrar();if(resta<=0){clearInterval(relogio);executar()}},1000)}
+    async function executar(){if(emAndamento)return;emAndamento=true;clearInterval(relogio);clearTimeout(prazo);etapa('final');
+      const passo=(n,e)=>q('[data-p="'+n+'"]').className=e,esp=ms=>new Promise(r=>setTimeout(r,ms));
+      try{passo(1,'agora');salvarTela();await esp(500);passo(1,'feito');
+        passo(2,'agora');try{await fetch('index.html?t='+Date.now(),{cache:'reload'})}catch(e){}passo(2,'feito');
+        passo(3,'agora');await esp(500);location.reload()}
+      catch(e){console.error('[PPCPM] falha ao atualizar:',e);emAndamento=false;d.remove()}}
+    d.addEventListener('click',e=>{const a=e.target.closest('[data-a]');if(!a)return;if(a.dataset.a==='agora')executar();else contar(Number(q('#atuQuando').value))});
   }
+  /* depois de atualizar: volta para a aba que estava aberta e devolve o que estava digitado */
+  (function(){let dados=null;try{dados=JSON.parse(localStorage.getItem(CHAVE_ATU)||'null');localStorage.removeItem(CHAVE_ATU)}catch(e){}
+    if(!dados||Date.now()-(dados.quando||0)>15*60000)return;
+    window.__atuRestaurou=true;
+    let tent=0;const t=setInterval(()=>{tent++;const app=document.getElementById('app');
+      if(tent>60){clearInterval(t);return}
+      if(!app||app.classList.contains('hide')||document.getElementById('intro'))return;clearInterval(t);
+      try{if(dados.tela&&typeof go==='function'&&cur!==dados.tela)go(dados.tela)}catch(e){}
+      setTimeout(()=>{Object.entries(dados.campos||{}).forEach(([pg,c])=>{const f=document.querySelector('#pgpool .pgbox[data-pg="'+pg+'"] iframe');if(!f)return;
+          try{const doc=f.contentDocument;Object.entries(c).forEach(([id,v])=>{const el=doc.getElementById(id);if(!el)return;
+            if(el.type==='checkbox'||el.type==='radio'){if(el.checked!==v){el.checked=v;el.dispatchEvent(new Event('change',{bubbles:true}))}}
+            else if(v&&el.value!==v){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}})}catch(e){}});
+        cssAtu();const a=document.createElement('div');a.className='atu-restaurado';a.setAttribute('role','status');
+        a.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><span><b>Sistema atualizado.</b> Seu trabalho foi restaurado.</span>';
+        document.body.appendChild(a);setTimeout(()=>a.remove(),5000);window.__atuRestaurou=true},2500)},500)})();
   async function checar(){
     if(ocupado||document.hidden)return;ocupado=true;
     try{
@@ -558,7 +623,7 @@ window.__net=n=>{netSet(n)};window.__irEnvioRoteiro=()=>go('pg11');
   /* depois que a versão nova abre (pelo botão ou F5): avisa que o sistema foi atualizado */
   (function(){let antes='';try{antes=localStorage.getItem('projeart_pcp:versao')||'';localStorage.setItem('projeart_pcp:versao',ATUAL)}catch(e){return}
     if(!antes||antes===ATUAL)return;
-    const mostra=()=>{if(document.getElementById('updFeito'))return;const d=document.createElement('div');d.id='updFeito';d.setAttribute('role','status');
+    const mostra=()=>{if(document.getElementById('updFeito')||window.__atuRestaurou||document.querySelector('.atu-restaurado'))return;const d=document.createElement('div');d.id='updFeito';d.setAttribute('role','status');
       d.style.cssText='position:fixed;right:18px;top:18px;z-index:99999;display:flex;align-items:center;gap:12px;background:#e8ebef;color:#1f2937;border:1px solid #c9d0d9;border-left:5px solid #16a34a;border-radius:10px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.35);font:600 13px Arial,Helvetica,sans-serif;max-width:420px';
       d.innerHTML='<span><b style="font-weight:800">Sistema atualizado</b><br><span style="font-weight:500;color:#4b5563">'+antes+' → '+ATUAL+'. Você já está na versão nova.</span></span><button id="updFeitoOk" style="background:#0b5cad;color:#fff;border:1px solid #0b5cad;border-radius:7px;padding:8px 14px;font:700 13px Arial,Helvetica,sans-serif;cursor:pointer">OK</button>';
       document.body.appendChild(d);d.querySelector('#updFeitoOk').onclick=()=>d.remove();setTimeout(()=>{if(d.isConnected)d.remove()},12000)};
