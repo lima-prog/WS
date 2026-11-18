@@ -3959,6 +3959,18 @@ window.PR_ABA = 'agrupador';
 <div class="ult" id="ult" hidden><div class="ult-h">Últimos usados</div><ul id="ult-l"></ul></div>
 
 <footer>Processamento 100% local</footer>
+<style>/* V220 — Roteirização: quadros no mesmo modelo do Agrupador (faixa de título, fundo cinza-azulado, borda escura) */
+html body .card{background:linear-gradient(#e3e7ec,#d5dae1)!important;border:1px solid #545659!important;border-top:3px solid #0b3d91!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important;padding:0 16px 16px!important}
+html body .card>.ch,html body .card>.summary-title{margin:0 -16px 14px!important;padding:10px 16px!important;background:linear-gradient(#d7dce3,#c2c9d3)!important;border-bottom:1px solid #aab2bd!important}
+html body .card>.summary-title .ch{background:none!important;padding:0!important;margin:0!important;border:0!important}
+html body .drop-zone{background:#e2e6eb!important;border:1px dashed #a3acb8!important;border-radius:4px!important}
+html body .drop-zone:hover,html body .drop-zone.drag-over{background:#d9dee5!important;border-color:#5f6b7a!important}
+html body .drop-zone *{color:#111827}
+html body .ph{background:linear-gradient(#e3e7ec,#d5dae1)!important;border:1px dashed #99a3af!important;border-radius:4px!important;color:#374151!important}
+html body .ult{background:linear-gradient(#e3e7ec,#d5dae1)!important;border:1px solid #545659!important;border-top:3px solid #0b3d91!important;border-radius:4px!important}
+html body .ult-h{background:linear-gradient(#d7dce3,#c2c9d3)!important;color:#000!important;border-bottom:1px solid #aab2bd}
+html body .ext span{background:#c9d0d8!important;border:1px solid #99a3af;color:#111827!important}
+</style>
 
 <script>
 const ROUTE_CFG = {
@@ -19058,7 +19070,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 219';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 220';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
