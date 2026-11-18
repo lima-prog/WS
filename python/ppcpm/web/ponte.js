@@ -1268,6 +1268,9 @@
     function statusAgora() { return fetch('/api/status', { cache: 'no-store' }).then(function (r) { return r.json(); }); }
     function avisoVersao(texto) {
       if (document.getElementById('updAviso') || document.getElementById('ppcpm-upd')) return;
+      /* V240: usa o aviso novo "Atualização obrigatória" do sistema (Agora / 1 / 2 / 3 minutos) — nunca o aviso antigo */
+      if (typeof window.__atuObrigatoria === 'function') { try { window.__atuObrigatoria(texto); return; } catch (x) { } }
+      return;
       var d = el('div'); d.id = 'ppcpm-upd'; d.setAttribute('role', 'status');
       d.style.cssText = 'position:fixed;right:18px;top:18px;z-index:2147483500;display:flex;align-items:center;gap:12px;background:#e8ebef;color:#1f2937;border:1px solid #c9d0d9;border-left:5px solid #0b5cad;border-radius:10px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,.35);font:600 13px Arial,Helvetica,sans-serif;max-width:440px';
       var t = el('span'); t.innerHTML = '<b style="font-weight:800">Nova versão disponível</b><br><span style="font-weight:500;color:#4b5563"></span>';
