@@ -3145,10 +3145,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-sh
 @keyframes prPulse{50%{opacity:.25}}
 .barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
-.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:10px}
-.kpi .ic{width:34px;height:34px;border-radius:4px;background:#f1f3f6;display:grid;place-items:center;font-size:17px;flex:none}
-.kpi .r{font-size:10.5px;color:#5f6b7a;font-weight:700;letter-spacing:.03em}
-.kpi .v{font-size:18px;font-weight:800;color:#111827}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
 .saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
 .saida.on{display:flex}
 .saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -3406,6 +3406,22 @@ window.PR_ABA = 'agrupador';
       const f = R[j.tipo]; if (f) f(el, j, n);
     });
   }
+  /* V215 — ícones de linha dos cartões (padrão do sistema) */
+  const KPI_IC = {
+    cubo: '<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>',
+    ordens: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 13l2 2 4-4"/>',
+    cnc: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    pend: '<path d="M6 2.8h12M6 21.2h12M7 2.8c0 5 5 6 5 9.2S7 16.2 7 21.2M17 2.8c0 5-5 6-5 9.2s5 4.2 5 9.2"/>',
+    pdf: '<path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5M9 13h6M9 17h6"/>',
+    obra: '<path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01"/>',
+    padrao: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'
+  };
+  function kpiIcone(r) {
+    const t = String(r || '').toLowerCase();
+    const k = /conjunt/.test(t) ? 'cubo' : /ordem|ordens|of\b/.test(t) ? 'ordens' : /cnc|nesting/.test(t) ? 'cnc' : /pend|falt/.test(t) ? 'pend' : /p[áa]gina|pdf/.test(t) ? 'pdf' : /obra/.test(t) ? 'obra' : 'padrao';
+    return '<svg viewBox="0 0 24 24">' + KPI_IC[k] + '</svg>';
+  }
+
   const R = {
     rotulo(el, j) {
       const t = j.texto || el.dataset.vazio || '';
@@ -3448,7 +3464,7 @@ window.PR_ABA = 'agrupador';
         : `<li class="vazio">${esc(el.dataset.vazio || 'nenhum arquivo')}</li>`;
     },
     kpis(el, j) {
-      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${esc(c.icone)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
+      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${kpiIcone(c.rotulo)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
     },
     tabela(el, j) {
       if (!j.cab.length && !j.linhas.length) { el.innerHTML = `<div class="vz">${esc(el.dataset.vazio || '')}</div>`; return; }
@@ -4447,10 +4463,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-sh
 @keyframes prPulse{50%{opacity:.25}}
 .barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
-.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:10px}
-.kpi .ic{width:34px;height:34px;border-radius:4px;background:#f1f3f6;display:grid;place-items:center;font-size:17px;flex:none}
-.kpi .r{font-size:10.5px;color:#5f6b7a;font-weight:700;letter-spacing:.03em}
-.kpi .v{font-size:18px;font-weight:800;color:#111827}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
 .saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
 .saida.on{display:flex}
 .saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -4686,6 +4702,22 @@ window.PR_ABA = 'imp';
       const f = R[j.tipo]; if (f) f(el, j, n);
     });
   }
+  /* V215 — ícones de linha dos cartões (padrão do sistema) */
+  const KPI_IC = {
+    cubo: '<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>',
+    ordens: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 13l2 2 4-4"/>',
+    cnc: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    pend: '<path d="M6 2.8h12M6 21.2h12M7 2.8c0 5 5 6 5 9.2S7 16.2 7 21.2M17 2.8c0 5-5 6-5 9.2s5 4.2 5 9.2"/>',
+    pdf: '<path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5M9 13h6M9 17h6"/>',
+    obra: '<path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01"/>',
+    padrao: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'
+  };
+  function kpiIcone(r) {
+    const t = String(r || '').toLowerCase();
+    const k = /conjunt/.test(t) ? 'cubo' : /ordem|ordens|of\b/.test(t) ? 'ordens' : /cnc|nesting/.test(t) ? 'cnc' : /pend|falt/.test(t) ? 'pend' : /p[áa]gina|pdf/.test(t) ? 'pdf' : /obra/.test(t) ? 'obra' : 'padrao';
+    return '<svg viewBox="0 0 24 24">' + KPI_IC[k] + '</svg>';
+  }
+
   const R = {
     rotulo(el, j) {
       const t = j.texto || el.dataset.vazio || '';
@@ -4728,7 +4760,7 @@ window.PR_ABA = 'imp';
         : `<li class="vazio">${esc(el.dataset.vazio || 'nenhum arquivo')}</li>`;
     },
     kpis(el, j) {
-      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${esc(c.icone)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
+      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${kpiIcone(c.rotulo)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
     },
     tabela(el, j) {
       if (!j.cab.length && !j.linhas.length) { el.innerHTML = `<div class="vz">${esc(el.dataset.vazio || '')}</div>`; return; }
@@ -5072,10 +5104,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-sh
 @keyframes prPulse{50%{opacity:.25}}
 .barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
-.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:10px}
-.kpi .ic{width:34px;height:34px;border-radius:4px;background:#f1f3f6;display:grid;place-items:center;font-size:17px;flex:none}
-.kpi .r{font-size:10.5px;color:#5f6b7a;font-weight:700;letter-spacing:.03em}
-.kpi .v{font-size:18px;font-weight:800;color:#111827}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
 .saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
 .saida.on{display:flex}
 .saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -5313,6 +5345,22 @@ window.PR_ABA = 'impm';
       const f = R[j.tipo]; if (f) f(el, j, n);
     });
   }
+  /* V215 — ícones de linha dos cartões (padrão do sistema) */
+  const KPI_IC = {
+    cubo: '<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>',
+    ordens: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 13l2 2 4-4"/>',
+    cnc: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    pend: '<path d="M6 2.8h12M6 21.2h12M7 2.8c0 5 5 6 5 9.2S7 16.2 7 21.2M17 2.8c0 5-5 6-5 9.2s5 4.2 5 9.2"/>',
+    pdf: '<path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5M9 13h6M9 17h6"/>',
+    obra: '<path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01"/>',
+    padrao: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'
+  };
+  function kpiIcone(r) {
+    const t = String(r || '').toLowerCase();
+    const k = /conjunt/.test(t) ? 'cubo' : /ordem|ordens|of\b/.test(t) ? 'ordens' : /cnc|nesting/.test(t) ? 'cnc' : /pend|falt/.test(t) ? 'pend' : /p[áa]gina|pdf/.test(t) ? 'pdf' : /obra/.test(t) ? 'obra' : 'padrao';
+    return '<svg viewBox="0 0 24 24">' + KPI_IC[k] + '</svg>';
+  }
+
   const R = {
     rotulo(el, j) {
       const t = j.texto || el.dataset.vazio || '';
@@ -5355,7 +5403,7 @@ window.PR_ABA = 'impm';
         : `<li class="vazio">${esc(el.dataset.vazio || 'nenhum arquivo')}</li>`;
     },
     kpis(el, j) {
-      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${esc(c.icone)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
+      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${kpiIcone(c.rotulo)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
     },
     tabela(el, j) {
       if (!j.cab.length && !j.linhas.length) { el.innerHTML = `<div class="vz">${esc(el.dataset.vazio || '')}</div>`; return; }
@@ -5699,10 +5747,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-sh
 @keyframes prPulse{50%{opacity:.25}}
 .barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
-.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:10px}
-.kpi .ic{width:34px;height:34px;border-radius:4px;background:#f1f3f6;display:grid;place-items:center;font-size:17px;flex:none}
-.kpi .r{font-size:10.5px;color:#5f6b7a;font-weight:700;letter-spacing:.03em}
-.kpi .v{font-size:18px;font-weight:800;color:#111827}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
 .saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
 .saida.on{display:flex}
 .saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -5911,6 +5959,22 @@ window.PR_ABA = 'lic';
       const f = R[j.tipo]; if (f) f(el, j, n);
     });
   }
+  /* V215 — ícones de linha dos cartões (padrão do sistema) */
+  const KPI_IC = {
+    cubo: '<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>',
+    ordens: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 13l2 2 4-4"/>',
+    cnc: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    pend: '<path d="M6 2.8h12M6 21.2h12M7 2.8c0 5 5 6 5 9.2S7 16.2 7 21.2M17 2.8c0 5-5 6-5 9.2s5 4.2 5 9.2"/>',
+    pdf: '<path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5M9 13h6M9 17h6"/>',
+    obra: '<path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01"/>',
+    padrao: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'
+  };
+  function kpiIcone(r) {
+    const t = String(r || '').toLowerCase();
+    const k = /conjunt/.test(t) ? 'cubo' : /ordem|ordens|of\b/.test(t) ? 'ordens' : /cnc|nesting/.test(t) ? 'cnc' : /pend|falt/.test(t) ? 'pend' : /p[áa]gina|pdf/.test(t) ? 'pdf' : /obra/.test(t) ? 'obra' : 'padrao';
+    return '<svg viewBox="0 0 24 24">' + KPI_IC[k] + '</svg>';
+  }
+
   const R = {
     rotulo(el, j) {
       const t = j.texto || el.dataset.vazio || '';
@@ -5953,7 +6017,7 @@ window.PR_ABA = 'lic';
         : `<li class="vazio">${esc(el.dataset.vazio || 'nenhum arquivo')}</li>`;
     },
     kpis(el, j) {
-      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${esc(c.icone)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
+      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${kpiIcone(c.rotulo)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
     },
     tabela(el, j) {
       if (!j.cab.length && !j.linhas.length) { el.innerHTML = `<div class="vz">${esc(el.dataset.vazio || '')}</div>`; return; }
@@ -6297,10 +6361,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-sh
 @keyframes prPulse{50%{opacity:.25}}
 .barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
-.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:10px 12px;display:flex;align-items:center;gap:10px}
-.kpi .ic{width:34px;height:34px;border-radius:4px;background:#f1f3f6;display:grid;place-items:center;font-size:17px;flex:none}
-.kpi .r{font-size:10.5px;color:#5f6b7a;font-weight:700;letter-spacing:.03em}
-.kpi .v{font-size:18px;font-weight:800;color:#111827}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
 .saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
 .saida.on{display:flex}
 .saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -6512,6 +6576,22 @@ window.PR_ABA = 'f4';
       const f = R[j.tipo]; if (f) f(el, j, n);
     });
   }
+  /* V215 — ícones de linha dos cartões (padrão do sistema) */
+  const KPI_IC = {
+    cubo: '<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>',
+    ordens: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 13l2 2 4-4"/>',
+    cnc: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    pend: '<path d="M6 2.8h12M6 21.2h12M7 2.8c0 5 5 6 5 9.2S7 16.2 7 21.2M17 2.8c0 5-5 6-5 9.2s5 4.2 5 9.2"/>',
+    pdf: '<path d="M14 2.8H7a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.8z"/><path d="M14 2.8v5h5M9 13h6M9 17h6"/>',
+    obra: '<path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h.01M15 11h.01"/>',
+    padrao: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'
+  };
+  function kpiIcone(r) {
+    const t = String(r || '').toLowerCase();
+    const k = /conjunt/.test(t) ? 'cubo' : /ordem|ordens|of\b/.test(t) ? 'ordens' : /cnc|nesting/.test(t) ? 'cnc' : /pend|falt/.test(t) ? 'pend' : /p[áa]gina|pdf/.test(t) ? 'pdf' : /obra/.test(t) ? 'obra' : 'padrao';
+    return '<svg viewBox="0 0 24 24">' + KPI_IC[k] + '</svg>';
+  }
+
   const R = {
     rotulo(el, j) {
       const t = j.texto || el.dataset.vazio || '';
@@ -6554,7 +6634,7 @@ window.PR_ABA = 'f4';
         : `<li class="vazio">${esc(el.dataset.vazio || 'nenhum arquivo')}</li>`;
     },
     kpis(el, j) {
-      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${esc(c.icone)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
+      el.innerHTML = Object.values(j.cartoes || {}).map(c => `<div class="kpi"><div class="ic">${kpiIcone(c.rotulo)}</div><div><div class="r">${esc(c.rotulo)}</div><div class="v"${c.cor ? ` style="color:${esc(c.cor)}"` : ''}>${esc(c.valor)}</div></div></div>`).join('');
     },
     tabela(el, j) {
       if (!j.cab.length && !j.linhas.length) { el.innerHTML = `<div class="vz">${esc(el.dataset.vazio || '')}</div>`; return; }
@@ -18967,7 +19047,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 214';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 215';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});

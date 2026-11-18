@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 214
+# Mapa do sistema — Versão 215
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -7,12 +7,12 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `css/sistema.css` | 166 KB |
 | `js/supabase.js` | 213 KB |
 | `modulos/pg1.html` | 154 KB |
-| `modulos/pg2.html` | 55 KB |
+| `modulos/pg2.html` | 56 KB |
 | `modulos/pg3.html` | 35 KB |
-| `modulos/pg4.html` | 44 KB |
-| `modulos/pg5.html` | 45 KB |
-| `modulos/pg6.html` | 43 KB |
-| `modulos/pg7.html` | 42 KB |
+| `modulos/pg4.html` | 45 KB |
+| `modulos/pg5.html` | 46 KB |
+| `modulos/pg6.html` | 44 KB |
+| `modulos/pg7.html` | 44 KB |
 | `modulos/pg10.html` | 302 KB |
 | `modulos/pg15.html` | 317 KB |
 | `modulos/pg11.html` | 115 KB |
