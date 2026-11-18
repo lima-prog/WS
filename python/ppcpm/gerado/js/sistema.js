@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 229';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 230';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -529,6 +529,54 @@ async function netMedir(){
 window.addEventListener('offline',()=>{netFalhas=3;netSet('buf')});window.addEventListener('online',()=>netMedir());
 setInterval(netMedir,6000);setTimeout(netMedir,1500);
 window.__net=n=>{netSet(n)};window.__irEnvioRoteiro=()=>go('pg11');
+/* V230 — avisos de ERRO no idioma escolhido pelo usuário (pt / en / es).
+   Troca as mensagens técnicas do navegador/Windows/Python (que vêm em inglês) por uma frase clara no idioma do sistema,
+   em qualquer aba e em qualquer aviso (status, janelas, listas, alert). */
+(function(){
+  const E=[
+    [/A requested file or directory could not be found[^.]*\.?|NotFoundError:?[^\n]*|\[Errno 2\][^\n]*|No such file or directory[^\n]*|FileNotFoundError:?[^\n]*/i,
+     {pt:'Arquivo ou pasta não encontrado. Ele pode ter sido movido, renomeado ou apagado depois de carregado (ou a pasta de rede está desconectada). Carregue de novo.',
+      en:'File or folder not found. It may have been moved, renamed or deleted after it was loaded (or the network folder is disconnected). Load it again.',
+      es:'Archivo o carpeta no encontrado. Puede haber sido movido, renombrado o eliminado después de cargarlo (o la carpeta de red está desconectada). Cárguelo de nuevo.'}],
+    [/The requested file could not be read[^.]*\.?|NotReadableError:?[^\n]*/i,
+     {pt:'Não consegui ler o arquivo. Ele pode estar aberto em outro programa (Excel?) ou foi alterado depois de carregado. Feche e carregue de novo.',
+      en:'Could not read the file. It may be open in another program (Excel?) or it changed after it was loaded. Close it and load it again.',
+      es:'No se pudo leer el archivo. Puede estar abierto en otro programa (¿Excel?) o cambió después de cargarlo. Ciérrelo y cárguelo de nuevo.'}],
+    [/\[Errno 13\][^\n]*|Permission denied[^\n]*|PermissionError:?[^\n]*|The request is not allowed by the user agent[^.]*\.?|NotAllowedError:?[^\n]*|An attempt was made to break through the security policy[^.]*\.?/i,
+     {pt:'Sem permissão para acessar o arquivo ou a pasta. Se o arquivo estiver aberto (Excel), feche; se for uma pasta, escolha de novo e clique em "Permitir".',
+      en:'No permission to access the file or folder. If the file is open (Excel), close it; if it is a folder, choose it again and click "Allow".',
+      es:'Sin permiso para acceder al archivo o la carpeta. Si el archivo está abierto (Excel), ciérrelo; si es una carpeta, elíjala de nuevo y haga clic en "Permitir".'}],
+    [/The user aborted a request\.?|The operation was aborted\.?|AbortError:?[^\n]*/i,
+     {pt:'Operação cancelada.',en:'Operation cancelled.',es:'Operación cancelada.'}],
+    [/Failed to fetch|NetworkError when attempting to fetch resource\.?|Network request failed|Load failed|net::ERR_[A-Z_]+|ERR_CONNECTION_[A-Z_]+|ECONNREFUSED|timed? ?out[^\n]*/i,
+     {pt:'Sem conexão com o servidor. Verifique a internet/rede e tente de novo.',en:'No connection to the server. Check the internet/network and try again.',es:'Sin conexión con el servidor. Verifique internet/la red e intente de nuevo.'}],
+    [/The quota has been exceeded\.?|QuotaExceededError:?[^\n]*|No space left on device[^\n]*|\[Errno 28\][^\n]*/i,
+     {pt:'Sem espaço para salvar. Libere espaço no disco e tente de novo.',en:'Not enough space to save. Free up disk space and try again.',es:'Sin espacio para guardar. Libere espacio en el disco e intente de nuevo.'}],
+    [/The object is in an invalid state\.?|InvalidStateError:?[^\n]*|NoModificationAllowedError:?[^\n]*|InvalidModificationError:?[^\n]*/i,
+     {pt:'O arquivo está em uso ou mudou. Feche-o em outros programas e tente de novo.',en:'The file is in use or has changed. Close it in other programs and try again.',es:'El archivo está en uso o cambió. Ciérrelo en otros programas e intente de nuevo.'}],
+    [/Unexpected end of JSON input|Unexpected token [^\n]* in JSON[^\n]*|is not valid JSON[^\n]*|JSON\.parse[^\n]*/i,
+     {pt:'O servidor respondeu algo inesperado. Tente de novo em alguns segundos.',en:'The server sent an unexpected response. Try again in a few seconds.',es:'El servidor respondió algo inesperado. Intente de nuevo en unos segundos.'}],
+    [/Cannot read propert(?:y|ies) of (?:undefined|null)[^\n]*|undefined is not an object[^\n]*|null is not an object[^\n]*|[\w$.]+ is not a function|[\w$]+ is not defined|Maximum call stack size exceeded/i,
+     {pt:'Erro interno do sistema. Clique em "Atualizar" e tente de novo; se continuar, avise o PCP.',en:'Internal system error. Click "Update" and try again; if it keeps happening, tell the PCP team.',es:'Error interno del sistema. Haga clic en "Actualizar" e intente de nuevo; si continúa, avise al PCP.'}],
+    [/Out of memory|Array buffer allocation failed|MemoryError[^\n]*/i,
+     {pt:'Memória insuficiente para esse arquivo. Feche outras abas/programas e tente de novo.',en:'Not enough memory for this file. Close other tabs/programs and try again.',es:'Memoria insuficiente para ese archivo. Cierre otras pestañas/programas e intente de nuevo.'}],
+    [/(?:^|\s)erro desconhecido(?=\s|$)|(?:^|\s)Unknown error(?=\s|$)/i,{pt:' Erro desconhecido.',en:' Unknown error.',es:' Error desconocido.'}],
+  ];
+  function lang(){try{const u=JSON.parse(localStorage.getItem('projeart_pcp:ui')||'{}');return {pt:1,en:1,es:1}[u.idioma]?u.idioma:'pt'}catch(e){return 'pt'}}
+  function traduz(t){if(!t||t.length>4000||!/[a-z]{3}/i.test(t))return t;const L=lang();let r=t;
+    for(const [re,m] of E){if(re.test(r)&&!r.includes(m[L]))r=r.replace(re,m[L])}return r}
+  window.__traduzErro=traduz;
+  function instalar(w){try{const d=w.document;if(!d||d.__errI18n)return;d.__errI18n=1;
+      const PROIB=/^(SCRIPT|STYLE|TEXTAREA|CODE|PRE|NOSCRIPT|TEMPLATE)$/;
+      const fazer=n=>{if(n.nodeType===3){const pe=n.parentNode;if(!pe||PROIB.test(pe.nodeName)||(pe.closest&&pe.closest('script,style,textarea,[contenteditable],[data-semtrad]')))return;const v=n.nodeValue,t=traduz(v);if(t!==v)n.nodeValue=t;return}
+        if(n.nodeType!==1||PROIB.test(n.tagName))return;
+        const it=d.createTreeWalker(n,4);let x;const l=[];while((x=it.nextNode()))l.push(x);l.forEach(fazer)};
+      const ini=()=>{fazer(d.body);new w.MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')fazer(m.target);else m.addedNodes.forEach(fazer)}})
+        .observe(d.body,{childList:true,subtree:true,characterData:true})};
+      if(d.body)ini();else d.addEventListener('DOMContentLoaded',ini);
+    }catch(e){}}
+  window.__errI18nInstalar=instalar;instalar(window);
+})();
 /* ===== ATUALIZAÇÃO AUTOMÁTICA (publicado na web) =====
    Compara a versão deste sistema com /versao.json do servidor. Se houver uma nova, avisa o usuário (ou atualiza sozinho na tela de login). */
 (function(){
@@ -644,7 +692,7 @@ function telaViva(pg){const pool=$('#pgpool');let box=pool.querySelector(`.pgbox
  if(!box){const p=PROG.find(x=>x[0]===pg);box=document.createElement('div');box.className='pn pgbox';box.dataset.pg=pg;
   box.style.cssText=`padding:0;overflow:hidden;background:${/^pg(?:[1-9]|1[0-4])$/.test(pg)?'#eef1f6':'#0b0e14'}`;
   box.innerHTML=`<iframe data-pg="${pg}" title="${p?p[2]:''}" style="width:100%;height:calc(100vh - 170px);min-height:520px;border:0;display:block"></iframe>`;
-  pool.appendChild(box);box.firstChild.srcdoc=document.getElementById('src-'+pg).textContent.replace(/<\\\/script/g,'</script')+TEMA_BOT+(TEMA_QUADROS_PG.includes(pg)?TEMA_QUADROS:'')}
+  pool.appendChild(box);box.firstChild.srcdoc=document.getElementById('src-'+pg).textContent.replace(/<\\\/script/g,'</script')+TEMA_BOT+'<scr'+'ipt>try{parent.__errI18nInstalar&&parent.__errI18nInstalar(window)}catch(e){}</scr'+'ipt>'+(TEMA_QUADROS_PG.includes(pg)?TEMA_QUADROS:'')}
  return box}
 function mostrarPool(pg){const pool=$('#pgpool');if(!pool)return;pool.querySelectorAll('.pgbox').forEach(b=>{const on=b.dataset.pg===pg;b.style.display=on?'':'none';const f=b.firstChild;if(on)f.id='ppcp';else if(f.id==='ppcp')f.removeAttribute('id')});pool.style.display=pg?'':'none'}
 function zerarTela(pg){const b=$('#pgpool')&&$('#pgpool').querySelector(`.pgbox[data-pg="${pg}"]`);if(b)b.remove()}
