@@ -47,7 +47,10 @@ header .upd{flex:1;min-width:0;padding-left:22px;color:var(--tx);font-weight:600
 #bg{display:none;background:none;border:1px solid var(--ln);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:18px}
 nav{background:var(--p1);border-right:1px solid var(--ln);padding:12px 8px;display:flex;flex-direction:column;gap:2px}
 nav button.n{text-align:left;background:none;border:0;border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--t2)}nav button.n:hover{background:var(--p2)}nav button.n.on{background:var(--bl);color:#fff;font-weight:600}
-.plant{margin-top:auto;border-radius:10px;overflow:hidden;font-size:12px;background:var(--bg)}.plant img{width:100%;height:80px;object-fit:cover;display:block}.plant div{padding:8px}
+.plant{margin-top:auto;border-radius:10px;overflow:hidden;font-size:12px;background:var(--bg)}
+/* V232: o menu lateral nunca deixa a janela mais alta que a tela (sem barra de rolagem de fora) — se faltar espaço, o menu rola por dentro, sem barra visível */
+#app>nav#nv{height:calc(100vh - 67px);max-height:calc(100vh - 67px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;position:sticky;top:67px;align-self:start}#app>nav#nv::-webkit-scrollbar{display:none}
+#app>nav#nv .plant{flex:none}.plant img{width:100%;height:80px;object-fit:cover;display:block}.plant div{padding:8px}
 main{padding:16px;min-width:0}main h2{font-size:18px;margin-bottom:12px}
 .kg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 .k{border-radius:12px;padding:14px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 24%,var(--p1));display:flex;flex-direction:column;gap:4px}.k small{color:var(--t4)}.k .v{font-size:28px;font-weight:700;line-height:1.1}
