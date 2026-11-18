@@ -19142,7 +19142,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 237';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 238';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -19792,7 +19792,7 @@ function ntCarregar(){try{const j=JSON.parse(localStorage.getItem(NT_CHAVE)||'nu
 function ntGuardar(){try{localStorage.setItem(NT_CHAVE,JSON.stringify({abas:NT.abas,at:NT.at,zoom:NT.zoom,quebra:NT.quebra}))}catch(_){}
  const s=NT.el&&NT.el.querySelector('#ntSalvo');if(s){s.textContent='✔ salvo neste PC';clearTimeout(NT.salvoT);NT.salvoT=setTimeout(()=>{if(s)s.textContent=''},1800)}}
 const NT_IC={novo:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/>',abrir:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v1"/><path d="M3 7v10a2 2 0 0 0 2 2h13l3-8H7l-3 8"/>',salvar:'<path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3M7 21v-7h10v7"/>',
- desfazer:'<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',refazer:'<path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>',achar:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',quebra:'<path d="M4 6h16M4 12h13a3 3 0 0 1 0 6h-4m2-2-2 2 2 2M4 18h5"/>',menos:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6"/>',mais:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6M11 8v6"/>',imprimir:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/>',hora:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'};
+ desfazer:'<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',refazer:'<path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/>',achar:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',quebra:'<path d="M4 6h16M4 12h13a3 3 0 0 1 0 6h-4m2-2-2 2 2 2M4 18h5"/>',menos:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6"/>',mais:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6M11 8v6"/>',imprimir:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6z"/>',hora:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',pct:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="m21 15-4.5-4.5L7 19"/><path d="M14 3h4M16 1v4" />'};
 const ntIc=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${NT_IC[n]}</svg>`;
 const NT_CSS=`
 .nt{display:flex;flex-direction:column;background:#fff;color:#111827;font-family:'Segoe UI',Roboto,Arial,sans-serif;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.25);width:min(1100px,94vw);height:min(760px,88vh);overflow:hidden}
@@ -19820,6 +19820,8 @@ const NT_CSS=`
 .nt-st{display:flex;align-items:center;gap:18px;padding:5px 14px;border-top:1px solid #e3e8ef;background:#f6f8fb;font-size:12px;color:#4b5563}
 .nt-st b{font-weight:600;color:#111827}.nt-st #ntSalvo{margin-left:auto;color:#15803d;font-weight:600}
 .nt-fundo{position:fixed;inset:0;z-index:2147482000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:18px}
+/* V238 Listar PCT */
+.pct-c{background:#eef1f5;color:#000;border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:6px;box-shadow:0 12px 32px rgba(0,0,0,.3);width:min(560px,100%);font:13px 'Segoe UI',Roboto,Arial,sans-serif;overflow:hidden}.pct-h{display:flex;align-items:center;gap:8px;padding:10px 14px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}.pct-h svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.pct-h b{font-size:15px}.pct-h span{color:#374151;font-size:12px}.pct-x{margin-left:auto;background:none;border:0;font-size:16px;cursor:pointer;color:#000}.pct-drop{margin:14px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px;background:#eef1f5;border:1px dashed #a3acb8;border-radius:4px;cursor:pointer;text-align:center;outline:none}.pct-drop:hover,.pct-drop.on,.pct-drop:focus{background:#d9dee5;border-color:#5f6b7a}.pct-drop svg{width:34px;height:34px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.pct-drop b{font-size:14px}.pct-drop span{color:#374151}.pct-drop small{color:#4b5563;font-size:11.5px}.pct-drop kbd{border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;padding:0 4px;background:#fff;font:600 11px 'Segoe UI',Arial}.pct-prev{display:flex;gap:12px;align-items:center;margin:14px;padding:10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px}.pct-prev[hidden],.pct-drop[hidden],.pct-err[hidden]{display:none}.pct-prev img{width:150px;max-height:110px;object-fit:contain;border:1px solid #d6dee7;flex:none}.pct-prev>div{flex:1;min-width:0}.pct-st{font-weight:700}.pct-bar{height:6px;margin-top:8px;background:#c9d0d8;border-radius:3px;overflow:hidden}.pct-bar i{display:block;height:100%;width:0;background:#0b3d91;transition:width .3s}.pct-err{margin-top:8px;color:#b91c1c;font-weight:600}.pct-r{display:flex;justify-content:flex-end;padding:0 14px 14px}
 
 html[data-theme=dark],html[data-theme=dark] body{background:#0f1626!important;color-scheme:dark}
 html[data-theme=dark] .nt{background:#0f1626;color:#e5e9f0;border-color:#000;border-top-color:#0b3d91}
@@ -19838,7 +19840,7 @@ html[data-theme=dark] .nt-st{background:#0b1120;border-color:#26314a;color:#9aa6
 function ntHtml(janela){return`<div class="nt-t"><svg class="tic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v2M12 3v2M15 3v2M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/></svg><b>Blocos de notas</b><span>SISTEMA PPCPM · o texto fica guardado neste PC</span>${janela?'':'<button type="button" class="nt-x" data-nt="fechar" title="Fechar (Esc)">✕</button>'}</div>
 <div class="nt-abas" id="ntAbas"></div>
 <div class="nt-bar"><button type="button" class="nt-b" data-nt="novo" title="Nova aba (Ctrl+N)">${ntIc('novo')}Novo</button><button type="button" class="nt-b" data-nt="abrir" title="Abrir arquivo .txt (Ctrl+O)">${ntIc('abrir')}Abrir</button><button type="button" class="nt-b p" data-nt="salvar" title="Salvar como arquivo .txt (Ctrl+S)">${ntIc('salvar')}Salvar .txt</button><span class="nt-sep"></span>
-<button type="button" class="nt-b" data-nt="desfazer" title="Desfazer (Ctrl+Z)">${ntIc('desfazer')}</button><button type="button" class="nt-b" data-nt="refazer" title="Refazer (Ctrl+Y)">${ntIc('refazer')}</button><button type="button" class="nt-b" data-nt="achar" title="Localizar e substituir (Ctrl+F)">${ntIc('achar')}Localizar</button><button type="button" class="nt-b" data-nt="hora" title="Inserir data e hora (F5)">${ntIc('hora')}Data/hora</button><span class="nt-sep"></span>
+<button type="button" class="nt-b" data-nt="desfazer" title="Desfazer (Ctrl+Z)">${ntIc('desfazer')}</button><button type="button" class="nt-b" data-nt="refazer" title="Refazer (Ctrl+Y)">${ntIc('refazer')}</button><button type="button" class="nt-b" data-nt="achar" title="Localizar e substituir (Ctrl+F)">${ntIc('achar')}Localizar</button><button type="button" class="nt-b" data-nt="pct" title="Ler a imagem (print) do pacote e listar as obras (OF-TRECHO)">${ntIc('pct')}Listar PCT</button><span class="nt-sep"></span>
 <button type="button" class="nt-b" data-nt="quebra" id="ntQuebra" title="Quebra automática de linha">${ntIc('quebra')}Quebra de linha</button><button type="button" class="nt-b" data-nt="menos" title="Diminuir (Ctrl -)">${ntIc('menos')}</button><button type="button" class="nt-b" data-nt="mais" title="Aumentar (Ctrl +)">${ntIc('mais')}</button><button type="button" class="nt-b" data-nt="imprimir" title="Imprimir (Ctrl+P)">${ntIc('imprimir')}Imprimir</button></div>
 <div class="nt-ach" id="ntAch"><input id="ntBusca" placeholder="Localizar" autocomplete="off"><input id="ntTroca" placeholder="Substituir por" autocomplete="off"><button type="button" class="nt-b" data-nt="prox">Próximo</button><button type="button" class="nt-b" data-nt="trocar">Substituir</button><button type="button" class="nt-b" data-nt="trocartudo">Substituir tudo</button><small id="ntAchInfo"></small><button type="button" class="nt-b" data-nt="fecharach" title="Fechar (Esc)">✕</button></div>
 <textarea class="nt-tx" id="ntTx" spellcheck="false" placeholder="Digite aqui..."></textarea>
@@ -19879,6 +19881,66 @@ function ntAbrirArq(){const d=NT.doc,inp=d.createElement('input');inp.type='file
  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;if(f.size>20*1024*1024){window.__avisa&&__avisa('Arquivo grande demais para o Bloco de notas (máximo 20 MB).',{doc:d});return}
   const r=new FileReader();r.onload=()=>{let tx=String(r.result||'').replace(/\r\n?/g,'\n');const cur=NT.abas[NT.at];if(!cur.texto.trim()){cur.nome=f.name;cur.texto=tx;cur.auto=false;ntDesenhar();ntGuardar()}else ntNova(f.name,tx)};
   r.onerror=()=>window.__avisa&&__avisa('Não consegui abrir o arquivo: '+(r.error&&r.error.message||''),{doc:d});r.readAsText(f,'utf-8')};inp.click()}
+/* V238 — LISTAR PCT: o usuário manda um print/imagem da planilha do pacote; o sistema lê (OCR) a coluna OF-TRECHO
+   e preenche o Bloco de notas com um bloco por obra (01, 02, 03…). A leitura é feita neste computador (Tesseract.js). */
+const OCR_CDN={js:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',worker:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+  core:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',lang:'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int'};
+let OCR_W=null;
+function ocrScript(){return new Promise((ok,er)=>{if(window.Tesseract)return ok();const sc=document.createElement('script');sc.src=OCR_CDN.js;sc.onload=()=>ok();sc.onerror=()=>er(new Error('Não consegui baixar o leitor de imagens (sem internet?).'));document.head.appendChild(sc)})}
+async function ocrWorker(prog){await ocrScript();if(OCR_W)return OCR_W;
+  OCR_W=await Tesseract.createWorker('eng',1,{workerPath:OCR_CDN.worker,corePath:OCR_CDN.core,langPath:OCR_CDN.lang,gzip:true,logger:m=>prog&&prog(m)});
+  await OCR_W.setParameters({tessedit_pageseg_mode:'11',user_defined_dpi:'300'});return OCR_W}
+function ocrImagem(file){return new Promise((ok,er)=>{const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{try{const k=Math.max(1,Math.min(3,1800/Math.max(im.width,1)));const W=Math.min(5000,Math.round(im.width*k)),H=Math.round(im.height*W/im.width);
+    const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.imageSmoothingQuality='high';g.drawImage(im,0,0,W,H);
+    const d=g.getImageData(0,0,W,H),p=d.data;for(let i=0;i<p.length;i+=4){const y=.299*p[i]+.587*p[i+1]+.114*p[i+2];p[i]=p[i+1]=p[i+2]=y}g.putImageData(d,0,0);URL.revokeObjectURL(u);ok(c)}catch(e){er(e)}};
+  im.onerror=()=>{URL.revokeObjectURL(u);er(new Error('Não consegui abrir essa imagem. Use PNG, JPG, BMP, GIF ou WEBP (um print da tela serve).'))};im.src=u})}
+/* acha OF-TRECHO: 4 dígitos - 1 a 3 dígitos - 2 dígitos (ex.: 2057-100-03). Se o traço some na leitura (2151-321), separa pelos 2 últimos dígitos. */
+function pctObras(txt){const t=String(txt).replace(/[ \t]*[-–—~_][ \t]*/g,'-');const ach=[];
+  for(const re of [/(?<![\d.,\/-])(\d{4})-(\d{1,3})-(\d{2})(?![\d.,\/])/g,/(?<![\d.,\/-])(\d{4})-(\d{1,3})(\d{2})(?![\d.,\/-])/g]){let m;while((m=re.exec(t)))ach.push([m.index,m[1]+' - '+m[2]+' - '+m[3]])}
+  ach.sort((a,b)=>a[0]-b[0]);const out=[];for(const [,o] of ach)if(!out.includes(o))out.push(o);return out}
+async function pctLer(file,prog){const c=await ocrImagem(file);const w=await ocrWorker(prog);
+  const r=await w.recognize(c,{},{text:true,blocks:true});const ws=[];(r.data.blocks||[]).forEach(b=>b.paragraphs.forEach(p=>p.lines.forEach(l=>l.words.forEach(x=>ws.push(x)))));
+  const h=ws.find(x=>/TRECHO/i.test(x.text));let lista=[];
+  if(h){const W=h.bbox.x1-h.bbox.x0,a=h.bbox.x0-W*.6,b=h.bbox.x1+W*.6;lista=pctObras(ws.filter(x=>{const m=(x.bbox.x0+x.bbox.x1)/2;return m>=a&&m<=b&&x.bbox.y0>=h.bbox.y0}).map(x=>x.text).join('\n'))}
+  if(!lista.length)lista=pctObras(r.data.text);return lista}
+/* coloca as obras no texto: primeiro preenche os "OBRA:" que estão vazios, depois cria os blocos que faltam (numeração continua) */
+function pctPreencher(texto,obras){const chave=o=>String(o).replace(/\s+/g,'');const ja=new Set();String(texto).replace(/OBRA\s*:\s*([0-9][0-9 \-]+[0-9])/gi,(m,o)=>{ja.add(chave(o));return m});
+  const novas=obras.filter(o=>!ja.has(chave(o)));const rep=obras.length-novas.length;let fila=novas.slice(),usados=0;
+  let t=String(texto).replace(/^([ \t]*OBRA[ \t]*:)[ \t]*$/gim,(m,p)=>{if(!fila.length)return m;usados++;return p+' '+fila.shift()});
+  let n=0;t.replace(/^[ \t]*(\d{1,3})[ \t]*$/gm,(m,d)=>{n=Math.max(n,+d);return m});
+  if(fila.length){const blocos=fila.map(o=>String(++n).padStart(2,'0')+'\nOBRA: '+o+'\nDBF: \nN° PEDIDO: \nLIBERAÇÃO FOCCO | OTM: ');
+    t=t.replace(/\s*$/,'');t=(t?t+'\n\n':'')+blocos.join('\n\n')+'\n'}
+  return{texto:t,novas:novas.length,rep}}
+function ntListarPct(){const d=NT.doc;if(!d||d.getElementById('pctFundo'))return;
+  const f=d.createElement('div');f.id='pctFundo';f.className='nt-fundo';f.style.zIndex='2147483001';f.setAttribute('role','dialog');f.setAttribute('aria-label','Listar PCT');
+  f.innerHTML=`<div class="pct-c"><div class="pct-h">${ntIc('pct')}<b>Listar PCT</b><span>ler as obras (OF-TRECHO) de um print do pacote</span><button type="button" class="pct-x" data-p="fechar" title="Fechar (Esc)">✕</button></div>
+  <label class="pct-drop" id="pctDrop" tabindex="0"><input type="file" accept="image/*" id="pctArq" hidden>${ntIc('pct')}<b>Arraste a imagem aqui</b><span>ou clique para escolher · ou cole um print com <kbd>Ctrl</kbd>+<kbd>V</kbd></span><small>PNG, JPG, BMP, GIF, WEBP · qualquer tamanho · a imagem precisa mostrar a coluna <b>OF-TRECHO</b></small></label>
+  <div class="pct-prev" id="pctPrev" hidden><img id="pctImg" alt=""><div><div class="pct-st" id="pctSt">Lendo a imagem…</div><div class="pct-bar"><i id="pctBar"></i></div><div class="pct-err" id="pctErr" hidden></div></div></div>
+  <div class="pct-r"><button type="button" class="nt-b" data-p="fechar">Cancelar</button></div></div>`;
+  d.body.appendChild(f);const q=x=>f.querySelector(x);let ocupado=false;
+  const fechar=()=>{d.removeEventListener('paste',colar,true);d.removeEventListener('keydown',tecla,true);f.remove();const t=ntTx();t&&t.focus()};
+  const tecla=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!ocupado)fechar()}};
+  async function ler(file){if(!file||ocupado)return;if(!/^image\//.test(file.type)&&!/\.(png|jpe?g|bmp|gif|webp|tiff?|jfif)$/i.test(file.name||'')){q('#pctErr').hidden=false;q('#pctPrev').hidden=false;q('#pctErr').textContent='Esse arquivo não é uma imagem. Mande um print ou foto da planilha.';return}
+    ocupado=true;q('#pctDrop').hidden=true;q('#pctPrev').hidden=false;q('#pctErr').hidden=true;q('#pctImg').src=URL.createObjectURL(file);
+    const st=q('#pctSt'),bar=q('#pctBar');st.textContent='Preparando o leitor de imagens…';bar.style.width='5%';
+    try{const obras=await pctLer(file,m=>{if(m.status==='recognizing text'){st.textContent='Lendo a imagem… '+Math.round(m.progress*100)+'%';bar.style.width=(20+m.progress*80)+'%'}else if(/load|init/i.test(m.status||'')){st.textContent='Preparando o leitor de imagens…';bar.style.width=(5+(m.progress||0)*15)+'%'}});
+      if(!obras.length){ocupado=false;st.textContent='Nenhuma obra encontrada.';bar.style.width='0';q('#pctErr').hidden=false;
+        q('#pctErr').textContent='Não achei nenhuma OF-TRECHO (ex.: 2057-100-03) nessa imagem. Mande um print mais nítido, mostrando a coluna OF-TRECHO.';q('#pctDrop').hidden=false;return}
+      const t=ntTx(),r=pctPreencher(t.value,obras);bar.style.width='100%';
+      if(r.novas){t.focus();t.select();ntInserir(r.texto);t.setSelectionRange(t.value.length,t.value.length);t.scrollTop=t.scrollHeight}
+      ocupado=false;fechar();
+      const msg=r.novas?(r.novas===1?'1 obra listada':r.novas+' obras listadas')+(r.rep?' · '+r.rep+' já estava'+(r.rep>1?'m':'')+' no bloco':''):'Todas as '+obras.length+' obras da imagem já estavam no bloco de notas.';
+      const s=NT.el&&NT.el.querySelector('#ntSalvo');if(s){s.textContent='✓ Listar PCT: '+msg;clearTimeout(NT.pctT);NT.pctT=setTimeout(()=>{s.textContent=''},8000)}
+    }catch(e){ocupado=false;console.error('[Listar PCT]',e);st.textContent='Não consegui ler a imagem.';bar.style.width='0';q('#pctErr').hidden=false;q('#pctErr').textContent=(window.__traduzErro?__traduzErro(e.message||String(e)):(e.message||String(e)));q('#pctDrop').hidden=false}}
+  const colar=e=>{const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(x=>x.type.startsWith('image/'));if(it){e.preventDefault();e.stopPropagation();ler(it.getAsFile())}};
+  d.addEventListener('paste',colar,true);d.addEventListener('keydown',tecla,true);
+  f.addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(b&&b.dataset.p==='fechar'&&!ocupado)fechar();if(e.target===f&&!ocupado)fechar()});
+  q('#pctArq').onchange=e=>ler(e.target.files[0]);const dz=q('#pctDrop');
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('on')});dz.addEventListener('dragleave',()=>dz.classList.remove('on'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('on');ler(e.dataTransfer.files[0])});dz.focus();
+  ocrScript().catch(()=>{})}
+window.__pctObras=pctObras;window.__pctPreencher=pctPreencher;
 function ntInserir(txt){const t=ntTx();t.focus();if(!NT.doc.execCommand('insertText',false,txt)){t.setRangeText(txt,t.selectionStart,t.selectionEnd,'end');t.dispatchEvent(new Event('input'))}}
 function ntAchar(dir){const t=ntTx(),q=NT.el.querySelector('#ntBusca').value,info=NT.el.querySelector('#ntAchInfo');if(!q){info.textContent='';return false}
  const txt=t.value.toLowerCase(),ql=q.toLowerCase(),tot=txt.split(ql).length-1;let i=txt.indexOf(ql,t.selectionEnd);if(i<0)i=txt.indexOf(ql);
@@ -19891,6 +19953,7 @@ function ntLigar(raiz,doc){
   if(a==='novo')return ntNova();if(a==='abrir')return ntAbrirArq();if(a==='salvar')return ntSalvarArq();
   if(a==='desfazer'||a==='refazer'){t.focus();doc.execCommand(a==='desfazer'?'undo':'redo');return}
   if(a==='hora')return ntInserir(new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}));
+  if(a==='pct')return ntListarPct();
   if(a==='achar'){const ac=raiz.querySelector('#ntAch');ac.classList.add('on');const bq=raiz.querySelector('#ntBusca');const sel=t.value.slice(t.selectionStart,t.selectionEnd);if(sel&&!sel.includes('\n'))bq.value=sel;bq.focus();bq.select();return}
   if(a==='fecharach'){raiz.querySelector('#ntAch').classList.remove('on');return t.focus()}
   if(a==='prox')return ntAchar();
@@ -19912,7 +19975,7 @@ function ntLigar(raiz,doc){
   else if(c&&k==='w'){e.preventDefault();ntFecharAba(NT.at)}else if(c&&(k==='f'||k==='h')){e.preventDefault();raiz.querySelector('[data-nt=achar]').click()}
   else if(c&&(k==='+'||k==='=')){e.preventDefault();raiz.querySelector('[data-nt=mais]').click()}else if(c&&k==='-'){e.preventDefault();raiz.querySelector('[data-nt=menos]').click()}
   else if(c&&k==='0'){e.preventDefault();NT.zoom=100;ntDesenhar();ntGuardar()}else if(c&&k==='p'){e.preventDefault();raiz.querySelector('[data-nt=imprimir]').click()}
-  else if(e.key==='F5'){e.preventDefault();raiz.querySelector('[data-nt=hora]').click()}else if(e.key==='F3'){e.preventDefault();ntAchar()}
+  else if(e.key==='F5'){e.preventDefault();ntInserir(new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}))}else if(e.key==='F3'){e.preventDefault();ntAchar()}
   else if(e.key==='Escape'){const ac=raiz.querySelector('#ntAch');if(ac.classList.contains('on')){e.preventDefault();ac.classList.remove('on');ntTx().focus()}else if(!NT.win){e.preventDefault();ntFechar()}}};
  doc.addEventListener('keydown',NT.tecla,true)}
 /* V160: Revisão — marcação manual de cada usuário quando tem erro (independente do Impresso) */
