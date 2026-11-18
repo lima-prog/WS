@@ -2566,7 +2566,7 @@ if (typeof module !== 'undefined') module.exports = PP;
   // filtros que juntam vários setores (ex.: PERFIL L = PERFILADEIRA L1 + PERFILADEIRA L2)
   // e juntam TODAS as obras do pacote num saco só (uma etiqueta com só o nome do grupo)
   var SETOR_PS = 'PERFIL SOLDADO';   // V136: aba PS PREP (COD ITEM = PS_PREP)
-  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'], 'PERFIL U/C': ['PERFILADEIRA U/C'] };
+  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'], 'PERFIL U/C': ['PERFILADEIRA U/C'], 'PERFIL SOLDADO': [SETOR_PS] };   // V216: PERFIL SOLDADO também vira uma etiqueta só, sem obra
   function noSetor(fluxo, fl) {
     if (!fl || fl === TODOS) return true;
     var g = GRUPOS_SETOR[fl];
