@@ -348,7 +348,7 @@
       (function ver() {
         var pronto = false;
         try { pronto = J.location.pathname === '/pc/janela' && J.document.readyState === 'complete' && J.document.body; } catch (e) { }
-        if (pronto) return ok(J);
+        if (pronto) { try { (window.top.janZoom || window.janZoom)(J.document); } catch (e) { } return ok(J); }   // V243: zoom próprio da janela
         if (J.closed || Date.now() - t0 > 6000) { try { J.close(); } catch (e) { } return ok(null); }
         setTimeout(ver, 40);
       })();

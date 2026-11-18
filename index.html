@@ -18744,6 +18744,7 @@ function linhasDoPdf(itens) {
     // versão da internet (Vercel): janela pop-up do navegador
     var J = window.open('', 'ppcpm_3d_' + Date.now(), 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
     if (!J) { alert('O navegador bloqueou a janela do 3D.\nPermita pop-ups deste endereço e clique de novo.'); return; }
+    setTimeout(function () { try { (top.janZoom || window.janZoom)(J.document); } catch (e) { } }, 900);   // V243: zoom próprio da janela
     b.disabled = true;
     (async function () {
       try {
@@ -19142,7 +19143,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 242';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 243';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -19784,7 +19785,23 @@ async function pkAltMover(){const dest=String(ALT.el.querySelector('#altPara').v
  const msg=`${mover.length} ${mover.length===1?'obra movida':'obras movidas'} para o lote ${dest}`;if(ALT.win)ALT.ok=msg;else toast(msg);if(cur==='home')render();pkAltDesenhar()}
 /* V183: BLOCO DE NOTAS do próprio sistema — abre numa janela própria (dá para levar para a segunda tela),
    com abas, salvar/abrir .txt, localizar e substituir, zoom e quebra de linha. O texto fica guardado neste PC sozinho. */
-function janTema(d){try{d.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')||'dark')}catch(_){}}
+function janTema(d){try{d.documentElement.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')||'dark')}catch(_){}try{janZoom(d)}catch(_){}}
+/* V243 — cada janela separada (Blocos de notas, Alteração de LOTE, Arquivos, 3D…) tem o SEU zoom (Ctrl + rodinha / Ctrl + / Ctrl − / Ctrl 0),
+   guardado neste PC, sem mexer no zoom da tela principal (e sem herdar o zoom dela). */
+function janZoom(d){const w=d.defaultView;if(!w||w.__ppZoom)return;w.__ppZoom=1;
+ const K='ppcpm_zoom:'+(w.name||'janela'),NIV=[.25,.33,.5,.67,.75,.8,.9,1,1.1,1.25,1.5,1.75,2,2.5,3];
+ let z=1;try{z=+localStorage.getItem(K)||1}catch(_){}
+ const nav=()=>{const r=w.outerWidth/Math.max(1,w.innerWidth);let m=1,dm=9;NIV.forEach(n=>{const x=Math.abs(n-r);if(x<dm){dm=x;m=n}});return dm<=.04?m:1};
+ const ap=()=>{try{const f=+(z/nav()).toFixed(4),h=d.documentElement,st=h.style;st.zoom=String(f);st.setProperty('--jz',String(f));if(!d.getElementById('ppJz')){const e=d.createElement('style');e.id='ppJz';e.textContent='.pkalt.pkalt-win{width:calc(100vw / var(--jz,1))!important;height:calc(100vh / var(--jz,1))!important}.nt.nt-win{width:calc(100vw / var(--jz,1))!important;max-height:calc(100vh / var(--jz,1))}';(d.head||h).appendChild(e)}if(Math.abs(f-1)<.001){st.height=st.width=st.minHeight='';if(d.body)d.body.style.height=d.body.style.minHeight=''}else{st.height=st.minHeight=(100/f)+'vh';st.width=(100/f)+'vw';if(d.body){d.body.style.height='100%';d.body.style.minHeight='100%'}}}catch(_){}};
+ let bx=null,tt=null;const mostra=()=>{try{if(!bx){bx=d.createElement('div');bx.style.cssText='position:fixed;right:14px;bottom:14px;z-index:2147483646;padding:6px 12px;border-radius:4px;background:linear-gradient(#e3e8ee,#cdd4de);border:1px solid #98a3b3;color:#000;font:700 13px "Segoe UI",Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none;transition:opacity .3s';d.body.appendChild(bx)}
+   bx.textContent='Zoom desta janela: '+Math.round(z*100)+'%  ·  Ctrl 0 volta a 100%';bx.style.opacity='1';clearTimeout(tt);tt=setTimeout(()=>{bx.style.opacity='0'},1600)}catch(_){}};
+ const set=v=>{z=Math.min(3,Math.max(.5,Math.round(v*10)/10));try{localStorage.setItem(K,z)}catch(_){}ap();mostra()};
+ w.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey))return;e.preventDefault();e.stopPropagation();set(z+(e.deltaY<0?.1:-.1))},{passive:false,capture:true});
+ const notas=/bloco_notas/.test(w.name||'');
+ w.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey)||e.altKey)return;const k=e.key;
+   if(notas&&k!=='0')return;   /* no Bloco de notas, Ctrl + / Ctrl − continuam aumentando só o texto */
+   if(k==='+'||k==='='||k==='Add')set(z+.1);else if(k==='-'||k==='_'||k==='Subtract')set(z-.1);else if(k==='0')set(1);else return;e.preventDefault();e.stopPropagation()},true);
+ w.addEventListener('resize',ap);ap();setTimeout(ap,300)}
 try{new MutationObserver(()=>{[NT&&NT.win&&NT.doc,ALT&&ALT.win&&ALT.doc].forEach(d=>{if(d)janTema(d)})}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']})}catch(_){}
 const NT={win:null,el:null,doc:null,abas:[],at:0,zoom:100,quebra:true,salvoT:null,vigia:null};
 const NT_CHAVE='ppcpm:notas';
@@ -20137,6 +20154,10 @@ html .pkalt .pkalt-ok:not(#zz):hover:not(:disabled),html .pkalt .pkalt-no:not(#z
 html .pkalt .pkalt-ok svg,html .pkalt .pkalt-no svg{stroke:#000}
 /* V242: Impressão (Impressa / Pendente) no mesmo modelo da Tela inicial — selo branco com bolinha colorida */
 html .pkalt .pkchip.c-imp:not(#zz),html .pkalt .pkchip.c-pen:not(#zz){gap:7px;padding:2px 10px 2px 7px!important;border:1px solid #d5dbe4!important;border-radius:3px!important;background:#fff!important;color:#1c2a38!important;font-weight:600!important}html .pkalt .pkchip.c-imp:not(#zz)::before,html .pkalt .pkchip.c-pen:not(#zz)::before{width:10px;height:10px;border-radius:50%;-webkit-mask:none;mask:none;background:var(--pd)!important;box-shadow:0 0 0 2.5px var(--pr)}html .pkalt .pkchip.c-imp:not(#zz){--pd:#16a34a;--pr:#bbf7d0}html .pkalt .pkchip.c-pen:not(#zz){--pd:#f59e0b;--pr:#fde68a}
+/* V243: tabela da Alteração de LOTE cabe na janela (sem barra de rolagem para o lado) */
+html .pkalt .pkalt-row:not(#zz){grid-template-columns:118px minmax(105px,1fr) minmax(80px,.7fr) minmax(95px,1fr) minmax(90px,1.2fr) minmax(70px,.7fr) minmax(70px,.7fr) minmax(70px,.7fr) minmax(50px,.5fr) 104px 100px;gap:8px;min-width:0;padding-left:10px;padding-right:10px}html .pkalt .pkalt-tb:not(#zz){overflow-x:hidden;overflow-y:auto}html .pkalt .pkalt-c:not(#zz){grid-template-columns:200px minmax(0,1fr)}
+/* V243: Alteração de LOTE — todas as colunas cabem na janela, sem barras de rolagem aparecendo */
+html .pkalt .pkalt-row:not(#zz){grid-template-columns:118px minmax(108px,1.2fr) minmax(78px,.7fr) minmax(96px,1fr) minmax(88px,1.2fr) minmax(70px,.7fr) minmax(76px,.7fr) minmax(70px,.7fr) minmax(50px,.5fr) 100px 96px;gap:8px;min-width:0;padding:7px 12px}html .pkalt .pkalt-tb:not(#zz),html .pkalt .pkalt-ll:not(#zz){scrollbar-width:none}html .pkalt .pkalt-tb::-webkit-scrollbar,html .pkalt .pkalt-ll::-webkit-scrollbar{display:none}html .pkalt .pkalt-tb:not(#zz){overflow-x:hidden}
 .hw .kg.pk6{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin:0 0 14px}
 @media (max-width:1250px){.hw .kg.pk6{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .hw .pkpcc{margin:0;display:flex;flex-direction:column}

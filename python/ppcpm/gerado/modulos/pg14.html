@@ -1907,6 +1907,7 @@ function linhasDoPdf(itens) {
     // versão da internet (Vercel): janela pop-up do navegador
     var J = window.open('', 'ppcpm_3d_' + Date.now(), 'popup=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
     if (!J) { alert('O navegador bloqueou a janela do 3D.\nPermita pop-ups deste endereço e clique de novo.'); return; }
+    setTimeout(function () { try { (top.janZoom || window.janZoom)(J.document); } catch (e) { } }, 900);   // V243: zoom próprio da janela
     b.disabled = true;
     (async function () {
       try {
