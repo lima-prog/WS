@@ -215,6 +215,17 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .b:active:not(:disabled),.b.p:active:not(:disabled){background:#c2cad5}
 input[data-w="txt_lote"]{background:linear-gradient(#f3f5f8,#e6eaf0);border:1px solid #98a3b3;color:#000;font-weight:700}
 input[data-w="txt_lote"]:focus{background:#fff;border-color:#5f6b7a}
+/* V219 — Agrupador: quadros no modelo cinza (faixa de título, fundo cinza-azulado, borda escura) */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.grid3>.cx{border-top-width:1px}
+.drop{background:#e2e6eb;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok){background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv.grande{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659}
+.arv.grande .vz{color:#374151}
 </style>
 
 <script>
