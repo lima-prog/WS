@@ -3108,13 +3108,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       }
       status.textContent = '✅ ' + n + ' etiqueta(s) impressa(s)!';
       buscarClick(); rodape();
-      /* V251: aviso no modelo do sistema, com Reimprimir (manda as mesmas etiquetas de novo para a mesma impressora) */
-      while (await quadroImpresso(n, etqs, dest.imp.name)) {
-        status.textContent = '🖨️ Reimprimindo ' + etqs.length + ' etiqueta(s)...';
-        try { for (var k = 0; k < etqs.length; k++) await enviar(gerar_zpl(etqs[k], c), dest.imp, dest.via); }
-        catch (e) { console.error(e); status.textContent = '❌ Erro na impressão'; await ui.erro('Erro', 'Erro ao reimprimir: ' + U.msgErro(e)); rodape(); return; }
-        rodape();
-      }
+      /* V256: sem aviso depois de imprimir — a confirmação antes já basta; a etiqueta fica marcada como Impressa */
     }
     /* V255 — Confirmar impressão no modelo do sistema (faixa azul em cima, impressora em etiqueta, Esc/Enter); pode ser arrastado pelo título */
     function quadroConfirmarImp(n, impNome) {
