@@ -2843,9 +2843,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         lin('pac', 'Pacote', '', r.pacote, 1) + lin('obr', 'Obras', '', r.obras) + lin('pre', 'Preparação', 'obra × máquina', r.preparacao) +
         lin('nao', 'Não Preparação', 'obra × setor', r.nao_preparacao) + lin('etq', 'Etiquetas', 'com o saquinho DEMANDA/LCT', r.total) + '</div>' +
         '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px">' + barra +
-        '<button type="button" class="b etq-ir" style="margin-left:auto" style="display:inline-flex;align-items:center;gap:7px">' +
-        '<svg viewBox="0 0 24 24" width="15" height="15" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Ir para Emitir etiqueta</button></div>';
-      resImp.querySelector('.etq-ir').onclick = function () { ativar(1); };
+        '</div>';
       try { resImp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (x) { }
     }
     async function importarClick() {
@@ -2856,7 +2854,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         var r = importar(await fs[0].bytes(), fs[0].name, eObs.value);
         status.textContent = '✅ ' + r.total + ' etiquetas importadas!';
         mostrarResumo(r); rodape();
-        combos(); cbPac.value = r.pacote; buscarClick();
+        combos(); cbPac.value = r.pacote; buscarClick(); ativar(1);   /* V254: depois de importar, vai direto para Emitir etiqueta */
       } catch (e) { console.error(e); status.textContent = '❌ Erro ao importar'; ui.erro('Erro', U.msgErro(e)); }
     }
 

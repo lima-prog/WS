@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 253
+# Mapa do sistema — Versão 254
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
