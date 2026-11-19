@@ -2825,16 +2825,25 @@ if (typeof module !== 'undefined') module.exports = PP;
       };
       var ic = function (k) { return '<svg viewBox="0 0 24 24" width="17" height="17" style="flex:none;fill:none;stroke:#0b3d91;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round">' + IC[k] + '</svg>'; };
       var e = function (t) { return String(t == null ? '' : t).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+      /* barra de situação: importadas · pacote · operador · impressora */
+      var imp = String(cfgTab().get('ultima_impressora', '') || 'nenhuma').replace(/^ZDesigner\s*/i, 'Zebra ').replace(/[-(].*$/, '').trim() || 'nenhuma';
+      var mini = function (d, cor) { return '<svg viewBox="0 0 24 24" width="14" height="14" style="flex:none;fill:none;stroke:' + (cor || '#000') + ';stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + d + '</svg>'; };
+      var cel = function (h2, pri) { return '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;' + (pri ? '' : 'border-left:1px solid #98a3b3;') + 'white-space:nowrap">' + h2 + '</span>'; };
+      var barra = '<div style="display:inline-flex;align-items:center;background:linear-gradient(#eef1f4,#d9dee5);border:1px solid #98a3b3;border-radius:4px;font-size:12.5px;color:#000;overflow:hidden">' +
+        cel(mini('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>', '#15803d') + '<b style="color:#15803d">' + e(r.total) + ' etiquetas importadas</b>', 1) +
+        cel(mini('<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>') + e(r.pacote)) +
+        cel(mini('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>') + e(usuario())) +
+        cel(mini('<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>') + e(imp)) + '</div>';
       var lin = function (k, rot, sub, v, pri) { return '<div style="display:flex;align-items:center;gap:11px;padding:8px 12px;' + (pri ? '' : 'border-top:1px solid #e1e5eb') + '">' + ic(k) + '<span style="flex:1;color:#111827">' + rot + (sub ? ' <small style="color:#6b7280;font-size:11.5px">(' + sub + ')</small>' : '') + '</span><b style="color:#000">' + e(v) + '</b></div>'; };
       resImp.innerHTML =
         '<div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 12px;background:#eaf7ee;border:1px solid #a7e0b8;border-radius:6px">' +
         '<svg viewBox="0 0 24 24" width="17" height="17" style="flex:none;fill:none;stroke:#15803d;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round"><path d="m5 12 5 5 9-10"/></svg>' +
-        '<b style="flex:1;color:#000">Importação concluída sem erros — ' + e(r.pacote) + '</b>' +
-        '<span style="padding:2px 10px;background:#dcf5e3;border:1px solid #86d39b;border-radius:999px;color:#15803d;font-size:11.5px;font-weight:700;white-space:nowrap">' + e(r.total) + ' etiquetas</span></div>' +
+        '<b style="flex:1;color:#000">Importação concluída sem erros — ' + e(r.pacote) + '</b></div>' +
         '<div style="margin-top:8px;background:#fff;border:1px solid #c5cbd6;border-radius:6px;overflow:hidden;font-size:13.5px">' +
         lin('pac', 'Pacote', '', r.pacote, 1) + lin('obr', 'Obras', '', r.obras) + lin('pre', 'Preparação', 'obra × máquina', r.preparacao) +
         lin('nao', 'Não Preparação', 'obra × setor', r.nao_preparacao) + lin('etq', 'Etiquetas', 'com o saquinho DEMANDA/LCT', r.total) + '</div>' +
-        '<div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="b etq-ir" style="display:inline-flex;align-items:center;gap:7px">' +
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px">' + barra +
+        '<button type="button" class="b etq-ir" style="margin-left:auto" style="display:inline-flex;align-items:center;gap:7px">' +
         '<svg viewBox="0 0 24 24" width="15" height="15" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Ir para Emitir etiqueta</button></div>';
       resImp.querySelector('.etq-ir').onclick = function () { ativar(1); };
       try { resImp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (x) { }
@@ -2846,7 +2855,7 @@ if (typeof module !== 'undefined') module.exports = PP;
       try {
         var r = importar(await fs[0].bytes(), fs[0].name, eObs.value);
         status.textContent = '✅ ' + r.total + ' etiquetas importadas!';
-        mostrarResumo(r);
+        mostrarResumo(r); rodape();
         combos(); cbPac.value = r.pacote; buscarClick();
       } catch (e) { console.error(e); status.textContent = '❌ Erro ao importar'; ui.erro('Erro', U.msgErro(e)); }
     }
