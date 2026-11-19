@@ -14428,53 +14428,42 @@ if (typeof module !== 'undefined') module.exports = PP;
 
     /* Início */
     var lblPac = h('div', { class: 'forte mt etq-pac' }, 'Pacote: ---');
+    var resImp = h('div', { class: 'etq-resimp' });   /* V249: resumo da importação aparece aqui mesmo, no quadro 1 */
     var sel = new ui.SeletorArquivo({ id: 'etq-planilha', textoDrop: 'arraste o Relatório de Ordens e Fluxos (.xlsx)', tipos: { 'application/vnd.ms-excel': ['.xlsx', '.xls'] }, descricao: 'Excel',
       aoEscolher: function (fs) { arquivo = fs[0]; lblPac.textContent = 'Pacote: ' + extrair_pacote_do_nome_arquivo(arquivo.name); btnImp.disabled = false; },
-      aoLimpar: function () { arquivo = null; lblPac.textContent = 'Pacote: ---'; btnImp.disabled = true; } });
+      aoLimpar: function () { arquivo = null; lblPac.textContent = 'Pacote: ---'; btnImp.disabled = true; resImp.innerHTML = ''; } });
     var eObs = h('input', { class: 'campo', maxlength: String(OBSERVACAO_MAX), placeholder: 'Observação (opcional)' });
     var btnImp = ebt('dl', 'IMPORTAR DADOS', { classe: 'prim grande', desabilitado: true, click: importarClick });
     aba(['home', 'Início'], h('div', null,
       h('div', { class: 'grade g2' },
-        h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '1'), 'Relatório de Ordens e Fluxos'), sel.el, lblPac),
+        h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '1'), 'Relatório de Ordens e Fluxos'), sel.el, lblPac, resImp),
         h('div', { class: 'card' }, h('h2', null, h('span', { class: 'num' }, '2'), 'Observação', h('small', { class: 'etq-sub' }, '(opcional, até ' + OBSERVACAO_MAX + ' caracteres)')), eObs,
           h('div', { class: 'mt' }, btnImp),
           h('div', { class: 'fraco mt' }, 'Depois de importar, vá em “Emitir etiqueta” para imprimir.\nOrdem de impressão: 1º saquinho DEMANDA/LCT · 2º Preparação, obra por obra (máquinas em sequência) · 3º Não Preparação, obra por obra (setor por setor).')))));
-    /* V248 — resumo da importação no modelo do sistema (faixa verde, tabela com ícones, "Ir para Emitir etiqueta") */
-    function quadroImportado(r) {
-      return new Promise(function (res) {
-        var D; try { D = window.top.document; } catch (e) { D = document; }
-        var IC = {
-          pac: '<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>',
-          obr: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 10h6M9 14h6M9 18h4"/>',
-          pre: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
-          nao: '<path d="M3 21V10l5 3V10l5 3V5h4v16z"/><path d="M3 21h18"/>',
-          etq: '<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.4"/>'
-        };
-        var ic = function (k) { return '<svg viewBox="0 0 24 24" width="18" height="18" style="flex:none;fill:none;stroke:#0b3d91;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round">' + IC[k] + '</svg>'; };
-        var e = function (t) { return String(t == null ? '' : t).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
-        var lin = function (k, rot, sub, v) { return '<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-top:1px solid #e1e5eb">' + ic(k) + '<span style="flex:1">' + rot + (sub ? ' <small style="color:#6b7280;font-size:12px">(' + sub + ')</small>' : '') + '</span><b style="font-size:14.5px">' + e(v) + '</b></div>'; };
-        var f = D.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
-        f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
-        f.innerHTML = '<div style="width:100%;max-width:440px;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-left:6px solid #1e9e4a;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
-          '<div style="display:flex;align-items:center;gap:10px;padding:13px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700">' +
-          '<svg viewBox="0 0 24 24" width="21" height="21" style="flex:none;fill:none;stroke:#1e9e4a;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>' +
-          '<span>Dados importados — ' + e(r.pacote) + '</span></div>' +
-          '<div style="padding:12px 14px">' +
-          '<div style="display:flex;align-items:center;gap:9px;padding:10px 12px;background:#dcf5e3;border:1px solid #a7e0b8;border-left:4px solid #1e9e4a;border-radius:4px;color:#15803d;font-weight:700;margin-bottom:10px">' +
-          '<svg viewBox="0 0 24 24" width="16" height="16" style="fill:none;stroke:#15803d;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round"><path d="m5 12 5 5 9-10"/></svg>Importação concluída sem erros.</div>' +
-          '<div style="background:#fff;border:1px solid #c5cbd6;border-top:3px solid #0b3d91;border-radius:4px;overflow:hidden">' +
-          lin('pac', 'Pacote', '', r.pacote).replace('border-top:1px solid #e1e5eb', 'border-top:0') + lin('obr', 'Obras', '', r.obras) + lin('pre', 'Preparação', 'obra × máquina', r.preparacao) +
-          lin('nao', 'Não Preparação', 'obra × setor', r.nao_preparacao) + lin('etq', 'Etiquetas', 'com o saquinho DEMANDA/LCT', r.total) + '</div></div>' +
-          '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
-          '<button type="button" data-q="ok" style="font:700 14px \'Segoe UI\',Arial;color:#000;padding:7px 16px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px">OK</button>' +
-          '<button type="button" data-q="ir" style="display:inline-flex;align-items:center;gap:7px;font:700 14px \'Segoe UI\',Arial;color:#000;padding:7px 14px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1.5px solid #000;border-radius:4px"><svg viewBox="0 0 24 24" width="15" height="15" style="fill:none;stroke:#000;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Ir para Emitir etiqueta</button></div></div>';
-        var fim = function (v) { D.removeEventListener('keydown', tec, true); f.remove(); res(v); };
-        var tec = function (ev) { if (ev.key === 'Escape') { ev.preventDefault(); fim(false); } else if (ev.key === 'Enter') { ev.preventDefault(); fim(true); } };
-        f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(b.dataset.q === 'ir'); });
-        D.addEventListener('keydown', tec, true); (D.body || D.documentElement).appendChild(f);
-        try { if (window.top.__arrastavel) window.top.__arrastavel(f.firstChild, f.firstChild.firstChild); } catch (e2) { }
-        f.querySelector('[data-q="ir"]').focus();
-      });
+    /* V249 — resumo da importação dentro do quadro 1, no mesmo padrão da linha "Carregado com sucesso" (sem janela por cima) */
+    function mostrarResumo(r) {
+      var IC = {
+        pac: '<path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3z"/><path d="M4 7.3l8 4.5 8-4.5M12 11.8v9.4"/>',
+        obr: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 10h6M9 14h6M9 18h4"/>',
+        pre: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+        nao: '<path d="M3 21V10l5 3V10l5 3V5h4v16z"/><path d="M3 21h18"/>',
+        etq: '<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.4"/>'
+      };
+      var ic = function (k) { return '<svg viewBox="0 0 24 24" width="17" height="17" style="flex:none;fill:none;stroke:#0b3d91;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round">' + IC[k] + '</svg>'; };
+      var e = function (t) { return String(t == null ? '' : t).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+      var lin = function (k, rot, sub, v, pri) { return '<div style="display:flex;align-items:center;gap:11px;padding:8px 12px;' + (pri ? '' : 'border-top:1px solid #e1e5eb') + '">' + ic(k) + '<span style="flex:1;color:#111827">' + rot + (sub ? ' <small style="color:#6b7280;font-size:11.5px">(' + sub + ')</small>' : '') + '</span><b style="color:#000">' + e(v) + '</b></div>'; };
+      resImp.innerHTML =
+        '<div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 12px;background:#eaf7ee;border:1px solid #a7e0b8;border-radius:6px">' +
+        '<svg viewBox="0 0 24 24" width="17" height="17" style="flex:none;fill:none;stroke:#15803d;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round"><path d="m5 12 5 5 9-10"/></svg>' +
+        '<b style="flex:1;color:#000">Importação concluída sem erros — ' + e(r.pacote) + '</b>' +
+        '<span style="padding:2px 10px;background:#dcf5e3;border:1px solid #86d39b;border-radius:999px;color:#15803d;font-size:11.5px;font-weight:700;white-space:nowrap">' + e(r.total) + ' etiquetas</span></div>' +
+        '<div style="margin-top:8px;background:#fff;border:1px solid #c5cbd6;border-radius:6px;overflow:hidden;font-size:13.5px">' +
+        lin('pac', 'Pacote', '', r.pacote, 1) + lin('obr', 'Obras', '', r.obras) + lin('pre', 'Preparação', 'obra × máquina', r.preparacao) +
+        lin('nao', 'Não Preparação', 'obra × setor', r.nao_preparacao) + lin('etq', 'Etiquetas', 'com o saquinho DEMANDA/LCT', r.total) + '</div>' +
+        '<div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="b etq-ir" style="display:inline-flex;align-items:center;gap:7px">' +
+        '<svg viewBox="0 0 24 24" width="15" height="15" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Ir para Emitir etiqueta</button></div>';
+      resImp.querySelector('.etq-ir').onclick = function () { ativar(1); };
+      try { resImp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (x) { }
     }
     async function importarClick() {
       if (!arquivo) return;
@@ -14483,8 +14472,8 @@ if (typeof module !== 'undefined') module.exports = PP;
       try {
         var r = importar(await fs[0].bytes(), fs[0].name, eObs.value);
         status.textContent = '✅ ' + r.total + ' etiquetas importadas!';
-        var ir = await quadroImportado(r);
-        combos(); cbPac.value = r.pacote; buscarClick(); if (ir) ativar(1);
+        mostrarResumo(r);
+        combos(); cbPac.value = r.pacote; buscarClick();
       } catch (e) { console.error(e); status.textContent = '❌ Erro ao importar'; ui.erro('Erro', U.msgErro(e)); }
     }
 
@@ -19240,7 +19229,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 248';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 249';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
