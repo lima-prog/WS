@@ -498,9 +498,10 @@ window.PR_ABA = 'imp';
     $$('[data-arq]').forEach(dz => {
       const solta = async files => {
         if (!files.length) return;
+        const lista = files;
         const aceita = (dz.dataset.aceita || '').split(',').filter(Boolean);
         if (aceita.length) files = files.filter(f => aceita.some(x => f.name.toLowerCase().endsWith(x)));
-        if (!files.length) return aviso({ tipo: 'aviso', titulo: 'Arquivo não aceito', texto: `Aqui só entram arquivos ${dz.dataset.aceita}.` });
+        if (!files.length) { try { if (top.__arqRecusado) return top.__arqRecusado({ nomes: [...(lista || [])].map(f => f.name), aceitos: dz.dataset.aceita, escolher: async () => solta(await escolherArquivos(dz.dataset.aceita, dz.dataset.multi !== undefined)) }); } catch (e) { } return aviso({ tipo: 'aviso', titulo: 'Arquivo não aceito', texto: `Aqui só entram arquivos ${dz.dataset.aceita}.` }); }
         if (dz.dataset.multi === undefined) files = files.slice(0, 1);
         try {
           const cs = await caminhos(files);
