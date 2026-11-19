@@ -200,9 +200,9 @@ def _abrir_bat(nome: str) -> dict:
     return {"ok": True, "janela": True, "msg": f"Abri o {nome} numa janela. Quando ele terminar, feche e abra o sistema de novo."}
 
 
-def _pip(nomes: list[str]) -> None:
+def _rodar_pip(nomes: list[str]) -> int:
     pacotes = PASTA_APP / "pacotes"
-    cmd = [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--prefer-binary"]
+    cmd = [sys.executable, "-m", "pip", "install", "--disable-pip-version-check", "--prefer-binary", "--progress-bar", "off"]
     if pacotes.is_dir():
         cmd += ["--no-index", "--find-links", str(pacotes)]
         _log("Instalando SEM internet, pela pasta \"pacotes\"...")
@@ -210,23 +210,40 @@ def _pip(nomes: list[str]) -> None:
         _log("Instalando pela internet...")
     cmd += [bibliotecas.LIBS[n][1] for n in nomes]
     _log("Bibliotecas: " + ", ".join(nomes))
+    p = subprocess.Popen(cmd, cwd=str(PASTA_APP), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                         encoding="utf-8", errors="replace",
+                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    for linha in p.stdout:
+        if linha.strip():
+            _log(linha)
+    p.wait()
+    return p.returncode
+
+
+def _pip(nomes: list[str]) -> None:
+    # Primeiro as que o sistema PRECISA; as opcionais (ex.: playwright, ~45 MB) vêm depois, sem segurar as outras.
+    opc = bibliotecas.opcionais()
+    grupos = [[n for n in nomes if n not in opc], [n for n in nomes if n in opc]]
     try:
-        p = subprocess.Popen(cmd, cwd=str(PASTA_APP), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                             encoding="utf-8", errors="replace",
-                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-        for linha in p.stdout:
-            if linha.strip():
-                _log(linha)
-        p.wait()
+        for k, g in enumerate(grupos):
+            if not g:
+                continue
+            if k == 1:
+                _log("Agora as opcionais (o sistema já funciona sem elas)...")
+            _rodar_pip(g)
+            invalidate_caches()
     except Exception as e:  # noqa: BLE001
         _log(f"Erro: {e}")
         return _terminar(False, f"Não consegui rodar o instalador de bibliotecas ({e}).")
     invalidate_caches()
-    faltam = [n for n in nomes if not bibliotecas.instalada(n)]
-    if p.returncode == 0 and not faltam:
-        _terminar(True, f"{len(nomes)} biblioteca(s) instalada(s). Feche e abra o sistema para usar todas.")
+    faltam = [n for n in grupos[0] if not bibliotecas.instalada(n)]
+    faltam_opc = [n for n in grupos[1] if not bibliotecas.instalada(n)]
+    if not faltam:
+        _terminar(True, f"{len(nomes) - len(faltam_opc)} biblioteca(s) instalada(s)."
+                  + (f" Opcional que não instalou: {', '.join(faltam_opc)} (o sistema funciona sem)." if faltam_opc else "")
+                  + " Feche e abra o sistema para usar todas.")
     else:
-        _terminar(False, ("Faltou instalar: " + ", ".join(faltam) + ". " if faltam else "") +
+        _terminar(False, "Faltou instalar: " + ", ".join(faltam + faltam_opc) + ". "
                   "Se a rede da empresa bloqueia a internet, use o BAIXAR_PACOTES_OFFLINE.bat num PC com internet "
                   "e copie a pasta \"pacotes\" para a pasta do sistema.")
 

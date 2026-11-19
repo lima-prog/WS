@@ -22,7 +22,7 @@ LIBS = {
     "pyxlsb":     ("pyxlsb", "pyxlsb>=1.0.10", "Ler Excel binário .xlsb"),
     "dbfread":    ("dbfread", "dbfread>=2.0.7", "Ler arquivos .DBF (CNC/ERP)"),
     "lxml":       ("lxml", "lxml>=5.2", "Ler o export do FOCCO que vem como .xls em HTML"),
-    "pymupdf":    ("pymupdf", "pymupdf>=1.24", "Ler e montar os PDFs das ordens e dos CNCs (Impressão Casada, Multi obra, Grupo LIC, Fluxo 04)"),
+    "pymupdf":    ("pymupdf", "pymupdf>=1.24,<2", "Ler e montar os PDFs das ordens e dos CNCs (Impressão Casada, Multi obra, Grupo LIC, Fluxo 04)"),
     "numpy":      ("numpy", "numpy>=1.26", "Contas rápidas com as tabelas dos programas de Produção"),
     "pypdf":      ("pypdf", "pypdf>=4.3", "Juntar, separar e reordenar páginas de PDF (ordens, impressão casada)"),
     "pdfplumber": ("pdfplumber", "pdfplumber>=0.11", "Ler texto e tabelas de dentro do PDF (conferência do PDF gerado)"),
@@ -58,6 +58,12 @@ SECOES = [
     ("pg11", "Gerenciador de Roteiros › Acesso ao Intranet", ["requests"], []),
     ("pg12", "Área de impressão › Impressão de Etiquetas", ["pandas", "openpyxl", "xlrd", "dbfread", "reportlab", "pywin32"], []),
 ]
+
+
+def opcionais() -> set[str]:
+    """Bibliotecas que só aparecem como opcionais (o sistema funciona sem elas)."""
+    obrig = {n for _, _, libs, _ in SECOES for n in libs}
+    return {n for _, _, _, opc in SECOES for n in opc if n not in obrig}
 
 
 def todas() -> list[str]:
