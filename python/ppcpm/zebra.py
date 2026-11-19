@@ -30,6 +30,17 @@ def _e_zebra(nome: str) -> bool:
     return "zebra" in n or "zdesigner" in n or "zpl" in n
 
 
+def _situacao(status: int, atributos: int) -> str:
+    """pronta / desligada / pausada / erro — pelo status do spooler do Windows."""
+    if atributos & 0x400 or status & 0x80 or status & 0x1000:   # WORK_OFFLINE, OFFLINE, NOT_AVAILABLE
+        return "desligada"
+    if status & 0x1:                                             # PAUSED
+        return "pausada"
+    if status & (0x2 | 0x8 | 0x10 | 0x20 | 0x40 | 0x100000 | 0x400000):  # ERROR, PAPER_JAM/OUT, MANUAL_FEED, PAPER_PROBLEM, NO_TONER, DOOR_OPEN
+        return "erro"
+    return "pronta"
+
+
 def listar_impressoras() -> list[dict]:
     """Impressoras do Windows (Zebras primeiro), com a porta (USB001, IP...) e qual é a padrão."""
     if win32print is None:
@@ -42,7 +53,8 @@ def listar_impressoras() -> list[dict]:
     saida = []
     for p in win32print.EnumPrinters(flags, None, 2):
         nome, porta = p.get("pPrinterName", ""), p.get("pPortName", "")
-        saida.append({"name": nome, "connection": porta or "", "padrao": nome == padrao, "zebra": _e_zebra(nome)})
+        saida.append({"name": nome, "connection": porta or "", "padrao": nome == padrao, "zebra": _e_zebra(nome),
+                      "situacao": _situacao(p.get("Status", 0) or 0, p.get("Attributes", 0) or 0)})
     saida.sort(key=lambda x: (not x["zebra"], x["name"].lower()))
     return saida
 

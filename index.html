@@ -14618,11 +14618,73 @@ if (typeof module !== 'undefined') module.exports = PP;
         return esc === 'zpl' ? { via: 'arquivo' } : null;
       }
       var lista = r.lista.slice().sort(function (a, b) { var za = String(a.name).toLowerCase().indexOf('zebra') < 0 && String(a.name).toLowerCase().indexOf('zdesigner') < 0, zb = String(b.name).toLowerCase().indexOf('zebra') < 0 && String(b.name).toLowerCase().indexOf('zdesigner') < 0; return za - zb || U.cmpPy(String(a.name).toLowerCase(), String(b.name).toLowerCase()); });
-      var cb = h('select', { class: 'campo' }); lista.forEach(function (p, i) { cb.appendChild(h('option', { value: String(i) }, p.name + (p.connection ? '  (' + p.connection + ')' : ''))); });
       var ult = cfgTab().get('ultima_impressora', '');
-      lista.forEach(function (p, i) { if (p.name === ult) cb.value = String(i); });
-      var ok = await ui.modal({ titulo: 'Selecionar impressora', icone: 'impressora', corpo: h('div', null, h('div', { class: 'mb' }, 'Selecione a impressora:'), cb), botoes: [{ texto: 'Cancelar', valor: false }, { texto: '✓ Selecionar', valor: true, classe: 'prim' }] });
-      return ok ? { via: r.via, imp: lista[+cb.value] } : null;
+      var esc1 = await quadroImpressoras(lista, ult);
+      return esc1 ? { via: r.via, imp: esc1 } : null;
+    }
+    /* V252 — Selecionar impressora: busca, tabela (Impressora · Conexão · Situação) agrupada em Etiquetas / Documentos / Arquivo */
+    function quadroImpressoras(lista, ult) {
+      return new Promise(function (res) {
+        var D; try { D = window.top.document; } catch (e) { D = document; }
+        var e = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+        var sv = function (d, w, cor) { return '<svg viewBox="0 0 24 24" width="' + (w || 15) + '" height="' + (w || 15) + '" style="flex:none;fill:none;stroke:' + (cor || '#374151') + ';stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round">' + d + '</svg>'; };
+        var I = { etq: '<rect x="4" y="5" width="16" height="11" rx="2"/><path d="M8 16v3h8v-3M8 9h8"/>', doc: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+          arq: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+          usb: '<path d="M12 3v14M9 6l3-3 3 3M8 11l-2 2v2l2 1M16 9h2v3l-2 1M12 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>', rede: '<rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/>' };
+        var grupo = function (p) { var n = String(p.name || '').toLowerCase(); if (p.zebra || /zebra|zdesigner|zpl/.test(n)) return 0; if (/pdf|xps|onenote|fax|send to|enviar para/.test(n)) return 2; return 1; };
+        var GN = ['Etiquetas', 'Documentos', 'Arquivo'];
+        var conIc = function (c) { c = String(c || ''); if (!c) return ''; if (/^(usb|lpt|com|dot4)/i.test(c)) return sv(I.usb, 14, '#6b7280'); if (/\d+\.\d+\.\d+|ip_|wsd|tcp|http|\\\\/i.test(c)) return sv(I.rede, 14, '#6b7280'); return sv(I.usb, 14, '#6b7280'); };
+        var SIT = { pronta: ['Pronta', '#16a34a', '#15803d'], desligada: ['Desligada', '#9ca3af', '#6b7280'], pausada: ['Pausada', '#f59e0b', '#b45309'], erro: ['Com erro', '#dc2626', '#b91c1c'] };
+        var itens = lista.map(function (p, k) { return { p: p, k: k, g: grupo(p) }; }).sort(function (a, b) { return a.g - b.g || String(a.p.name).localeCompare(String(b.p.name)); });
+        var selK = -1; itens.forEach(function (it) { if (it.p.name === ult) selK = it.k; });
+        if (selK < 0) { var pr = itens.filter(function (it) { return it.g === 0 && (it.p.situacao || 'pronta') === 'pronta'; })[0] || itens[0]; if (pr) selK = pr.k; }
+        var bs = 'display:inline-flex;align-items:center;gap:7px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 15px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff';
+        var f = D.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+        f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Segoe UI,Roboto,Arial,sans-serif';
+        f.innerHTML = '<style>.pjimp-l:hover{background:#eef4fb}.pjimp-l.on{background:#dbe8fb;box-shadow:inset 4px 0 0 #0b3d91;font-weight:700}.pjimp-l.on .pjimp-n{font-weight:700}</style>' +
+          '<div style="width:100%;max-width:640px;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-top:4px solid #0b3d91;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:13.5px">' +
+          '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700">' + sv(I.doc, 20, '#0b3d91') + '<span>Selecionar impressora</span></div>' +
+          '<div style="padding:12px 14px">' +
+          '<label style="display:flex;align-items:center;gap:8px;padding:0 10px;height:36px;background:#fff;border:1px solid #98a3b3;border-radius:4px">' + sv('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>', 15, '#6b7280') +
+          '<input data-b type="text" placeholder="Buscar impressora (ex.: zebra, ecosys, 192.168)" style="flex:1;border:0;outline:none;background:transparent;font:14px Segoe UI,Roboto,Arial,sans-serif;color:#000"></label>' +
+          '<div style="margin-top:10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;overflow:hidden">' +
+          '<div style="display:grid;grid-template-columns:1fr 150px 120px;background:linear-gradient(#e3e8ee,#cdd4de);border-bottom:1px solid #98a3b3;font-weight:700;font-size:12.5px"><div style="padding:7px 10px">Impressora</div><div style="padding:7px 10px;border-left:1px solid #98a3b3">Conexão</div><div style="padding:7px 10px;border-left:1px solid #98a3b3">Situação</div></div>' +
+          '<div data-l style="max-height:min(52vh,380px);overflow:auto"></div></div></div>' +
+          '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+          '<button type="button" data-q="nao" style="' + bs + '">Cancelar</button>' +
+          '<button type="button" data-q="sim" style="' + bs + '">' + sv('<path d="m5 12 5 5 9-10"/>', 15, '#000') + 'Selecionar</button></div></div>';
+        var L = f.querySelector('[data-l]'), B = f.querySelector('[data-b]');
+        function desenha() {
+          var q = B.value.trim().toLowerCase(), h2 = '', gAt = -1, vis = 0;
+          itens.forEach(function (it) {
+            var p = it.p; if (q && (p.name + ' ' + (p.connection || '')).toLowerCase().indexOf(q) < 0) return;
+            if (it.g !== gAt) { gAt = it.g; h2 += '<div style="padding:5px 10px;background:#eef1f5;border-top:1px solid #e1e5eb;border-bottom:1px solid #e1e5eb;font-size:11.5px;font-weight:700;color:#4b5563;letter-spacing:.04em;text-transform:uppercase">' + GN[it.g] + '</div>'; }
+            var st = SIT[p.situacao || 'pronta'] || SIT.pronta, desl = (p.situacao === 'desligada');
+            h2 += '<div class="pjimp-l' + (it.k === selK ? ' on' : '') + '" data-k="' + it.k + '" style="display:grid;grid-template-columns:1fr 150px 120px;align-items:center;cursor:pointer;border-bottom:1px solid #eef0f3;' + (desl ? 'color:#6b7280' : '') + '">' +
+              '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;min-width:0">' + sv(I[['etq', 'doc', 'arq'][it.g]], 16, desl ? '#9ca3af' : '#374151') +
+              '<span class="pjimp-n" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(p.name) + '</span>' + (p.name === ult ? '<span style="flex:none;padding:1px 7px;background:#0b3d91;color:#fff;border-radius:999px;font-size:10.5px;font-weight:700">última</span>' : '') + '</div>' +
+              '<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;min-width:0;font:12.5px Consolas,Courier New,monospace;color:#374151">' + (p.connection && it.g !== 2 && !/^(portprompt|file|nul|xps|shrfax)/i.test(p.connection) ? conIc(p.connection) + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + e(p.connection) + '">' + e(p.connection) + '</span>' : '—') + '</div>' +
+              '<div style="display:flex;align-items:center;gap:6px;padding:8px 10px;font-size:12.5px;font-weight:700;color:' + st[2] + '"><span style="width:8px;height:8px;border-radius:50%;background:' + st[1] + '"></span>' + st[0] + '</div></div>';
+            vis++;
+          });
+          L.innerHTML = vis ? h2 : '<div style="padding:16px;text-align:center;color:#6b7280">Nenhuma impressora com “' + e(B.value) + '”.</div>';
+          var on = L.querySelector('.on'); if (on) try { on.scrollIntoView({ block: 'nearest' }); } catch (x) { }
+        }
+        var fim = function (v) { D.removeEventListener('keydown', tec, true); f.remove(); res(v); };
+        var ok = function () { var it = itens.filter(function (x) { return x.k === selK; })[0]; if (it) fim(it.p); };
+        var tec = function (ev) {
+          if (ev.key === 'Escape') { ev.preventDefault(); fim(null); }
+          else if (ev.key === 'Enter') { ev.preventDefault(); ok(); }
+          else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') { ev.preventDefault(); var ls = [].slice.call(L.querySelectorAll('[data-k]')), i2 = ls.findIndex(function (x) { return +x.dataset.k === selK; }); i2 = Math.max(0, Math.min(ls.length - 1, i2 + (ev.key === 'ArrowDown' ? 1 : -1))); if (ls[i2]) { selK = +ls[i2].dataset.k; desenha(); } }
+        };
+        L.addEventListener('click', function (ev) { var r2 = ev.target.closest('[data-k]'); if (r2) { selK = +r2.dataset.k; desenha(); } });
+        L.addEventListener('dblclick', function (ev) { var r2 = ev.target.closest('[data-k]'); if (r2) { selK = +r2.dataset.k; ok(); } });
+        B.addEventListener('input', function () { var q = B.value.trim().toLowerCase(); if (q) { var m = itens.filter(function (it) { return (it.p.name + ' ' + (it.p.connection || '')).toLowerCase().indexOf(q) >= 0; }); if (m.length && !m.some(function (it) { return it.k === selK; })) selK = m[0].k; } desenha(); });
+        f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) { if (b.dataset.q === 'sim') ok(); else fim(null); } });
+        D.addEventListener('keydown', tec, true); (D.body || D.documentElement).appendChild(f); desenha();
+        try { if (window.top.__arrastavel) window.top.__arrastavel(f.children[1], f.children[1].firstChild); } catch (e2) { }
+        B.focus();
+      });
     }
     async function imprimir(modo) {
       var l = ids();
@@ -19274,7 +19336,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 251';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 252';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
