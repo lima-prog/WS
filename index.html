@@ -14673,8 +14673,44 @@ if (typeof module !== 'undefined') module.exports = PP;
         buscarClick(); return;
       }
       status.textContent = '✅ ' + n + ' etiqueta(s) impressa(s)!';
-      await ui.alerta('Sucesso', n + ' etiqueta(s) enviada(s) para impressão!', 'ok');
       buscarClick(); rodape();
+      /* V251: aviso no modelo do sistema, com Reimprimir (manda as mesmas etiquetas de novo para a mesma impressora) */
+      while (await quadroImpresso(n, etqs, dest.imp.name)) {
+        status.textContent = '🖨️ Reimprimindo ' + etqs.length + ' etiqueta(s)...';
+        try { for (var k = 0; k < etqs.length; k++) await enviar(gerar_zpl(etqs[k], c), dest.imp, dest.via); }
+        catch (e) { console.error(e); status.textContent = '❌ Erro na impressão'; await ui.erro('Erro', 'Erro ao reimprimir: ' + U.msgErro(e)); rodape(); return; }
+        rodape();
+      }
+    }
+    function quadroImpresso(n, etqs, impNome) {
+      return new Promise(function (res) {
+        var D; try { D = window.top.document; } catch (e) { D = document; }
+        var e = function (t) { return String(t == null ? '' : t).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+        var pacs = [], tps = [];
+        etqs.forEach(function (x) { if (x.pacote && pacs.indexOf(x.pacote) < 0) pacs.push(x.pacote);
+          var t = x.tipo === 'preparacao' ? 'Preparação' : x.tipo === 'nao_preparacao' ? 'Não Preparação' : (x.tipo ? 'DEMANDA/LCT' : ''); if (t && tps.indexOf(t) < 0) tps.push(t); });
+        var sub = (pacs.join(', ') || '') + (tps.length ? ' · ' + (tps.length > 1 ? tps.slice(0, -1).join(', ') + ' e ' + tps[tps.length - 1] : tps[0]) : '');
+        var bs = 'display:inline-flex;align-items:center;gap:7px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 15px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff';
+        var f = D.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+        f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:"Segoe UI",Roboto,Arial,sans-serif';
+        f.innerHTML = '<div style="width:100%;max-width:460px;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-left:6px solid #1e9e4a;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
+          '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700">' +
+          '<svg viewBox="0 0 24 24" width="21" height="21" style="flex:none;fill:none;stroke:#1e9e4a;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><span>Impressão enviada</span></div>' +
+          '<div style="display:flex;gap:14px;align-items:center;padding:14px 16px">' +
+          '<div style="flex:none;min-width:64px;padding:8px 10px;text-align:center;background:#dcf5e3;border:1px solid #a7e0b8;border-radius:4px;color:#15803d"><div style="font-size:26px;font-weight:800;line-height:1">' + e(n) + '</div><div style="font-size:11px;font-weight:700;margin-top:3px">' + (n === 1 ? 'etiqueta' : 'etiquetas') + '</div></div>' +
+          '<div style="min-width:0"><div style="font-size:15px;font-weight:700">Enviadas para impressão</div><div style="color:#4b5563;font-size:12.5px;margin-top:2px">' + e(sub) + '</div>' +
+          '<span style="display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:4px 10px;background:#fff;border:1px solid #98a3b3;border-radius:4px;font-size:12.5px;max-width:100%">' +
+          '<svg viewBox="0 0 24 24" width="15" height="15" style="flex:none;fill:none;stroke:#000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(impNome) + '</span></span></div></div>' +
+          '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+          '<button type="button" data-q="re" style="' + bs + '"><svg viewBox="0 0 24 24" width="15" height="15" style="fill:none;stroke:#000;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M20 11A8 8 0 0 0 5.6 6.3L4 8M4 4v4h4M4 13a8 8 0 0 0 14.4 4.7L20 16m0 4v-4h-4"/></svg>Reimprimir</button>' +
+          '<button type="button" data-q="ok" style="' + bs + '">OK</button></div></div>';
+        var fim = function (v) { D.removeEventListener('keydown', tec, true); f.remove(); res(v); };
+        var tec = function (ev) { if (ev.key === 'Escape' || ev.key === 'Enter') { ev.preventDefault(); fim(false); } };
+        f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(b.dataset.q === 're'); });
+        D.addEventListener('keydown', tec, true); (D.body || D.documentElement).appendChild(f);
+        try { if (window.top.__arrastavel) window.top.__arrastavel(f.firstChild, f.firstChild.firstChild); } catch (e2) { }
+        f.querySelector('[data-q="ok"]').focus();
+      });
     }
     function previa(r) {
       var c = config(), et = { obra: r.obra, fluxo: r.membros ? '' : r.fluxo, pacote: r.pacote, observacao: r.observacao || '', grupo: !!r.membros };
@@ -19238,7 +19274,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 250';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 251';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
