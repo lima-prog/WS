@@ -3092,7 +3092,7 @@ if (typeof module !== 'undefined') module.exports = PP;
         }
         buscarClick(); return;
       }
-      if (!(await ui.confirmar('Confirmar impressão', 'Imprimir ' + l.length + ' etiqueta(s) em “' + dest.imp.name + '”?'))) { status.textContent = 'ℹ️ Impressão cancelada'; return; }
+      if (!(await quadroConfirmarImp(l.length, dest.imp.name))) { status.textContent = 'ℹ️ Impressão cancelada'; return; }
       status.textContent = '🖨️ Imprimindo ' + l.length + ' etiqueta(s)...';
       var n = 0;
       try {
@@ -3115,6 +3115,34 @@ if (typeof module !== 'undefined') module.exports = PP;
         catch (e) { console.error(e); status.textContent = '❌ Erro na impressão'; await ui.erro('Erro', 'Erro ao reimprimir: ' + U.msgErro(e)); rodape(); return; }
         rodape();
       }
+    }
+    /* V255 — Confirmar impressão no modelo do sistema (faixa azul em cima, impressora em etiqueta, Esc/Enter); pode ser arrastado pelo título */
+    function quadroConfirmarImp(n, impNome) {
+      return new Promise(function (res) {
+        var D; try { D = window.top.document; } catch (e) { D = document; }
+        var e = function (t) { return String(t == null ? '' : t).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
+        var bs = 'display:inline-flex;align-items:center;gap:8px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 12px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff';
+        var kb = function (t) { return '<span style="padding:0 6px;background:#fff;border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;font:600 10.5px Segoe UI,Arial,sans-serif;color:#374151">' + t + '</span>'; };
+        var prn = '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>';
+        var f = D.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+        f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Segoe UI,Roboto,Arial,sans-serif';
+        f.innerHTML = '<div style="width:100%;max-width:440px;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-top:4px solid #0b3d91;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
+          '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700">' +
+          '<svg viewBox="0 0 24 24" width="20" height="20" style="flex:none;fill:none;stroke:#0b3d91;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + prn + '</svg><span>Confirmar impressão</span></div>' +
+          '<div style="padding:14px 16px">Imprimir <b>' + e(n) + ' ' + (n === 1 ? 'etiqueta' : 'etiquetas') + '</b> em:' +
+          '<div style="margin-top:8px"><span style="display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:6px 12px;background:#fff;border:1px solid #98a3b3;border-radius:4px;font-size:13.5px">' +
+          '<svg viewBox="0 0 24 24" width="15" height="15" style="flex:none;fill:none;stroke:#374151;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M8 16v3h8v-3M8 9h8"/></svg>' +
+          '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(impNome) + '</span></span></div></div>' +
+          '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+          '<button type="button" data-q="nao" style="' + bs + '">Cancelar ' + kb('Esc') + '</button>' +
+          '<button type="button" data-q="sim" style="' + bs + '"><svg viewBox="0 0 24 24" width="15" height="15" style="fill:none;stroke:#000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + prn + '</svg>Imprimir ' + kb('Enter') + '</button></div></div>';
+        var fim = function (v) { D.removeEventListener('keydown', tec, true); f.remove(); res(v); };
+        var tec = function (ev) { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); fim(false); } else if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); fim(true); } };
+        f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(b.dataset.q === 'sim'); });
+        D.addEventListener('keydown', tec, true); (D.body || D.documentElement).appendChild(f);
+        try { if (window.top.__arrastavel) window.top.__arrastavel(f.firstChild, f.firstChild.firstChild); } catch (e2) { }
+        f.querySelector('[data-q="sim"]').focus();
+      });
     }
     function quadroImpresso(n, etqs, impNome) {
       return new Promise(function (res) {
