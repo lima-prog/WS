@@ -148,6 +148,11 @@ class Sistema(BaseHTTPRequestHandler):
                     return self._json({"erro": "Os apps da Preparação fábrica rodam só no próprio computador do sistema."}, 403)
                 from ppcpm import fabrica
                 return self._json(fabrica.estado(q.get("aba", "")))
+            if caminho.startswith("/api/fabrica/rot/"):   # Roteirizador DXF dentro da aba
+                if not self._do_proprio_pc():
+                    return self._json({"erro": "Os apps da Preparação fábrica rodam só no próprio computador do sistema."}, 403)
+                from ppcpm import fabrica_rot
+                return self._json(fabrica_rot.get(caminho[len("/api/fabrica/rot/"):], q))
             if caminho == "/api/zebra/impressoras":
                 if not self._do_proprio_pc():
                     return self._json({"erro": "Impressoras só neste computador."}, 403)
@@ -256,6 +261,21 @@ class Sistema(BaseHTTPRequestHandler):
                                 extra={"X-Resultado": quote(json.dumps(r)), "Access-Control-Expose-Headers": "X-Resultado"})
         if caminho.startswith("/api/prod/"):
             return self._producao_post(caminho[len("/api/prod/"):])
+        if caminho.startswith("/api/fabrica/rot/"):   # Roteirizador DXF dentro da aba
+            if not self._do_proprio_pc():
+                return self._json({"erro": "Os apps da Preparação fábrica rodam só no próprio computador do sistema."}, 403)
+            from ppcpm import fabrica_rot
+            acao = caminho[len("/api/fabrica/rot/"):]
+            if acao == "enviar":
+                n = int(self.headers.get("Content-Length") or 0)
+                if n <= 0 or n > 200 * 1024 * 1024:
+                    return self._json({"ok": False, "erro": "Arquivo vazio ou grande demais."}, 400)
+                from urllib.parse import unquote
+                return self._json(fabrica_rot.receber(unquote(self.headers.get("X-Nome") or "planilha.xlsx"), self.rfile.read(n)))
+            try:
+                return self._json(fabrica_rot.post(acao, self._corpo_json()))
+            except Exception as e:  # noqa: BLE001
+                return self._json({"ok": False, "erro": str(e) or e.__class__.__name__}, 500)
         if caminho in ("/api/fabrica/abrir", "/api/fabrica/pasta"):   # Preparação fábrica: abre o app / a pasta
             if not self._do_proprio_pc():
                 return self._json({"erro": "Os apps da Preparação fábrica rodam só no próprio computador do sistema."}, 403)

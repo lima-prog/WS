@@ -20793,121 +20793,699 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .arv .vz{color:#374151}
 .kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 
-.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
-.fb-ic svg{width:24px;height:24px}
-.fb-oq{font-size:14px;line-height:1.55;color:#111827}
-.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
-.fb-ol li{margin:4px 0}
-.fb-st{display:flex;flex-direction:column;gap:8px}
-.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
-.fb-l b{min-width:118px}
-.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
-.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
-.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
-.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
-.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
-.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
-.fb-pill.on{background:#dcf5e3;color:#15803d}
-.fb-pill.no{background:#fde2e2;color:#b91c1c}
-.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.b.fb-abrir{font-size:15px;padding:10px 18px}
-.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
-.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
-.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
-.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+/* Preparação fábrica — app dentro da aba */
+.abas{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 14px;border-bottom:2px solid #c5cbd6}
+.abas .ab{display:inline-flex;align-items:center;gap:8px;background:transparent;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;padding:10px 16px;font:700 13.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#4b5563;cursor:pointer}
+.abas .ab:hover{color:#111827;background:#e3e7ec}
+.abas .ab.on{color:#0b3d91;border-bottom-color:#0b3d91}
+.abas .ab svg{flex:none}
+.abas .cnt:not(:empty){margin-left:2px;padding:0 7px;border-radius:999px;background:#fde2e2;color:#b91c1c;font-size:11.5px}
+.painel{display:none}.painel.on{display:block}
+.abas2{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 10px}
+.abas2 .ab{background:#d5dae1;border:1px solid #99a3af;border-radius:4px;padding:6px 12px;font:700 12.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#1f2937;cursor:pointer}
+.abas2 .ab:hover{background:#c9d0d8}
+.abas2 .ab.on{background:#0b3d91;border-color:#0b3d91;color:#fff}
+.log{background:#fff;border:1px solid #99a3af;border-radius:4px;height:340px;overflow:auto;padding:8px 10px;font:12.5px/1.5 Consolas,'Courier New',monospace;color:#1f2937;white-space:pre-wrap;word-break:break-word}
+.log .vz{font-family:'Segoe UI',Inter,system-ui,sans-serif;color:#6b7280;font-weight:600;text-align:center;padding:30px 0}
+.log .ok{color:#15803d}.log .er{color:#b91c1c;font-weight:700}.log .av{color:#b45309}.log .inf{color:#0b3d91}
+.rt-err:empty{display:none}
+.rt-err{margin-top:8px;color:#b42318;font-weight:700;font-size:13px}
+.status.ok::before{background:#1e8e3e}.status.aviso::before{background:#d97706}.status.erro::before{background:#dc2626}
+.status.ok{color:#15803d}.status.aviso{color:#92400e}.status.erro{color:#b42318}
+.status:empty{display:none}
+.vazio-cx{text-align:center;color:#4b5563;font-size:14px;line-height:1.7;padding:46px 12px!important}
+.rel-sub{margin:0 0 10px;font-size:13px;color:#374151}
+.kpis8{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.kpi{flex-direction:column;align-items:flex-start;gap:2px;min-height:0;padding:10px 12px;border-left:4px solid #6b7280}
+.kpi .v{font-size:21px}
+.kpi.ok{border-left-color:#16a34a}.kpi.ok .v{color:#15803d}
+.kpi.er{border-left-color:#dc2626}.kpi.er .v{color:#b91c1c}
+.kpi.av{border-left-color:#d97706}.kpi.av .v{color:#b45309}
+.kpi.inf{border-left-color:#0b3d91}.kpi.inf .v{color:#0b3d91}
+.dica{font-size:12.5px;color:#92400e;background:#fff7e6;border:1px solid #f5d9a8;border-left:3px solid #d97706;border-radius:3px;padding:7px 10px;margin:0 0 10px;line-height:1.5}
+.fraco{font-size:12px;color:#4b5563;margin-top:8px;line-height:1.5}
+.mt{margin-top:10px}
+.arv{max-height:420px}
+.arv td input[type=text],.arv td select{width:100%;min-width:150px;padding:4px 8px;font-size:12.5px}
+.arv td.ck{width:34px;text-align:center}
+.arv td.ck input{margin:0}
+.arv td .b.mini{margin:0}
+.arv td.num{text-align:right;font-variant-numeric:tabular-nums}
+.arv td.c{text-align:center}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.acoes .st{font-size:12.5px;font-weight:700}
+.acoes .st.ok{color:#15803d}.acoes .st.aviso{color:#b45309}
+.b.perigo{color:#b42318;border-color:#e8a7a0}
+.b.perigo:hover:not(:disabled){background:#fdeeee;border-color:#dc2626}
+.rot-lbl{font-weight:700;font-size:13px}
+.graf{background:#fff;border:1px solid #99a3af;border-radius:4px;padding:10px;overflow:auto}
+.graf svg{display:block;width:100%;height:auto}
+.graf text{font-family:'Segoe UI',Inter,system-ui,sans-serif}
+.lista li .n{font-family:Consolas,'Courier New',monospace;font-weight:600}
+.lista{max-height:180px}
+.status{margin-top:8px}
+.barra .status{margin-top:0}
 </style>
 </head>
 <body>
 <div class="pr-topo"><b>Preparação fábrica | Roteirizador DXF:</b><span class="c">Planilha da obra</span><i>→</i><span class="c">Pasta dos DXF</span><i>→</i><span class="c">pastas por fluxo</span></div>
 
-<div class="cx">
-  <div class="cx-h"><span class="badge">1</span><h3>O que o Roteirizador DXF faz</h3></div>
-  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></svg></div><div class="fb-oq">Cruza os DXF de uma obra com a planilha da obra e MOVE cada DXF para a pasta do fluxo certo (Fluxo 1/2/3/4, LASER, Perfiladeira L1/L2, Perfiladeira U e C, Joist, Terça Z, Acessórios Padrão), gera o relatório de divergências, o peso por fluxo e confere obras já roteirizadas.</div></div>
-</div>
+<nav class="abas" id="rt-abas">
+  <button class="ab on" data-aba="rot"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></svg>Roteirizador</button>
+  <button class="ab" data-aba="rel"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg>Relatório de divergências<span class="cnt" id="cnt-rel"></span></button>
+  <button class="ab" data-aba="peso"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>Peso por fluxo</button>
+  <button class="ab" data-aba="ver"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Verificador</button>
+</nav>
 
-<div class="grid2">
-  <div class="cx">
-    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
-    <ol class="fb-ol"><li>Tela ROTEIRIZADOR: escolha a planilha (CSV do sistema, Excel de tabela dinâmica ou o WF.xls do Focco) e a pasta dos DXF; clique em processar.</li><li>Acompanhe o log na própria tela. Os DXF são movidos para &#x27;&lt;Fluxo&gt; [&lt;espessura&gt;]&#x27; dentro da pasta da obra.</li><li>Tela RELATÓRIO DE DIVERGÊNCIAS: abas Faltantes · Não Roteirizado · Divergência Tamanho · [PADRÃO] PLANILHA · Sem CAM · Ignorados. Daqui você marca ignorado, força CAM, define fluxo manual — tudo vai para a memória e vale para as próximas obras.</li><li>Tela PESO POR FLUXO: soma de peso (kg) e quantidade de peças por fluxo, com cores por fluxo (dá para trocar a cor).</li><li>Tela VERIFICADOR: adicione pastas de obras já roteirizadas -&gt; mostra o que foi movido à mão depois da roteirização (pede o motivo) e &#x27;Conferir pelas regras (somente leitura)&#x27; mostra o que está fora da regra sem mover nada.</li></ol>
-  </div>
-  <div class="cx">
-    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
-    <div class="fb-st" id="fb-status">
-      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
-      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
-      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
-      <div class="fb-acoes">
-        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Roteirizador DXF</button>
-        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
-        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
-        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
-      </div>
-      <div class="fb-msg" id="fb-msg"></div>
-      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+<!-- =============================== 1) ROTEIRIZADOR =============================== -->
+<section class="painel on" id="p-rot">
+  <div class="grid2">
+    <div class="cx">
+      <div class="cx-h"><span class="badge">1</span><h3>Planilha da obra</h3><span class="sub">.csv ou .xlsx</span></div>
+      <div class="drop" id="rt-drop"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg><span>arraste a planilha aqui ou clique para escolher</span></div>
+      <div class="linha"><input type="text" class="cresce campo-in" id="rt-pl" placeholder="Caminho da planilha (.csv ou .xlsx)" spellcheck="false"><button class="b" data-a="pl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Procurar...</button></div>
+    </div>
+    <div class="cx">
+      <div class="cx-h"><span class="badge">2</span><h3>Pasta dos arquivos DXF</h3><span class="sub">os DXF são organizados em pastas por fluxo</span></div>
+      <div class="drop" id="rt-drop2" data-a="pa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>clique para escolher a pasta dos DXF</span></div>
+      <div class="linha"><input type="text" class="cresce campo-in" id="rt-pa" placeholder="Selecione a pasta com os arquivos DXF..." spellcheck="false"><button class="b" data-a="pa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Procurar...</button></div>
     </div>
   </div>
-</div>
+  <div class="cx">
+    <div class="barra">
+      <div class="status" id="rt-st">Aguardando a planilha e a pasta dos DXF...</div>
+      <div class="linha" style="margin:0"><button class="b p" data-a="iniciar" id="rt-ini"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></svg>Iniciar processamento</button><button class="b" data-a="limpar" id="rt-limpar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Limpar</button></div>
+    </div>
+    <div class="rt-err" id="rt-err"></div>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Log de processamento</h3><span class="sub">o que o roteirizador está fazendo</span></div>
+    <div class="log" id="rt-log"><div class="vz">O log aparece aqui quando o processamento começar.</div></div>
+  </div>
+</section>
+
+<!-- =============================== 2) RELATÓRIO =============================== -->
+<section class="painel" id="p-rel">
+  <div class="cx vazio-cx" id="rel-vazio">Nenhum relatório gerado ainda.<br>Processe uma planilha/pasta de DXF na aba "Roteirizador" para visualizar aqui as divergências.</div>
+  <div id="rel-cheio" style="display:none">
+    <div class="rel-sub" id="rel-sub"></div>
+    <div class="kpis kpis8" id="rel-kpis"></div>
+    <div class="cx">
+      <div class="cx-h"><span class="badge">1</span><h3>Divergências</h3><span class="sub">as ações gravam direto na memória e valem para qualquer obra futura</span></div>
+      <nav class="abas2" id="rel-abas"></nav>
+      <div id="rel-corpo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== 3) PESO POR FLUXO =============================== -->
+<section class="painel" id="p-peso">
+  <div class="cx vazio-cx" id="peso-vazio">Nenhum dado de peso ainda.<br>Processe uma planilha/pasta de DXF na aba "Roteirizador" para visualizar aqui o peso por fluxo.</div>
+  <div id="peso-cheio" style="display:none">
+    <div class="cx">
+      <div class="barra">
+        <div class="status" id="peso-res"></div>
+        <div class="linha" style="margin:0"><label class="rot-lbl">Tipo de gráfico:</label>
+          <select id="peso-tipo"><option value="barras">Barras horizontais</option><option value="pizza">Pizza</option><option value="velas">Velas (colunas)</option></select>
+          <button class="b" data-a="cores"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Editar cores</button></div>
+      </div>
+    </div>
+    <div class="cx">
+      <div class="cx-h"><span class="badge">1</span><h3>Gráfico</h3><span class="sub">peso total por fluxo</span></div>
+      <div class="graf" id="peso-graf"></div>
+    </div>
+    <div class="cx">
+      <div class="cx-h"><span class="badge">2</span><h3>Detalhamento por fluxo</h3></div>
+      <div class="arv" id="peso-tab"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== 4) VERIFICADOR =============================== -->
+<section class="painel" id="p-ver">
+  <div class="lbl-det">Compare o que o roteirizador organizou automaticamente com o que foi movido manualmente depois. Descreva o motivo de cada ajuste e, ao salvar, ele passa a valer para QUALQUER obra futura com a mesma posição/identificador. Também dá para só LER qualquer pasta e ver o que está fora da regra ("Conferir pelas regras", mais abaixo) — sem precisar ter roteirizado pelo app.</div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">1</span><h3>Pastas de obras já roteirizadas</h3><span class="sub">comparadas sozinhas, em segundo plano</span></div>
+    <div class="linha"><input type="text" class="cresce campo-in" id="ver-cam" placeholder="Cole o caminho da pasta da obra e pressione Enter…" spellcheck="false"><button class="b" data-a="ver-proc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Procurar...</button><button class="b" data-a="ver-add"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Adicionar</button></div>
+    <div class="linha"><button class="b" data-a="ver-todas">Selecionar/desmarcar todas</button><button class="b" data-a="ver-rem"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Remover selecionadas</button><button class="b p" data-a="ver-agora"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Verificar agora</button></div>
+    <ul class="lista" id="ver-pastas"><li class="vazio">Nenhuma pasta na lista.</li></ul>
+    <div class="status" id="ver-st"></div>
+    <div class="fraco">Assim que uma pasta é adicionada, ela já é comparada automaticamente com o log de roteirização salvo dentro dela - e continua sendo verificada em segundo plano, então qualquer arquivo que você mover de pasta depois aparece sozinho na lista abaixo. O checkbox aqui serve só para escolher quais remover.</div>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Conferir pelas regras</h3><span class="sub">somente leitura — nada é movido</span></div>
+    <div class="dica">Serve para QUALQUER pasta de DXF da lista acima — mesmo organizada à mão, por outra pessoa ou por outra versão, sem "retrato". O programa aplica as regras de roteirização com a planilha da obra e mostra só as posições que estão em pasta diferente da que a regra manda. NADA é movido. Se a posição está certa onde está (ou você quer outro fluxo), escolha o fluxo na linha, escreva o motivo e clique em Salvar: vira ajuste permanente para qualquer obra futura.</div>
+    <div class="linha"><input type="text" class="cresce campo-in" id="vr-pl" placeholder="Planilha (.csv / .xlsx) da obra — se ficar vazio, usa a da aba Roteirizador…" spellcheck="false"><button class="b" data-a="vr-proc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Procurar planilha...</button><button class="b p" data-a="vr-conf"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Conferir pastas da lista</button></div>
+    <div class="status" id="vr-st"></div>
+    <div class="arv" id="vr-tab"></div>
+    <div class="linha mt"><button class="b p" data-a="vr-todos"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Salvar todos os que já têm motivo</button></div>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Posições com fluxo alterado manualmente</h3><span class="sub">só em pastas roteirizadas por este programa</span></div>
+    <div class="dica">Se você moveu uma posição para outro fluxo, é porque o roteirizador decidiu errado. Preencha o motivo na própria linha e clique em 'Salvar' ao lado - o programa memoriza e passa a roteirizar essa posição direto no fluxo certo em qualquer obra futura.</div>
+    <div class="arv" id="ver-tab"></div>
+    <div class="linha mt"><button class="b p" data-a="ver-todos"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>Salvar todos os que já têm motivo</button><div class="status" id="ver-st2"></div></div>
+  </div>
+</section>
 
 <script>
-window.FB_ABA = 'pg22'; window.FB_NOME = 'Roteirizador DXF';
-
 (function () {
   'use strict';
-  var ABA = window.FB_ABA, NOME = window.FB_NOME;
-  var $ = function (s) { return document.querySelector(s); };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var Hd = { 'X-PPCPM': '1' };
+  var EXTS = ['.csv', '.xlsx', '.xls', '.xlsm'];
+
   function local() {
     if (typeof window.PPCPM_PASTA === 'function') return true;
     try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
   }
   if (!local()) {
     document.addEventListener('DOMContentLoaded', function () {
-      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
-        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
-        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+      $$('.painel,#rt-abas').forEach(function (p) { p.remove(); });
+      document.body.insertAdjacentHTML('beforeend', '<div class="cx pr-site"><h2>Roteirizador DXF</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê a planilha e organiza os DXF direto nas pastas do PC ou do servidor).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>');
     });
     return;
   }
+
   function api(acao, corpo) {
     var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
       { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
-    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+    return fetch('/api/fabrica/rot/' + acao, op).then(function (r) { return r.json(); });
   }
-  var ultimo = null;
-  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
-  function desenhar(e) {
-    ultimo = e;
-    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
-    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
-    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
-    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
-    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
-    var falta = e.faltam && e.faltam.length;
-    $('#fb-inst').style.display = falta ? '' : 'none';
-    $('#fb-abrir').disabled = !e.existe || !!falta;
-    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+
+  /* ------------------------------------------------------------ janelas (modelo do sistema) */
+  var TD; try { TD = window.top.document; } catch (e) { TD = document; }
+  var BS = 'display:inline-flex;align-items:center;gap:8px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 14px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff';
+  var KB = function (t) { return '<span style="padding:0 6px;background:#fff;border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;font:600 10.5px Segoe UI,Arial,sans-serif;color:#374151">' + t + '</span>'; };
+  var ICJ = {
+    q: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/>',
+    i: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+    av: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+    ed: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/>',
+    cor: '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="16" cy="10" r="1.3"/><path d="M12 21a3 3 0 0 1 0-6h2a3 3 0 0 0 3-3"/>'
+  };
+  /* op: {titulo, cor, ic, html, botoes:[{v,t,kb,foco}], larg, aoAbrir(card), valor(card,v)} -> Promise */
+  function janela(op) {
+    return new Promise(function (res) {
+      var f = TD.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+      f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Segoe UI,Roboto,Arial,sans-serif';
+      var cor = op.cor || '#0b3d91';
+      f.innerHTML = '<div style="width:100%;max-width:' + (op.larg || 470) + 'px;max-height:92vh;display:flex;flex-direction:column;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-top:4px solid ' + cor + ';border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
+        '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700;cursor:move">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" style="flex:none;fill:none;stroke:' + cor + ';stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + (ICJ[op.ic] || ICJ.i) + '</svg><span>' + esc(op.titulo) + '</span></div>' +
+        '<div style="padding:14px 16px;line-height:1.5;white-space:pre-wrap;overflow:auto">' + op.html + '</div>' +
+        '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+        (op.botoes || [{ v: true, t: 'OK', kb: 'Enter', foco: 1 }]).map(function (b, i) { return '<button type="button" data-q="' + i + '" style="' + BS + '">' + esc(b.t) + (b.kb ? ' ' + KB(b.kb) : '') + '</button>'; }).join('') + '</div></div>';
+      var bts = op.botoes || [{ v: true, t: 'OK', kb: 'Enter', foco: 1 }];
+      var card = f.firstChild;
+      var fim = function (v) { TD.removeEventListener('keydown', tec, true); f.remove(); res(op.valor ? op.valor(card, v) : v); };
+      var tec = function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); var c = bts.filter(function (b) { return b.kb === 'Esc'; })[0]; fim(c ? c.v : false); }
+        else if (ev.key === 'Enter' && !(ev.target && ev.target.tagName === 'TEXTAREA')) { var e2 = bts.filter(function (b) { return b.kb === 'Enter'; })[0]; if (e2) { ev.preventDefault(); ev.stopPropagation(); fim(e2.v); } }
+      };
+      f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(bts[+b.dataset.q].v); });
+      TD.addEventListener('keydown', tec, true); (TD.body || TD.documentElement).appendChild(f);
+      [].forEach.call(f.querySelectorAll('[data-q]'), function (x) { x.onmouseenter = function () { x.style.background = 'linear-gradient(#e7ebef,#c9d0d8)'; }; x.onmouseleave = function () { x.style.background = 'linear-gradient(#f3f5f7,#d9dee5)'; }; });
+      try { if (window.top.__arrastavel) window.top.__arrastavel(card, card.firstChild); } catch (e) { }
+      if (op.aoAbrir) op.aoAbrir(card);
+      var fb = bts.map(function (b, i) { return b.foco ? i : -1; }).filter(function (i) { return i >= 0; })[0];
+      if (!op.semFoco) { var bf = f.querySelector('[data-q="' + (fb == null ? bts.length - 1 : fb) + '"]'); if (bf) bf.focus(); }
+    });
   }
-  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
-  document.addEventListener('click', function (ev) {
-    var b = ev.target.closest('[data-fb]'); if (!b) return;
-    var a = b.dataset.fb;
-    if (a === 'abrir' || a === 'msgs') {
-      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
-      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
-        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
-        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
-      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
-        .then(function () { b.disabled = false; atualizar(); });
-    } else if (a === 'inst') {
-      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
-      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
-    } else if (a === 'dados' || a === 'pasta') {
-      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+  function confirmar(titulo, texto) {
+    return janela({ titulo: titulo, ic: 'q', html: esc(texto), botoes: [{ v: false, t: 'Não', kb: 'Esc' }, { v: true, t: 'Sim', kb: 'Enter', foco: 1 }] });
+  }
+  function info(titulo, texto, aviso) { return janela({ titulo: titulo, ic: aviso ? 'av' : 'i', cor: aviso ? '#d97706' : '#0b3d91', html: esc(texto) }); }
+  function perguntar(titulo, rotulo) {
+    return janela({
+      titulo: titulo, ic: 'ed', semFoco: true, html: esc(rotulo) + '<input type="text" data-in style="display:block;width:100%;margin-top:8px;box-sizing:border-box;border:1px solid #98a3b3;border-radius:4px;padding:7px 10px;font:600 13.5px Segoe UI,Arial,sans-serif">',
+      botoes: [{ v: null, t: 'Cancelar', kb: 'Esc' }, { v: 1, t: 'OK', kb: 'Enter' }],
+      aoAbrir: function (c) { var i = c.querySelector('[data-in]'); setTimeout(function () { i.focus(); }, 0); },
+      valor: function (c, v) { return v === null ? null : (c.querySelector('[data-in]').value || ''); }
+    });
+  }
+  function erroApi(r) {
+    var t = (r && (r.erro || r.msg)) || 'Não consegui falar com o sistema.';
+    try { if (window.top.__pjQuadroErro) return window.top.__pjQuadroErro({ titulo: (r && r.titulo) || 'Roteirizador DXF', texto: t }); } catch (e) { }
+    return info((r && r.titulo) || 'Roteirizador DXF', t, true);
+  }
+
+  /* ------------------------------------------------------------ abas */
+  var abaAtual = 'rot';
+  function irAba(a) {
+    abaAtual = a;
+    $$('#rt-abas .ab').forEach(function (b) { b.classList.toggle('on', b.dataset.aba === a); });
+    $$('.painel').forEach(function (p) { p.classList.toggle('on', p.id === 'p-' + a); });
+    if (a === 'ver') carregarVer();
+    if (a === 'peso') desenharPeso();
+  }
+
+  /* ------------------------------------------------------------ escolher planilha / pasta */
+  function escolherArquivo() {
+    return new Promise(function (res) {
+      var i = document.createElement('input'); i.type = 'file'; i.accept = EXTS.join(','); i.style.display = 'none'; document.body.appendChild(i);
+      var feito = false;
+      i.addEventListener('change', function () { feito = true; res((i.files || [])[0] || null); i.remove(); });
+      i.addEventListener('cancel', function () { if (!feito) { feito = true; res(null); i.remove(); } });
+      i.click();
+    });
+  }
+  function caminhoDoArquivo(f, deOnde) {
+    if (!f) return Promise.resolve('');
+    var n = (f.name || '').toLowerCase();
+    if (!EXTS.some(function (e) { return n.slice(-e.length) === e; })) {
+      try { window.top.__arqRecusado({ nomes: [f.name], aceitos: EXTS, escolher: deOnde }); } catch (e) { info('Formato inválido', 'Escolha uma planilha .csv ou .xlsx.', true); }
+      return Promise.resolve('');
     }
+    if (f.ppcpmCaminho) return Promise.resolve(f.ppcpmCaminho);
+    return fetch('/api/fabrica/rot/enviar', { method: 'POST', headers: Object.assign({ 'X-Nome': encodeURIComponent(f.name) }, Hd), body: f })
+      .then(function (r) { return r.json(); }).then(function (r) { if (!r.ok) { erroApi(r); return ''; } return r.caminho; });
+  }
+  function escolherPasta() {
+    try { return window.showDirectoryPicker().then(function (h) { return (h && h.ppcpmCaminho) || ''; }, function () { return ''; }); }
+    catch (e) { return Promise.resolve(''); }
+  }
+  function marcarCampo(inp) { inp.classList.toggle('ok', !!inp.value.trim()); inp.classList.remove('er'); }
+
+  /* ------------------------------------------------------------ 1) Roteirizador: estado + log */
+  var nLog = 0, relId = -1, rodando = false, timer = null, verId = -1, vrId = -1;
+  function classeLog(t) {
+    if (/❌|ERRO/.test(t)) return 'er';
+    if (/✅|✨|SUCESSO/.test(t)) return 'ok';
+    if (/⚠️|🖐️/.test(t)) return 'av';
+    if (/📁|📌|🚀|🧠|🔀|📋|📊|🔍|🔎/.test(t)) return 'inf';
+    return '';
+  }
+  function addLog(linhas, limpar) {
+    var box = $('#rt-log');
+    if (limpar) box.innerHTML = '';
+    if (!linhas.length) { if (!box.children.length) box.innerHTML = '<div class="vz">O log aparece aqui quando o processamento começar.</div>'; return; }
+    var vz = box.querySelector('.vz'); if (vz) vz.remove();
+    var embaixo = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    var frag = document.createDocumentFragment();
+    linhas.forEach(function (t) { var d = document.createElement('div'); var c = classeLog(t); if (c) d.className = c; d.textContent = t || ' '; frag.appendChild(d); });
+    box.appendChild(frag);
+    if (embaixo) box.scrollTop = box.scrollHeight;
+  }
+  function aplicarEstado(e) {
+    if (!e || !e.ok) return;
+    if (e.n < nLog) { nLog = 0; addLog([], true); }
+    if (e.log && e.log.length) addLog(e.log, nLog === 0);
+    nLog = e.n;
+    rodando = !!e.rodando;
+    var st = $('#rt-st');
+    st.className = 'status' + (rodando ? ' rodando' : e.status_tipo ? ' ' + e.status_tipo : '');
+    st.textContent = e.status || (rodando ? '⚙️  Processando, aguarde...' : 'Aguardando a planilha e a pasta dos DXF...');
+    $('#rt-err').textContent = e.erro_sel || '';
+    ['#rt-ini', '#rt-limpar'].forEach(function (s) { $(s).disabled = rodando; });
+    $$('#p-rot [data-a="pl"],#p-rot [data-a="pa"]').forEach(function (b) { b.disabled = rodando; });
+    $('#rt-pl').disabled = $('#rt-pa').disabled = rodando;
+    var pl = $('#rt-pl'), pa = $('#rt-pa');
+    if (e.planilha && document.activeElement !== pl && !pl.value) { pl.value = e.planilha; marcarCampo(pl); }
+    if (e.pasta && document.activeElement !== pa && !pa.value) { pa.value = e.pasta; marcarCampo(pa); }
+    if (e.rel_id !== relId) {
+      var primeira = relId === -1;
+      relId = e.rel_id;
+      carregarRel().then(function (r) { if (!primeira && r && !r.vazio) irAba('rel'); });
+      carregarPeso();
+    }
+    if (e.ver_id !== verId || e.vr_id !== vrId) { if (abaAtual === 'ver' || verId === -1) carregarVer(); }
+  }
+  function ciclo() {
+    clearTimeout(timer);
+    api('estado?desde=' + nLog).then(aplicarEstado).catch(function () { })
+      .then(function () { timer = setTimeout(ciclo, rodando ? 600 : 2500); });
+  }
+  function iniciar() {
+    if (rodando) return;
+    var pl = $('#rt-pl'), pa = $('#rt-pa');
+    api('iniciar', { planilha: pl.value, pasta: pa.value }).then(function (r) {
+      if (!r.ok) {
+        if (r.campo) { var i = r.campo === 'planilha' ? pl : pa; i.classList.add('er'); i.classList.remove('ok'); $('#rt-err').textContent = r.erro; }
+        else erroApi(r);
+        return;
+      }
+      nLog = 0; addLog([], true); rodando = true; ciclo();
+    }).catch(function (e) { erroApi({ erro: String(e) }); });
+  }
+  function limparTela() {
+    if (rodando) return;
+    api('limpar', {}).then(function (r) {
+      if (!r.ok) return erroApi(r);
+      $('#rt-pl').value = ''; $('#rt-pa').value = ''; marcarCampo($('#rt-pl')); marcarCampo($('#rt-pa'));
+      nLog = 0; addLog([], true); irAba('rot'); ciclo(); $('#rt-pl').focus();
+    });
+  }
+
+  /* ------------------------------------------------------------ 2) Relatório de divergências */
+  var REL = null, relSub = 'faltantes', relSel = {}, relVal = {}, relStatus = {};
+  var SUBS = [
+    ['faltantes', 'Faltantes'], ['nao_roteirizado', 'Não Roteirizado'], ['divergencias_tamanho', 'Divergência Tamanho'],
+    ['padrao_planilha', '[PADRÃO] PLANILHA'], ['sem_cam', 'Sem CAM'], ['ignorados_memoria_lista', 'Ignorados']
+  ];
+  var DICAS = {
+    faltantes: "Dica: marque a caixinha à esquerda da linha para selecionar. Preencha 'Fluxo' e/ou 'Motivo' direto na própria linha antes de usar os botões abaixo. As ações gravam direto na memória (SQLite) e valem para qualquer obra futura.",
+    nao_roteirizado: "Arquivos DXF que ficaram fora de qualquer pasta de fluxo depois da roteirização. Marque a caixinha à esquerda da linha para selecionar. Preencha 'Fluxo' e/ou 'Motivo' direto na própria linha. Ao clicar em 'Definir fluxo manual', o arquivo já é MOVIDO agora mesmo para a pasta do fluxo escolhido e o ajuste é gravado na memória (SQLite) - vale para qualquer obra futura com a mesma posição/identificador.",
+    divergencias_tamanho: 'Dimensão do DXF diferente da planilha fora da tolerância (±3mm; ±10mm para Terças Z). Marque e confirme quando a divergência já for conhecida/aceitável - grava na memória e não aparece mais em nenhuma obra futura.',
+    padrao_planilha: 'Itens movidos manualmente a partir de Faltantes - peças que o usuário já sabe que seguem regra própria e por ora não têm DXF. Não contam como faltante, mas a marcação NÃO é definitiva: se um DXF real aparecer para a posição em obra futura, ele continua sendo encontrado e processado normalmente.',
+    sem_cam: 'Itens cujo IDENTIFICADOR começa com BR (barra) ou TB (tubo) - cortados por serra/outro processo, nunca geram DXF/CAM, por isso não entram na contagem de faltantes. Se algum destes precisar de CAM mesmo assim, marque e use "Forçar CAM" - vale para qualquer obra futura (a posição passa a ser tratada normalmente, inclusive aparecendo em Faltantes caso realmente não tenha DXF).',
+    ignorados_memoria_lista: "Itens marcados manualmente em rodadas anteriores como 'não gera DXF mesmo' (válido para qualquer obra), MAIS itens que o próprio código já classifica automaticamente como ignorados (Terças Z sem DXF próprio, BR_RED, W_, PS) - em ambos os casos, o roteirizador já sabe que não há CAM, sem precisar de decisão do usuário."
+  };
+  function carregarRel() {
+    return api('relatorio').then(function (r) { REL = r && !r.vazio ? r : null; relSel = {}; desenharRel(); return r; }).catch(function () { });
+  }
+  function f1(v) { return v == null || isNaN(v) ? null : (+v).toFixed(1); }
+  function desenharRel() {
+    $('#rel-vazio').style.display = REL ? 'none' : '';
+    $('#rel-cheio').style.display = REL ? '' : 'none';
+    $('#cnt-rel').textContent = REL && REL.faltantes.length ? REL.faltantes.length : '';
+    if (!REL) return;
+    $('#rel-sub').innerHTML = '<b>OF(s):</b> ' + esc(REL.ofs_texto) + '&nbsp;&nbsp;|&nbsp;&nbsp;Gerado em ' + esc(REL.gerado_em);
+    var k = [['ITENS NA PLANILHA', REL.total_relevante, ''], ['DXFS ENCONTRADOS', REL.total_encontrados, 'ok'], ['FALTANTES', REL.faltantes.length, 'er'],
+      ['DIVERGÊNCIA TAMANHO', REL.divergencias_tamanho.length, 'av'], ['[PADRÃO] PLANILHA', REL.padrao_planilha.length, 'inf'], ['SEM CAM (BR/TB)', REL.sem_cam.length, 'inf'],
+      ['IGNORADOS (MEMÓRIA)', REL.ignorados_memoria_lista.length, 'inf'], ['APROVEITAMENTO', (REL.aproveitamento || 0).toFixed(1) + '%', '']];
+    $('#rel-kpis').innerHTML = k.map(function (x) { return '<div class="kpi ' + x[2] + '"><div class="v">' + esc(x[1]) + '</div><div class="r">' + esc(x[0]) + '</div></div>'; }).join('');
+    $('#rel-abas').innerHTML = SUBS.map(function (s) { return '<button class="ab' + (s[0] === relSub ? ' on' : '') + '" data-sub="' + s[0] + '">' + esc(s[1]) + ' (' + REL[s[0]].length + ')</button>'; }).join('');
+    desenharSub();
+  }
+  function opcoesFluxo(it) {
+    return '<datalist id="dl-' + esc(it._id) + '">' + (it.opcoes_fluxo || []).map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist>';
+  }
+  function campoTexto(it, campo, ph, lista) {
+    var v = (relVal[it._id] || {})[campo] || '';
+    return '<input type="text" data-v="' + campo + '" data-id="' + esc(it._id) + '" value="' + esc(v) + '" placeholder="' + esc(ph) + '"' + (lista ? ' list="dl-' + esc(it._id) + '"' : '') + ' spellcheck="false">';
+  }
+  function desenharSub() {
+    var s = relSub, L = REL[s], h = '<div class="dica">' + esc(DICAS[s]) + '</div>';
+    var st = relStatus[s] ? '<span class="st ' + relStatus[s][1] + '">' + esc(relStatus[s][0]) + '</span>' : '';
+    var ck = function (it) { return '<td class="ck"><input type="checkbox" data-sel="' + esc(it._id) + '"' + (relSel[it._id] ? ' checked' : '') + '></td>'; };
+    var vazio = function (n, t) { return '<tr><td colspan="' + n + '" class="vz">' + esc(t) + '</td></tr>'; };
+    var cab = function (cols) { return '<table><thead><tr>' + cols.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>'; };
+    var bTodos = '<button class="b" data-r="todos">Selecionar/desmarcar todos</button>';
+    if (s === 'faltantes' || s === 'nao_roteirizado') {
+      h += '<div class="acoes">' + bTodos + '<button class="b perigo" data-r="ignorar">Marcar selecionados como ignorado</button><button class="b p" data-r="fluxo">Definir fluxo manual</button><button class="b" data-r="padrao">Mover para [PADRÃO] PLANILHA</button>' + st + '</div>';
+      if (s === 'faltantes') {
+        h += '<div class="arv">' + cab(['', 'OF', 'Tipo', 'Posição', 'Identificador', 'Fluxo', 'Motivo']);
+        h += L.length ? L.map(function (it) { return '<tr>' + ck(it) + '<td>' + esc(it.of) + '</td><td>' + esc(it.tipo) + '</td><td>' + esc(it.pos) + '</td><td>' + esc(it.identificador) + '</td><td>' + opcoesFluxo(it) + campoTexto(it, 'fluxo', 'escolha ou digite', 1) + '</td><td class="q">' + campoTexto(it, 'motivo', 'motivo (opcional)') + '</td></tr>'; }).join('') : vazio(7, 'Nenhum item faltante até agora.');
+      } else {
+        h += '<div class="arv">' + cab(['', 'OF', 'Posição', 'Identificador', 'Arquivo', 'Esp.', 'Fluxo', 'Motivo']);
+        h += L.length ? L.map(function (it) { return '<tr>' + ck(it) + '<td>' + esc(it.of) + '</td><td>' + esc(it.pos) + '</td><td>' + esc(it.identificador) + '</td><td>' + esc(it.arquivo) + '</td><td>' + esc(it.espessura == null ? '' : String(it.espessura).replace('.', ',')) + '</td><td>' + opcoesFluxo(it) + campoTexto(it, 'fluxo', 'escolha ou digite', 1) + '</td><td class="q">' + campoTexto(it, 'motivo', 'motivo (opcional)') + '</td></tr>'; }).join('') : vazio(8, 'Nenhum item fora de fluxo até agora.');
+      }
+      h += '</tbody></table></div>';
+    } else if (s === 'divergencias_tamanho') {
+      h += '<div class="acoes">' + bTodos + '<button class="b p" data-r="conferido">Marcar selecionados como conferido</button>' + st + '</div>';
+      h += '<div class="arv">' + cab(['', 'OF', 'Posição', 'Identificador', 'Dimensão DXF (mm)', 'Dimensão Planilha (mm)', 'Diferença (mm)', 'Tolerância']);
+      h += L.length ? L.map(function (it) {
+        var ref = it.desenvolvimento_planilha == null ? it.comprimento_planilha : it.desenvolvimento_planilha;
+        var dx = it.largura_dxf != null && it.altura_dxf != null ? f1(it.largura_dxf) + ' x ' + f1(it.altura_dxf) : 'N/A';
+        var dp = it.largura_planilha != null && ref != null ? f1(it.largura_planilha) + ' x ' + f1(ref) : 'N/A';
+        var ds = [it.diferenca_largura, it.diferenca_altura].filter(function (d) { return d != null; });
+        return '<tr>' + ck(it) + '<td>' + esc(it.of) + '</td><td>' + esc(it.pos) + '</td><td>' + esc(it.identificador) + '</td><td class="c">' + dx + '</td><td class="c">' + dp + '</td><td class="c">' + (ds.length ? f1(Math.max.apply(null, ds)) : 'N/A') + '</td><td class="c">±' + Math.round(it.tolerancia == null ? 3 : it.tolerancia) + 'mm</td></tr>';
+      }).join('') : vazio(8, 'Nenhuma divergência');
+      h += '</tbody></table></div>';
+    } else if (s === 'sem_cam') {
+      h += '<div class="acoes">' + bTodos + '<button class="b p" data-r="forcar_cam">Forçar CAM (desconsiderar)</button>' + st + '</div>';
+      h += '<div class="arv">' + cab(['', 'OF', 'Tipo', 'Posição', 'Identificador']);
+      h += L.length ? L.map(function (it) { return '<tr>' + ck(it) + '<td>' + esc(it.of) + '</td><td>' + esc(it.tipo) + '</td><td>' + esc(it.pos) + '</td><td>' + esc(it.identificador) + '</td></tr>'; }).join('') : vazio(5, 'Nenhum item');
+      h += '</tbody></table></div>';
+    } else {
+      h += '<div class="arv">' + cab(['OF', 'Tipo', 'Posição', 'Identificador']);
+      h += L.length ? L.map(function (it) { return '<tr><td>' + esc(it.of) + '</td><td>' + esc(it.tipo) + '</td><td>' + esc(it.pos) + '</td><td>' + esc(it.identificador) + '</td></tr>'; }).join('') : vazio(4, 'Nenhum item');
+      h += '</tbody></table></div>';
+    }
+    $('#rel-corpo').innerHTML = h;
+  }
+  function selecionados() { return REL[relSub].filter(function (it) { return relSel[it._id]; }); }
+  function statusRel(lista, msg, tipo) {
+    relStatus[lista] = [msg, tipo || 'ok'];
+    setTimeout(function () { if (relStatus[lista] && relStatus[lista][0] === msg) { delete relStatus[lista]; if (REL && relSub === lista) { var x = $('#rel-corpo .acoes .st'); if (x) x.remove(); } } }, 6000);
+  }
+  function acaoRel(acao) {
+    var lista = relSub;
+    if (acao === 'todos') {
+      var L = REL[lista]; var marcar = L.some(function (it) { return !relSel[it._id]; });
+      L.forEach(function (it) { relSel[it._id] = marcar; }); desenharSub(); return;
+    }
+    var sel = selecionados();
+    if (!sel.length) { info('Nenhum item selecionado', 'Marque ao menos um item na coluna à esquerda antes de continuar.'); return; }
+    var n = sel.length, val = function (it, c) { return ((relVal[it._id] || {})[c] || '').trim(); };
+    var p = Promise.resolve(true), motivo = '';
+    if (acao === 'ignorar') p = confirmar('Confirmar', 'Marcar ' + n + " item(ns) como 'não gera DXF' permanentemente?\nIsso vale para qualquer obra futura.\n\nDica: preencha o campo 'Motivo' de cada linha antes de confirmar, se quiser registrar o motivo.");
+    else if (acao === 'fluxo') {
+      var sem = sel.filter(function (it) { return !val(it, 'fluxo'); });
+      if (sem.length) { info('Fluxo não preenchido', sem.length + " linha(s) selecionada(s) não têm fluxo preenchido.\n\nPreencha (ou escolha na lista) o campo 'Fluxo' de cada linha e tente de novo.", true); return; }
+      p = confirmar('Confirmar', lista === 'nao_roteirizado'
+        ? 'Mover ' + n + ' item(ns) para o fluxo escolhido AGORA e gravar na memória?\n\nVale para qualquer obra futura com a mesma posição/identificador - da próxima vez que aparecer, o roteirizador já manda direto pro fluxo certo, sem precisar definir de novo.'
+        : 'Gravar o fluxo manual de ' + n + ' item(ns) na memória?\n\nVale para qualquer obra futura com a mesma posição/identificador.');
+    } else if (acao === 'padrao') p = confirmar('Confirmar', 'Mover ' + n + ' item(ns) para "[PADRÃO] PLANILHA"?\n\n' + (lista === 'faltantes'
+      ? 'Isso NÃO descarta a peça para sempre: se um DXF real aparecer para ela em uma obra futura (ex: uma liberação nova gerar CAM), o roteirizador continua encontrando e processando normalmente - a marcação só evita que ela apareça como faltante enquanto não houver DXF.'
+      : 'Isso NÃO descarta a peça para sempre: se um DXF real aparecer para ela em uma obra futura, o roteirizador continua encontrando e processando normalmente.'));
+    else if (acao === 'conferido') p = perguntar('Motivo (opcional)', 'Motivo da divergência aceita (opcional):').then(function (m) { if (m === null) m = ''; motivo = m; return true; });
+    else if (acao === 'forcar_cam') p = confirmar('Confirmar', "Desconsiderar a regra automática de 'sem CAM' (BR/TB) para " + n + " item(ns)?\nEssas posições passarão a ser tratadas normalmente (aparecem em Faltantes se não tiverem DXF correspondente) - vale para qualquer obra futura.")
+      .then(function (ok) { if (!ok) return false; return perguntar('Motivo (opcional)', 'Motivo (opcional):').then(function (m) { motivo = m || ''; return true; }); });
+    p.then(function (ok) {
+      if (!ok) return;
+      var itens = sel.map(function (it) { return { id: it._id, fluxo: val(it, 'fluxo'), motivo: val(it, 'motivo') }; });
+      return api('rel', { lista: lista, acao: acao, itens: itens, motivo: motivo }).then(function (r) {
+        if (!r.ok) return erroApi(r);
+        sel.forEach(function (it) { delete relSel[it._id]; delete relVal[it._id]; });
+        statusRel(lista, r.msg, r.tipo);
+        REL = r.vazio ? null : r; desenharRel();
+      });
+    }).catch(function (e) { erroApi({ erro: String(e) }); });
+  }
+
+  /* ------------------------------------------------------------ 3) Peso por fluxo */
+  var PESO = null;
+  function carregarPeso() { return api('pesos').then(function (r) { PESO = r && !r.vazio ? r : null; desenharPeso(); }).catch(function () { }); }
+  function svgTexto(x, y, t, op) { op = op || {}; return '<text x="' + x + '" y="' + y + '" fill="' + (op.cor || '#1f2937') + '" font-size="' + (op.tam || 12) + '" font-weight="' + (op.peso || 600) + '" text-anchor="' + (op.anc || 'start') + '" dominant-baseline="' + (op.base || 'middle') + '">' + esc(t) + '</text>'; }
+  function desenharPeso() {
+    $('#peso-vazio').style.display = PESO ? 'none' : '';
+    $('#peso-cheio').style.display = PESO ? '' : 'none';
+    if (!PESO) return;
+    var D = PESO.dados;
+    $('#peso-res').textContent = PESO.resumo || 'Nenhuma peça com peso calculável foi roteirizada nesta rodada (faltaram dimensões, espessura ou fluxo definido para todas as peças).';
+    $('#peso-tipo').value = PESO.tipo;
+    var g = $('#peso-graf'), W = Math.max(g.clientWidth - 20, 600), h = '';
+    if (!D.length) { g.innerHTML = '<div class="vz" style="text-align:center;padding:20px;color:#4b5563">Sem dados de peso.</div>'; $('#peso-tab').innerHTML = ''; return; }
+    var maior = Math.max.apply(null, D.map(function (d) { return d.peso_total; })) || 1;
+    var tot = D.reduce(function (a, d) { return a + d.peso_total; }, 0);
+    if (PESO.tipo === 'pizza') {
+      var H = Math.max(30 * D.length + 40, 260), r = Math.max(Math.min(H - 30, W * 0.42), 120) / 2, cx = r + 30, cy = H / 2, ang = -Math.PI / 2;
+      D.forEach(function (d) {
+        var fr = tot ? d.peso_total / tot : 0; if (fr <= 0) return;
+        var a2 = ang + fr * 2 * Math.PI;
+        if (fr >= 0.9999) h += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + d.cor + '"/>';
+        else h += '<path d="M' + cx + ',' + cy + ' L' + (cx + r * Math.cos(ang)) + ',' + (cy + r * Math.sin(ang)) + ' A' + r + ',' + r + ' 0 ' + (fr > 0.5 ? 1 : 0) + ' 1 ' + (cx + r * Math.cos(a2)) + ',' + (cy + r * Math.sin(a2)) + ' Z" fill="' + d.cor + '" stroke="#fff" stroke-width="2"/>';
+        ang = a2;
+      });
+      var xl = cx + r + 40, yl = 16;
+      D.forEach(function (d) {
+        var pct = tot ? (d.peso_total / tot * 100) : 0;
+        h += '<rect x="' + xl + '" y="' + yl + '" width="16" height="16" rx="2" fill="' + d.cor + '"/>' + svgTexto(xl + 24, yl + 8, d.fluxo + ' - ' + d.peso_total_txt + ' kg (' + pct.toFixed(1) + '%)');
+        yl += 28;
+      });
+      g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="max-height:' + H + 'px">' + h + '</svg>';
+    } else if (PESO.tipo === 'velas') {
+      var H2 = 340, mi = 70, ms = 34, alt = H2 - mi - ms, esp = (W - 40) / D.length, lc = Math.max(esp * 0.55, 18), x = 30;
+      h += '<line x1="20" x2="' + (W - 10) + '" y1="' + (ms + alt) + '" y2="' + (ms + alt) + '" stroke="#c5cbd6"/>';
+      D.forEach(function (d) {
+        var ab = (d.peso_total / maior) * alt, xc = x + esp / 2, y1 = ms + alt, y0 = y1 - ab;
+        h += '<rect x="' + (xc - lc / 2) + '" y="' + y0 + '" width="' + lc + '" height="' + ab + '" rx="2" fill="' + d.cor + '"/>';
+        h += svgTexto(xc, y0 - 8, d.peso_total_txt + ' kg', { anc: 'middle', base: 'auto', tam: 11, cor: '#4b5563' });
+        h += svgTexto(xc, y1 + 16, d.fluxo, { anc: 'middle', tam: 11, peso: 700 });
+        x += esp;
+      });
+      g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H2 + '">' + h + '</svg>';
+    } else {
+      var lr = 210, md = 210, ld = Math.max(W - lr - md, 60), ab2 = 34, H3 = Math.max(ab2 * D.length + 16, 80);
+      D.forEach(function (d, i) {
+        var y0 = i * ab2 + 6, y1 = y0 + ab2 - 10, lb = Math.max((d.peso_total / maior) * ld, 2), ym = (y0 + y1) / 2;
+        h += svgTexto(lr - 10, ym, d.fluxo, { anc: 'end', peso: 700 });
+        h += '<rect x="' + lr + '" y="' + y0 + '" width="' + lb + '" height="' + (y1 - y0) + '" rx="2" fill="' + d.cor + '"/>';
+        h += svgTexto(lr + lb + 8, ym, d.peso_total_txt + ' kg  (' + d.pecas_txt + ' pç)', { cor: '#4b5563' });
+      });
+      g.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H3 + '" style="max-height:' + H3 + 'px">' + h + '</svg>';
+    }
+    $('#peso-tab').innerHTML = '<table><thead><tr><th>Fluxo</th><th>Posições</th><th>Peças (qtd)</th><th>Peso total (kg)</th><th>Peso médio/peça (kg)</th></tr></thead><tbody>' +
+      D.map(function (d) { var st = ' style="background:' + d.cor + ';color:#fff;font-weight:700"'; return '<tr><td' + st + '>' + esc(d.fluxo) + '</td><td class="c"' + st + '>' + d.quantidade_posicoes + '</td><td class="c"' + st + '>' + esc(d.pecas_txt) + '</td><td class="num"' + st + '>' + esc(d.peso_total_txt) + '</td><td class="num"' + st + '>' + esc(d.peso_medio_txt) + '</td></tr>'; }).join('') + '</tbody></table>';
+  }
+  function editarCores() {
+    if (!PESO || !PESO.dados.length) return;
+    var D = PESO.dados;
+    var html = '<div style="font-size:12.5px;color:#4b5563;margin-bottom:10px;white-space:normal">Clique no quadrado colorido para escolher uma nova cor. As cores ficam salvas e valem para qualquer obra futura, até serem trocadas de novo ou restauradas ao padrão.</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow:auto;white-space:normal">' +
+      D.map(function (d, i) { return '<label style="display:flex;align-items:center;gap:10px;padding:5px 8px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;cursor:pointer"><input type="color" data-cor="' + i + '" value="' + esc(d.cor) + '" style="width:42px;height:24px;padding:0;border:1px solid #555;border-radius:3px;cursor:pointer"><span style="font-weight:600">' + esc(d.fluxo) + '</span></label>'; }).join('') + '</div>';
+    janela({
+      titulo: 'Editar cores do gráfico de peso por fluxo', ic: 'cor', larg: 440, html: html, semFoco: true,
+      botoes: [{ v: 'padrao', t: 'Restaurar padrão' }, { v: null, t: 'Cancelar', kb: 'Esc' }, { v: 'ok', t: 'Salvar e aplicar', kb: 'Enter' }],
+      valor: function (c, v) { var o = {}; [].forEach.call(c.querySelectorAll('[data-cor]'), function (x) { o[D[+x.dataset.cor].fluxo] = x.value; }); return { v: v, cores: o }; }
+    }).then(function (r) {
+      if (!r || !r.v) return;
+      if (r.v === 'padrao') { var o = {}; D.forEach(function (d) { o[d.fluxo] = d.cor_padrao; }); r.cores = o; }
+      api('pesos_cores', { cores: r.cores }).then(function (x) { if (x.ok) { PESO = x.vazio ? null : x; desenharPeso(); } else erroApi(x); });
+    });
+  }
+
+  /* ------------------------------------------------------------ 4) Verificador */
+  var VER = null, verVal = {}, vrVal = {}, vigia = null, avisoVisto = null;
+  function carregarVer() { return api('verificador').then(aplicarVer).catch(function () { }); }
+  function aplicarVer(v) {
+    if (!v || v.ok === false) { if (v && v.erro) erroApi(v); if (!v || !v.pastas) return; }
+    VER = v; verId = v.id; vrId = (v.vr && v.vr.id) || vrId;
+    var ul = $('#ver-pastas');
+    ul.innerHTML = v.pastas.length ? v.pastas.map(function (p) { return '<li class="mk"><label><input type="checkbox" data-pasta="' + esc(p.caminho) + '"' + (p.sel ? ' checked' : '') + '><span class="n" title="' + esc(p.caminho) + '">' + esc(p.caminho) + '</span></label></li>'; }).join('') : '<li class="vazio">Nenhuma pasta na lista.</li>';
+    var st = $('#ver-st'); st.className = 'status ' + (v.status_tipo || ''); st.textContent = v.status || '';
+    var st2 = $('#ver-st2'); st2.className = 'status ' + (v.lendo && /Verificando as pastas/.test(v.status2) ? 'rodando' : (v.status2_tipo || '')); st2.textContent = v.status2 || '';
+    var vr = v.vr || {}, s3 = $('#vr-st'); s3.className = 'status ' + (vr.rodando ? 'rodando' : (vr.status_tipo || '')); s3.textContent = vr.status || '';
+    var vp = $('#vr-pl'); if (vr.planilha && !vp.value && document.activeElement !== vp) { vp.value = vr.planilha; marcarCampo(vp); }
+    $('[data-a="vr-conf"]').disabled = !!vr.rodando;
+    if (!ativoNaTabela('#vr-tab')) desenharVr(vr.linhas || []);
+    if (!ativoNaTabela('#ver-tab')) desenharVerLinhas(v.linhas || []);
+    if (avisoVisto === null) avisoVisto = v.aviso_sem_retrato;
+    else if (v.aviso_sem_retrato > avisoVisto) {
+      avisoVisto = v.aviso_sem_retrato;
+      info('Pasta sem retrato da roteirização', 'Essa pasta não tem o "retrato" que o Roteirizador grava quando organiza uma obra, então o acompanhamento automático de peças movidas à mão não funciona nela.\n\nMas você pode só LER e conferir: em "Conferir pelas regras (somente leitura)", escolha a planilha da obra e clique em "Conferir pastas da lista". O programa mostra o que está fora da regra, sem mover nada, e você ajusta o fluxo de cada posição na própria linha.');
+    }
+    garantirVigia();
+  }
+  function ativoNaTabela(sel) { var a = document.activeElement; return a && a.closest && a.closest(sel) && a.tagName === 'INPUT'; }
+  function desenharVr(L) {
+    var h = '<table><thead><tr><th>OF</th><th>Posição</th><th>Identificador</th><th>Arquivo</th><th>Regra manda</th><th>Está em</th><th>Fluxo a salvar</th><th>Motivo</th><th></th></tr></thead><tbody>';
+    h += L.length ? L.map(function (d, i) {
+      var vv = vrVal[d.chave] || {}; var fl = vv.fluxo != null ? vv.fluxo : ((d.opcoes || [])[0] || ''); var mo = vv.motivo || '';
+      return '<tr data-ch="' + esc(d.chave) + '"><td>' + esc(d.of) + '</td><td>' + esc(d.pos) + '</td><td>' + esc(d.identificador) + '</td><td>' + esc(d.arquivo) + '</td><td>' + esc(String(d.regra || '') + (d.ajuste_manual ? '  (memória)' : '')) + '</td><td>' + esc(d.atual) + '</td>' +
+        '<td><datalist id="vrl' + i + '">' + (d.opcoes || []).map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist><input type="text" data-vr="fluxo" list="vrl' + i + '" value="' + esc(fl) + '" spellcheck="false"></td>' +
+        '<td class="q"><input type="text" data-vr="motivo" value="' + esc(mo) + '" placeholder="motivo" spellcheck="false"></td><td><button class="b mini" data-vrs' + (mo.trim() && fl.trim() ? '' : ' disabled') + '>Salvar</button></td></tr>';
+    }).join('') : '<tr><td colspan="9" class="vz">Nenhuma conferência feita ainda (ou tudo está de acordo com as regras).</td></tr>';
+    $('#vr-tab').innerHTML = h + '</tbody></table>';
+  }
+  function desenharVerLinhas(L) {
+    var h = '<table><thead><tr><th>OF</th><th>Posição</th><th>Identificador</th><th>Arquivo</th><th>Fluxo Roteirizado</th><th>Fluxo Atual</th><th>Motivo</th><th></th></tr></thead><tbody>';
+    h += L.length ? L.map(function (d) {
+      var mo = verVal[d.chave] || '';
+      return '<tr data-ch="' + esc(d.chave) + '"><td>' + esc(d.of) + '</td><td>' + esc(d.pos) + '</td><td>' + esc(d.identificador) + '</td><td>' + esc(d.arquivo) + '</td><td>' + esc(d.pasta_no_snapshot) + '</td><td>' + esc(d.fluxo_atual) + '</td>' +
+        '<td class="q"><input type="text" data-vm value="' + esc(mo) + '" placeholder="motivo" spellcheck="false"></td><td><button class="b mini" data-vs' + (mo.trim() ? '' : ' disabled') + '>Salvar</button></td></tr>';
+    }).join('') : '<tr><td colspan="8" class="vz">Nenhuma posição alterada manualmente até agora.</td></tr>';
+    $('#ver-tab').innerHTML = h + '</tbody></table>';
+  }
+  function garantirVigia() {
+    if (vigia || !VER || !VER.pastas.length) return;
+    vigia = setInterval(function () {
+      if (!VER || !VER.pastas.length) { clearInterval(vigia); vigia = null; return; }
+      if (abaAtual !== 'ver' || document.hidden) return;
+      api('ver_verificar', { periodico: true }).then(aplicarVer).catch(function () { });
+    }, 6000);
+  }
+  function verAdd() {
+    var i = $('#ver-cam');
+    api('ver_adicionar', { caminho: i.value }).then(function (r) {
+      if (r.ok === false) return erroApi(r);
+      i.value = ''; marcarCampo(i); aplicarVer(r);
+    });
+  }
+  function vrSalvar(itens, todos) {
+    if (!itens.length) { info('Nenhum motivo preenchido', 'Preencha o motivo de ao menos uma linha antes de salvar.'); return; }
+    var p = todos ? confirmar('Confirmar', 'Gravar o fluxo manual de ' + itens.length + ' posição(ões) na memória?\n\nIsso vale para QUALQUER obra futura com a mesma posição/identificador.') : Promise.resolve(true);
+    p.then(function (ok) {
+      if (!ok) return;
+      api('vr_salvar', { itens: itens }).then(function (r) {
+        if (r.ok === false && r.erro) erroApi(r);
+        itens.forEach(function (x) { if (!VER || !(VER.vr.linhas || []).some(function (l) { return l.chave === x.chave; })) delete vrVal[x.chave]; });
+        if (document.activeElement) document.activeElement.blur();
+        aplicarVer(r);
+      });
+    });
+  }
+  function verSalvar(chaves, todos) {
+    if (!chaves.length) { info('Nenhum motivo preenchido', 'Preencha o motivo de ao menos uma linha antes de salvar.'); return; }
+    var p = todos ? confirmar('Confirmar', 'Gravar o fluxo manual de ' + chaves.length + ' posição(ões) na memória?\n\nIsso vale para QUALQUER obra futura: sempre que a mesma posição/identificador aparecer novamente, o roteirizador já vai direto para o fluxo escolhido aqui, sem passar pelas regras automáticas.') : Promise.resolve(true);
+    p.then(function (ok) {
+      if (!ok) return;
+      var m = {}; chaves.forEach(function (c) { m[c] = verVal[c]; });
+      api('ver_salvar', { chaves: chaves, motivos: m }).then(function (r) {
+        chaves.forEach(function (c) { delete verVal[c]; });
+        if (document.activeElement) document.activeElement.blur();
+        aplicarVer(r);
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------ ligações */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    var ab = t.closest('#rt-abas .ab'); if (ab) return irAba(ab.dataset.aba);
+    var sb = t.closest('#rel-abas .ab'); if (sb) { relSub = sb.dataset.sub; desenharRel(); return; }
+    var r = t.closest('[data-r]'); if (r) return acaoRel(r.dataset.r);
+    var vrs = t.closest('[data-vrs]'); if (vrs) { var ch = vrs.closest('tr').dataset.ch, v = vrVal[ch] || {}; var tr = vrs.closest('tr'); vrSalvar([{ chave: ch, fluxo: (v.fluxo != null ? v.fluxo : tr.querySelector('[data-vr="fluxo"]').value).trim(), motivo: (v.motivo || '').trim() }]); return; }
+    var vs = t.closest('[data-vs]'); if (vs) { verSalvar([vs.closest('tr').dataset.ch]); return; }
+    var b = t.closest('[data-a]'); if (!b || b.disabled) return;
+    var a = b.dataset.a;
+    if (a === 'pl') escolherArquivo().then(function (f) { return caminhoDoArquivo(f, function () { b.click(); }); }).then(function (c) { if (c) { $('#rt-pl').value = c; marcarCampo($('#rt-pl')); $('#rt-err').textContent = ''; } });
+    else if (a === 'pa') { if (rodando) return; escolherPasta().then(function (c) { if (c) { $('#rt-pa').value = c; marcarCampo($('#rt-pa')); $('#rt-err').textContent = ''; } }); }
+    else if (a === 'iniciar') iniciar();
+    else if (a === 'limpar') limparTela();
+    else if (a === 'cores') editarCores();
+    else if (a === 'ver-proc') escolherPasta().then(function (c) { if (c) { $('#ver-cam').value = c; marcarCampo($('#ver-cam')); } });
+    else if (a === 'ver-add') verAdd();
+    else if (a === 'ver-todas') api('ver_todas', {}).then(aplicarVer);
+    else if (a === 'ver-rem') api('ver_remover', {}).then(aplicarVer);
+    else if (a === 'ver-agora') api('ver_verificar', {}).then(aplicarVer);
+    else if (a === 'vr-proc') escolherArquivo().then(function (f) { return caminhoDoArquivo(f, function () { b.click(); }); }).then(function (c) { if (c) { $('#vr-pl').value = c; marcarCampo($('#vr-pl')); } });
+    else if (a === 'vr-conf') api('vr_conferir', { planilha: $('#vr-pl').value, caminho: $('#ver-cam').value }).then(function (x) { if (x.ok === false) return erroApi(x); $('#ver-cam').value = ''; aplicarVer(x); });
+    else if (a === 'vr-todos') vrSalvar((VER && VER.vr.linhas || []).map(function (d) { var v = vrVal[d.chave] || {}; return { chave: d.chave, fluxo: (v.fluxo != null ? v.fluxo : ((d.opcoes || [])[0] || '')).trim(), motivo: (v.motivo || '').trim() }; }).filter(function (x) { return x.fluxo && x.motivo; }), true);
+    else if (a === 'ver-todos') verSalvar((VER && VER.linhas || []).map(function (d) { return d.chave; }).filter(function (c) { return (verVal[c] || '').trim(); }), true);
   });
-  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.matches('[data-sel]')) { relSel[t.dataset.sel] = t.checked; return; }
+    if (t.matches('[data-pasta]')) { api('ver_marcar', { caminhos: [t.dataset.pasta] }).then(aplicarVer); return; }
+    if (t.id === 'peso-tipo') api('pesos_tipo', { tipo: t.value }).then(function (x) { if (x.ok) { PESO = x.vazio ? null : x; desenharPeso(); } });
+  });
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t.matches('[data-v]')) { (relVal[t.dataset.id] = relVal[t.dataset.id] || {})[t.dataset.v] = t.value; return; }
+    if (t.matches('[data-vr]')) { var ch = t.closest('tr').dataset.ch; (vrVal[ch] = vrVal[ch] || {})[t.dataset.vr] = t.value; var tr = t.closest('tr'); tr.querySelector('[data-vrs]').disabled = !(tr.querySelector('[data-vr="fluxo"]').value.trim() && tr.querySelector('[data-vr="motivo"]').value.trim()); return; }
+    if (t.matches('[data-vm]')) { var c2 = t.closest('tr').dataset.ch; verVal[c2] = t.value; t.closest('tr').querySelector('[data-vs]').disabled = !t.value.trim(); return; }
+    if (t.classList.contains('campo-in')) { marcarCampo(t); if (t.id === 'rt-pl' || t.id === 'rt-pa') $('#rt-err').textContent = ''; }
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter') return;
+    var t = ev.target;
+    if (t.id === 'rt-pl' || t.id === 'rt-pa') { ev.preventDefault(); iniciar(); }
+    else if (t.id === 'ver-cam') { ev.preventDefault(); verAdd(); }
+    else if (t.matches('[data-vr="motivo"]')) { ev.preventDefault(); var bt = t.closest('tr').querySelector('[data-vrs]'); if (!bt.disabled) bt.click(); }
+    else if (t.matches('[data-vm]')) { ev.preventDefault(); var b2 = t.closest('tr').querySelector('[data-vs]'); if (!b2.disabled) b2.click(); }
+  });
+  /* arrastar a planilha para a área 1 */
+  function ligarDrop(el, alvo) {
+    ['dragenter', 'dragover'].forEach(function (n) { el.addEventListener(n, function (e) { e.preventDefault(); el.classList.add('over'); }); });
+    ['dragleave', 'drop'].forEach(function (n) { el.addEventListener(n, function () { el.classList.remove('over'); }); });
+    el.addEventListener('drop', function (e) {
+      e.preventDefault();
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      caminhoDoArquivo(f, function () { el.click(); }).then(function (c) { if (c) { var i = $(alvo); i.value = c; marcarCampo(i); $('#rt-err').textContent = ''; } });
+    });
+    el.addEventListener('click', function () { $('#p-rot [data-a="pl"]').click(); });
+  }
+  window.addEventListener('resize', function () { if (abaAtual === 'peso') desenharPeso(); });
+  document.addEventListener('DOMContentLoaded', function () {
+    ligarDrop($('#rt-drop'), '#rt-pl');
+    api('disponivel').then(function (d) {
+      if (!d.ok) {
+        $('#rt-err').textContent = '❌ ' + (d.erro || 'O Roteirizador DXF não está disponível neste PC.');
+        if (d.faltam && d.faltam.length) $('#rt-err').insertAdjacentHTML('beforeend', ' <button class="b mini" id="rt-inst">Instalar bibliotecas</button>');
+        var bi = $('#rt-inst'); if (bi) bi.onclick = function () { try { window.top.instAbrir(); } catch (e) { } };
+      }
+    }).catch(function () { });
+    ciclo();
+    carregarVer();
+    $('#rt-pl').focus();
+  });
 })();
 
 <\/script>
@@ -21218,7 +21796,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 258';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 259';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});

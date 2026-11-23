@@ -164,3 +164,13 @@ def test_preparacao_fabrica_apps():
     assert "['fab','Preparação fábrica','gan']" in html
     for aba in fabrica.APPS:
         assert f'id="src-{aba}"' in html
+
+
+def test_roteirizador_dentro_da_aba():
+    """Preparação fábrica: o Roteirizador DXF roda na própria aba (API /api/fabrica/rot/...)."""
+    from ppcpm import fabrica_rot
+    assert fabrica_rot.estado()["ok"] is True
+    assert fabrica_rot.relatorio()["vazio"] is True
+    assert fabrica_rot.post("xyz", {})["ok"] is False
+    pg22 = (Path(__file__).resolve().parent.parent / "ppcpm" / "gerado" / "modulos" / "pg22.html").read_text(encoding="utf-8")
+    assert "/api/fabrica/rot/" in pg22 and 'data-aba="ver"' in pg22
