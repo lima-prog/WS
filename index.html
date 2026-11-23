@@ -19197,121 +19197,510 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .arv .vz{color:#374151}
 .kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 
-.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
-.fb-ic svg{width:24px;height:24px}
-.fb-oq{font-size:14px;line-height:1.55;color:#111827}
-.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
-.fb-ol li{margin:4px 0}
-.fb-st{display:flex;flex-direction:column;gap:8px}
-.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
-.fb-l b{min-width:118px}
-.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
-.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
-.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
-.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
-.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
-.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
-.fb-pill.on{background:#dcf5e3;color:#15803d}
-.fb-pill.no{background:#fde2e2;color:#b91c1c}
-.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.b.fb-abrir{font-size:15px;padding:10px 18px}
-.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
-.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
-.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
-.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+/* Preparação fábrica — app dentro da aba */
+.abas{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 14px;border-bottom:2px solid #c5cbd6}
+.abas .ab{display:inline-flex;align-items:center;gap:8px;background:transparent;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;padding:10px 16px;font:700 13.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#4b5563;cursor:pointer}
+.abas .ab:hover{color:#111827;background:#e3e7ec}
+.abas .ab.on{color:#0b3d91;border-bottom-color:#0b3d91}
+.abas .ab svg{flex:none}
+.abas .cnt:not(:empty){margin-left:2px;padding:0 7px;border-radius:999px;background:#fde2e2;color:#b91c1c;font-size:11.5px}
+.painel{display:none}.painel.on{display:block}
+.abas2{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 10px}
+.abas2 .ab{background:#d5dae1;border:1px solid #99a3af;border-radius:4px;padding:6px 12px;font:700 12.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#1f2937;cursor:pointer}
+.abas2 .ab:hover{background:#c9d0d8}
+.abas2 .ab.on{background:#0b3d91;border-color:#0b3d91;color:#fff}
+.log{background:#fff;border:1px solid #99a3af;border-radius:4px;height:340px;overflow:auto;padding:8px 10px;font:12.5px/1.5 Consolas,'Courier New',monospace;color:#1f2937;white-space:pre-wrap;word-break:break-word}
+.log .vz{font-family:'Segoe UI',Inter,system-ui,sans-serif;color:#6b7280;font-weight:600;text-align:center;padding:30px 0}
+.log .ok{color:#15803d}.log .er{color:#b91c1c;font-weight:700}.log .av{color:#b45309}.log .inf{color:#0b3d91}
+.rt-err:empty{display:none}
+.rt-err{margin-top:8px;color:#b42318;font-weight:700;font-size:13px}
+.status.ok::before{background:#1e8e3e}.status.aviso::before{background:#d97706}.status.erro::before{background:#dc2626}
+.status.ok{color:#15803d}.status.aviso{color:#92400e}.status.erro{color:#b42318}
+.status:empty{display:none}
+.vazio-cx{text-align:center;color:#4b5563;font-size:14px;line-height:1.7;padding:46px 12px!important}
+.rel-sub{margin:0 0 10px;font-size:13px;color:#374151}
+.kpis8{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.kpi{flex-direction:column;align-items:flex-start;gap:2px;min-height:0;padding:10px 12px;border-left:4px solid #6b7280}
+.kpi .v{font-size:21px}
+.kpi.ok{border-left-color:#16a34a}.kpi.ok .v{color:#15803d}
+.kpi.er{border-left-color:#dc2626}.kpi.er .v{color:#b91c1c}
+.kpi.av{border-left-color:#d97706}.kpi.av .v{color:#b45309}
+.kpi.inf{border-left-color:#0b3d91}.kpi.inf .v{color:#0b3d91}
+.dica{font-size:12.5px;color:#92400e;background:#fff7e6;border:1px solid #f5d9a8;border-left:3px solid #d97706;border-radius:3px;padding:7px 10px;margin:0 0 10px;line-height:1.5}
+.fraco{font-size:12px;color:#4b5563;margin-top:8px;line-height:1.5}
+.mt{margin-top:10px}
+.arv{max-height:420px}
+.arv td input[type=text],.arv td select{width:100%;min-width:150px;padding:4px 8px;font-size:12.5px}
+.arv td.ck{width:34px;text-align:center}
+.arv td.ck input{margin:0}
+.arv td .b.mini{margin:0}
+.arv td.num{text-align:right;font-variant-numeric:tabular-nums}
+.arv td.c{text-align:center}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.acoes .st{font-size:12.5px;font-weight:700}
+.acoes .st.ok{color:#15803d}.acoes .st.aviso{color:#b45309}
+.b.perigo{color:#b42318;border-color:#e8a7a0}
+.b.perigo:hover:not(:disabled){background:#fdeeee;border-color:#dc2626}
+.rot-lbl{font-weight:700;font-size:13px}
+.graf{background:#fff;border:1px solid #99a3af;border-radius:4px;padding:10px;overflow:auto}
+.graf svg{display:block;width:100%;height:auto}
+.graf text{font-family:'Segoe UI',Inter,system-ui,sans-serif}
+.lista li .n{font-family:Consolas,'Courier New',monospace;font-weight:600}
+.lista{max-height:180px}
+.status{margin-top:8px}
+.barra .status{margin-top:0}
+.fb-falta{margin:0 0 12px;padding:9px 12px;border-radius:4px;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c;font-weight:700;font-size:13.5px}
+.fb-falta:empty{display:none}
+.rotulo{min-width:118px;font-weight:700;font-size:13px}
+.sub-info{font-size:12px;color:#4b5563;font-weight:600}
+.arv tr.marcada td{background:#dde6f3!important}
+.arv td.st-ok{background:#e9f3ea!important;color:#1e7b34;font-weight:700}
+.arv td.st-er{background:#fbe7e4!important;color:#b42318;font-weight:700}
+.arv td.st-av{background:#fbf0dc!important;color:#92400e;font-weight:700}
+.rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px}
+.sel-txt{color:#0b3d91;font-weight:700;font-size:13px}
+.b.grande{font-size:14px;padding:10px 20px}
+.topo-dir{margin-left:auto}
+.vi-topo{display:flex;align-items:center;gap:12px;padding:10px 14px!important;margin-bottom:10px}
+.vi-nome{font-weight:700;font-size:14px;color:#1d1d1b;flex:5;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vi-nome.vazio{color:#8a8a8a;font-style:italic;font-weight:500}
+.vi-sep{width:1px;align-self:stretch;background:#99a3af}
+.vi-pastas{flex:4;min-width:0;font-size:12.5px;color:#4d4c4c;font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vi-dica{font-size:11.5px;color:#6b7280;font-style:italic;white-space:nowrap}
+.vi-grid{display:grid;grid-template-columns:180px minmax(0,1fr) 180px 270px;gap:10px;align-items:stretch;margin-bottom:10px}
+.vi-grid .cx{margin:0;padding:10px!important}
+.vi-lado{display:flex;flex-direction:column;gap:6px}
+.vi-lado .b{width:100%;justify-content:flex-start;padding:7px 10px;font-size:12.5px}
+.vi-lado #vi-criar,.vi-lado #vi-mover{display:flex;flex-direction:column;gap:6px}
+.vi-tit{font-weight:800;font-size:12.5px;color:#0b3d91;margin-bottom:4px}
+.vi-info{font-size:11px;color:#4d4c4c;font-style:italic}
+.vi-centro{padding:6px!important}
+.vi-tela{position:relative;height:560px;background:#0b2150;border:1px solid #545659;border-radius:4px;overflow:hidden;outline:none;cursor:grab}
+.vi-tela.arrastando{cursor:grabbing}
+.vi-tela svg{position:absolute;inset:0;width:100%;height:100%}
+.vi-vazio{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#8c8cc8;font-size:14px;pointer-events:none}
+.vi-erro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#ff8a80;font-size:14px;white-space:pre-wrap;pointer-events:none}
+.vi-hud{position:absolute;left:10px;top:10px;background:rgba(255,255,255,.92);border:1px solid #99a3af;border-radius:4px;padding:6px 10px;pointer-events:none}
+.vi-hud .t{font-size:11px;font-weight:800;color:#0b3d91}
+.vi-hud .d{font-size:11.5px;font-weight:700;color:#1d1d1b;white-space:pre}
+.vi-esp{overflow:auto;max-height:584px}
+.vi-esp-t{font-weight:800;font-size:13px;color:#0b3d91;background:#e6e6e6;border:1px solid #ccc;border-radius:3px;padding:8px 6px;margin-bottom:10px}
+.vi-card{background:#fff;border-radius:4px;padding:8px;margin:6px 0;border:1px solid}
+.vi-card .h{font-weight:800;font-size:12.5px;margin-bottom:6px}
+.vi-card .i{font-size:12px;padding:3px 6px;border-radius:3px;margin:2px 0}
+.vi-ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px!important;margin-bottom:6px}
+.vi-zoom{display:flex;align-items:center;gap:8px;flex:2;min-width:240px;background:#e6e6e6;border:1px solid #ccc;border-radius:4px;padding:5px 10px}
+.vi-zoom b{color:#0b3d91;font-size:12.5px;white-space:nowrap}
+.vi-zoom input{flex:1;accent-color:#0b3d91}
+.vi-zoom span{font-weight:800;color:#0b3d91;min-width:44px;font-size:12.5px}
+.vi-nav{display:flex;gap:6px;background:#e6e6e6;border:1px solid #ccc;border-radius:4px;padding:3px}
+.vi-status{background:#e6e6e6;color:#4d4c4c;border-top:1px solid #ccc;padding:5px 10px;font-size:12px;border-radius:0 0 4px 4px;min-height:26px}
+.vi-menu{position:fixed;z-index:50;background:#fff;border:1px solid #6b7280;border-radius:4px;box-shadow:0 8px 20px rgba(0,0,0,.25);padding:4px 0;min-width:230px;font-size:13px}
+.vi-menu div{padding:6px 14px;cursor:pointer}.vi-menu div:hover{background:#dbe8fb}
+.vi-menu hr{border:0;border-top:1px solid #e1e5ea;margin:4px 0}
+@media(max-width:1250px){.vi-grid{grid-template-columns:160px minmax(0,1fr) 160px}.vi-esp{grid-column:1/-1;max-height:none}}
 </style>
 </head>
 <body>
 <div class="pr-topo"><b>Preparação fábrica | Visualizador DXF:</b><span class="c">Pasta dos DXF</span><i>→</i><span class="c">ver um por um</span><i>→</i><span class="c">mover para o fluxo</span></div>
-
-<div class="cx">
-  <div class="cx-h"><span class="badge">1</span><h3>O que o Visualizador DXF faz</h3></div>
-  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="fb-oq">Visualiza DXF um por um, bem rápido, e ajuda a SEPARAR os arquivos em pastas de fluxo (move o arquivo atual para a pasta escolhida).</div></div>
+<div class="fb-falta" id="fb-falta"></div>
+<div class="cx vi-topo">
+  <div class="vi-nome" id="vi-nome">Nenhum arquivo carregado</div>
+  <div class="vi-sep"></div>
+  <div class="vi-pastas">📂 <span id="vi-pastas">—</span></div>
+  <div class="vi-dica">ESPAÇO → Navegar pastas</div>
 </div>
-
-<div class="grid2">
-  <div class="cx">
-    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
-    <ol class="fb-ol"><li>Carregue uma pasta (botão ou tecla Tab). Lista todos os .dxf da pasta.</li><li>Navegue: seta direita = próximo, seta esquerda = anterior, 0 = zoom original, A = enquadrar, D = descartar da lista, Espaço = navegador de pastas.</li><li>No navegador de pastas, escolha o tipo (Fluxo 1, Fluxo 2, Fluxo 3, Fluxo 4, Acessórios Padrão, Perfiladeira U E C, Perfiladeira L, Joist, Terça Z) para mover o DXF atual.</li><li>Os atalhos podem ser trocados na tela de atalhos (ficam salvos para a próxima vez).</li></ol>
+<div class="vi-grid">
+  <div class="cx vi-lado">
+    <div class="vi-tit">📁 CRIAR PASTAS</div>
+    <div id="vi-criar"></div>
+    <button class="b" data-a="abrir-atual" id="vi-abrir" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Abrir Pasta Atual</button>
   </div>
-  <div class="cx">
-    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
-    <div class="fb-st" id="fb-status">
-      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
-      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
-      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
-      <div class="fb-acoes">
-        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Visualizador DXF</button>
-        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
-        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
-        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
-      </div>
-      <div class="fb-msg" id="fb-msg"></div>
-      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+  <div class="cx vi-centro">
+    <div class="vi-tela" id="vi-tela" tabindex="0">
+      <svg id="vi-svg" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="vi-vazio" id="vi-vazio">Nenhum arquivo carregado<br><br>Clique em 'Carregar Pasta' ou pressione TAB<br>Pressione ESPAÇO para navegar pastas</div>
+      <div class="vi-hud"><div class="t">📐 Dimensões</div><div class="d" id="vi-hud">—</div></div>
     </div>
   </div>
+  <div class="cx vi-lado">
+    <div class="vi-tit">🚚 MOVER ARQUIVO</div>
+    <div class="vi-info">Mover arquivo atual para:</div>
+    <div id="vi-mover"></div>
+    <button class="b" data-a="atualizar" id="vi-atual" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Atualizar Pastas</button>
+  </div>
+  <div class="cx vi-esp" id="vi-esp"><div class="vi-esp-t">ESPECIFICAÇÕES</div></div>
 </div>
+<div class="cx vi-ctrl">
+  <button class="b p" data-a="carregar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Carregar Pasta</button>
+  <button class="b" data-a="descartar" id="vi-desc" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>Descartar</button>
+  <div class="vi-zoom"><b>🔍 Zoom:</b><input type="range" id="vi-zoom" min="10" max="500" value="100" disabled><span id="vi-zl">100%</span></div>
+  <button class="b" data-a="reset" id="vi-reset" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Reset Zoom (0)</button>
+  <button class="b" data-a="ajustar" id="vi-fit" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Ajustar na Tela</button>
+  <div class="vi-nav"><button class="b" data-a="ant" id="vi-ant" disabled>◀ Anterior</button><button class="b" data-a="prox" id="vi-prox" disabled>Próximo ▶</button></div>
+  <button class="b" data-a="atalhos" title="Configurar atalhos e Auto-Ajuste"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Atalhos</button>
+</div>
+<div class="vi-status" id="vi-st">Pronto — TAB para carregar pasta  |  ESPAÇO para navegar</div>
 
 <script>
-window.FB_ABA = 'pg16'; window.FB_NOME = 'Visualizador DXF';
-
+/* Preparação fábrica — funções comuns dos apps que rodam dentro da aba (janela do sistema, pastas, arquivos, API). */
 (function () {
   'use strict';
-  var ABA = window.FB_ABA, NOME = window.FB_NOME;
-  var $ = function (s) { return document.querySelector(s); };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var Hd = { 'X-PPCPM': '1' };
   function local() {
     if (typeof window.PPCPM_PASTA === 'function') return true;
     try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
   }
-  if (!local()) {
-    document.addEventListener('DOMContentLoaded', function () {
-      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
-        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
-        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+  function apiDe(app) {
+    return function (acao, corpo) {
+      var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+        { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+      return fetch('/api/fabrica/' + app + '/' + acao, op).then(function (r) { return r.json(); });
+    };
+  }
+  var TD; try { TD = window.top.document; } catch (e) { TD = document; }
+  var BS = 'display:inline-flex;align-items:center;gap:8px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 14px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff;white-space:nowrap';
+  var KB = function (t) { return '<span style="padding:0 6px;background:#fff;border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;font:600 10.5px Segoe UI,Arial,sans-serif;color:#374151">' + t + '</span>'; };
+  var ICJ = {
+    q: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/>',
+    i: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+    av: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+    ok: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+    ed: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/>'
+  };
+  /* op: {titulo, cor, ic, html, botoes:[{v,t,kb,foco}], larg, aoAbrir(card), valor(card,v), semFoco} -> Promise */
+  function janela(op) {
+    return new Promise(function (res) {
+      var f = TD.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+      f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Segoe UI,Roboto,Arial,sans-serif';
+      var cor = op.cor || '#0b3d91';
+      var bts = op.botoes || [{ v: true, t: 'OK', kb: 'Enter', foco: 1 }];
+      f.innerHTML = '<div style="width:100%;max-width:' + (op.larg || 470) + 'px;max-height:92vh;display:flex;flex-direction:column;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-top:4px solid ' + cor + ';border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
+        '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700;cursor:move">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" style="flex:none;fill:none;stroke:' + cor + ';stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + (ICJ[op.ic] || ICJ.i) + '</svg><span>' + esc(op.titulo) + '</span></div>' +
+        '<div style="padding:14px 16px;line-height:1.5;white-space:pre-wrap;overflow:auto">' + op.html + '</div>' +
+        '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+        bts.map(function (b, i) { return '<button type="button" data-q="' + i + '" style="' + BS + '">' + esc(b.t) + (b.kb ? ' ' + KB(b.kb) : '') + '</button>'; }).join('') + '</div></div>';
+      var card = f.firstChild;
+      var fim = function (v) { TD.removeEventListener('keydown', tec, true); f.remove(); res(op.valor ? op.valor(card, v) : v); };
+      var tec = function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); var c = bts.filter(function (b) { return b.kb === 'Esc'; })[0]; fim(c ? c.v : false); }
+        else if (ev.key === 'Enter' && !(ev.target && ev.target.tagName === 'TEXTAREA')) { var e2 = bts.filter(function (b) { return b.kb === 'Enter'; })[0]; if (e2) { ev.preventDefault(); ev.stopPropagation(); fim(e2.v); } }
+      };
+      f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(bts[+b.dataset.q].v); });
+      TD.addEventListener('keydown', tec, true); (TD.body || TD.documentElement).appendChild(f);
+      [].forEach.call(f.querySelectorAll('[data-q]'), function (x) { x.onmouseenter = function () { x.style.background = 'linear-gradient(#e7ebef,#c9d0d8)'; }; x.onmouseleave = function () { x.style.background = 'linear-gradient(#f3f5f7,#d9dee5)'; }; });
+      try { if (window.top.__arrastavel) window.top.__arrastavel(card, card.firstChild); } catch (e) { }
+      if (op.aoAbrir) op.aoAbrir(card);
+      var fb = bts.map(function (b, i) { return b.foco ? i : -1; }).filter(function (i) { return i >= 0; })[0];
+      if (!op.semFoco) { var bf = f.querySelector('[data-q="' + (fb == null ? bts.length - 1 : fb) + '"]'); if (bf) bf.focus(); }
     });
-    return;
   }
-  function api(acao, corpo) {
-    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
-      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
-    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  function confirmar(titulo, texto, sim, nao) {
+    return janela({ titulo: titulo, ic: 'q', html: esc(texto), botoes: [{ v: false, t: nao || 'Não', kb: 'Esc' }, { v: true, t: sim || 'Sim', kb: 'Enter', foco: 1 }] });
   }
-  var ultimo = null;
-  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
-  function desenhar(e) {
-    ultimo = e;
-    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
-    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
-    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
-    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
-    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
-    var falta = e.faltam && e.faltam.length;
-    $('#fb-inst').style.display = falta ? '' : 'none';
-    $('#fb-abrir').disabled = !e.existe || !!falta;
-    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  function info(titulo, texto, tipo) {
+    var c = tipo === 'aviso' ? ['av', '#d97706'] : tipo === 'ok' ? ['ok', '#1e9e4a'] : ['i', '#0b3d91'];
+    return janela({ titulo: titulo, ic: c[0], cor: c[1], html: esc(texto) });
   }
-  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  function perguntar(titulo, rotulo, valor) {
+    return janela({
+      titulo: titulo, ic: 'ed', semFoco: true, html: esc(rotulo) + '<input type="text" data-in value="' + esc(valor || '') + '" style="display:block;width:100%;margin-top:8px;box-sizing:border-box;background:#fff;color:#000;border:1px solid #98a3b3;border-radius:4px;padding:7px 10px;font:600 13.5px Segoe UI,Arial,sans-serif">',
+      botoes: [{ v: null, t: 'Cancelar', kb: 'Esc' }, { v: 1, t: 'OK', kb: 'Enter' }],
+      aoAbrir: function (c) { var i = c.querySelector('[data-in]'); setTimeout(function () { i.focus(); i.select(); }, 0); },
+      valor: function (c, v) { return v === null ? null : (c.querySelector('[data-in]').value || ''); }
+    });
+  }
+  function erro(r, titulo) {
+    var t = (r && (r.erro || r.msg)) || 'Não consegui falar com o sistema.';
+    try { if (window.top.__pjQuadroErro) return window.top.__pjQuadroErro({ titulo: (r && r.titulo) || titulo || 'Erro', texto: t }); } catch (e) { }
+    return info((r && r.titulo) || titulo || 'Erro', t, 'aviso');
+  }
+  function escolherPasta() {
+    try { return window.showDirectoryPicker().then(function (h) { return (h && h.ppcpmCaminho) || ''; }, function () { return ''; }); }
+    catch (e) { return Promise.resolve(''); }
+  }
+  /* arquivo do PC: devolve o File (com .ppcpmCaminho quando o sistema conhece o caminho) */
+  function escolherArquivos(aceita, multiplo) {
+    return new Promise(function (res) {
+      var i = document.createElement('input'); i.type = 'file'; if (aceita) i.accept = aceita; i.multiple = !!multiplo; i.style.display = 'none'; document.body.appendChild(i);
+      var feito = false;
+      i.addEventListener('change', function () { feito = true; res(Array.prototype.slice.call(i.files || [])); i.remove(); });
+      i.addEventListener('cancel', function () { if (!feito) { feito = true; res([]); i.remove(); } });
+      i.click();
+    });
+  }
+  function aceito(nome, exts) { var n = String(nome || '').toLowerCase(); return exts.some(function (e) { return n.slice(-e.length) === e; }); }
+  function recusar(nomes, exts, escolher) {
+    try { window.top.__arqRecusado({ nomes: nomes, aceitos: exts, escolher: escolher }); } catch (e) { info('Formato inválido', 'Arquivo não aceito: ' + nomes.join(', '), 'aviso'); }
+  }
+  function marcarCampo(inp, ok) { var v = ok == null ? !!inp.value.trim() : ok; inp.classList.toggle('ok', v && !!inp.value.trim()); inp.classList.toggle('er', ok === false); }
+  function siteSemApp(nome, texto) {
+    document.addEventListener('DOMContentLoaded', function () {
+      $$('body>*:not(.pr-topo)').forEach(function (p) { if (p.tagName !== 'SCRIPT') p.remove(); });
+      document.body.insertAdjacentHTML('beforeend', '<div class="cx pr-site"><h2>' + esc(nome) + '</h2>' +
+        '<p>' + (texto || 'Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os arquivos direto nas pastas do PC ou do servidor).') + '</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>');
+    });
+  }
+  function verificarApp(api, alvo) {
+    return api('disponivel').then(function (d) {
+      if (d.ok) return true;
+      var el = typeof alvo === 'string' ? $(alvo) : alvo;
+      if (el) {
+        el.innerHTML = '<div class="fb-falta">❌ ' + esc(d.erro || 'App indisponível neste PC.') + (d.faltam && d.faltam.length ? ' <button class="b mini" data-inst>Instalar bibliotecas</button>' : '') + '</div>';
+        var bi = el.querySelector('[data-inst]'); if (bi) bi.onclick = function () { try { window.top.instAbrir(); } catch (e) { } };
+      }
+      return false;
+    }).catch(function () { return false; });
+  }
+  window.FB = { $: $, $$: $$, esc: esc, local: local, apiDe: apiDe, janela: janela, confirmar: confirmar, info: info, perguntar: perguntar, erro: erro,
+    escolherPasta: escolherPasta, escolherArquivos: escolherArquivos, aceito: aceito, recusar: recusar, marcarCampo: marcarCampo, siteSemApp: siteSemApp, verificarApp: verificarApp, Hd: Hd };
+})();
+
+(function () {
+  'use strict';
+  var F = window.FB, $ = F.$, esc = F.esc;
+  if (!F.local()) return F.siteSemApp('Visualizador DXF');
+  var api = F.apiDe('vis');
+  var E = null, P = null, vista = null, zoom = 100, autoFit = true, AT = {}, stTimer = null;
+  var COR = { linhas: 'rgb(180,110,110)', circulos: 'rgb(100,160,210)', polis: 'rgb(100,200,150)', arcos: 'rgb(210,180,90)' };
+  var NOMES_AT = { next_file: 'Próximo arquivo', prev_file: 'Arquivo anterior', reset_zoom: 'Resetar zoom', fit_view: 'Ajustar na tela', load_folder: 'Carregar pasta', discard_files: 'Descartar arquivos' };
+
+  function status(msg, ms) {
+    $('#vi-st').textContent = msg; clearTimeout(stTimer);
+    if (ms) stTimer = setTimeout(function () { if ($('#vi-st').textContent === msg) $('#vi-st').textContent = ''; }, ms);
+  }
+  function statusArquivo() { if (E && E.total) status('Arquivo ' + (E.indice + 1) + '/' + E.total + ': ' + E.arquivo + '  |  Zoom: ' + zoom.toFixed(1) + '%  |  ← → navegar  |  0 reset  |  ESPAÇO navegar pastas'); }
+  function aplicar(e, sem) {
+    if (!e || e.ok === false) { if (e && e.erro) F.erro(e, e.titulo || 'Visualizador DXF'); return; }
+    E = e; autoFit = e.auto_fit !== false; AT = e.atalhos || AT;
+    var tem = e.total > 0;
+    $('#vi-desc').disabled = !tem; $('#vi-ant').disabled = !(tem && e.indice > 0); $('#vi-prox').disabled = !(tem && e.indice < e.total - 1);
+    $('#vi-zoom').disabled = $('#vi-reset').disabled = $('#vi-fit').disabled = !tem;
+    $('#vi-abrir').disabled = $('#vi-atual').disabled = !e.folder_path;
+    $('#vi-criar').innerHTML = e.tipos.map(function (t) { return '<button class="b" data-criar="' + esc(t) + '">' + esc(t) + '</button>'; }).join('');
+    $('#vi-mover').innerHTML = e.tipos.map(function (t) {
+      var m = e.mover[t]; return '<button class="b" data-mover="' + esc(t) + '"' + (m && tem ? '' : ' disabled') + ' title="' + esc(m ? 'Mover para: ' + m : "Pasta '" + t + "' não encontrada") + '">' + esc(t) + '</button>';
+    }).join('');
+    if (!sem) { if (tem) carregarPeca(); else vazio(); }
+  }
+  function vazio() {
+    P = null; $('#vi-svg').innerHTML = ''; $('#vi-vazio').style.display = '';
+    var er = $('#vi-tela .vi-erro'); if (er) er.remove();
+    $('#vi-nome').textContent = 'Nenhum arquivo carregado'; $('#vi-nome').className = 'vi-nome vazio';
+    $('#vi-pastas').textContent = '—'; $('#vi-hud').textContent = '—';
+    $('#vi-esp').innerHTML = '<div class="vi-esp-t" style="font-style:italic;color:#8a8a8a;background:none;border:0">ESPECIFICAÇÕES</div>';
+    status('Pronto — TAB para carregar pasta  |  ESPAÇO para navegar');
+  }
+  function carregarPeca() {
+    api('peca').then(function (p) {
+      var er = $('#vi-tela .vi-erro'); if (er) er.remove();
+      if (p.vazio) return vazio();
+      $('#vi-vazio').style.display = 'none';
+      $('#vi-nome').textContent = '  ' + p.nome; $('#vi-nome').className = 'vi-nome';
+      if (p.erro_arquivo) { P = null; $('#vi-svg').innerHTML = ''; $('#vi-tela').insertAdjacentHTML('beforeend', '<div class="vi-erro">' + esc(p.erro_arquivo) + '</div>'); status('Erro ao carregar arquivo'); return; }
+      P = p;
+      var f1 = p.pastas[0], f2 = p.pastas[1];
+      $('#vi-pastas').textContent = f1 && f2 ? f1 + '  /  ' + f2 : f1 ? f1 : 'Pasta raiz';
+      var u = p.info.units || 'mm';
+      $('#vi-hud').textContent = 'L: ' + p.info.width.toFixed(2) + ' ' + u + '\nA: ' + p.info.height.toFixed(2) + ' ' + u;
+      especificacoes(p.info);
+      if (autoFit) ajustar(); else vistaZoom();
+      statusArquivo();
+    });
+  }
+  function especificacoes(info) {
+    var u = info.units || 'mm', h = '<div class="vi-esp-t">ESPECIFICAÇÕES</div>';
+    var card = function (borda, tc, bg, tit, itens) { return '<div class="vi-card" style="border-color:' + borda + '"><div class="h" style="color:' + tc + '">' + tit + '</div>' + itens.map(function (t) { return '<div class="i" style="background:' + bg + ';color:' + tc + '">' + esc(t) + '</div>'; }).join('') + '</div>'; };
+    if (info.holes.length) h += card('#1a7a92', '#0E5E73', '#E3F3F7', '⭕ Furos Circulares (' + info.holes.length + ')', info.holes.map(function (o, i) { return 'Furo ' + (i + 1) + ': ⌀' + o.diameter.toFixed(2) + u; }));
+    if (info.oblong_holes.length) h += card('#A67C2E', '#7A5A12', '#FBF3E0', '⬭ Furos Oblongos (' + info.oblong_holes.length + ')', info.oblong_holes.map(function (o, i) { return 'Oblongo ' + (i + 1) + ': ' + o.width.toFixed(2) + ' x ' + o.length.toFixed(2) + ' ' + u; }));
+    if (info.depressions.length) h += card('#8A2E6A', '#8A2E6A', '#F9E9F3', '▬ Rebaixos/Rasgos (' + info.depressions.length + ')', info.depressions.map(function (o, i) { return 'Área ' + (i + 1) + ': ' + o.area.toFixed(2) + ' ' + u + '²'; }));
+    $('#vi-esp').innerHTML = h;
+  }
+  /* ---------- desenho (mesmas cores do app: linha, círculo, polilinha, arco) */
+  function desenhar() {
+    if (!P) return;
+    var g = P.geo, s = '';
+    var tr = function (x, y) { return x.toFixed(4) + ',' + (-y).toFixed(4); };
+    var pen = 'fill="none" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"';
+    g.linhas.forEach(function (l) { s += '<line x1="' + l[0] + '" y1="' + (-l[1]) + '" x2="' + l[2] + '" y2="' + (-l[3]) + '" stroke="' + COR.linhas + '" ' + pen + '/>'; });
+    g.circulos.forEach(function (c) { s += '<circle cx="' + c[0] + '" cy="' + (-c[1]) + '" r="' + c[2] + '" stroke="' + COR.circulos + '" ' + pen + '/>'; });
+    g.arcos.forEach(function (a) { s += '<polyline points="' + a.map(function (q) { return tr(q[0], q[1]); }).join(' ') + '" stroke="' + COR.arcos + '" ' + pen + '/>'; });
+    g.polis.forEach(function (a) { s += '<polyline points="' + a.map(function (q) { return tr(q[0], q[1]); }).join(' ') + '" stroke="' + COR.polis + '" ' + pen + '/>'; });
+    $('#vi-svg').innerHTML = s;
+    aplicarVista();
+  }
+  function aplicarVista() {
+    if (!vista) return;
+    var el = $('#vi-tela'), W = el.clientWidth || 800, H = el.clientHeight || 560, asp = W / H;
+    var hw = vista.hw, hh = vista.hh;
+    if (hw / hh < asp) hw = hh * asp; else hh = hw / asp;
+    $('#vi-svg').setAttribute('viewBox', (vista.cx - hw) + ' ' + (-vista.cy - hh) + ' ' + (2 * hw) + ' ' + (2 * hh));
+  }
+  function vistaZoom() {           /* zoom 100% = mesma janela do app (centro médio, meia-janela pelo maior valor) */
+    if (!P) return;
+    var m = P.meia / (zoom / 100);
+    vista = { cx: P.centro[0], cy: P.centro[1], hw: m, hh: m };
+    desenhar();
+  }
+  function caixa() {
+    var xs = [], ys = [], g = P.geo;
+    g.linhas.forEach(function (l) { xs.push(l[0], l[2]); ys.push(l[1], l[3]); });
+    g.circulos.forEach(function (c) { xs.push(c[0] - c[2], c[0] + c[2]); ys.push(c[1] - c[2], c[1] + c[2]); });
+    g.arcos.concat(g.polis).forEach(function (a) { a.forEach(function (q) { xs.push(q[0]); ys.push(q[1]); }); });
+    if (!xs.length) return null;
+    return [Math.min.apply(null, xs), Math.min.apply(null, ys), Math.max.apply(null, xs), Math.max.apply(null, ys)];
+  }
+  function ajustar() {
+    if (!P) return;
+    var c = caixa(); if (!c) return vistaZoom();
+    var w = Math.max(c[2] - c[0], 1), h = Math.max(c[3] - c[1], 1);
+    vista = { cx: (c[0] + c[2]) / 2, cy: (c[1] + c[3]) / 2, hw: w * 0.6, hh: h * 0.6 };
+    desenhar();
+  }
+  function mudarZoom(v) { zoom = v; $('#vi-zoom').value = v; $('#vi-zl').textContent = v + '%'; vistaZoom(); statusArquivo(); }
+  /* ---------- ações */
+  function carregarPasta() {
+    F.escolherPasta().then(function (c) {
+      if (!c) return;
+      api('carregar', { caminho: c, raiz: true }).then(function (r) {
+        aplicar(r);
+        if (r.vazia) F.info('Pasta vazia', 'A pasta não contém arquivos DXF válidos.', 'aviso');
+        else if (r.ok !== false) status(Object.keys(r.mover).filter(function (k) { return r.mover[k]; }).length + ' pastas disponíveis para mover arquivos', 2000);
+      });
+    });
+  }
+  function ir(passo) { if (!E || !E.total) return; var n = E.indice + passo; if (n < 0 || n >= E.total) return; api('ir', { indice: n }).then(function (r) { aplicar(r); }); }
+  function descartar() { if (!E || !E.total) return; F.confirmar('Confirmar', 'Descartar os arquivos carregados?').then(function (ok) { if (ok) api('descartar', {}).then(aplicar); }); }
+  function criarPasta(t, conf) {
+    api('criar_pasta', { tipo: t, confirmado: !!conf }).then(function (r) {
+      if (r.ok === false) return F.erro(r);
+      if (r.perguntar) return F.confirmar(r.titulo, r.texto).then(function (ok) { if (ok) criarPasta(t, true); });
+      aplicar(r, true); if (r.status) status(r.status, 3000);
+    });
+  }
+  function moverPara(t, passo) {
+    api('mover', { tipo: t, passo: passo || '' }).then(function (r) {
+      if (r.ok === false) return F.erro(r);
+      if (r.perguntar) return F.confirmar(r.titulo, r.texto).then(function (ok) { if (ok) moverPara(t, r.perguntar); });
+      aplicar(r); if (r.status) status(r.status, 3000);
+    });
+  }
+  function navegador() {
+    api('arvore').then(function (r) {
+      if (!r.ok) return F.erro(r);
+      var sel = null;
+      var no = function (n, nivel, raiz) {
+        var cor = n.atual ? 'background:#0B3D91;color:#fff;font-weight:700' : raiz ? 'color:#0B3D91;font-weight:700' : n.dxf ? 'color:#000' : 'color:#8A8A8A';
+        var rot = raiz ? '📁  ' + n.nome : n.atual ? '▶  ' + n.nome + '  ◀' + (n.dxf ? '  [' + n.dxf + ' DXF]' : '') : (n.dxf ? '📂  ' + n.nome + '  [' + n.dxf + ' DXF]' : '📁  ' + n.nome);
+        return '<div data-cam="' + esc(n.caminho) + '" style="padding:4px 8px 4px ' + (8 + nivel * 18) + 'px;cursor:pointer;border-radius:3px;font-size:13px;' + cor + '">' + esc(rot) + '</div>' + (n.filhos || []).map(function (f) { return no(f, nivel + 1); }).join('');
+      };
+      F.janela({
+        titulo: 'Navegador de Pastas', ic: 'i', larg: 520, semFoco: true,
+        html: '<div style="font-size:11.5px;color:#6b7280;margin-bottom:6px;white-space:normal">Enter / duplo clique para carregar  ·  Esc para fechar</div><div data-arv tabindex="0" style="max-height:52vh;overflow:auto;background:#fff;border:1px solid #99a3af;border-radius:4px;padding:4px;white-space:normal;outline:none">' + no(r.raiz, 0, true) + '</div><div data-cam-lbl style="font-size:11.5px;color:#4b5563;margin-top:6px;word-break:break-all;white-space:normal"></div>',
+        botoes: [{ v: null, t: 'Fechar', kb: 'Esc' }, { v: 'ok', t: 'Carregar', kb: 'Enter' }],
+        aoAbrir: function (c) {
+          var arv = c.querySelector('[data-arv]');
+          var marcar = function (d) { [].forEach.call(arv.querySelectorAll('[data-cam]'), function (x) { x.style.outline = ''; }); d.style.outline = '2px solid #0B3D91'; sel = d.dataset.cam; c.querySelector('[data-cam-lbl]').textContent = sel; };
+          arv.addEventListener('click', function (ev) { var d = ev.target.closest('[data-cam]'); if (d) marcar(d); });
+          arv.addEventListener('dblclick', function (ev) { var d = ev.target.closest('[data-cam]'); if (d) { marcar(d); c.querySelector('[data-q="1"]').click(); } });
+          var at = arv.querySelector('[data-cam][style*="#0B3D91;color:#fff"]') || arv.querySelector('[data-cam]'); if (at) { marcar(at); at.scrollIntoView({ block: 'center' }); }
+          arv.focus();
+        },
+        valor: function (c, v) { return v ? sel : null; }
+      }).then(function (cam) {
+        if (!cam) return;
+        api('carregar', { caminho: cam, raiz: false }).then(function (r) { aplicar(r); if (r.total) status('Carregados ' + r.total + ' arquivos de: ' + cam.split(/[\\/]/).pop(), 3000); });
+      });
+    });
+  }
+  function teclaTxt(ev) {
+    var k = ev.key; if (k === ' ') k = 'Space'; if (k === 'ArrowRight') k = 'Right'; if (k === 'ArrowLeft') k = 'Left'; if (k === 'ArrowUp') k = 'Up'; if (k === 'ArrowDown') k = 'Down';
+    if (k.length === 1) k = k.toUpperCase();
+    var m = []; if (ev.ctrlKey) m.push('Ctrl'); if (ev.altKey) m.push('Alt'); if (ev.shiftKey && k.length > 1) m.push('Shift');
+    if (['Control', 'Alt', 'Shift', 'Meta'].indexOf(ev.key) >= 0) return '';
+    return m.concat([k]).join('+');
+  }
+  function configurarAtalhos() {
+    var at = Object.assign({}, AT);
+    var linhas = function () { return Object.keys(NOMES_AT).map(function (k) { return '<tr><td style="padding:6px 10px;border-bottom:1px solid #e6e9ee">' + NOMES_AT[k] + '</td><td style="padding:4px 10px;border-bottom:1px solid #e6e9ee"><button type="button" data-k="' + k + '" style="min-width:120px;background:#fff;color:#000;border:1px solid #98a3b3;border-radius:4px;padding:4px 10px;font:700 13px Consolas,monospace;cursor:pointer">' + esc(at[k] || '') + '</button></td></tr>'; }).join(''); };
+    F.janela({
+      titulo: 'Configurar Atalhos', ic: 'ed', larg: 480, semFoco: true,
+      html: '<div style="font-size:12px;color:#4b5563;margin-bottom:8px;white-space:normal">Clique no atalho e pressione a nova tecla. Espaço continua abrindo o Navegador de Pastas.</div><table data-t style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #99a3af;font-size:13px">' + linhas() + '</table>' +
+        '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:700;white-space:normal;cursor:pointer"><input type="checkbox" data-af' + (autoFit ? ' checked' : '') + '>📐 Auto-Ajuste (enquadrar sozinho ao trocar de arquivo)</label>',
+      botoes: [{ v: 'padrao', t: 'Restaurar Padrões' }, { v: null, t: 'Cancelar', kb: 'Esc' }, { v: 'ok', t: 'Salvar' }],
+      aoAbrir: function (c) {
+        c.addEventListener('click', function (ev) {
+          var b = ev.target.closest('[data-k]'); if (!b) return;
+          b.textContent = 'pressione…';
+          var h = function (e2) { e2.preventDefault(); e2.stopPropagation(); var t = teclaTxt(e2); if (!t) return; at[b.dataset.k] = t; b.textContent = t; b.ownerDocument.removeEventListener('keydown', h, true); };
+          b.ownerDocument.addEventListener('keydown', h, true);
+        });
+      },
+      valor: function (c, v) { return { v: v, af: c.querySelector('[data-af]').checked }; }
+    }).then(function (r) {
+      if (!r || !r.v) return;
+      if (r.v === 'padrao') { at = { next_file: 'Right', prev_file: 'Left', reset_zoom: '0', fit_view: 'A', load_folder: 'Tab', discard_files: 'D' }; }
+      api('pref', { shortcuts: at, auto_fit: r.af }).then(function (e) { aplicar(e, true); if (r.af && P) ajustar(); });
+    });
+  }
+  function menu(x, y) {
+    var m = $('.vi-menu'); if (m) m.remove();
+    m = document.createElement('div'); m.className = 'vi-menu';
+    m.innerHTML = '<div data-m="ajustar">🔍 Ajustar na Tela</div><div data-m="reset">🔄 Resetar Zoom</div><hr><div data-m="ant">◀ Arquivo Anterior</div><div data-m="prox">▶ Próximo Arquivo</div><hr><div data-m="nav">📂 Navegar Pastas  [Espaço]</div><hr><div data-m="atalhos">⚙️ Configurar Atalhos</div><div data-m="auto">' + (autoFit ? '☑' : '☐') + ' 📐 Auto-Ajuste</div>';
+    m.style.left = x + 'px'; m.style.top = y + 'px'; document.body.appendChild(m);
+  }
+  function acao(a) {
+    if (a === 'carregar') carregarPasta();
+    else if (a === 'descartar') descartar();
+    else if (a === 'ant') ir(-1);
+    else if (a === 'prox') ir(1);
+    else if (a === 'reset') mudarZoom(100);
+    else if (a === 'ajustar') ajustar();
+    else if (a === 'nav') navegador();
+    else if (a === 'atalhos') configurarAtalhos();
+    else if (a === 'auto') api('pref', { auto_fit: !autoFit }).then(function (e) { aplicar(e, true); if (autoFit && P) ajustar(); });
+    else if (a === 'abrir-atual') api('abrir_pasta', {}).then(function (r) { if (r.ok === false) F.erro(r); });
+    else if (a === 'atualizar') api('estado').then(function (r) { aplicar(r, true); status(Object.keys(r.mover).filter(function (k) { return r.mover[k]; }).length + ' pastas disponíveis para mover arquivos', 2000); });
+  }
   document.addEventListener('click', function (ev) {
-    var b = ev.target.closest('[data-fb]'); if (!b) return;
-    var a = b.dataset.fb;
-    if (a === 'abrir' || a === 'msgs') {
-      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
-      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
-        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
-        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
-      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
-        .then(function () { b.disabled = false; atualizar(); });
-    } else if (a === 'inst') {
-      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
-      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
-    } else if (a === 'dados' || a === 'pasta') {
-      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
-    }
+    var mi = ev.target.closest('.vi-menu [data-m]'); var mm = $('.vi-menu'); if (mm) mm.remove(); if (mi) return acao(mi.dataset.m);
+    var c = ev.target.closest('[data-criar]'); if (c) return criarPasta(c.dataset.criar);
+    var mv = ev.target.closest('[data-mover]'); if (mv && !mv.disabled) return moverPara(mv.dataset.mover);
+    var b = ev.target.closest('[data-a]'); if (b && !b.disabled) acao(b.dataset.a);
   });
-  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+  document.addEventListener('input', function (ev) { if (ev.target.id === 'vi-zoom') mudarZoom(+ev.target.value); });
+  document.addEventListener('keydown', function (ev) {
+    if (/INPUT|TEXTAREA|SELECT/.test(ev.target.tagName) && ev.target.type !== 'range') return;
+    var t = teclaTxt(ev); if (!t) return;
+    if (t === 'Space') { ev.preventDefault(); return navegador(); }
+    var mapa = { next_file: 'prox', prev_file: 'ant', reset_zoom: 'reset', fit_view: 'ajustar', load_folder: 'carregar', discard_files: 'descartar' };
+    for (var k in mapa) if (AT[k] && AT[k].toUpperCase() === t.toUpperCase()) { ev.preventDefault(); return acao(mapa[k]); }
+  });
+  /* zoom na roda do mouse e arrastar para mover (como no pyqtgraph) */
+  var tela = null, arr = null;
+  function ponto(ev) { var r = tela.getBoundingClientRect(), vb = $('#vi-svg').viewBox.baseVal; return { x: vb.x + (ev.clientX - r.left) / r.width * vb.width, y: -(vb.y + (ev.clientY - r.top) / r.height * vb.height) }; }
+  document.addEventListener('DOMContentLoaded', function () {
+    tela = $('#vi-tela');
+    tela.addEventListener('contextmenu', function (ev) { ev.preventDefault(); menu(ev.clientX, ev.clientY); });
+    tela.addEventListener('wheel', function (ev) {
+      if (!vista) return; ev.preventDefault();
+      var f = ev.deltaY > 0 ? 1.15 : 1 / 1.15, p = ponto(ev);
+      vista = { cx: p.x + (vista.cx - p.x) * f, cy: p.y + (vista.cy - p.y) * f, hw: vista.hw * f, hh: vista.hh * f }; aplicarVista();
+    }, { passive: false });
+    tela.addEventListener('mousedown', function (ev) { if (ev.button !== 0 || !vista) return; arr = { x: ev.clientX, y: ev.clientY, v: Object.assign({}, vista), vb: $('#vi-svg').viewBox.baseVal }; tela.classList.add('arrastando'); });
+    window.addEventListener('mousemove', function (ev) {
+      if (!arr) return; var r = tela.getBoundingClientRect();
+      vista = Object.assign({}, arr.v, { cx: arr.v.cx - (ev.clientX - arr.x) / r.width * arr.vb.width, cy: arr.v.cy + (ev.clientY - arr.y) / r.height * arr.vb.height }); aplicarVista();
+    });
+    window.addEventListener('mouseup', function () { arr = null; tela.classList.remove('arrastando'); });
+    window.addEventListener('resize', aplicarVista);
+    F.verificarApp(api, '#fb-falta').then(function (ok) { if (ok) api('estado').then(function (e) { aplicar(e); }); });
+  });
 })();
 
 <\/script>
@@ -21430,121 +21819,469 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .arv .vz{color:#374151}
 .kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 
-.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
-.fb-ic svg{width:24px;height:24px}
-.fb-oq{font-size:14px;line-height:1.55;color:#111827}
-.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
-.fb-ol li{margin:4px 0}
-.fb-st{display:flex;flex-direction:column;gap:8px}
-.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
-.fb-l b{min-width:118px}
-.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
-.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
-.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
-.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
-.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
-.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
-.fb-pill.on{background:#dcf5e3;color:#15803d}
-.fb-pill.no{background:#fde2e2;color:#b91c1c}
-.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.b.fb-abrir{font-size:15px;padding:10px 18px}
-.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
-.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
-.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
-.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+/* Preparação fábrica — app dentro da aba */
+.abas{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 14px;border-bottom:2px solid #c5cbd6}
+.abas .ab{display:inline-flex;align-items:center;gap:8px;background:transparent;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;padding:10px 16px;font:700 13.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#4b5563;cursor:pointer}
+.abas .ab:hover{color:#111827;background:#e3e7ec}
+.abas .ab.on{color:#0b3d91;border-bottom-color:#0b3d91}
+.abas .ab svg{flex:none}
+.abas .cnt:not(:empty){margin-left:2px;padding:0 7px;border-radius:999px;background:#fde2e2;color:#b91c1c;font-size:11.5px}
+.painel{display:none}.painel.on{display:block}
+.abas2{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 10px}
+.abas2 .ab{background:#d5dae1;border:1px solid #99a3af;border-radius:4px;padding:6px 12px;font:700 12.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#1f2937;cursor:pointer}
+.abas2 .ab:hover{background:#c9d0d8}
+.abas2 .ab.on{background:#0b3d91;border-color:#0b3d91;color:#fff}
+.log{background:#fff;border:1px solid #99a3af;border-radius:4px;height:340px;overflow:auto;padding:8px 10px;font:12.5px/1.5 Consolas,'Courier New',monospace;color:#1f2937;white-space:pre-wrap;word-break:break-word}
+.log .vz{font-family:'Segoe UI',Inter,system-ui,sans-serif;color:#6b7280;font-weight:600;text-align:center;padding:30px 0}
+.log .ok{color:#15803d}.log .er{color:#b91c1c;font-weight:700}.log .av{color:#b45309}.log .inf{color:#0b3d91}
+.rt-err:empty{display:none}
+.rt-err{margin-top:8px;color:#b42318;font-weight:700;font-size:13px}
+.status.ok::before{background:#1e8e3e}.status.aviso::before{background:#d97706}.status.erro::before{background:#dc2626}
+.status.ok{color:#15803d}.status.aviso{color:#92400e}.status.erro{color:#b42318}
+.status:empty{display:none}
+.vazio-cx{text-align:center;color:#4b5563;font-size:14px;line-height:1.7;padding:46px 12px!important}
+.rel-sub{margin:0 0 10px;font-size:13px;color:#374151}
+.kpis8{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.kpi{flex-direction:column;align-items:flex-start;gap:2px;min-height:0;padding:10px 12px;border-left:4px solid #6b7280}
+.kpi .v{font-size:21px}
+.kpi.ok{border-left-color:#16a34a}.kpi.ok .v{color:#15803d}
+.kpi.er{border-left-color:#dc2626}.kpi.er .v{color:#b91c1c}
+.kpi.av{border-left-color:#d97706}.kpi.av .v{color:#b45309}
+.kpi.inf{border-left-color:#0b3d91}.kpi.inf .v{color:#0b3d91}
+.dica{font-size:12.5px;color:#92400e;background:#fff7e6;border:1px solid #f5d9a8;border-left:3px solid #d97706;border-radius:3px;padding:7px 10px;margin:0 0 10px;line-height:1.5}
+.fraco{font-size:12px;color:#4b5563;margin-top:8px;line-height:1.5}
+.mt{margin-top:10px}
+.arv{max-height:420px}
+.arv td input[type=text],.arv td select{width:100%;min-width:150px;padding:4px 8px;font-size:12.5px}
+.arv td.ck{width:34px;text-align:center}
+.arv td.ck input{margin:0}
+.arv td .b.mini{margin:0}
+.arv td.num{text-align:right;font-variant-numeric:tabular-nums}
+.arv td.c{text-align:center}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.acoes .st{font-size:12.5px;font-weight:700}
+.acoes .st.ok{color:#15803d}.acoes .st.aviso{color:#b45309}
+.b.perigo{color:#b42318;border-color:#e8a7a0}
+.b.perigo:hover:not(:disabled){background:#fdeeee;border-color:#dc2626}
+.rot-lbl{font-weight:700;font-size:13px}
+.graf{background:#fff;border:1px solid #99a3af;border-radius:4px;padding:10px;overflow:auto}
+.graf svg{display:block;width:100%;height:auto}
+.graf text{font-family:'Segoe UI',Inter,system-ui,sans-serif}
+.lista li .n{font-family:Consolas,'Courier New',monospace;font-weight:600}
+.lista{max-height:180px}
+.status{margin-top:8px}
+.barra .status{margin-top:0}
+.fb-falta{margin:0 0 12px;padding:9px 12px;border-radius:4px;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c;font-weight:700;font-size:13.5px}
+.fb-falta:empty{display:none}
+.rotulo{min-width:118px;font-weight:700;font-size:13px}
+.sub-info{font-size:12px;color:#4b5563;font-weight:600}
+.arv tr.marcada td{background:#dde6f3!important}
+.arv td.st-ok{background:#e9f3ea!important;color:#1e7b34;font-weight:700}
+.arv td.st-er{background:#fbe7e4!important;color:#b42318;font-weight:700}
+.arv td.st-av{background:#fbf0dc!important;color:#92400e;font-weight:700}
+.rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px}
+.sel-txt{color:#0b3d91;font-weight:700;font-size:13px}
+.b.grande{font-size:14px;padding:10px 20px}
+.topo-dir{margin-left:auto}
+.au-res-sum{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.au-res-sum .l{font-size:13px;font-weight:700;color:#1f2937}
+.au-res-sum .l.av{color:#92400e}.au-res-sum .l.ok{color:#15803d}.au-res-sum .l.er{color:#b42318}
+.au-res-sum .r{font-size:12px;color:#4b5563;font-weight:600;padding-left:12px}
+.arv td.dg-bate{background:#e9f3ea!important}
+.arv td.dg-lugar_errado{background:#fbf0dc!important;color:#b45309;font-weight:700}
+.arv td.dg-nao_encontrada{background:#fbe7e4!important;color:#b42318;font-weight:700}
+.arv td.dg-sem_registro{background:#eeeafb!important;color:#5b4fc4;font-weight:700}
+.arv td.dg-duplicada{background:#f8dada!important;color:#a6296b;font-weight:700}
+.arv td.acao{white-space:normal}
+.arv td.acao .b.mini{margin:2px 4px 2px 0}
+.arv td.acao .loc{font-size:11.5px;color:#374151;margin:3px 0 0}
+.arv tr.total td{background:#dbe8fb!important;color:#0b3d91;font-weight:800}
+.arv th.ord{cursor:pointer;user-select:none}
+.arv th.ord:hover{background:#4c5664}
+.lista li .st{flex:none;font-size:12px;font-weight:700}
+.lista li .st.ok{color:#15803d}.lista li .st.av{color:#b45309}.lista li .st.er{color:#b42318}
+.lista li .b.mini{padding:3px 8px}
 </style>
 </head>
 <body>
-<div class="pr-topo"><b>Preparação fábrica | Criar Pasta / Auditoria:</b><span class="c">Planilha de lotes</span><i>→</i><span class="c">LOTE 9999</span><i>→</i><span class="c">LOTE &lt;n&gt;\&lt;OF&gt;</span></div>
+<div class="pr-topo"><b>Preparação fábrica | Criador de Pastas / Auditoria:</b><span class="c">Planilha de lotes</span><i>→</i><span class="c">LOTE 9999</span><i>→</i><span class="c">LOTE &lt;n&gt;\&lt;OF&gt;</span></div>
+<div class="fb-falta" id="fb-falta"></div>
+<nav class="abas" id="au-abas">
+  <button class="ab on" data-aba="criar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Criar Pastas</button>
+  <button class="ab" data-aba="auditoria"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Auditar Lote 9999</button>
+  <button class="ab" data-aba="buscar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg>Buscar Obra / Pacote</button>
+  <button class="ab" data-aba="config"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Configurações</button>
+</nav>
 
-<div class="cx">
-  <div class="cx-h"><span class="badge">1</span><h3>O que o Criar Pasta / Auditoria faz</h3></div>
-  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="fb-oq">Cria a estrutura de pastas &#x27;LOTE &lt;n&gt;\&lt;OF&gt;&#x27; a partir da planilha de lotes, resgatando as OFs que estão na pasta &#x27;LOTE 9999&#x27;, e audita a LOTE 9999 contra a planilha. Também busca em que lote/pasta está uma obra/pacote.</div></div>
-</div>
-
-<div class="grid2">
+<section class="painel on" id="p-criar">
   <div class="cx">
-    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
-    <ol class="fb-ol"><li>1ª vez: tela &#x27;Configurações&#x27; -&gt; escolha a PLANILHA .xlsx, a PASTA onde criar os lotes e cadastre os DIRETÓRIOS RAIZ onde procurar a LOTE 9999 (ex.: K:\8.M08-2026). Fica salvo no banco (auditoria_config / auditoria_raizes).</li><li>Tela &#x27;Criar Pastas&#x27;: digite o NÚMERO DO LOTE (ex.: 650) e clique em &#x27;Criar Pastas&#x27;. O resultado mostra: resgatadas da 9999 · criadas do zero · já existentes.</li><li>Tela &#x27;Auditar Lote 9999&#x27;: &#x27;Rodar Auditoria&#x27; compara a LOTE 9999 com a planilha. Para cada problema: &#x27;Mover p/ LOTE &lt;n&gt;&#x27; (vai direto pro lote da planilha) ou &#x27;Mover para...&#x27; (você escolhe). Marque &#x27;Mostrar também as que batem&#x27; para ver tudo.</li><li>Tela &#x27;Buscar Obra/Pacote&#x27;: busca por obra (ex.: 1956 ou 1956-2-01) ou por pacote/lote (ex.: 427). &#x27;Atualizar Base de Busca&#x27; (em Configurações) reimporta a planilha.</li></ol>
+    <div class="cx-h"><span class="badge">1</span><h3>Criar Pastas do Lote</h3><span class="sub">lê a planilha configurada, cria a estrutura de pastas do lote e resgata automaticamente as obras que já estiverem na LOTE 9999</span></div>
+    <div class="linha"><span class="rotulo">Número do LOTE:</span><input type="text" id="au-lote" placeholder="ex: 650" style="width:200px" spellcheck="false"><button class="b p grande" data-a="criar" id="au-criar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Criar Pastas</button></div>
   </div>
   <div class="cx">
-    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
-    <div class="fb-st" id="fb-status">
-      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
-      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
-      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
-      <div class="fb-acoes">
-        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Criar Pasta / Auditoria</button>
-        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
-        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
-        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
-      </div>
-      <div class="fb-msg" id="fb-msg"></div>
-      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    <div class="cx-h"><span class="badge">2</span><h3>Resultado</h3></div>
+    <div class="kpis" id="au-cards">
+      <div class="kpi inf"><div class="v" id="au-k1">📦 —</div><div class="r">Resgatadas da 9999</div></div>
+      <div class="kpi ok"><div class="v" id="au-k2">📁 —</div><div class="r">Criadas do zero</div></div>
+      <div class="kpi"><div class="v" id="au-k3">✅ —</div><div class="r">Já existentes</div></div>
+    </div>
+    <div class="campo" id="au-det">Preencha o número do lote e clique em "Criar Pastas".</div>
+    <div class="dica" id="au-aviso" style="display:none"></div>
+  </div>
+</section>
+
+<section class="painel" id="p-auditoria">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">1</span><h3>Auditar Lote 9999</h3><span class="sub">compara as obras marcadas como LOTE 9999 na planilha com o que realmente existe na pasta física LOTE 9999, e mostra onde cada uma está de verdade</span></div>
+    <div class="linha"><button class="b p grande" data-a="auditar" id="au-aud"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Rodar Auditoria</button><span class="sub-info">Usa a Planilha e os Diretórios raiz definidos em Configurações.</span></div>
+  </div>
+  <div class="cx" id="au-res"><div class="vazio-cx" style="padding:30px!important">Os resultados da auditoria aparecerão aqui.</div></div>
+</section>
+
+<section class="painel" id="p-buscar">
+  <div class="grid2">
+    <div class="cx">
+      <div class="cx-h"><span class="badge">1</span><h3>Por obra</h3></div>
+      <div class="sub-info" style="margin-bottom:8px">Só o número da obra soma todos os trechos/pacotes dela; o código completo (ex: 1956-2-01) mostra um trecho específico.</div>
+      <div class="linha"><input type="text" class="cresce" id="au-obra" placeholder="ex: 1956  ou  1956-2-01" spellcheck="false"><button class="b p" data-a="bobra"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Buscar Obra</button></div>
+    </div>
+    <div class="cx">
+      <div class="cx-h"><span class="badge">2</span><h3>Por pacote / lote</h3></div>
+      <div class="sub-info" style="margin-bottom:8px">Informe o número do lote/pacote para ver todas as obras e trechos dele.</div>
+      <div class="linha"><input type="text" class="cresce" id="au-pac" placeholder="ex: 427" spellcheck="false"><button class="b p" data-a="bpac"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Buscar Pacote</button></div>
     </div>
   </div>
-</div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Resultado</h3><span class="sub">clique no cabeçalho para ordenar</span></div>
+    <div class="campo" id="au-info">Faça uma busca para ver o resumo aqui.</div>
+    <div class="arv grande" id="au-tab"></div>
+  </div>
+</section>
+
+<section class="painel" id="p-config">
+  <div class="lbl-det">Caminhos usados pela criação de pastas e pela auditoria. Ficam salvos e não precisam ser preenchidos de novo.</div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">1</span><h3>Planilha (.xlsx)</h3><span class="sub">arquivo (ou pasta que contém o arquivo) com as colunas LOTE e OF/Trecho — é lida por Criar Pastas e Auditoria</span></div>
+    <div class="linha"><input type="text" class="cresce campo-in" id="au-cfg-pl" placeholder="Selecione..." spellcheck="false"><button class="b" data-a="cfg-pl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Selecionar</button></div>
+    <div class="sub-info" id="au-previa"></div>
+    <div class="linha mt"><button class="b p" data-a="base"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Atualizar Base de Busca</button><span class="sub-info">Reimporta a planilha acima pra base usada na tela "Buscar Obra / Pacote".</span></div>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Destino (pasta do mês)</h3><span class="sub">pasta onde as pastas de cada LOTE são criadas — normalmente a pasta do mês atual (ex: K:\8.M08-2026)</span></div>
+    <div class="linha"><input type="text" class="cresce campo-in" id="au-cfg-de" placeholder="Selecione..." spellcheck="false"><button class="b" data-a="cfg-de"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Selecionar</button></div>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Diretórios raiz</h3><span class="sub">pastas que contêm as pastas de mês E a própria pasta LOTE 9999 (ex: K:\) — a auditoria e o resgate da 9999 juntam todas</span></div>
+    <div class="linha"><button class="b" data-a="raiz"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Adicionar Diretório Raiz</button></div>
+    <ul class="lista" id="au-raizes"><li class="vazio">Nenhum diretório raiz cadastrado ainda.</li></ul>
+    <div class="sub-info" id="au-versao"></div>
+  </div>
+</section>
 
 <script>
-window.FB_ABA = 'pg21'; window.FB_NOME = 'Criar Pasta / Auditoria';
-
+/* Preparação fábrica — funções comuns dos apps que rodam dentro da aba (janela do sistema, pastas, arquivos, API). */
 (function () {
   'use strict';
-  var ABA = window.FB_ABA, NOME = window.FB_NOME;
-  var $ = function (s) { return document.querySelector(s); };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var Hd = { 'X-PPCPM': '1' };
   function local() {
     if (typeof window.PPCPM_PASTA === 'function') return true;
     try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
   }
-  if (!local()) {
-    document.addEventListener('DOMContentLoaded', function () {
-      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
-        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
-        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+  function apiDe(app) {
+    return function (acao, corpo) {
+      var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+        { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+      return fetch('/api/fabrica/' + app + '/' + acao, op).then(function (r) { return r.json(); });
+    };
+  }
+  var TD; try { TD = window.top.document; } catch (e) { TD = document; }
+  var BS = 'display:inline-flex;align-items:center;gap:8px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 14px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff;white-space:nowrap';
+  var KB = function (t) { return '<span style="padding:0 6px;background:#fff;border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;font:600 10.5px Segoe UI,Arial,sans-serif;color:#374151">' + t + '</span>'; };
+  var ICJ = {
+    q: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/>',
+    i: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+    av: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+    ok: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+    ed: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/>'
+  };
+  /* op: {titulo, cor, ic, html, botoes:[{v,t,kb,foco}], larg, aoAbrir(card), valor(card,v), semFoco} -> Promise */
+  function janela(op) {
+    return new Promise(function (res) {
+      var f = TD.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+      f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Segoe UI,Roboto,Arial,sans-serif';
+      var cor = op.cor || '#0b3d91';
+      var bts = op.botoes || [{ v: true, t: 'OK', kb: 'Enter', foco: 1 }];
+      f.innerHTML = '<div style="width:100%;max-width:' + (op.larg || 470) + 'px;max-height:92vh;display:flex;flex-direction:column;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-top:4px solid ' + cor + ';border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
+        '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700;cursor:move">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" style="flex:none;fill:none;stroke:' + cor + ';stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + (ICJ[op.ic] || ICJ.i) + '</svg><span>' + esc(op.titulo) + '</span></div>' +
+        '<div style="padding:14px 16px;line-height:1.5;white-space:pre-wrap;overflow:auto">' + op.html + '</div>' +
+        '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+        bts.map(function (b, i) { return '<button type="button" data-q="' + i + '" style="' + BS + '">' + esc(b.t) + (b.kb ? ' ' + KB(b.kb) : '') + '</button>'; }).join('') + '</div></div>';
+      var card = f.firstChild;
+      var fim = function (v) { TD.removeEventListener('keydown', tec, true); f.remove(); res(op.valor ? op.valor(card, v) : v); };
+      var tec = function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); var c = bts.filter(function (b) { return b.kb === 'Esc'; })[0]; fim(c ? c.v : false); }
+        else if (ev.key === 'Enter' && !(ev.target && ev.target.tagName === 'TEXTAREA')) { var e2 = bts.filter(function (b) { return b.kb === 'Enter'; })[0]; if (e2) { ev.preventDefault(); ev.stopPropagation(); fim(e2.v); } }
+      };
+      f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(bts[+b.dataset.q].v); });
+      TD.addEventListener('keydown', tec, true); (TD.body || TD.documentElement).appendChild(f);
+      [].forEach.call(f.querySelectorAll('[data-q]'), function (x) { x.onmouseenter = function () { x.style.background = 'linear-gradient(#e7ebef,#c9d0d8)'; }; x.onmouseleave = function () { x.style.background = 'linear-gradient(#f3f5f7,#d9dee5)'; }; });
+      try { if (window.top.__arrastavel) window.top.__arrastavel(card, card.firstChild); } catch (e) { }
+      if (op.aoAbrir) op.aoAbrir(card);
+      var fb = bts.map(function (b, i) { return b.foco ? i : -1; }).filter(function (i) { return i >= 0; })[0];
+      if (!op.semFoco) { var bf = f.querySelector('[data-q="' + (fb == null ? bts.length - 1 : fb) + '"]'); if (bf) bf.focus(); }
     });
-    return;
   }
-  function api(acao, corpo) {
-    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
-      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
-    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  function confirmar(titulo, texto, sim, nao) {
+    return janela({ titulo: titulo, ic: 'q', html: esc(texto), botoes: [{ v: false, t: nao || 'Não', kb: 'Esc' }, { v: true, t: sim || 'Sim', kb: 'Enter', foco: 1 }] });
   }
-  var ultimo = null;
-  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
-  function desenhar(e) {
-    ultimo = e;
-    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
-    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
-    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
-    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
-    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
-    var falta = e.faltam && e.faltam.length;
-    $('#fb-inst').style.display = falta ? '' : 'none';
-    $('#fb-abrir').disabled = !e.existe || !!falta;
-    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  function info(titulo, texto, tipo) {
+    var c = tipo === 'aviso' ? ['av', '#d97706'] : tipo === 'ok' ? ['ok', '#1e9e4a'] : ['i', '#0b3d91'];
+    return janela({ titulo: titulo, ic: c[0], cor: c[1], html: esc(texto) });
   }
-  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  function perguntar(titulo, rotulo, valor) {
+    return janela({
+      titulo: titulo, ic: 'ed', semFoco: true, html: esc(rotulo) + '<input type="text" data-in value="' + esc(valor || '') + '" style="display:block;width:100%;margin-top:8px;box-sizing:border-box;background:#fff;color:#000;border:1px solid #98a3b3;border-radius:4px;padding:7px 10px;font:600 13.5px Segoe UI,Arial,sans-serif">',
+      botoes: [{ v: null, t: 'Cancelar', kb: 'Esc' }, { v: 1, t: 'OK', kb: 'Enter' }],
+      aoAbrir: function (c) { var i = c.querySelector('[data-in]'); setTimeout(function () { i.focus(); i.select(); }, 0); },
+      valor: function (c, v) { return v === null ? null : (c.querySelector('[data-in]').value || ''); }
+    });
+  }
+  function erro(r, titulo) {
+    var t = (r && (r.erro || r.msg)) || 'Não consegui falar com o sistema.';
+    try { if (window.top.__pjQuadroErro) return window.top.__pjQuadroErro({ titulo: (r && r.titulo) || titulo || 'Erro', texto: t }); } catch (e) { }
+    return info((r && r.titulo) || titulo || 'Erro', t, 'aviso');
+  }
+  function escolherPasta() {
+    try { return window.showDirectoryPicker().then(function (h) { return (h && h.ppcpmCaminho) || ''; }, function () { return ''; }); }
+    catch (e) { return Promise.resolve(''); }
+  }
+  /* arquivo do PC: devolve o File (com .ppcpmCaminho quando o sistema conhece o caminho) */
+  function escolherArquivos(aceita, multiplo) {
+    return new Promise(function (res) {
+      var i = document.createElement('input'); i.type = 'file'; if (aceita) i.accept = aceita; i.multiple = !!multiplo; i.style.display = 'none'; document.body.appendChild(i);
+      var feito = false;
+      i.addEventListener('change', function () { feito = true; res(Array.prototype.slice.call(i.files || [])); i.remove(); });
+      i.addEventListener('cancel', function () { if (!feito) { feito = true; res([]); i.remove(); } });
+      i.click();
+    });
+  }
+  function aceito(nome, exts) { var n = String(nome || '').toLowerCase(); return exts.some(function (e) { return n.slice(-e.length) === e; }); }
+  function recusar(nomes, exts, escolher) {
+    try { window.top.__arqRecusado({ nomes: nomes, aceitos: exts, escolher: escolher }); } catch (e) { info('Formato inválido', 'Arquivo não aceito: ' + nomes.join(', '), 'aviso'); }
+  }
+  function marcarCampo(inp, ok) { var v = ok == null ? !!inp.value.trim() : ok; inp.classList.toggle('ok', v && !!inp.value.trim()); inp.classList.toggle('er', ok === false); }
+  function siteSemApp(nome, texto) {
+    document.addEventListener('DOMContentLoaded', function () {
+      $$('body>*:not(.pr-topo)').forEach(function (p) { if (p.tagName !== 'SCRIPT') p.remove(); });
+      document.body.insertAdjacentHTML('beforeend', '<div class="cx pr-site"><h2>' + esc(nome) + '</h2>' +
+        '<p>' + (texto || 'Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os arquivos direto nas pastas do PC ou do servidor).') + '</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>');
+    });
+  }
+  function verificarApp(api, alvo) {
+    return api('disponivel').then(function (d) {
+      if (d.ok) return true;
+      var el = typeof alvo === 'string' ? $(alvo) : alvo;
+      if (el) {
+        el.innerHTML = '<div class="fb-falta">❌ ' + esc(d.erro || 'App indisponível neste PC.') + (d.faltam && d.faltam.length ? ' <button class="b mini" data-inst>Instalar bibliotecas</button>' : '') + '</div>';
+        var bi = el.querySelector('[data-inst]'); if (bi) bi.onclick = function () { try { window.top.instAbrir(); } catch (e) { } };
+      }
+      return false;
+    }).catch(function () { return false; });
+  }
+  window.FB = { $: $, $$: $$, esc: esc, local: local, apiDe: apiDe, janela: janela, confirmar: confirmar, info: info, perguntar: perguntar, erro: erro,
+    escolherPasta: escolherPasta, escolherArquivos: escolherArquivos, aceito: aceito, recusar: recusar, marcarCampo: marcarCampo, siteSemApp: siteSemApp, verificarApp: verificarApp, Hd: Hd };
+})();
+
+(function () {
+  'use strict';
+  var F = window.FB, $ = F.$, $$ = F.$$, esc = F.esc;
+  if (!F.local()) return F.siteSemApp('Criador de Pastas / Auditoria');
+  var api = F.apiDe('aud');
+  var CFG = null, AUD = null, mostrarTudo = false, BUS = null, ordRev = {};
+  var DIAG = { bate: '✅ Bate', lugar_errado: '⚠️ Lugar errado', nao_encontrada: '❌ Não encontrada', sem_registro: '👻 Sem registro', duplicada: '🔀 Duplicada' };
+  var COLS = [['lote', 'Lote'], ['of_trecho', 'OF-Trecho'], ['obra', 'Obra'], ['trecho', 'Trecho'], ['subtrecho', 'Subtrecho'], ['ano_semana', 'Ano-Semana'], ['peso_lic', 'Peso Lic/Lote'], ['prep', 'QTD TT KG PREP'], ['nprep', 'QTD TT KG ÑPREP'], ['data_inicio', 'Início Artia'], ['status', 'Status']];
+
+  function irAba(a) {
+    $$('#au-abas .ab').forEach(function (b) { b.classList.toggle('on', b.dataset.aba === a); });
+    $$('.painel').forEach(function (p) { p.classList.toggle('on', p.id === 'p-' + a); });
+    if (a === 'config') carregarConfig();
+  }
+  function falha(r, titulo) { if (r && r.ir_config) irAba('config'); return F.erro(r, titulo); }
+
+  /* ---------- Configurações */
+  function aplicarConfig(c) {
+    if (!c || c.ok === false) return;
+    CFG = c;
+    var pl = $('#au-cfg-pl'), de = $('#au-cfg-de');
+    if (document.activeElement !== pl) { pl.value = c.planilha || ''; F.marcarCampo(pl); }
+    if (document.activeElement !== de) { de.value = c.destino || ''; F.marcarCampo(de); }
+    $('#au-previa').textContent = c.previa || '';
+    $('#au-raizes').innerHTML = c.raizes.length ? c.raizes.map(function (r) {
+      return '<li class="mk' + (r.tipo === 'er' ? ' er' : '') + '"><span class="n" title="' + esc(r.caminho) + '">' + esc(r.caminho) + '</span><span class="st ' + r.tipo + '">' + esc(r.status) + '</span><button class="b mini perigo" data-raiz="' + esc(r.caminho) + '" title="Remover">🗑</button></li>';
+    }).join('') : '<li class="vazio">Nenhum diretório raiz cadastrado ainda.</li>';
+    $('#au-versao').textContent = 'Versão instalada: ' + c.versao;
+    if (c.nova_versao) F.info('Nova versão disponível', 'Peça pra atualizar o programa quando puder.');
+    if (c.aviso) F.info(c.aviso.titulo, c.aviso.texto);
+  }
+  function carregarConfig() { return api('config').then(aplicarConfig).catch(function () { }); }
+  function salvarCfg(chave, valor) { return api('salvar_config', { chave: chave, valor: valor }).then(aplicarConfig); }
+
+  /* ---------- Criar pastas */
+  function criar() {
+    var lote = $('#au-lote').value.trim(), b = $('#au-criar');
+    if (!lote) { F.info('Campo obrigatório', 'Informe o número do LOTE.', 'aviso'); return; }
+    b.disabled = true; b.lastChild.textContent = 'Processando...';
+    $('#au-k1').textContent = '📦 …'; $('#au-k2').textContent = '📁 …'; $('#au-k3').textContent = '✅ …';
+    $('#au-det').textContent = 'Processando, aguarde...'; $('#au-aviso').style.display = 'none';
+    api('criar', { lote: lote }).then(function (r) {
+      if (!r.ok) {
+        $('#au-k1').textContent = '📦 —'; $('#au-k2').textContent = '📁 —'; $('#au-k3').textContent = '✅ —';
+        $('#au-det').textContent = r.resultado_erro ? '❌ ' + r.erro : 'Preencha o número do lote e clique em "Criar Pastas".';
+        return falha(r);
+      }
+      $('#au-k1').textContent = '📦 ' + r.resgatadas; $('#au-k2').textContent = '📁 ' + r.criadas; $('#au-k3').textContent = '✅ ' + r.existentes;
+      $('#au-det').textContent = r.vazio ? '⚠️  Nenhuma OF encontrada na planilha para o LOTE ' + r.lote + '. Verifique o número informado.'
+        : 'LOTE ' + r.lote + '  •  ' + r.total_ofs + ' OF(s) na planilha  →  pasta criada em:\n' + r.pasta_lote + '\nBanco de dados: ' + r.inseridos_db + ' registro(s) novo(s), ' + r.ignorados_db + ' já existente(s).';
+      var av = [];
+      if (r.aviso_9999) av.push('ℹ️  ' + r.aviso_9999);
+      if (r.falhas_mover && r.falhas_mover.length) av.push('⚠️  Falha ao mover da 9999 (pasta vazia criada no lugar): ' + r.falhas_mover.join('; '));
+      $('#au-aviso').textContent = av.join('\n'); $('#au-aviso').style.display = av.length ? '' : 'none';
+    }).catch(function (e) { F.erro({ erro: String(e) }); }).then(function () { b.disabled = false; b.lastChild.textContent = 'Criar Pastas'; });
+  }
+
+  /* ---------- Auditoria */
+  function auditar() {
+    var b = $('#au-aud'); b.disabled = true; b.lastChild.textContent = 'Auditando...';
+    api('auditar', {}).then(function (r) { if (r.ok === false) return falha(r, 'Erro na auditoria'); AUD = r; desenharAud(); })
+      .catch(function (e) { F.erro({ erro: String(e) }); }).then(function () { b.disabled = false; b.lastChild.textContent = 'Rodar Auditoria'; });
+  }
+  function desenharAud() {
+    var r = AUD;
+    var ok9999 = r.raizes_info.every(function (i) { return i.existe; });
+    var h = '<div class="au-res-sum">' +
+      '<div class="l">📄 ' + r.total_linhas + ' linha(s) na planilha   →   🔢 ' + r.total_unicas + ' OF(s) única(s)   →   📁 ' + r.total_pastas_fisicas + ' pasta(s) física(s) na ' + esc(r.nome_9999) + '</div>' +
+      '<div class="l">✅ Bate: ' + r.bate.length + ' &nbsp;&nbsp; ⚠️ Lugar errado: ' + r.lugar_errado.length + ' &nbsp;&nbsp; ❌ Não encontradas: ' + r.nao_encontradas.length + ' &nbsp;&nbsp; 👻 Sem registro na planilha: ' + r.sem_registro.length + ' &nbsp;&nbsp; 🔁 Duplicadas na planilha: ' + r.duplicadas.length + ' &nbsp;&nbsp; 🔀 Duplicadas físicas: ' + r.duplicadas_fisicas.length + '</div>';
+    if (r.duplicadas_fisicas.length) h += '<div class="dica" style="margin:4px 0">🔀 Duplicidade física é a MESMA OF com pasta em mais de um lugar ao mesmo tempo (ex.: uma cópia esquecida na LOTE 9999 e outra já dentro do lote real) — resolva na mão pelos botões da linha "🔀 Duplicada" abaixo, nada é movido automaticamente nesse caso.</div>';
+    h += '<div class="l ' + (ok9999 ? 'ok' : 'av') + '">Raízes cadastradas: ' + r.raizes_info.length + '   |   Pastas de mês vistas: ' + r.qtd_pastas_mes_encontradas + '   |   Pastas LOTE escaneadas: ' + r.total_lotes_escaneados + '</div>';
+    r.raizes_info.forEach(function (i) { h += '<div class="r">' + (i.existe ? '✅ LOTE 9999 encontrada' : '⚠️ sem LOTE 9999') + '  —  ' + esc(i.raiz) + '</div>'; });
+    if (r.raizes_invalidas.length) h += '<div class="l er">🚫 ' + r.raizes_invalidas.length + ' raiz(es) cadastrada(s) não foram encontrada(s) no disco e ficaram de fora desta auditoria: ' + esc(r.raizes_invalidas.join('; ')) + '</div>';
+    if (r.pastas_com_erro.length) h += '<div class="l er">🚫 ' + r.pastas_com_erro.length + ' pasta(s) não puderam ser lidas na varredura — cobertura pode estar incompleta: ' + esc(r.pastas_com_erro.slice(0, 3).join('; ')) + (r.pastas_com_erro.length > 3 ? ' ...' : '') + '</div>';
+    h += '</div><div class="linha"><label class="chk" style="margin:0"><input type="checkbox" id="au-tudo"' + (mostrarTudo ? ' checked' : '') + '><span>Mostrar também as que batem (não só os problemas)</span></label><span class="sub-info">✂️ move direto pro lote que a planilha aponta · 📂 deixa você escolher a pasta</span></div>';
+    var L = mostrarTudo ? r.linhas : r.linhas.filter(function (l) { return l.diagnostico !== 'bate'; });
+    h += '<div class="arv grande"><table><thead><tr><th>OF</th><th>Lote (planilha)</th><th>Pasta encontrada em</th><th>Diagnóstico</th><th>Ação</th></tr></thead><tbody>';
+    h += L.length ? L.map(function (l, i) {
+      var d = l.diagnostico, cl = ' class="dg-' + d + '"';
+      var ac = '';
+      if (d === 'duplicada') ac = (l.locais_duplicados || []).map(function (loc, k) { return '<div class="loc">📍 Cópia ' + (k + 1) + ': ' + esc(loc.lugar) + '</div><button class="b mini" data-man="' + esc(loc.caminho) + '">📂 Mover cópia ' + (k + 1) + ' para...</button>'; }).join('');
+      else if (l.caminho_atual && d !== 'bate') ac = (l.lote_planilha ? '<button class="b mini" data-auto="' + i + '">✂️ Mover p/ LOTE ' + esc(l.lote_planilha) + '</button>' : '') + '<button class="b mini" data-man="' + esc(l.caminho_atual) + '">📂 Mover para...</button>';
+      else ac = '—';
+      return '<tr><td>' + esc(l.of) + (l.n_ocorrencias > 1 ? '  🔁×' + l.n_ocorrencias : '') + '</td><td' + cl + '>' + esc(l.lote_planilha || '—') + '</td><td' + cl + ' style="white-space:normal">' + esc(l.lugar || '—') + '</td><td' + cl + '>' + DIAG[d] + '</td><td class="acao">' + ac + '</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="vz">Nenhum item para mostrar com esse filtro. 🎉</td></tr>';
+    h += '</tbody></table></div>';
+    $('#au-res').innerHTML = h;
+    $('#au-res').__linhas = L;
+  }
+  function moverAuto(l) {
+    api('preparar_mover', { origem: l.caminho_atual, lote: l.lote_planilha }).then(function (p) {
+      if (!p.ok) return falha(p);
+      F.confirmar('Confirmar movimentação', 'Mover:\n' + l.caminho_atual + '\n\npara:\n' + p.destino + (p.vai_criar ? '\n(essa pasta ainda não existe — será criada)' : '') + '\n\nConfirma?')
+        .then(function (ok) { if (ok) executarMover(l.caminho_atual, p.destino); });
+    });
+  }
+  function moverManual(origem) {
+    F.escolherPasta().then(function (dest) {
+      if (!dest) return;
+      F.confirmar('Confirmar movimentação', 'Mover:\n' + origem + '\n\npara dentro de:\n' + dest + '\n\nConfirma?').then(function (ok) { if (ok) executarMover(origem, dest); });
+    });
+  }
+  function executarMover(o, d) {
+    api('mover', { origem: o, destino: d }).then(function (r) {
+      if (!r.ok) return falha(r);
+      F.info('Pasta movida', r.msg, 'ok'); auditar();
+    });
+  }
+
+  /* ---------- Buscar */
+  function chaveOrd(campo, v) {
+    if (campo === 'prep' || campo === 'nprep') return [0, v == null ? -1 : v];
+    if (['obra', 'lote', 'trecho', 'subtrecho'].indexOf(campo) >= 0) { var n = parseInt(String(v), 10); return String(n) === String(v).trim() ? [0, n] : [1, String(v)]; }
+    return [0, String(v == null ? '' : v).toLowerCase()];
+  }
+  function desenharBusca(linhas) {
+    var h = '<table><thead><tr>' + COLS.map(function (c) { return '<th class="ord" data-ord="' + c[0] + '">' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>';
+    if (linhas && linhas.length) {
+      h += linhas.map(function (l) {
+        return '<tr>' + COLS.map(function (c) { var v = c[0] === 'prep' ? l.prep_txt : c[0] === 'nprep' ? l.nprep_txt : l[c[0]]; return '<td class="c">' + esc(v == null ? '' : v) + '</td>'; }).join('') + '</tr>';
+      }).join('');
+      h += '<tr class="total"><td></td><td></td><td></td><td></td><td></td><td></td><td class="c">TOTAL</td><td class="c">' + esc(BUS.total.prep_txt) + '</td><td class="c">' + esc(BUS.total.nprep_txt) + '</td><td></td><td></td></tr>';
+    } else h += '<tr><td colspan="11" class="vz">Nenhum registro.</td></tr>';
+    $('#au-tab').innerHTML = h + '</tbody></table>';
+  }
+  function buscar(tipo) {
+    var v = (tipo === 'obra' ? $('#au-obra') : $('#au-pac')).value;
+    api(tipo === 'obra' ? 'buscar_obra' : 'buscar_pacote', { valor: v }).then(function (r) {
+      if (r.ok === false) return F.erro(r);
+      BUS = r; ordRev = {};
+      $('#au-info').textContent = r.info;
+      desenharBusca(r.linhas);
+      if (r.aviso) F.info(r.aviso.titulo, r.aviso.texto, r.aviso.tipo === 'aviso' ? 'aviso' : null);
+    });
+  }
+
+  /* ---------- ligações */
   document.addEventListener('click', function (ev) {
-    var b = ev.target.closest('[data-fb]'); if (!b) return;
-    var a = b.dataset.fb;
-    if (a === 'abrir' || a === 'msgs') {
-      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
-      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
-        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
-        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
-      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
-        .then(function () { b.disabled = false; atualizar(); });
-    } else if (a === 'inst') {
-      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
-      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
-    } else if (a === 'dados' || a === 'pasta') {
-      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    var t = ev.target;
+    var ab = t.closest('#au-abas .ab'); if (ab) return irAba(ab.dataset.aba);
+    var th = t.closest('#au-tab th[data-ord]');
+    if (th && BUS && BUS.linhas.length) {
+      var c = th.dataset.ord, rev = !!ordRev[c];
+      var L = BUS.linhas.slice().sort(function (a, b) { var x = chaveOrd(c, a[c]), y = chaveOrd(c, b[c]); var r = x[0] - y[0] || (x[1] < y[1] ? -1 : x[1] > y[1] ? 1 : 0); return rev ? -r : r; });
+      ordRev[c] = !rev; desenharBusca(L); return;
     }
+    var au = t.closest('[data-auto]'); if (au) return moverAuto($('#au-res').__linhas[+au.dataset.auto]);
+    var mn = t.closest('[data-man]'); if (mn) return moverManual(mn.dataset.man);
+    var rz = t.closest('[data-raiz]'); if (rz) return api('raiz', { acao: 'remover', caminho: rz.dataset.raiz }).then(aplicarConfig);
+    var b = t.closest('[data-a]'); if (!b || b.disabled) return;
+    var a = b.dataset.a;
+    if (a === 'criar') criar();
+    else if (a === 'auditar') auditar();
+    else if (a === 'bobra') buscar('obra');
+    else if (a === 'bpac') buscar('pacote');
+    else if (a === 'base') api('atualizar_base', {}).then(function (r) { if (!r.ok) return falha(r); F.info(r.titulo, r.msg, 'ok'); });
+    else if (a === 'cfg-pl') F.escolherArquivos('.xlsx').then(function (fs) {
+      var f = fs[0]; if (!f) return;
+      if (!F.aceito(f.name, ['.xlsx'])) return F.recusar([f.name], ['.xlsx'], function () { b.click(); });
+      if (!f.ppcpmCaminho) return F.info('Planilha (.xlsx)', 'Não consegui saber o caminho desse arquivo. Cole o caminho da planilha (ou da pasta dela) no campo.', 'aviso');
+      salvarCfg('caminho_planilha', f.ppcpmCaminho);
+    });
+    else if (a === 'cfg-de') F.escolherPasta().then(function (c) { if (c) salvarCfg('caminho_destino', c); });
+    else if (a === 'raiz') F.escolherPasta().then(function (c) { if (c) api('raiz', { acao: 'adicionar', caminho: c }).then(aplicarConfig); });
   });
-  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.id === 'au-tudo') { mostrarTudo = t.checked; desenharAud(); return; }
+    if (t.id === 'au-cfg-pl') salvarCfg('caminho_planilha', t.value);
+    if (t.id === 'au-cfg-de') salvarCfg('caminho_destino', t.value);
+  });
+  document.addEventListener('input', function (ev) { if (ev.target.classList.contains('campo-in')) F.marcarCampo(ev.target); });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter') return;
+    var id = ev.target.id;
+    if (id === 'au-lote') { ev.preventDefault(); criar(); }
+    else if (id === 'au-obra') { ev.preventDefault(); buscar('obra'); }
+    else if (id === 'au-pac') { ev.preventDefault(); buscar('pacote'); }
+    else if (id === 'au-cfg-pl' || id === 'au-cfg-de') { ev.preventDefault(); ev.target.blur(); }
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    F.verificarApp(api, '#fb-falta').then(function (ok) { if (ok) carregarConfig(); });
+    desenharBusca([]);
+    $('#au-lote').focus();
+  });
 })();
 
 <\/script>
@@ -22829,7 +23566,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 260';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 261';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});

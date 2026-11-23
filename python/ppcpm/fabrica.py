@@ -133,3 +133,15 @@ def abrir_pasta(aba: str, qual: str) -> dict:
         return {"ok": True, "pasta": alvo}
     except OSError as e:
         return {"ok": False, "erro": str(e)}
+
+
+def abrir_pasta_caminho(alvo: str) -> dict:
+    """Abre uma pasta qualquer no Explorador (usado pelo 'Abrir Pasta Atual' do Visualizador)."""
+    try:
+        if sys.platform == "win32":
+            os.startfile(alvo)  # type: ignore[attr-defined]
+        else:
+            subprocess.Popen(["xdg-open", alvo], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return {"ok": True, "pasta": alvo}
+    except OSError as e:
+        return {"ok": False, "erro": str(e)}

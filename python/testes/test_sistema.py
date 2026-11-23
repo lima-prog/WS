@@ -180,7 +180,7 @@ def test_fabrica_apps_dentro_da_aba():
     """Preparação fábrica: cada app tem a sua API /api/fabrica/<app>/ e a sua aba montada."""
     import importlib
     base = Path(__file__).resolve().parent.parent / "ppcpm" / "gerado" / "modulos"
-    for app, pg in (("ren", "pg19"), ("cam", "pg20"), ("esp", "pg17"), ("cor", "pg18")):
+    for app, pg in (("ren", "pg19"), ("cam", "pg20"), ("esp", "pg17"), ("cor", "pg18"), ("vis", "pg16"), ("aud", "pg21")):
         mod = importlib.import_module(f"ppcpm.fabrica_{app}")
         assert mod.post("xyz", {})["ok"] is False
         assert f"apiDe('{app}')" in (base / f"{pg}.html").read_text(encoding="utf-8")
