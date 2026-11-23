@@ -143,121 +143,312 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .arv .vz{color:#374151}
 .kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
 
-.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
-.fb-ic svg{width:24px;height:24px}
-.fb-oq{font-size:14px;line-height:1.55;color:#111827}
-.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
-.fb-ol li{margin:4px 0}
-.fb-st{display:flex;flex-direction:column;gap:8px}
-.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
-.fb-l b{min-width:118px}
-.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
-.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
-.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
-.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
-.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
-.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
-.fb-pill.on{background:#dcf5e3;color:#15803d}
-.fb-pill.no{background:#fde2e2;color:#b91c1c}
-.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
-.b.fb-abrir{font-size:15px;padding:10px 18px}
-.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
-.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
-.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
-.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+/* Preparação fábrica — app dentro da aba */
+.abas{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 14px;border-bottom:2px solid #c5cbd6}
+.abas .ab{display:inline-flex;align-items:center;gap:8px;background:transparent;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;padding:10px 16px;font:700 13.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#4b5563;cursor:pointer}
+.abas .ab:hover{color:#111827;background:#e3e7ec}
+.abas .ab.on{color:#0b3d91;border-bottom-color:#0b3d91}
+.abas .ab svg{flex:none}
+.abas .cnt:not(:empty){margin-left:2px;padding:0 7px;border-radius:999px;background:#fde2e2;color:#b91c1c;font-size:11.5px}
+.painel{display:none}.painel.on{display:block}
+.abas2{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 10px}
+.abas2 .ab{background:#d5dae1;border:1px solid #99a3af;border-radius:4px;padding:6px 12px;font:700 12.5px 'Segoe UI',Inter,system-ui,sans-serif;color:#1f2937;cursor:pointer}
+.abas2 .ab:hover{background:#c9d0d8}
+.abas2 .ab.on{background:#0b3d91;border-color:#0b3d91;color:#fff}
+.log{background:#fff;border:1px solid #99a3af;border-radius:4px;height:340px;overflow:auto;padding:8px 10px;font:12.5px/1.5 Consolas,'Courier New',monospace;color:#1f2937;white-space:pre-wrap;word-break:break-word}
+.log .vz{font-family:'Segoe UI',Inter,system-ui,sans-serif;color:#6b7280;font-weight:600;text-align:center;padding:30px 0}
+.log .ok{color:#15803d}.log .er{color:#b91c1c;font-weight:700}.log .av{color:#b45309}.log .inf{color:#0b3d91}
+.rt-err:empty{display:none}
+.rt-err{margin-top:8px;color:#b42318;font-weight:700;font-size:13px}
+.status.ok::before{background:#1e8e3e}.status.aviso::before{background:#d97706}.status.erro::before{background:#dc2626}
+.status.ok{color:#15803d}.status.aviso{color:#92400e}.status.erro{color:#b42318}
+.status:empty{display:none}
+.vazio-cx{text-align:center;color:#4b5563;font-size:14px;line-height:1.7;padding:46px 12px!important}
+.rel-sub{margin:0 0 10px;font-size:13px;color:#374151}
+.kpis8{grid-template-columns:repeat(auto-fit,minmax(128px,1fr))}
+.kpi{flex-direction:column;align-items:flex-start;gap:2px;min-height:0;padding:10px 12px;border-left:4px solid #6b7280}
+.kpi .v{font-size:21px}
+.kpi.ok{border-left-color:#16a34a}.kpi.ok .v{color:#15803d}
+.kpi.er{border-left-color:#dc2626}.kpi.er .v{color:#b91c1c}
+.kpi.av{border-left-color:#d97706}.kpi.av .v{color:#b45309}
+.kpi.inf{border-left-color:#0b3d91}.kpi.inf .v{color:#0b3d91}
+.dica{font-size:12.5px;color:#92400e;background:#fff7e6;border:1px solid #f5d9a8;border-left:3px solid #d97706;border-radius:3px;padding:7px 10px;margin:0 0 10px;line-height:1.5}
+.fraco{font-size:12px;color:#4b5563;margin-top:8px;line-height:1.5}
+.mt{margin-top:10px}
+.arv{max-height:420px}
+.arv td input[type=text],.arv td select{width:100%;min-width:150px;padding:4px 8px;font-size:12.5px}
+.arv td.ck{width:34px;text-align:center}
+.arv td.ck input{margin:0}
+.arv td .b.mini{margin:0}
+.arv td.num{text-align:right;font-variant-numeric:tabular-nums}
+.arv td.c{text-align:center}
+.acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.acoes .st{font-size:12.5px;font-weight:700}
+.acoes .st.ok{color:#15803d}.acoes .st.aviso{color:#b45309}
+.b.perigo{color:#b42318;border-color:#e8a7a0}
+.b.perigo:hover:not(:disabled){background:#fdeeee;border-color:#dc2626}
+.rot-lbl{font-weight:700;font-size:13px}
+.graf{background:#fff;border:1px solid #99a3af;border-radius:4px;padding:10px;overflow:auto}
+.graf svg{display:block;width:100%;height:auto}
+.graf text{font-family:'Segoe UI',Inter,system-ui,sans-serif}
+.lista li .n{font-family:Consolas,'Courier New',monospace;font-weight:600}
+.lista{max-height:180px}
+.status{margin-top:8px}
+.barra .status{margin-top:0}
+.fb-falta{margin:0 0 12px;padding:9px 12px;border-radius:4px;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c;font-weight:700;font-size:13.5px}
+.fb-falta:empty{display:none}
+.rotulo{min-width:118px;font-weight:700;font-size:13px}
+.sub-info{font-size:12px;color:#4b5563;font-weight:600}
+.arv tr.marcada td{background:#dde6f3!important}
+.arv td.st-ok{background:#e9f3ea!important;color:#1e7b34;font-weight:700}
+.arv td.st-er{background:#fbe7e4!important;color:#b42318;font-weight:700}
+.arv td.st-av{background:#fbf0dc!important;color:#92400e;font-weight:700}
+.rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px}
+.sel-txt{color:#0b3d91;font-weight:700;font-size:13px}
+.b.grande{font-size:14px;padding:10px 20px}
+.topo-dir{margin-left:auto}
 </style>
 </head>
 <body>
-<div class="pr-topo"><b>Preparação fábrica | Renomear DXF:</b><span class="c">Pasta dos CAM</span><i>→</i><span class="c">Pasta dos DXF/DWG</span><i>→</i><span class="c">nome no padrão do PPCP</span></div>
-
+<div class="pr-topo"><b>Preparação fábrica | Renomear DXF (Tekla/Tecno):</b><span class="c">Pasta dos CAM</span><i>→</i><span class="c">Pasta dos DXF/DWG</span><i>→</i><span class="c">&lt;posição&gt; - OF&lt;obra&gt; - Q&lt;qtd&gt;</span></div>
+<div class="fb-falta" id="fb-falta"></div>
 <div class="cx">
-  <div class="cx-h"><span class="badge">1</span><h3>O que o Renomear DXF faz</h3></div>
-  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div><div class="fb-oq">Renomeia DXF/DWG que já foram exportados por fora (Tekla/Tecno) para o padrão do PPCP, pegando a QUANTIDADE do .CAM da mesma posição:  &lt;posição&gt; - OF&lt;obra/trecho&gt; - Q&lt;qtd&gt;&lt;extensão original&gt;</div></div>
+  <div class="cx-h"><span class="badge">1</span><h3>Pastas</h3><span class="sub">cole o caminho ou use o botão ao lado</span><div class="dir"><button class="b mini" data-a="ajuda"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/></svg>Ajuda</button></div></div>
+  <div class="linha"><span class="rotulo">Pasta CAM:</span><input type="text" class="cresce campo-in" id="rn-cam" placeholder="Cole aqui o caminho da pasta, ou use o botão ao lado" spellcheck="false"><button class="b" data-a="cam"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Selecionar Pasta CAM</button></div>
+  <div class="linha"><span class="rotulo">Pasta DXF/DWG:</span><input type="text" class="cresce campo-in" id="rn-dxf" placeholder="Cole aqui o caminho da pasta, ou use o botão ao lado" spellcheck="false"><button class="b" data-a="dxf"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Selecionar Pasta DXF/DWG</button></div>
+  <div class="linha"><span class="rotulo">Obra/Trecho:</span><input type="text" id="rn-obra" style="width:220px" placeholder="preenchido ao selecionar a pasta CAM" title="Identificador que entra no nome final dos arquivos. É preenchido automaticamente a partir do nome da pasta um nível acima da pasta CAM — corrija na mão se não bater, e clique em &quot;Analisar&quot; de novo pra atualizar a tabela." spellcheck="false"><span class="sub-info" id="rn-lib"></span></div>
+  <div class="linha mt"><button class="b p grande" data-a="analisar" id="rn-analisar" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>Analisar</button></div>
 </div>
-
-<div class="grid2">
-  <div class="cx">
-    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
-    <ol class="fb-ol"><li>Escolha a pasta dos .CAM.</li><li>Escolha a pasta dos .DXF/.DWG (sugestão inicial: Área de Trabalho\DXF). Ela é lida com subpastas.</li><li>Clique em analisar: a tabela mostra nome atual, posição, quantidade, nome final e situação de cada arquivo.</li><li>Confira a obra/trecho e a &#x27;liberação&#x27; (nome da pasta acima da pasta CAM) mostrados na tela.</li><li>Marque só as linhas que quer renomear e confirme. Nada é renomeado antes disso.</li></ol>
-  </div>
-  <div class="cx">
-    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
-    <div class="fb-st" id="fb-status">
-      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
-      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
-      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
-      <div class="fb-acoes">
-        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Renomear DXF</button>
-        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
-        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
-        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
-      </div>
-      <div class="fb-msg" id="fb-msg"></div>
-      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
-    </div>
-  </div>
+<div class="cx">
+  <div class="cx-h"><span class="badge">2</span><h3>Arquivos encontrados</h3><span class="sub">marque as linhas prontas e clique em Renomear Selecionados — nada é renomeado antes disso</span></div>
+  <div class="arv grande" id="rn-tab"></div>
+  <div class="rodape"><span class="sel-txt" id="rn-sel">0 arquivo(s) selecionado(s)</span><button class="b p grande" data-a="renomear" id="rn-ren" disabled><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/></svg>Renomear Selecionados</button></div>
+  <div class="status" id="rn-st">Selecione a pasta CAM e a pasta DXF/DWG pra começar.</div>
 </div>
 
 <script>
-window.FB_ABA = 'pg19'; window.FB_NOME = 'Renomear DXF';
-
+/* Preparação fábrica — funções comuns dos apps que rodam dentro da aba (janela do sistema, pastas, arquivos, API). */
 (function () {
   'use strict';
-  var ABA = window.FB_ABA, NOME = window.FB_NOME;
-  var $ = function (s) { return document.querySelector(s); };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var Hd = { 'X-PPCPM': '1' };
   function local() {
     if (typeof window.PPCPM_PASTA === 'function') return true;
     try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
   }
-  if (!local()) {
-    document.addEventListener('DOMContentLoaded', function () {
-      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
-        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
-        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+  function apiDe(app) {
+    return function (acao, corpo) {
+      var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+        { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+      return fetch('/api/fabrica/' + app + '/' + acao, op).then(function (r) { return r.json(); });
+    };
+  }
+  var TD; try { TD = window.top.document; } catch (e) { TD = document; }
+  var BS = 'display:inline-flex;align-items:center;gap:8px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 14px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff;white-space:nowrap';
+  var KB = function (t) { return '<span style="padding:0 6px;background:#fff;border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;font:600 10.5px Segoe UI,Arial,sans-serif;color:#374151">' + t + '</span>'; };
+  var ICJ = {
+    q: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/>',
+    i: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+    av: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+    ok: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+    ed: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/>'
+  };
+  /* op: {titulo, cor, ic, html, botoes:[{v,t,kb,foco}], larg, aoAbrir(card), valor(card,v), semFoco} -> Promise */
+  function janela(op) {
+    return new Promise(function (res) {
+      var f = TD.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+      f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Segoe UI,Roboto,Arial,sans-serif';
+      var cor = op.cor || '#0b3d91';
+      var bts = op.botoes || [{ v: true, t: 'OK', kb: 'Enter', foco: 1 }];
+      f.innerHTML = '<div style="width:100%;max-width:' + (op.larg || 470) + 'px;max-height:92vh;display:flex;flex-direction:column;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-top:4px solid ' + cor + ';border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
+        '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700;cursor:move">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" style="flex:none;fill:none;stroke:' + cor + ';stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + (ICJ[op.ic] || ICJ.i) + '</svg><span>' + esc(op.titulo) + '</span></div>' +
+        '<div style="padding:14px 16px;line-height:1.5;white-space:pre-wrap;overflow:auto">' + op.html + '</div>' +
+        '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+        bts.map(function (b, i) { return '<button type="button" data-q="' + i + '" style="' + BS + '">' + esc(b.t) + (b.kb ? ' ' + KB(b.kb) : '') + '</button>'; }).join('') + '</div></div>';
+      var card = f.firstChild;
+      var fim = function (v) { TD.removeEventListener('keydown', tec, true); f.remove(); res(op.valor ? op.valor(card, v) : v); };
+      var tec = function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); var c = bts.filter(function (b) { return b.kb === 'Esc'; })[0]; fim(c ? c.v : false); }
+        else if (ev.key === 'Enter' && !(ev.target && ev.target.tagName === 'TEXTAREA')) { var e2 = bts.filter(function (b) { return b.kb === 'Enter'; })[0]; if (e2) { ev.preventDefault(); ev.stopPropagation(); fim(e2.v); } }
+      };
+      f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(bts[+b.dataset.q].v); });
+      TD.addEventListener('keydown', tec, true); (TD.body || TD.documentElement).appendChild(f);
+      [].forEach.call(f.querySelectorAll('[data-q]'), function (x) { x.onmouseenter = function () { x.style.background = 'linear-gradient(#e7ebef,#c9d0d8)'; }; x.onmouseleave = function () { x.style.background = 'linear-gradient(#f3f5f7,#d9dee5)'; }; });
+      try { if (window.top.__arrastavel) window.top.__arrastavel(card, card.firstChild); } catch (e) { }
+      if (op.aoAbrir) op.aoAbrir(card);
+      var fb = bts.map(function (b, i) { return b.foco ? i : -1; }).filter(function (i) { return i >= 0; })[0];
+      if (!op.semFoco) { var bf = f.querySelector('[data-q="' + (fb == null ? bts.length - 1 : fb) + '"]'); if (bf) bf.focus(); }
     });
-    return;
   }
-  function api(acao, corpo) {
-    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
-      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
-    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  function confirmar(titulo, texto, sim, nao) {
+    return janela({ titulo: titulo, ic: 'q', html: esc(texto), botoes: [{ v: false, t: nao || 'Não', kb: 'Esc' }, { v: true, t: sim || 'Sim', kb: 'Enter', foco: 1 }] });
   }
-  var ultimo = null;
-  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
-  function desenhar(e) {
-    ultimo = e;
-    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
-    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
-    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
-    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
-    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
-    var falta = e.faltam && e.faltam.length;
-    $('#fb-inst').style.display = falta ? '' : 'none';
-    $('#fb-abrir').disabled = !e.existe || !!falta;
-    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  function info(titulo, texto, tipo) {
+    var c = tipo === 'aviso' ? ['av', '#d97706'] : tipo === 'ok' ? ['ok', '#1e9e4a'] : ['i', '#0b3d91'];
+    return janela({ titulo: titulo, ic: c[0], cor: c[1], html: esc(texto) });
   }
-  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  function perguntar(titulo, rotulo, valor) {
+    return janela({
+      titulo: titulo, ic: 'ed', semFoco: true, html: esc(rotulo) + '<input type="text" data-in value="' + esc(valor || '') + '" style="display:block;width:100%;margin-top:8px;box-sizing:border-box;background:#fff;color:#000;border:1px solid #98a3b3;border-radius:4px;padding:7px 10px;font:600 13.5px Segoe UI,Arial,sans-serif">',
+      botoes: [{ v: null, t: 'Cancelar', kb: 'Esc' }, { v: 1, t: 'OK', kb: 'Enter' }],
+      aoAbrir: function (c) { var i = c.querySelector('[data-in]'); setTimeout(function () { i.focus(); i.select(); }, 0); },
+      valor: function (c, v) { return v === null ? null : (c.querySelector('[data-in]').value || ''); }
+    });
+  }
+  function erro(r, titulo) {
+    var t = (r && (r.erro || r.msg)) || 'Não consegui falar com o sistema.';
+    try { if (window.top.__pjQuadroErro) return window.top.__pjQuadroErro({ titulo: (r && r.titulo) || titulo || 'Erro', texto: t }); } catch (e) { }
+    return info((r && r.titulo) || titulo || 'Erro', t, 'aviso');
+  }
+  function escolherPasta() {
+    try { return window.showDirectoryPicker().then(function (h) { return (h && h.ppcpmCaminho) || ''; }, function () { return ''; }); }
+    catch (e) { return Promise.resolve(''); }
+  }
+  /* arquivo do PC: devolve o File (com .ppcpmCaminho quando o sistema conhece o caminho) */
+  function escolherArquivos(aceita, multiplo) {
+    return new Promise(function (res) {
+      var i = document.createElement('input'); i.type = 'file'; if (aceita) i.accept = aceita; i.multiple = !!multiplo; i.style.display = 'none'; document.body.appendChild(i);
+      var feito = false;
+      i.addEventListener('change', function () { feito = true; res(Array.prototype.slice.call(i.files || [])); i.remove(); });
+      i.addEventListener('cancel', function () { if (!feito) { feito = true; res([]); i.remove(); } });
+      i.click();
+    });
+  }
+  function aceito(nome, exts) { var n = String(nome || '').toLowerCase(); return exts.some(function (e) { return n.slice(-e.length) === e; }); }
+  function recusar(nomes, exts, escolher) {
+    try { window.top.__arqRecusado({ nomes: nomes, aceitos: exts, escolher: escolher }); } catch (e) { info('Formato inválido', 'Arquivo não aceito: ' + nomes.join(', '), 'aviso'); }
+  }
+  function marcarCampo(inp, ok) { var v = ok == null ? !!inp.value.trim() : ok; inp.classList.toggle('ok', v && !!inp.value.trim()); inp.classList.toggle('er', ok === false); }
+  function siteSemApp(nome, texto) {
+    document.addEventListener('DOMContentLoaded', function () {
+      $$('body>*:not(.pr-topo)').forEach(function (p) { if (p.tagName !== 'SCRIPT') p.remove(); });
+      document.body.insertAdjacentHTML('beforeend', '<div class="cx pr-site"><h2>' + esc(nome) + '</h2>' +
+        '<p>' + (texto || 'Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os arquivos direto nas pastas do PC ou do servidor).') + '</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>');
+    });
+  }
+  function verificarApp(api, alvo) {
+    return api('disponivel').then(function (d) {
+      if (d.ok) return true;
+      var el = typeof alvo === 'string' ? $(alvo) : alvo;
+      if (el) {
+        el.innerHTML = '<div class="fb-falta">❌ ' + esc(d.erro || 'App indisponível neste PC.') + (d.faltam && d.faltam.length ? ' <button class="b mini" data-inst>Instalar bibliotecas</button>' : '') + '</div>';
+        var bi = el.querySelector('[data-inst]'); if (bi) bi.onclick = function () { try { window.top.instAbrir(); } catch (e) { } };
+      }
+      return false;
+    }).catch(function () { return false; });
+  }
+  window.FB = { $: $, $$: $$, esc: esc, local: local, apiDe: apiDe, janela: janela, confirmar: confirmar, info: info, perguntar: perguntar, erro: erro,
+    escolherPasta: escolherPasta, escolherArquivos: escolherArquivos, aceito: aceito, recusar: recusar, marcarCampo: marcarCampo, siteSemApp: siteSemApp, verificarApp: verificarApp, Hd: Hd };
+})();
+
+(function () {
+  'use strict';
+  var F = window.FB, $ = F.$, esc = F.esc;
+  if (!F.local()) return F.siteSemApp('Renomear DXF (Tekla/Tecno)');
+  var api = F.apiDe('ren');
+  var E = null, sel = {};
+  var COR = { ok: 'st-ok', renomeado: 'st-ok', sem_cam: 'st-er', erro_renomear: 'st-er', sem_quantidade: 'st-av' };
+  var AJUDA = 'Ferramenta separada do Conversor CAM → DXF: use quando o Tekla/Tecno já exportou os arquivos .DXF/.DWG prontos por fora (sem passar pelo conversor deste app) e só falta renomear cada um no formato "<posição> - OF<obra/trecho> - Q<qtd>".\n\n' +
+    '1) Informe a pasta CAM (onde estão os .CAM daquela obra) — cole o caminho direto no campo ou use o botão "Selecionar Pasta CAM". O campo "Obra/Trecho" é preenchido automaticamente a partir do nome da pasta um nível acima; corrija-o na mão se não bater com o esperado.\n\n' +
+    '2) Informe a pasta onde estão os .DXF/.DWG já exportados, do mesmo jeito (colar o caminho ou usar o botão) — a busca entra em todas as subpastas.\n\n' +
+    '3) Clique em "Analisar" pra ver, numa tabela, o nome final de cada arquivo ANTES de renomear de verdade.\n\n' +
+    '4) Marque as linhas prontas (✅) e clique em "Renomear Selecionados". Arquivos sem .CAM correspondente ou com problema no .CAM ficam marcados e não são renomeados.\n\n' +
+    '• Depois de renomear, a própria linha muda pra "✅ Renomeado" — é esperado que ela deixe de aparecer como "pronta pra renomear" (já foi feito) e NÃO é a mesma coisa que "Sem .CAM correspondente" (que indica um problema).\n\n' +
+    '• Se corrigir o campo "Obra/Trecho" depois de já ter analisado, clique em "Analisar" de novo pra os nomes finais da tabela refletirem a correção.\n\n' +
+    '• Nunca sobrescreve um arquivo já existente com o mesmo nome final — se acontecer, a linha vira "❌ Erro ao renomear".';
+
+  function aplicar(e, manterObra) {
+    if (!e || e.ok === false) { if (e && e.erro) F.erro(e, 'Renomear DXF'); if (!e || !e.linhas) return; }
+    E = e;
+    var c = $('#rn-cam'), d = $('#rn-dxf'), o = $('#rn-obra');
+    if (document.activeElement !== c) { c.value = e.pasta_cam || ''; F.marcarCampo(c); c.title = e.pasta_cam || ''; }
+    if (document.activeElement !== d) { d.value = e.pasta_dxf || ''; F.marcarCampo(d); d.title = e.pasta_dxf || ''; }
+    if (!manterObra && document.activeElement !== o) o.value = e.obra || '';
+    $('#rn-lib').textContent = e.liberacao ? '(pasta detectada: ' + e.liberacao + ')' : '';
+    $('#rn-analisar').disabled = !(e.pasta_cam && e.pasta_dxf);
+    $('#rn-st').textContent = e.status;
+    desenhar();
+  }
+  function desenhar() {
+    var L = E ? E.linhas : [];
+    var h = '<table><thead><tr><th style="width:34px"><input type="checkbox" id="rn-todos" title="Selecionar todos (Ctrl+A)"></th><th>Arquivo atual</th><th>Posição</th><th>Quantidade</th><th>Nome final</th><th>Status</th></tr></thead><tbody>';
+    h += L.length ? L.map(function (l) {
+      return '<tr class="' + (sel[l.i] ? 'marcada' : '') + '" data-i="' + l.i + '"><td class="ck"><input type="checkbox" data-sel="' + l.i + '"' + (sel[l.i] ? ' checked' : '') + '></td><td>' + esc(l.arquivo_atual) + '</td><td class="c">' + esc(l.posicao) + '</td><td class="c">' + esc(l.quantidade || '—') + '</td><td class="c">' + esc(l.nome_final || '—') + '</td><td class="c ' + (COR[l.status] || '') + '"' + (l.erro_renomear_msg ? ' title="' + esc(l.erro_renomear_msg) + '"' : '') + '>' + esc(l.status_txt) + '</td></tr>';
+    }).join('') : '<tr><td colspan="6" class="vz">' + (E && E.analisado ? 'Nenhum arquivo .DXF/.DWG encontrado.' : 'Escolha as pastas e clique em "Analisar".') + '</td></tr>';
+    $('#rn-tab').innerHTML = h + '</tbody></table>';
+    contar();
+  }
+  function contar() {
+    var L = E ? E.linhas : [];
+    var s = L.filter(function (l) { return sel[l.i]; }), p = s.filter(function (l) { return l.status === 'ok'; });
+    $('#rn-sel').textContent = s.length + ' arquivo(s) selecionado(s) (' + p.length + ' pronto(s) pra renomear)';
+    $('#rn-ren').disabled = !p.length;
+    var t = $('#rn-todos'); if (t) { t.checked = L.length && s.length === L.length; t.indeterminate = s.length > 0 && s.length < L.length; }
+  }
+  function definirPasta(qual, caminho) {
+    return api(qual === 'cam' ? 'pasta_cam' : 'pasta_dxf', { caminho: caminho }).then(function (r) {
+      if (r.ok === false) { F.erro(r, 'Pasta não encontrada'); aplicar(E); return; }
+      aplicar(r);
+    });
+  }
+  function analisar() {
+    if ($('#rn-analisar').disabled) return;
+    $('#rn-analisar').disabled = true; $('#rn-st').className = 'status rodando'; $('#rn-st').textContent = 'Analisando…';
+    api('analisar', { obra: $('#rn-obra').value }).then(function (r) { sel = {}; $('#rn-st').className = 'status'; aplicar(r); })
+      .catch(function (e) { F.erro({ erro: String(e) }); }).then(function () { $('#rn-analisar').disabled = !(E && E.pasta_cam && E.pasta_dxf); });
+  }
+  function renomear() {
+    var L = E ? E.linhas : [];
+    var p = L.filter(function (l) { return sel[l.i] && l.status === 'ok'; });
+    if (!p.length) { F.info('Atenção', 'Selecione pelo menos um arquivo com status "✅ Pronto pra renomear".', 'aviso'); return; }
+    F.confirmar('Renomear arquivos', 'Renomear ' + p.length + ' arquivo(s) selecionado(s)? Essa ação altera os arquivos na pasta de origem — não é possível desfazer automaticamente.').then(function (ok) {
+      if (!ok) return;
+      $('#rn-ren').disabled = true;
+      api('renomear', { indices: p.map(function (l) { return l.i; }) }).then(function (r) {
+        aplicar(r, true);
+        if (r.erros && r.erros.length) F.info('Alguns arquivos não foram renomeados', r.erros.join('\n'), 'aviso');
+      });
+    });
+  }
   document.addEventListener('click', function (ev) {
-    var b = ev.target.closest('[data-fb]'); if (!b) return;
-    var a = b.dataset.fb;
-    if (a === 'abrir' || a === 'msgs') {
-      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
-      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
-        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
-        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
-      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
-        .then(function () { b.disabled = false; atualizar(); });
-    } else if (a === 'inst') {
-      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
-      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
-    } else if (a === 'dados' || a === 'pasta') {
-      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    var b = ev.target.closest('[data-a]'); if (!b || b.disabled) return;
+    var a = b.dataset.a;
+    if (a === 'cam' || a === 'dxf') F.escolherPasta().then(function (c) { if (c) definirPasta(a, c); });
+    else if (a === 'analisar') analisar();
+    else if (a === 'renomear') renomear();
+    else if (a === 'ajuda') F.info('Ajuda', AJUDA);
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.id === 'rn-todos') { (E ? E.linhas : []).forEach(function (l) { sel[l.i] = t.checked; }); desenhar(); return; }
+    if (t.matches('[data-sel]')) { sel[t.dataset.sel] = t.checked; t.closest('tr').classList.toggle('marcada', t.checked); contar(); return; }
+    if (t.id === 'rn-cam' || t.id === 'rn-dxf') {
+      var v = t.value.trim().replace(/^"|"$/g, ''), atual = E ? (t.id === 'rn-cam' ? E.pasta_cam : E.pasta_dxf) : '';
+      if (v && v !== atual) definirPasta(t.id === 'rn-cam' ? 'cam' : 'dxf', v);
     }
   });
-  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+  document.addEventListener('input', function (ev) { if (ev.target.classList.contains('campo-in')) F.marcarCampo(ev.target); });
+  document.addEventListener('keydown', function (ev) {
+    var t = ev.target;
+    if (ev.key === 'Enter' && (t.id === 'rn-cam' || t.id === 'rn-dxf')) { ev.preventDefault(); t.blur(); }
+    else if (ev.key === 'Enter' && t.id === 'rn-obra') { ev.preventDefault(); analisar(); }
+    else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'a' && !/INPUT|TEXTAREA/.test(t.tagName) && E && E.linhas.length) {
+      ev.preventDefault(); E.linhas.forEach(function (l) { sel[l.i] = true; }); desenhar();
+    }
+  });
+  /* clicar na linha marca/desmarca (como selecionar a linha na tabela do app) */
+  document.addEventListener('click', function (ev) {
+    var tr = ev.target.closest('#rn-tab tr[data-i]'); if (!tr || ev.target.closest('input')) return;
+    var i = tr.dataset.i; sel[i] = !sel[i]; tr.classList.toggle('marcada', !!sel[i]); tr.querySelector('[data-sel]').checked = !!sel[i]; contar();
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    F.verificarApp(api, '#fb-falta');
+    api('estado').then(function (e) { aplicar(e); }).catch(function () { });
+  });
 })();
 
 <\/script>

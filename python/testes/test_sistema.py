@@ -174,3 +174,13 @@ def test_roteirizador_dentro_da_aba():
     assert fabrica_rot.post("xyz", {})["ok"] is False
     pg22 = (Path(__file__).resolve().parent.parent / "ppcpm" / "gerado" / "modulos" / "pg22.html").read_text(encoding="utf-8")
     assert "/api/fabrica/rot/" in pg22 and 'data-aba="ver"' in pg22
+
+
+def test_fabrica_apps_dentro_da_aba():
+    """Preparação fábrica: cada app tem a sua API /api/fabrica/<app>/ e a sua aba montada."""
+    import importlib
+    base = Path(__file__).resolve().parent.parent / "ppcpm" / "gerado" / "modulos"
+    for app, pg in (("ren", "pg19"), ("cam", "pg20"), ("esp", "pg17"), ("cor", "pg18")):
+        mod = importlib.import_module(f"ppcpm.fabrica_{app}")
+        assert mod.post("xyz", {})["ok"] is False
+        assert f"apiDe('{app}')" in (base / f"{pg}.html").read_text(encoding="utf-8")

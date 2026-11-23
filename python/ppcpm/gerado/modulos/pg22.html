@@ -195,6 +195,18 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .lista{max-height:180px}
 .status{margin-top:8px}
 .barra .status{margin-top:0}
+.fb-falta{margin:0 0 12px;padding:9px 12px;border-radius:4px;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c;font-weight:700;font-size:13.5px}
+.fb-falta:empty{display:none}
+.rotulo{min-width:118px;font-weight:700;font-size:13px}
+.sub-info{font-size:12px;color:#4b5563;font-weight:600}
+.arv tr.marcada td{background:#dde6f3!important}
+.arv td.st-ok{background:#e9f3ea!important;color:#1e7b34;font-weight:700}
+.arv td.st-er{background:#fbe7e4!important;color:#b42318;font-weight:700}
+.arv td.st-av{background:#fbf0dc!important;color:#92400e;font-weight:700}
+.rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:10px}
+.sel-txt{color:#0b3d91;font-weight:700;font-size:13px}
+.b.grande{font-size:14px;padding:10px 20px}
+.topo-dir{margin-left:auto}
 </style>
 </head>
 <body>
@@ -299,6 +311,124 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 </section>
 
 <script>
+/* Preparação fábrica — funções comuns dos apps que rodam dentro da aba (janela do sistema, pastas, arquivos, API). */
+(function () {
+  'use strict';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  function apiDe(app) {
+    return function (acao, corpo) {
+      var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+        { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+      return fetch('/api/fabrica/' + app + '/' + acao, op).then(function (r) { return r.json(); });
+    };
+  }
+  var TD; try { TD = window.top.document; } catch (e) { TD = document; }
+  var BS = 'display:inline-flex;align-items:center;gap:8px;font:700 14px Segoe UI,Roboto,Arial,sans-serif;color:#000;padding:7px 14px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff;white-space:nowrap';
+  var KB = function (t) { return '<span style="padding:0 6px;background:#fff;border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;font:600 10.5px Segoe UI,Arial,sans-serif;color:#374151">' + t + '</span>'; };
+  var ICJ = {
+    q: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17h.01"/>',
+    i: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+    av: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+    ok: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+    ed: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/>'
+  };
+  /* op: {titulo, cor, ic, html, botoes:[{v,t,kb,foco}], larg, aoAbrir(card), valor(card,v), semFoco} -> Promise */
+  function janela(op) {
+    return new Promise(function (res) {
+      var f = TD.createElement('div'); f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true');
+      f.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Segoe UI,Roboto,Arial,sans-serif';
+      var cor = op.cor || '#0b3d91';
+      var bts = op.botoes || [{ v: true, t: 'OK', kb: 'Enter', foco: 1 }];
+      f.innerHTML = '<div style="width:100%;max-width:' + (op.larg || 470) + 'px;max-height:92vh;display:flex;flex-direction:column;background:linear-gradient(#eef1f4,#dde2e8);color:#000;border:1px solid #6b7280;border-top:4px solid ' + cor + ';border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);overflow:hidden;font-size:14px">' +
+        '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(#f3f5f7,#d9dee5);border-bottom:1px solid #aab2bd;font-size:16.5px;font-weight:700;cursor:move">' +
+        '<svg viewBox="0 0 24 24" width="20" height="20" style="flex:none;fill:none;stroke:' + cor + ';stroke-width:2;stroke-linecap:round;stroke-linejoin:round">' + (ICJ[op.ic] || ICJ.i) + '</svg><span>' + esc(op.titulo) + '</span></div>' +
+        '<div style="padding:14px 16px;line-height:1.5;white-space:pre-wrap;overflow:auto">' + op.html + '</div>' +
+        '<div style="display:flex;justify-content:flex-end;gap:10px;padding:11px 14px;background:linear-gradient(#e3e7ec,#d5dae1);border-top:1px solid #aab2bd">' +
+        bts.map(function (b, i) { return '<button type="button" data-q="' + i + '" style="' + BS + '">' + esc(b.t) + (b.kb ? ' ' + KB(b.kb) : '') + '</button>'; }).join('') + '</div></div>';
+      var card = f.firstChild;
+      var fim = function (v) { TD.removeEventListener('keydown', tec, true); f.remove(); res(op.valor ? op.valor(card, v) : v); };
+      var tec = function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); var c = bts.filter(function (b) { return b.kb === 'Esc'; })[0]; fim(c ? c.v : false); }
+        else if (ev.key === 'Enter' && !(ev.target && ev.target.tagName === 'TEXTAREA')) { var e2 = bts.filter(function (b) { return b.kb === 'Enter'; })[0]; if (e2) { ev.preventDefault(); ev.stopPropagation(); fim(e2.v); } }
+      };
+      f.addEventListener('click', function (ev) { var b = ev.target.closest('[data-q]'); if (b) fim(bts[+b.dataset.q].v); });
+      TD.addEventListener('keydown', tec, true); (TD.body || TD.documentElement).appendChild(f);
+      [].forEach.call(f.querySelectorAll('[data-q]'), function (x) { x.onmouseenter = function () { x.style.background = 'linear-gradient(#e7ebef,#c9d0d8)'; }; x.onmouseleave = function () { x.style.background = 'linear-gradient(#f3f5f7,#d9dee5)'; }; });
+      try { if (window.top.__arrastavel) window.top.__arrastavel(card, card.firstChild); } catch (e) { }
+      if (op.aoAbrir) op.aoAbrir(card);
+      var fb = bts.map(function (b, i) { return b.foco ? i : -1; }).filter(function (i) { return i >= 0; })[0];
+      if (!op.semFoco) { var bf = f.querySelector('[data-q="' + (fb == null ? bts.length - 1 : fb) + '"]'); if (bf) bf.focus(); }
+    });
+  }
+  function confirmar(titulo, texto, sim, nao) {
+    return janela({ titulo: titulo, ic: 'q', html: esc(texto), botoes: [{ v: false, t: nao || 'Não', kb: 'Esc' }, { v: true, t: sim || 'Sim', kb: 'Enter', foco: 1 }] });
+  }
+  function info(titulo, texto, tipo) {
+    var c = tipo === 'aviso' ? ['av', '#d97706'] : tipo === 'ok' ? ['ok', '#1e9e4a'] : ['i', '#0b3d91'];
+    return janela({ titulo: titulo, ic: c[0], cor: c[1], html: esc(texto) });
+  }
+  function perguntar(titulo, rotulo, valor) {
+    return janela({
+      titulo: titulo, ic: 'ed', semFoco: true, html: esc(rotulo) + '<input type="text" data-in value="' + esc(valor || '') + '" style="display:block;width:100%;margin-top:8px;box-sizing:border-box;background:#fff;color:#000;border:1px solid #98a3b3;border-radius:4px;padding:7px 10px;font:600 13.5px Segoe UI,Arial,sans-serif">',
+      botoes: [{ v: null, t: 'Cancelar', kb: 'Esc' }, { v: 1, t: 'OK', kb: 'Enter' }],
+      aoAbrir: function (c) { var i = c.querySelector('[data-in]'); setTimeout(function () { i.focus(); i.select(); }, 0); },
+      valor: function (c, v) { return v === null ? null : (c.querySelector('[data-in]').value || ''); }
+    });
+  }
+  function erro(r, titulo) {
+    var t = (r && (r.erro || r.msg)) || 'Não consegui falar com o sistema.';
+    try { if (window.top.__pjQuadroErro) return window.top.__pjQuadroErro({ titulo: (r && r.titulo) || titulo || 'Erro', texto: t }); } catch (e) { }
+    return info((r && r.titulo) || titulo || 'Erro', t, 'aviso');
+  }
+  function escolherPasta() {
+    try { return window.showDirectoryPicker().then(function (h) { return (h && h.ppcpmCaminho) || ''; }, function () { return ''; }); }
+    catch (e) { return Promise.resolve(''); }
+  }
+  /* arquivo do PC: devolve o File (com .ppcpmCaminho quando o sistema conhece o caminho) */
+  function escolherArquivos(aceita, multiplo) {
+    return new Promise(function (res) {
+      var i = document.createElement('input'); i.type = 'file'; if (aceita) i.accept = aceita; i.multiple = !!multiplo; i.style.display = 'none'; document.body.appendChild(i);
+      var feito = false;
+      i.addEventListener('change', function () { feito = true; res(Array.prototype.slice.call(i.files || [])); i.remove(); });
+      i.addEventListener('cancel', function () { if (!feito) { feito = true; res([]); i.remove(); } });
+      i.click();
+    });
+  }
+  function aceito(nome, exts) { var n = String(nome || '').toLowerCase(); return exts.some(function (e) { return n.slice(-e.length) === e; }); }
+  function recusar(nomes, exts, escolher) {
+    try { window.top.__arqRecusado({ nomes: nomes, aceitos: exts, escolher: escolher }); } catch (e) { info('Formato inválido', 'Arquivo não aceito: ' + nomes.join(', '), 'aviso'); }
+  }
+  function marcarCampo(inp, ok) { var v = ok == null ? !!inp.value.trim() : ok; inp.classList.toggle('ok', v && !!inp.value.trim()); inp.classList.toggle('er', ok === false); }
+  function siteSemApp(nome, texto) {
+    document.addEventListener('DOMContentLoaded', function () {
+      $$('body>*:not(.pr-topo)').forEach(function (p) { if (p.tagName !== 'SCRIPT') p.remove(); });
+      document.body.insertAdjacentHTML('beforeend', '<div class="cx pr-site"><h2>' + esc(nome) + '</h2>' +
+        '<p>' + (texto || 'Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os arquivos direto nas pastas do PC ou do servidor).') + '</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>');
+    });
+  }
+  function verificarApp(api, alvo) {
+    return api('disponivel').then(function (d) {
+      if (d.ok) return true;
+      var el = typeof alvo === 'string' ? $(alvo) : alvo;
+      if (el) {
+        el.innerHTML = '<div class="fb-falta">❌ ' + esc(d.erro || 'App indisponível neste PC.') + (d.faltam && d.faltam.length ? ' <button class="b mini" data-inst>Instalar bibliotecas</button>' : '') + '</div>';
+        var bi = el.querySelector('[data-inst]'); if (bi) bi.onclick = function () { try { window.top.instAbrir(); } catch (e) { } };
+      }
+      return false;
+    }).catch(function () { return false; });
+  }
+  window.FB = { $: $, $$: $$, esc: esc, local: local, apiDe: apiDe, janela: janela, confirmar: confirmar, info: info, perguntar: perguntar, erro: erro,
+    escolherPasta: escolherPasta, escolherArquivos: escolherArquivos, aceito: aceito, recusar: recusar, marcarCampo: marcarCampo, siteSemApp: siteSemApp, verificarApp: verificarApp, Hd: Hd };
+})();
+
 (function () {
   'use strict';
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -372,7 +502,7 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
   function info(titulo, texto, aviso) { return janela({ titulo: titulo, ic: aviso ? 'av' : 'i', cor: aviso ? '#d97706' : '#0b3d91', html: esc(texto) }); }
   function perguntar(titulo, rotulo) {
     return janela({
-      titulo: titulo, ic: 'ed', semFoco: true, html: esc(rotulo) + '<input type="text" data-in style="display:block;width:100%;margin-top:8px;box-sizing:border-box;border:1px solid #98a3b3;border-radius:4px;padding:7px 10px;font:600 13.5px Segoe UI,Arial,sans-serif">',
+      titulo: titulo, ic: 'ed', semFoco: true, html: esc(rotulo) + '<input type="text" data-in style="display:block;width:100%;margin-top:8px;box-sizing:border-box;background:#fff;color:#000;border:1px solid #98a3b3;border-radius:4px;padding:7px 10px;font:600 13.5px Segoe UI,Arial,sans-serif">',
       botoes: [{ v: null, t: 'Cancelar', kb: 'Esc' }, { v: 1, t: 'OK', kb: 'Enter' }],
       aoAbrir: function (c) { var i = c.querySelector('[data-in]'); setTimeout(function () { i.focus(); }, 0); },
       valor: function (c, v) { return v === null ? null : (c.querySelector('[data-in]').value || ''); }
