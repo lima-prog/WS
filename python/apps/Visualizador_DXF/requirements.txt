@@ -1,0 +1,6 @@
+# Bibliotecas do app "Visualizador DXF" (só as que ele usa; tiradas do requirements.txt do PPCP Ferramentas)
+#   pip install -r requirements.txt
+PyQt5
+ezdxf
+numpy
+pyqtgraph

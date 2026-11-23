@@ -1,0 +1,36 @@
+{
+ "app": "Roteirizador DXF",
+ "chave": "roteirizador_dxf",
+ "gerado_em": "17/11/2026 11:46",
+ "gerador": "1.0",
+ "origem": "ppcp_dxf_ferramentas (PPCP Ferramentas) + tema SISTEMA - PPCPM",
+ "pastas_de_codigo": [
+  "nucleo",
+  "roteirizador_original"
+ ],
+ "arquivos": {
+  "LEIA-ME.txt": "3828d5ef080f374e5403eea018051c639ef7adea308f73eba65be60381e7aa8a",
+  "MAPA_DO_CODIGO.txt": "04c81e361f08c7fbe541ec161c5d94dd813a746a908df10d79feb36de83fdba7",
+  "Roteirizador_DXF.spec": "8c3d684b66413cf71510cb205a2345e2fe8808057699dda4d2d25d6018ae610c",
+  "iniciar_Roteirizador_DXF.bat": "2dbd59c0b28b13b5ee44f910890bfd1dd53c8e00ebdb08225070216813f746a4",
+  "instalar_bibliotecas_Roteirizador_DXF.bat": "42bef978023c26db9a57ca211a20c1da76fd07101ca1c2b09c94623f88530e5e",
+  "main.py": "21986aa1fee25adcf51e8d59586096885338a9e961fdd6c54630f197754c3f0c",
+  "pasta_dados.txt": "7751ab758857c3cfaa3e4688622f4241e3098de7ee4a15b022ab972e67b200a7",
+  "requirements.txt": "fa6e8ead3038ae8043ca69ff6245b04febb76784d8aaf9cc9ea8b26c2c741615",
+  "nucleo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nucleo/ambiente_qt.py": "b25e51c71a1deedc0ca6483ede0993e608afe6f0303d7c20e196d9efff49c0d0",
+  "nucleo/banco_dados.py": "93c8efd7a464c15430e4f2ecd9cb2fc5a167be61964e6915f07d6feb4bf81c89",
+  "nucleo/caminhos.py": "e53bbfb0b756f903cf5318a9ee0126a2432a09b3ca4ac561a761c02915e60296",
+  "nucleo/estilo.py": "ffc8e52754432b2a6946a14bbee2caf6e5e39a2f4cc847787576ef3fdd66f45e",
+  "nucleo/logging_config.py": "2e975b06f8ff221cad98dc750d127fe71141e73a9ab86bd02ad9a42384c890bb",
+  "nucleo/modo_local.py": "c9ef47d98540c713e970eab1be09ee3031fe995933217732bb134cec5e591c5f",
+  "nucleo/normalizacao.py": "aef26a55e7a726486a9221814c67f5a0c85edb1099a0bf194087afbccd1dd992",
+  "nucleo/assets/icone_projeart.ico": "b7efc192189fd8e5300d4395763cc821fe5ced3b7ae7d3224c604a013fe0df2b",
+  "nucleo/assets/icone_projeart.png": "40c201d3d94c917586081a9f049a3e626994cb65032b757a70acd110d5c92632",
+  "nucleo/assets/logo_projeart.png": "b912912337502a42a86576d152459e7f6006b7b476308d6e11148b14ea7d6036",
+  "roteirizador_original/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "roteirizador_original/lancador.py": "39c2e9d774e2328d77ec0da46a28eaf5b0a2d649b9f4adb5cd0690bec3fb47bb",
+  "roteirizador_original/modo_embutido.py": "f77436cc03ea74990ab57bd0299d1c6aeec2b27b0b3d8ef7a5b649fece61d977",
+  "roteirizador_original/roteirizador_dxf_projeart.py": "9d49d20f2346f3b26cad4cc653683ad9704a49d0ece6a120e9aef6d675a761d7"
+ }
+}

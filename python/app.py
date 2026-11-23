@@ -143,6 +143,11 @@ class Sistema(BaseHTTPRequestHandler):
                 return self._arquivos_pc(caminho[len("/api/pc/"):], q)
             if caminho.startswith("/api/prod/"):
                 return self._producao_get(caminho[len("/api/prod/"):], q)
+            if caminho == "/api/fabrica/estado":    # Preparação fábrica: app e bibliotecas deste PC
+                if not self._do_proprio_pc():
+                    return self._json({"erro": "Os apps da Preparação fábrica rodam só no próprio computador do sistema."}, 403)
+                from ppcpm import fabrica
+                return self._json(fabrica.estado(q.get("aba", "")))
             if caminho == "/api/zebra/impressoras":
                 if not self._do_proprio_pc():
                     return self._json({"erro": "Impressoras só neste computador."}, 403)
@@ -251,6 +256,14 @@ class Sistema(BaseHTTPRequestHandler):
                                 extra={"X-Resultado": quote(json.dumps(r)), "Access-Control-Expose-Headers": "X-Resultado"})
         if caminho.startswith("/api/prod/"):
             return self._producao_post(caminho[len("/api/prod/"):])
+        if caminho in ("/api/fabrica/abrir", "/api/fabrica/pasta"):   # Preparação fábrica: abre o app / a pasta
+            if not self._do_proprio_pc():
+                return self._json({"erro": "Os apps da Preparação fábrica rodam só no próprio computador do sistema."}, 403)
+            from ppcpm import fabrica
+            d = self._corpo_json()
+            if caminho.endswith("/abrir"):
+                return self._json(fabrica.abrir(str(d.get("aba", "")), bool(d.get("mensagens"))))
+            return self._json(fabrica.abrir_pasta(str(d.get("aba", "")), str(d.get("qual", ""))))
         if caminho == "/api/encerrar":
             # Botão "Sair" → [S] Sim: desliga o sistema por completo neste PC (só o próprio PC pode)
             if not self._do_proprio_pc():

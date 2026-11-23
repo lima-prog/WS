@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 256
+# Mapa do sistema — Versão 257
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
@@ -19,9 +19,16 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | `modulos/pg12.html` | 1.097 KB |
 | `modulos/pg13.html` | 158 KB |
 | `modulos/pg14.html` | 165 KB |
-| `js/sistema.js` | 250 KB |
+| `modulos/pg16.html` | 21 KB |
+| `modulos/pg17.html` | 21 KB |
+| `modulos/pg18.html` | 21 KB |
+| `modulos/pg19.html` | 21 KB |
+| `modulos/pg20.html` | 22 KB |
+| `modulos/pg21.html` | 22 KB |
+| `modulos/pg22.html` | 22 KB |
+| `js/sistema.js` | 251 KB |
 | `molde.html` | 76 KB |
-| `config.json` | 2 KB |
+| `config.json` | 4 KB |
 
 ## Menu de programas
 
@@ -40,3 +47,10 @@ Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode 
 | pg12 | Impressão de Etiquetas | PPCPM - IMPRESSÃO DE ETIQUETAS |
 | pg13 | Gerar relatórios das ordens | PPCPM - GERAR RELATÓRIOS DAS ORDENS |
 | pg14 | Engenharia | PPCPM - ENGENHARIA |
+| pg16 | Visualizador DXF | PPCPM - VISUALIZADOR DXF |
+| pg17 | Espelhar DXF | PPCPM - ESPELHAR DXF |
+| pg18 | Corte Inteligente | PPCPM - CORTE INTELIGENTE |
+| pg19 | Renomear DXF | PPCPM - RENOMEAR DXF |
+| pg20 | Conversor CAM → DXF | PPCPM - CONVERSOR CAM → DXF |
+| pg21 | Criar Pasta / Auditoria | PPCPM - CRIAR PASTA / AUDITORIA |
+| pg22 | Roteirizador DXF | PPCPM - ROTEIRIZADOR DXF |

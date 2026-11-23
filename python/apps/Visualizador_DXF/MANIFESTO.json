@@ -1,0 +1,37 @@
+{
+ "app": "Visualizador DXF",
+ "chave": "visualizador",
+ "gerado_em": "17/11/2026 11:46",
+ "gerador": "1.0",
+ "origem": "ppcp_dxf_ferramentas (PPCP Ferramentas) + tema SISTEMA - PPCPM",
+ "pastas_de_codigo": [
+  "nucleo",
+  "visualizador"
+ ],
+ "arquivos": {
+  "LEIA-ME.txt": "bfdd396c02a93a0c401dba95b2a910ae8f0ee6c5749ebecd9a64085985e6cb0e",
+  "MAPA_DO_CODIGO.txt": "7e7d3313f1bd99cb691ec9639504ec5529d068e427157b204f3ea88142c72577",
+  "Visualizador_DXF.spec": "9c21e3b96f9d9a9f57d98432b3a29ffdd5da3d54b5e39eb0e9887fa301e8aa71",
+  "iniciar_Visualizador_DXF.bat": "5206c282aa2c04c94eb8d3277445e6bf5f3932a9ff39c9020089660a0f1b1fc6",
+  "instalar_bibliotecas_Visualizador_DXF.bat": "986a5824faa113630ab2f4fbd93080bfe226393d8d816cbd32a5bbeb9bf7ad28",
+  "main.py": "29506fa07529657a6855573a31ff03d2664fc8f43117c9d50f8c8b8a124a612f",
+  "pasta_dados.txt": "7751ab758857c3cfaa3e4688622f4241e3098de7ee4a15b022ab972e67b200a7",
+  "requirements.txt": "969d47afbe694ba94977936911e3f75cb6006d61de2e56754d228e3389d55e14",
+  "nucleo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nucleo/ambiente_qt.py": "b25e51c71a1deedc0ca6483ede0993e608afe6f0303d7c20e196d9efff49c0d0",
+  "nucleo/banco_dados.py": "93c8efd7a464c15430e4f2ecd9cb2fc5a167be61964e6915f07d6feb4bf81c89",
+  "nucleo/caminhos.py": "e53bbfb0b756f903cf5318a9ee0126a2432a09b3ca4ac561a761c02915e60296",
+  "nucleo/estilo.py": "74809b4e21d92e4def1afdfffd5c2479c2f3451b89a62de17ca50d5526915ab7",
+  "nucleo/logging_config.py": "2e975b06f8ff221cad98dc750d127fe71141e73a9ab86bd02ad9a42384c890bb",
+  "nucleo/modo_local.py": "c9ef47d98540c713e970eab1be09ee3031fe995933217732bb134cec5e591c5f",
+  "nucleo/normalizacao.py": "aef26a55e7a726486a9221814c67f5a0c85edb1099a0bf194087afbccd1dd992",
+  "nucleo/assets/icone_projeart.ico": "b7efc192189fd8e5300d4395763cc821fe5ced3b7ae7d3224c604a013fe0df2b",
+  "nucleo/assets/icone_projeart.png": "40c201d3d94c917586081a9f049a3e626994cb65032b757a70acd110d5c92632",
+  "nucleo/assets/logo_projeart.png": "b912912337502a42a86576d152459e7f6006b7b476308d6e11148b14ea7d6036",
+  "visualizador/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "visualizador/aba.py": "d8d5434cbe5226d3c262b031f5c12f19617b09cf14a7b806d235e1309ea45aae",
+  "visualizador/atalhos.py": "b09987f405fd9c0e6e5e0f69ac600353eeb831cf483649fa66a0841ee0c398d8",
+  "visualizador/estilo.py": "4a7ae6bb277a91e4e317f34c2cab40fcb581f5d39a191633730bac876829cf88",
+  "visualizador/navegador_pastas.py": "437ae0b2ed70c439c0113ed37987b4b4984dc84ad5a915b8717e45cc260107a2"
+ }
+}

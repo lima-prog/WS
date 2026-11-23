@@ -1,0 +1,39 @@
+{
+ "app": "Espelhar DXF",
+ "chave": "espelhar",
+ "gerado_em": "17/11/2026 11:46",
+ "gerador": "1.0",
+ "origem": "ppcp_dxf_ferramentas (PPCP Ferramentas) + tema SISTEMA - PPCPM",
+ "pastas_de_codigo": [
+  "dxf_util",
+  "espelhar",
+  "nucleo"
+ ],
+ "arquivos": {
+  "Espelhar_DXF.spec": "ae20d2d455fdb58db9ad61fb5fb58b3eba899258c12e8bcfa6220bf109818241",
+  "LEIA-ME.txt": "be71ca44aa322db65e5d3fa03e2c1f6009d27b979ebc47407af019117aa2999f",
+  "MAPA_DO_CODIGO.txt": "104fefa264c3ae0e1cb6d813407a439983d99bafd7b9225403a1037b22a6a199",
+  "iniciar_Espelhar_DXF.bat": "8847287aaa61e806bdc2463319abc23a7dbfd7468c83250de1c5c9ceeef9a3bb",
+  "instalar_bibliotecas_Espelhar_DXF.bat": "c47eee120651b9077edf839410baed69f2825b4607a1dafc4bef468d5171d416",
+  "main.py": "a96fc65deb978a0729abc75cdccc6bcab814443f13c673ba51bd3b32bda774dc",
+  "pasta_dados.txt": "7751ab758857c3cfaa3e4688622f4241e3098de7ee4a15b022ab972e67b200a7",
+  "requirements.txt": "7bb4d89b391537fdba003bbb9a1cc9315674829f0eabfaf3305ca31aaedf0d1a",
+  "dxf_util/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "dxf_util/preview.py": "345ce90decf7f88fe5788d505736b2e75cd51b6a6cc7e4c513deb9b9a1c11492",
+  "nucleo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nucleo/ambiente_qt.py": "b25e51c71a1deedc0ca6483ede0993e608afe6f0303d7c20e196d9efff49c0d0",
+  "nucleo/banco_dados.py": "93c8efd7a464c15430e4f2ecd9cb2fc5a167be61964e6915f07d6feb4bf81c89",
+  "nucleo/caminhos.py": "e53bbfb0b756f903cf5318a9ee0126a2432a09b3ca4ac561a761c02915e60296",
+  "nucleo/estilo.py": "74809b4e21d92e4def1afdfffd5c2479c2f3451b89a62de17ca50d5526915ab7",
+  "nucleo/logging_config.py": "2e975b06f8ff221cad98dc750d127fe71141e73a9ab86bd02ad9a42384c890bb",
+  "nucleo/modo_local.py": "c9ef47d98540c713e970eab1be09ee3031fe995933217732bb134cec5e591c5f",
+  "nucleo/normalizacao.py": "aef26a55e7a726486a9221814c67f5a0c85edb1099a0bf194087afbccd1dd992",
+  "nucleo/assets/icone_projeart.ico": "b7efc192189fd8e5300d4395763cc821fe5ced3b7ae7d3224c604a013fe0df2b",
+  "nucleo/assets/icone_projeart.png": "40c201d3d94c917586081a9f049a3e626994cb65032b757a70acd110d5c92632",
+  "nucleo/assets/logo_projeart.png": "b912912337502a42a86576d152459e7f6006b7b476308d6e11148b14ea7d6036",
+  "espelhar/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "espelhar/aba.py": "d0be30d44ad3cdd1616729cbc1c83447c3134aa904a364ae5232cdd6accf256b",
+  "espelhar/mirror.py": "65c2d48e2156971d23b0b0bb6940b553d42b347eaead1bfe3deadee361dc9e82",
+  "espelhar/processador.py": "1f8e73f23de9cc00a5b4080565df647a610e69ea16b29b9035bd88fbb5960982"
+ }
+}

@@ -1,0 +1,37 @@
+{
+ "app": "Conversor CAM → DXF",
+ "chave": "conversor",
+ "gerado_em": "17/11/2026 11:46",
+ "gerador": "1.0",
+ "origem": "ppcp_dxf_ferramentas (PPCP Ferramentas) + tema SISTEMA - PPCPM",
+ "pastas_de_codigo": [
+  "conversor",
+  "nucleo"
+ ],
+ "arquivos": {
+  "Conversor_CAM_DXF.spec": "e8dba15e5669a978263d90245b4b15ab3ed95ed82a350a1101fbfe3ddf067225",
+  "LEIA-ME.txt": "739c6f1cb70b13b2e0428bbe177fb0a2c5f3c5bd3fba30c657eb1995f87c2d50",
+  "MAPA_DO_CODIGO.txt": "b2b991841765ae9dfbf40449e3c5a785d1fc7ea3e1df418622d1275654cce89b",
+  "iniciar_Conversor_CAM_DXF.bat": "e52ac635db265b9d04f61471aca54db5dd788a93c8f02ab301825097a74194c5",
+  "instalar_bibliotecas_Conversor_CAM_DXF.bat": "4b1e92d2811c36260486c865421d8efe8d4c9217402cc83de99b6985a8cacea1",
+  "main.py": "b3c154b7ddd894ddcdeb12f052459b5335761d816c5cb8e5e499760548cca9f3",
+  "pasta_dados.txt": "7751ab758857c3cfaa3e4688622f4241e3098de7ee4a15b022ab972e67b200a7",
+  "requirements.txt": "dfcda4a76597bbb630b4ad34c5d6bf99404591585f1867be086e4364f23e941c",
+  "nucleo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nucleo/ambiente_qt.py": "b25e51c71a1deedc0ca6483ede0993e608afe6f0303d7c20e196d9efff49c0d0",
+  "nucleo/banco_dados.py": "93c8efd7a464c15430e4f2ecd9cb2fc5a167be61964e6915f07d6feb4bf81c89",
+  "nucleo/caminhos.py": "e53bbfb0b756f903cf5318a9ee0126a2432a09b3ca4ac561a761c02915e60296",
+  "nucleo/estilo.py": "74809b4e21d92e4def1afdfffd5c2479c2f3451b89a62de17ca50d5526915ab7",
+  "nucleo/logging_config.py": "2e975b06f8ff221cad98dc750d127fe71141e73a9ab86bd02ad9a42384c890bb",
+  "nucleo/modo_local.py": "c9ef47d98540c713e970eab1be09ee3031fe995933217732bb134cec5e591c5f",
+  "nucleo/normalizacao.py": "aef26a55e7a726486a9221814c67f5a0c85edb1099a0bf194087afbccd1dd992",
+  "nucleo/assets/icone_projeart.ico": "b7efc192189fd8e5300d4395763cc821fe5ced3b7ae7d3224c604a013fe0df2b",
+  "nucleo/assets/icone_projeart.png": "40c201d3d94c917586081a9f049a3e626994cb65032b757a70acd110d5c92632",
+  "nucleo/assets/logo_projeart.png": "b912912337502a42a86576d152459e7f6006b7b476308d6e11148b14ea7d6036",
+  "conversor/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "conversor/aba.py": "454b8539f8f8f6463ea3f3921d4c81182950039481310cb288248a3ee88b40e3",
+  "conversor/dialogos.py": "880d1b66be20396c06f88358ec95ad7c0b997320b0daeb79766c353a48e63a78",
+  "conversor/processador.py": "d19f8decd8418dbae0bad97e23186f7b27646b73b869a0c690d0cfd0d71aceff",
+  "conversor/utilitarios.py": "bf8794adab088d1d732053997bcb8ed7c14d8588c7c62193b8802eefe026cc40"
+ }
+}

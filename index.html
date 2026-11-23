@@ -19052,6 +19052,1868 @@ function linhasDoPdf(itens) {
 </body>
 </html>
 </script>
+<script type="text/plain" id="src-pg16">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCPM — Visualizador DXF</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef1f5;color:#111827;font:600 13px 'Segoe UI',Inter,system-ui,Arial,sans-serif}
+body{padding:18px 22px 40px}
+.pr-topo{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pr-topo b{font-size:14px}
+.pr-topo .c{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:4px 10px;font-size:12.5px}
+.pr-topo i{font-style:normal;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.cx{background:#fff;border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:4px;padding:14px 16px;margin:0 0 14px;min-width:0}
+.grid2>.cx,.grid3>.cx{margin:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.cx-h h3{margin:0;font-size:15px;font-weight:700;color:#111827}
+.cx-h .sub{font-size:12px;font-weight:500;color:#5f6b7a}
+.cx-h .dir{margin-left:auto;display:flex;gap:8px}
+.badge{flex:none;width:22px;height:22px;border-radius:50%;background:#0b3d91;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.linha:last-child{margin-bottom:0}
+.cresce{flex:1;min-width:160px}
+.b{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#111827;border:1px solid #c5cbd6;border-radius:4px;padding:8px 14px;font:700 13px 'Segoe UI',Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.b:hover:not(:disabled){background:#f3f5f8;border-color:#9aa3b5}
+.b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}
+.b.p:hover:not(:disabled){background:#4c5664;border-color:#4c5664}
+.b:disabled{opacity:.45;cursor:not-allowed}
+.b svg{flex:none}
+.b.mini{padding:5px 9px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;background:#f3f6fb;border:2px dashed #b9c3d3;border-radius:4px;color:#4b5563;font-weight:600;text-align:center;padding:10px;cursor:pointer;margin:0 0 10px}
+.drop:hover,.drop.over{background:#e8eef7;border-color:#5f6b7a;color:#111827}
+.campo{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;color:#1c2a38}
+.lista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.lista li{display:flex;align-items:center;gap:9px;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:6px 10px;font-size:12.5px}
+.lista li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lista li.vazio{background:#f1f3f6;border:0;color:#4b5563;font-weight:600;justify-content:center}
+.tag-ok{flex:none;font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:10px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chk:last-child{margin-bottom:2px}
+.chk input{width:16px;height:16px;accent-color:#5f6b7a;margin:0}
+.chk small{color:#4b5563;font-size:12px;font-weight:500}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:4px;background:#fff;color:#111827;padding:7px 10px;font:600 13px 'Segoe UI',Inter,system-ui,sans-serif}
+textarea{width:100%;resize:vertical;font-family:Consolas,monospace;font-size:12.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-shadow:0 0 0 2px #dfe3ea}
+.status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
+.status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
+.status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
+@keyframes prPulse{50%{opacity:.25}}
+.barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
+.saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
+.saida.on{display:flex}
+.saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* árvores */
+.arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
+.arv table{border-collapse:collapse;width:100%;font-size:12.5px}
+.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th:last-child{border-right:0}
+.arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
+.arv td.q{white-space:normal;min-width:240px}
+.arv tr:nth-child(even) td{background:#f6f7f9}
+.arv tr:hover td{background:#e8ebf0}
+.arv tr.sel td{background:#dde6f3!important}
+.arv tr{cursor:default}
+.arv .tg{display:inline-block;width:15px;color:#5f6b7a;cursor:pointer;user-select:none;font-size:10px}
+.arv .vz{color:#8a93a5;font-weight:500;padding:14px;text-align:center}
+.arv input[type=checkbox]{width:14px;height:14px;accent-color:#5f6b7a;vertical-align:-2px;margin:0 5px 0 0}
+.split{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:12px}
+.lbl-det{font-size:12.5px;color:#374151;background:#f1f3f6;border-radius:4px;padding:7px 10px;margin:0 0 8px;white-space:pre-wrap}
+.busca{width:100%;margin:0 0 8px;padding-left:32px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 10px center/14px!important}
+.rec>.cx-h{cursor:pointer;user-select:none}
+.rec>.cx-h .sv{transition:transform .15s;color:#5f6b7a}
+.rec.fechada>.cx-h .sv{transform:rotate(-90deg)}
+.rec.fechada>:not(.cx-h){display:none!important}
+/* site sem o app */
+.pr-site{max-width:720px;margin:40px auto;text-align:center}
+.pr-site h2{margin:0 0 8px;font-size:18px}
+.pr-site p{color:#4b5563;font-weight:500;line-height:1.55}
+/* janelas */
+.pr-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pr-modal{width:min(660px,100%);max-height:90vh;overflow:auto;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;padding:20px 22px;box-shadow:0 12px 32px rgba(0,0,0,.18);animation:prEntra .22s ease-out}
+.pr-modal.erro{border-top-color:#b42318}
+@keyframes prEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.pr-modal h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px;font-weight:700}
+.pr-modal p{margin:0 0 10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;font-weight:500}
+.pr-modal details{margin:0 0 10px}.pr-modal summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#374151}
+.pr-modal pre{white-space:pre-wrap;background:#f3f5f7;border:1px solid #d6dee7;border-radius:4px;padding:8px 10px;max-height:300px;overflow:auto;font:12px Consolas,monospace}
+.pr-modal .bts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pr-modal input[type=text],.pr-modal select{width:100%}
+@media(max-width:1000px){.grid2,.grid3,.split{grid-template-columns:1fr}}
+.lista li.mk{background:#fff;border:1px solid #d6dee7}
+.lista li.mk label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.lista li.mk input{width:15px;height:15px;accent-color:#5f6b7a;margin:0}
+.lista li.er{background:#fdf2f2;border-color:#f3c7c3}
+.tag-er{flex:none;font-size:11px;font-weight:700;color:#b42318;background:#fde4e1;border:1px solid #f3c7c3;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.arv.grande{max-height:720px}
+.campo-in{width:100%;margin:0 0 10px}
+textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
+.arv td .b.mini{padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:4px}
+.arv td{line-height:1.5}
+/* V203 — mesmo modelo da Verificação da instalação */
+.lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
+.lista li.mk{border-left-color:#9aa3b5}
+.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
+.pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
+.pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
+/* V205 — botões cinza com a letra preta (pedido do PCP) */
+.b.p,.b.p:hover:not(:disabled){color:#000}
+/* V206 — caminho aceito fica verde (igual às outras abas) */
+input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
+input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
+/* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.cx:has(>.cx-h){background:#eef1f5}
+.drop{background:#eef1f5;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv{background:#eef1f5;border:1px solid #99a3af}
+.arv .vz{color:#374151}
+.kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+
+.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
+.fb-ic svg{width:24px;height:24px}
+.fb-oq{font-size:14px;line-height:1.55;color:#111827}
+.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
+.fb-ol li{margin:4px 0}
+.fb-st{display:flex;flex-direction:column;gap:8px}
+.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
+.fb-l b{min-width:118px}
+.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
+.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
+.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
+.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
+.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
+.fb-pill.on{background:#dcf5e3;color:#15803d}
+.fb-pill.no{background:#fde2e2;color:#b91c1c}
+.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.b.fb-abrir{font-size:15px;padding:10px 18px}
+.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
+.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
+.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
+.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="pr-topo"><b>Preparação fábrica | Visualizador DXF:</b><span class="c">Pasta dos DXF</span><i>→</i><span class="c">ver um por um</span><i>→</i><span class="c">mover para o fluxo</span></div>
+
+<div class="cx">
+  <div class="cx-h"><span class="badge">1</span><h3>O que o Visualizador DXF faz</h3></div>
+  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="fb-oq">Visualiza DXF um por um, bem rápido, e ajuda a SEPARAR os arquivos em pastas de fluxo (move o arquivo atual para a pasta escolhida).</div></div>
+</div>
+
+<div class="grid2">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
+    <ol class="fb-ol"><li>Carregue uma pasta (botão ou tecla Tab). Lista todos os .dxf da pasta.</li><li>Navegue: seta direita = próximo, seta esquerda = anterior, 0 = zoom original, A = enquadrar, D = descartar da lista, Espaço = navegador de pastas.</li><li>No navegador de pastas, escolha o tipo (Fluxo 1, Fluxo 2, Fluxo 3, Fluxo 4, Acessórios Padrão, Perfiladeira U E C, Perfiladeira L, Joist, Terça Z) para mover o DXF atual.</li><li>Os atalhos podem ser trocados na tela de atalhos (ficam salvos para a próxima vez).</li></ol>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
+    <div class="fb-st" id="fb-status">
+      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
+      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
+      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
+      <div class="fb-acoes">
+        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Visualizador DXF</button>
+        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
+        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
+        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
+      </div>
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FB_ABA = 'pg16'; window.FB_NOME = 'Visualizador DXF';
+
+(function () {
+  'use strict';
+  var ABA = window.FB_ABA, NOME = window.FB_NOME;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  if (!local()) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+    });
+    return;
+  }
+  function api(acao, corpo) {
+    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  }
+  var ultimo = null;
+  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
+  function desenhar(e) {
+    ultimo = e;
+    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
+    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
+    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
+    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
+    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
+    var falta = e.faltam && e.faltam.length;
+    $('#fb-inst').style.display = falta ? '' : 'none';
+    $('#fb-abrir').disabled = !e.existe || !!falta;
+    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  }
+  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-fb]'); if (!b) return;
+    var a = b.dataset.fb;
+    if (a === 'abrir' || a === 'msgs') {
+      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
+      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
+        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
+        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
+      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
+        .then(function () { b.disabled = false; atualizar(); });
+    } else if (a === 'inst') {
+      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
+      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
+    } else if (a === 'dados' || a === 'pasta') {
+      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+})();
+
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-pg17">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCPM — Espelhar DXF</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef1f5;color:#111827;font:600 13px 'Segoe UI',Inter,system-ui,Arial,sans-serif}
+body{padding:18px 22px 40px}
+.pr-topo{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pr-topo b{font-size:14px}
+.pr-topo .c{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:4px 10px;font-size:12.5px}
+.pr-topo i{font-style:normal;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.cx{background:#fff;border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:4px;padding:14px 16px;margin:0 0 14px;min-width:0}
+.grid2>.cx,.grid3>.cx{margin:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.cx-h h3{margin:0;font-size:15px;font-weight:700;color:#111827}
+.cx-h .sub{font-size:12px;font-weight:500;color:#5f6b7a}
+.cx-h .dir{margin-left:auto;display:flex;gap:8px}
+.badge{flex:none;width:22px;height:22px;border-radius:50%;background:#0b3d91;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.linha:last-child{margin-bottom:0}
+.cresce{flex:1;min-width:160px}
+.b{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#111827;border:1px solid #c5cbd6;border-radius:4px;padding:8px 14px;font:700 13px 'Segoe UI',Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.b:hover:not(:disabled){background:#f3f5f8;border-color:#9aa3b5}
+.b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}
+.b.p:hover:not(:disabled){background:#4c5664;border-color:#4c5664}
+.b:disabled{opacity:.45;cursor:not-allowed}
+.b svg{flex:none}
+.b.mini{padding:5px 9px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;background:#f3f6fb;border:2px dashed #b9c3d3;border-radius:4px;color:#4b5563;font-weight:600;text-align:center;padding:10px;cursor:pointer;margin:0 0 10px}
+.drop:hover,.drop.over{background:#e8eef7;border-color:#5f6b7a;color:#111827}
+.campo{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;color:#1c2a38}
+.lista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.lista li{display:flex;align-items:center;gap:9px;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:6px 10px;font-size:12.5px}
+.lista li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lista li.vazio{background:#f1f3f6;border:0;color:#4b5563;font-weight:600;justify-content:center}
+.tag-ok{flex:none;font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:10px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chk:last-child{margin-bottom:2px}
+.chk input{width:16px;height:16px;accent-color:#5f6b7a;margin:0}
+.chk small{color:#4b5563;font-size:12px;font-weight:500}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:4px;background:#fff;color:#111827;padding:7px 10px;font:600 13px 'Segoe UI',Inter,system-ui,sans-serif}
+textarea{width:100%;resize:vertical;font-family:Consolas,monospace;font-size:12.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-shadow:0 0 0 2px #dfe3ea}
+.status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
+.status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
+.status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
+@keyframes prPulse{50%{opacity:.25}}
+.barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
+.saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
+.saida.on{display:flex}
+.saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* árvores */
+.arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
+.arv table{border-collapse:collapse;width:100%;font-size:12.5px}
+.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th:last-child{border-right:0}
+.arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
+.arv td.q{white-space:normal;min-width:240px}
+.arv tr:nth-child(even) td{background:#f6f7f9}
+.arv tr:hover td{background:#e8ebf0}
+.arv tr.sel td{background:#dde6f3!important}
+.arv tr{cursor:default}
+.arv .tg{display:inline-block;width:15px;color:#5f6b7a;cursor:pointer;user-select:none;font-size:10px}
+.arv .vz{color:#8a93a5;font-weight:500;padding:14px;text-align:center}
+.arv input[type=checkbox]{width:14px;height:14px;accent-color:#5f6b7a;vertical-align:-2px;margin:0 5px 0 0}
+.split{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:12px}
+.lbl-det{font-size:12.5px;color:#374151;background:#f1f3f6;border-radius:4px;padding:7px 10px;margin:0 0 8px;white-space:pre-wrap}
+.busca{width:100%;margin:0 0 8px;padding-left:32px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 10px center/14px!important}
+.rec>.cx-h{cursor:pointer;user-select:none}
+.rec>.cx-h .sv{transition:transform .15s;color:#5f6b7a}
+.rec.fechada>.cx-h .sv{transform:rotate(-90deg)}
+.rec.fechada>:not(.cx-h){display:none!important}
+/* site sem o app */
+.pr-site{max-width:720px;margin:40px auto;text-align:center}
+.pr-site h2{margin:0 0 8px;font-size:18px}
+.pr-site p{color:#4b5563;font-weight:500;line-height:1.55}
+/* janelas */
+.pr-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pr-modal{width:min(660px,100%);max-height:90vh;overflow:auto;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;padding:20px 22px;box-shadow:0 12px 32px rgba(0,0,0,.18);animation:prEntra .22s ease-out}
+.pr-modal.erro{border-top-color:#b42318}
+@keyframes prEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.pr-modal h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px;font-weight:700}
+.pr-modal p{margin:0 0 10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;font-weight:500}
+.pr-modal details{margin:0 0 10px}.pr-modal summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#374151}
+.pr-modal pre{white-space:pre-wrap;background:#f3f5f7;border:1px solid #d6dee7;border-radius:4px;padding:8px 10px;max-height:300px;overflow:auto;font:12px Consolas,monospace}
+.pr-modal .bts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pr-modal input[type=text],.pr-modal select{width:100%}
+@media(max-width:1000px){.grid2,.grid3,.split{grid-template-columns:1fr}}
+.lista li.mk{background:#fff;border:1px solid #d6dee7}
+.lista li.mk label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.lista li.mk input{width:15px;height:15px;accent-color:#5f6b7a;margin:0}
+.lista li.er{background:#fdf2f2;border-color:#f3c7c3}
+.tag-er{flex:none;font-size:11px;font-weight:700;color:#b42318;background:#fde4e1;border:1px solid #f3c7c3;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.arv.grande{max-height:720px}
+.campo-in{width:100%;margin:0 0 10px}
+textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
+.arv td .b.mini{padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:4px}
+.arv td{line-height:1.5}
+/* V203 — mesmo modelo da Verificação da instalação */
+.lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
+.lista li.mk{border-left-color:#9aa3b5}
+.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
+.pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
+.pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
+/* V205 — botões cinza com a letra preta (pedido do PCP) */
+.b.p,.b.p:hover:not(:disabled){color:#000}
+/* V206 — caminho aceito fica verde (igual às outras abas) */
+input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
+input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
+/* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.cx:has(>.cx-h){background:#eef1f5}
+.drop{background:#eef1f5;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv{background:#eef1f5;border:1px solid #99a3af}
+.arv .vz{color:#374151}
+.kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+
+.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
+.fb-ic svg{width:24px;height:24px}
+.fb-oq{font-size:14px;line-height:1.55;color:#111827}
+.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
+.fb-ol li{margin:4px 0}
+.fb-st{display:flex;flex-direction:column;gap:8px}
+.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
+.fb-l b{min-width:118px}
+.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
+.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
+.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
+.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
+.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
+.fb-pill.on{background:#dcf5e3;color:#15803d}
+.fb-pill.no{background:#fde2e2;color:#b91c1c}
+.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.b.fb-abrir{font-size:15px;padding:10px 18px}
+.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
+.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
+.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
+.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="pr-topo"><b>Preparação fábrica | Espelhar DXF:</b><span class="c">Pasta dos DXF</span><i>→</i><span class="c">espelhar no eixo X</span><i>→</i><span class="c">ESPELHADAS</span></div>
+
+<div class="cx">
+  <div class="cx-h"><span class="badge">1</span><h3>O que o Espelhar DXF faz</h3></div>
+  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4H5v16h4M15 4h4v16h-4M12 2v20"/></svg></div><div class="fb-oq">Espelha DXF no eixo X (lado esquerdo &lt;-&gt; lado direito), recoloca o desenho começando em (0,0) e salva numa subpasta ESPELHADAS com o mesmo nome. Mostra o antes/depois na tela.</div></div>
+</div>
+
+<div class="grid2">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
+    <ol class="fb-ol"><li>Selecione a pasta com os DXF (só a raiz).</li><li>Escolha os arquivos na lista (veja a pré-visualização do original).</li><li>Clique em espelhar: aparece o antes/depois e o log.</li><li>Os arquivos novos ficam em &lt;pasta&gt;\ESPELHADAS.</li></ol>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
+    <div class="fb-st" id="fb-status">
+      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
+      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
+      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
+      <div class="fb-acoes">
+        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Espelhar DXF</button>
+        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
+        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
+        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
+      </div>
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FB_ABA = 'pg17'; window.FB_NOME = 'Espelhar DXF';
+
+(function () {
+  'use strict';
+  var ABA = window.FB_ABA, NOME = window.FB_NOME;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  if (!local()) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+    });
+    return;
+  }
+  function api(acao, corpo) {
+    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  }
+  var ultimo = null;
+  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
+  function desenhar(e) {
+    ultimo = e;
+    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
+    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
+    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
+    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
+    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
+    var falta = e.faltam && e.faltam.length;
+    $('#fb-inst').style.display = falta ? '' : 'none';
+    $('#fb-abrir').disabled = !e.existe || !!falta;
+    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  }
+  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-fb]'); if (!b) return;
+    var a = b.dataset.fb;
+    if (a === 'abrir' || a === 'msgs') {
+      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
+      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
+        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
+        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
+      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
+        .then(function () { b.disabled = false; atualizar(); });
+    } else if (a === 'inst') {
+      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
+      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
+    } else if (a === 'dados' || a === 'pasta') {
+      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+})();
+
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-pg18">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCPM — Corte Inteligente</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef1f5;color:#111827;font:600 13px 'Segoe UI',Inter,system-ui,Arial,sans-serif}
+body{padding:18px 22px 40px}
+.pr-topo{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pr-topo b{font-size:14px}
+.pr-topo .c{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:4px 10px;font-size:12.5px}
+.pr-topo i{font-style:normal;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.cx{background:#fff;border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:4px;padding:14px 16px;margin:0 0 14px;min-width:0}
+.grid2>.cx,.grid3>.cx{margin:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.cx-h h3{margin:0;font-size:15px;font-weight:700;color:#111827}
+.cx-h .sub{font-size:12px;font-weight:500;color:#5f6b7a}
+.cx-h .dir{margin-left:auto;display:flex;gap:8px}
+.badge{flex:none;width:22px;height:22px;border-radius:50%;background:#0b3d91;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.linha:last-child{margin-bottom:0}
+.cresce{flex:1;min-width:160px}
+.b{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#111827;border:1px solid #c5cbd6;border-radius:4px;padding:8px 14px;font:700 13px 'Segoe UI',Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.b:hover:not(:disabled){background:#f3f5f8;border-color:#9aa3b5}
+.b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}
+.b.p:hover:not(:disabled){background:#4c5664;border-color:#4c5664}
+.b:disabled{opacity:.45;cursor:not-allowed}
+.b svg{flex:none}
+.b.mini{padding:5px 9px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;background:#f3f6fb;border:2px dashed #b9c3d3;border-radius:4px;color:#4b5563;font-weight:600;text-align:center;padding:10px;cursor:pointer;margin:0 0 10px}
+.drop:hover,.drop.over{background:#e8eef7;border-color:#5f6b7a;color:#111827}
+.campo{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;color:#1c2a38}
+.lista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.lista li{display:flex;align-items:center;gap:9px;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:6px 10px;font-size:12.5px}
+.lista li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lista li.vazio{background:#f1f3f6;border:0;color:#4b5563;font-weight:600;justify-content:center}
+.tag-ok{flex:none;font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:10px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chk:last-child{margin-bottom:2px}
+.chk input{width:16px;height:16px;accent-color:#5f6b7a;margin:0}
+.chk small{color:#4b5563;font-size:12px;font-weight:500}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:4px;background:#fff;color:#111827;padding:7px 10px;font:600 13px 'Segoe UI',Inter,system-ui,sans-serif}
+textarea{width:100%;resize:vertical;font-family:Consolas,monospace;font-size:12.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-shadow:0 0 0 2px #dfe3ea}
+.status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
+.status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
+.status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
+@keyframes prPulse{50%{opacity:.25}}
+.barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
+.saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
+.saida.on{display:flex}
+.saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* árvores */
+.arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
+.arv table{border-collapse:collapse;width:100%;font-size:12.5px}
+.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th:last-child{border-right:0}
+.arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
+.arv td.q{white-space:normal;min-width:240px}
+.arv tr:nth-child(even) td{background:#f6f7f9}
+.arv tr:hover td{background:#e8ebf0}
+.arv tr.sel td{background:#dde6f3!important}
+.arv tr{cursor:default}
+.arv .tg{display:inline-block;width:15px;color:#5f6b7a;cursor:pointer;user-select:none;font-size:10px}
+.arv .vz{color:#8a93a5;font-weight:500;padding:14px;text-align:center}
+.arv input[type=checkbox]{width:14px;height:14px;accent-color:#5f6b7a;vertical-align:-2px;margin:0 5px 0 0}
+.split{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:12px}
+.lbl-det{font-size:12.5px;color:#374151;background:#f1f3f6;border-radius:4px;padding:7px 10px;margin:0 0 8px;white-space:pre-wrap}
+.busca{width:100%;margin:0 0 8px;padding-left:32px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 10px center/14px!important}
+.rec>.cx-h{cursor:pointer;user-select:none}
+.rec>.cx-h .sv{transition:transform .15s;color:#5f6b7a}
+.rec.fechada>.cx-h .sv{transform:rotate(-90deg)}
+.rec.fechada>:not(.cx-h){display:none!important}
+/* site sem o app */
+.pr-site{max-width:720px;margin:40px auto;text-align:center}
+.pr-site h2{margin:0 0 8px;font-size:18px}
+.pr-site p{color:#4b5563;font-weight:500;line-height:1.55}
+/* janelas */
+.pr-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pr-modal{width:min(660px,100%);max-height:90vh;overflow:auto;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;padding:20px 22px;box-shadow:0 12px 32px rgba(0,0,0,.18);animation:prEntra .22s ease-out}
+.pr-modal.erro{border-top-color:#b42318}
+@keyframes prEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.pr-modal h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px;font-weight:700}
+.pr-modal p{margin:0 0 10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;font-weight:500}
+.pr-modal details{margin:0 0 10px}.pr-modal summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#374151}
+.pr-modal pre{white-space:pre-wrap;background:#f3f5f7;border:1px solid #d6dee7;border-radius:4px;padding:8px 10px;max-height:300px;overflow:auto;font:12px Consolas,monospace}
+.pr-modal .bts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pr-modal input[type=text],.pr-modal select{width:100%}
+@media(max-width:1000px){.grid2,.grid3,.split{grid-template-columns:1fr}}
+.lista li.mk{background:#fff;border:1px solid #d6dee7}
+.lista li.mk label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.lista li.mk input{width:15px;height:15px;accent-color:#5f6b7a;margin:0}
+.lista li.er{background:#fdf2f2;border-color:#f3c7c3}
+.tag-er{flex:none;font-size:11px;font-weight:700;color:#b42318;background:#fde4e1;border:1px solid #f3c7c3;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.arv.grande{max-height:720px}
+.campo-in{width:100%;margin:0 0 10px}
+textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
+.arv td .b.mini{padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:4px}
+.arv td{line-height:1.5}
+/* V203 — mesmo modelo da Verificação da instalação */
+.lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
+.lista li.mk{border-left-color:#9aa3b5}
+.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
+.pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
+.pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
+/* V205 — botões cinza com a letra preta (pedido do PCP) */
+.b.p,.b.p:hover:not(:disabled){color:#000}
+/* V206 — caminho aceito fica verde (igual às outras abas) */
+input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
+input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
+/* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.cx:has(>.cx-h){background:#eef1f5}
+.drop{background:#eef1f5;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv{background:#eef1f5;border:1px solid #99a3af}
+.arv .vz{color:#374151}
+.kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+
+.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
+.fb-ic svg{width:24px;height:24px}
+.fb-oq{font-size:14px;line-height:1.55;color:#111827}
+.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
+.fb-ol li{margin:4px 0}
+.fb-st{display:flex;flex-direction:column;gap:8px}
+.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
+.fb-l b{min-width:118px}
+.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
+.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
+.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
+.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
+.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
+.fb-pill.on{background:#dcf5e3;color:#15803d}
+.fb-pill.no{background:#fde2e2;color:#b91c1c}
+.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.b.fb-abrir{font-size:15px;padding:10px 18px}
+.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
+.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
+.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
+.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="pr-topo"><b>Preparação fábrica | Corte Inteligente:</b><span class="c">Pasta dos DXF</span><i>→</i><span class="c">dividir peças compridas</span><i>→</i><span class="c">DXF [A] [B] [C]</span></div>
+
+<div class="cx">
+  <div class="cx-h"><span class="badge">1</span><h3>O que o Corte Inteligente faz</h3></div>
+  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></svg></div><div class="fb-oq">Divide peças compridas (DXF) em partes que cabem nos tamanhos padrão de barra/chapa, sem cortar em cima de furo, e grava cada parte como um DXF novo [A], [B], [C]... na mesma pasta.</div></div>
+</div>
+
+<div class="grid2">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
+    <ol class="fb-ol"><li>Selecione a pasta com os DXF (só a raiz da pasta).</li><li>Ligue/desligue a visualização e ajuste a velocidade (mostra o desenho de cada peça cortada).</li><li>Clique em processar: barra de progresso + log de cada arquivo.</li><li>Veja o resultado nos botões &#x27;Diagnóstico&#x27; (cortes forçados e segmentos bloqueados) e &#x27;Arquivos Processados&#x27; (histórico do banco).</li></ol>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
+    <div class="fb-st" id="fb-status">
+      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
+      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
+      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
+      <div class="fb-acoes">
+        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Corte Inteligente</button>
+        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
+        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
+        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
+      </div>
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FB_ABA = 'pg18'; window.FB_NOME = 'Corte Inteligente';
+
+(function () {
+  'use strict';
+  var ABA = window.FB_ABA, NOME = window.FB_NOME;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  if (!local()) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+    });
+    return;
+  }
+  function api(acao, corpo) {
+    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  }
+  var ultimo = null;
+  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
+  function desenhar(e) {
+    ultimo = e;
+    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
+    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
+    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
+    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
+    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
+    var falta = e.faltam && e.faltam.length;
+    $('#fb-inst').style.display = falta ? '' : 'none';
+    $('#fb-abrir').disabled = !e.existe || !!falta;
+    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  }
+  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-fb]'); if (!b) return;
+    var a = b.dataset.fb;
+    if (a === 'abrir' || a === 'msgs') {
+      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
+      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
+        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
+        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
+      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
+        .then(function () { b.disabled = false; atualizar(); });
+    } else if (a === 'inst') {
+      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
+      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
+    } else if (a === 'dados' || a === 'pasta') {
+      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+})();
+
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-pg19">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCPM — Renomear DXF</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef1f5;color:#111827;font:600 13px 'Segoe UI',Inter,system-ui,Arial,sans-serif}
+body{padding:18px 22px 40px}
+.pr-topo{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pr-topo b{font-size:14px}
+.pr-topo .c{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:4px 10px;font-size:12.5px}
+.pr-topo i{font-style:normal;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.cx{background:#fff;border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:4px;padding:14px 16px;margin:0 0 14px;min-width:0}
+.grid2>.cx,.grid3>.cx{margin:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.cx-h h3{margin:0;font-size:15px;font-weight:700;color:#111827}
+.cx-h .sub{font-size:12px;font-weight:500;color:#5f6b7a}
+.cx-h .dir{margin-left:auto;display:flex;gap:8px}
+.badge{flex:none;width:22px;height:22px;border-radius:50%;background:#0b3d91;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.linha:last-child{margin-bottom:0}
+.cresce{flex:1;min-width:160px}
+.b{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#111827;border:1px solid #c5cbd6;border-radius:4px;padding:8px 14px;font:700 13px 'Segoe UI',Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.b:hover:not(:disabled){background:#f3f5f8;border-color:#9aa3b5}
+.b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}
+.b.p:hover:not(:disabled){background:#4c5664;border-color:#4c5664}
+.b:disabled{opacity:.45;cursor:not-allowed}
+.b svg{flex:none}
+.b.mini{padding:5px 9px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;background:#f3f6fb;border:2px dashed #b9c3d3;border-radius:4px;color:#4b5563;font-weight:600;text-align:center;padding:10px;cursor:pointer;margin:0 0 10px}
+.drop:hover,.drop.over{background:#e8eef7;border-color:#5f6b7a;color:#111827}
+.campo{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;color:#1c2a38}
+.lista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.lista li{display:flex;align-items:center;gap:9px;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:6px 10px;font-size:12.5px}
+.lista li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lista li.vazio{background:#f1f3f6;border:0;color:#4b5563;font-weight:600;justify-content:center}
+.tag-ok{flex:none;font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:10px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chk:last-child{margin-bottom:2px}
+.chk input{width:16px;height:16px;accent-color:#5f6b7a;margin:0}
+.chk small{color:#4b5563;font-size:12px;font-weight:500}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:4px;background:#fff;color:#111827;padding:7px 10px;font:600 13px 'Segoe UI',Inter,system-ui,sans-serif}
+textarea{width:100%;resize:vertical;font-family:Consolas,monospace;font-size:12.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-shadow:0 0 0 2px #dfe3ea}
+.status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
+.status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
+.status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
+@keyframes prPulse{50%{opacity:.25}}
+.barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
+.saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
+.saida.on{display:flex}
+.saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* árvores */
+.arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
+.arv table{border-collapse:collapse;width:100%;font-size:12.5px}
+.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th:last-child{border-right:0}
+.arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
+.arv td.q{white-space:normal;min-width:240px}
+.arv tr:nth-child(even) td{background:#f6f7f9}
+.arv tr:hover td{background:#e8ebf0}
+.arv tr.sel td{background:#dde6f3!important}
+.arv tr{cursor:default}
+.arv .tg{display:inline-block;width:15px;color:#5f6b7a;cursor:pointer;user-select:none;font-size:10px}
+.arv .vz{color:#8a93a5;font-weight:500;padding:14px;text-align:center}
+.arv input[type=checkbox]{width:14px;height:14px;accent-color:#5f6b7a;vertical-align:-2px;margin:0 5px 0 0}
+.split{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:12px}
+.lbl-det{font-size:12.5px;color:#374151;background:#f1f3f6;border-radius:4px;padding:7px 10px;margin:0 0 8px;white-space:pre-wrap}
+.busca{width:100%;margin:0 0 8px;padding-left:32px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 10px center/14px!important}
+.rec>.cx-h{cursor:pointer;user-select:none}
+.rec>.cx-h .sv{transition:transform .15s;color:#5f6b7a}
+.rec.fechada>.cx-h .sv{transform:rotate(-90deg)}
+.rec.fechada>:not(.cx-h){display:none!important}
+/* site sem o app */
+.pr-site{max-width:720px;margin:40px auto;text-align:center}
+.pr-site h2{margin:0 0 8px;font-size:18px}
+.pr-site p{color:#4b5563;font-weight:500;line-height:1.55}
+/* janelas */
+.pr-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pr-modal{width:min(660px,100%);max-height:90vh;overflow:auto;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;padding:20px 22px;box-shadow:0 12px 32px rgba(0,0,0,.18);animation:prEntra .22s ease-out}
+.pr-modal.erro{border-top-color:#b42318}
+@keyframes prEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.pr-modal h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px;font-weight:700}
+.pr-modal p{margin:0 0 10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;font-weight:500}
+.pr-modal details{margin:0 0 10px}.pr-modal summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#374151}
+.pr-modal pre{white-space:pre-wrap;background:#f3f5f7;border:1px solid #d6dee7;border-radius:4px;padding:8px 10px;max-height:300px;overflow:auto;font:12px Consolas,monospace}
+.pr-modal .bts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pr-modal input[type=text],.pr-modal select{width:100%}
+@media(max-width:1000px){.grid2,.grid3,.split{grid-template-columns:1fr}}
+.lista li.mk{background:#fff;border:1px solid #d6dee7}
+.lista li.mk label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.lista li.mk input{width:15px;height:15px;accent-color:#5f6b7a;margin:0}
+.lista li.er{background:#fdf2f2;border-color:#f3c7c3}
+.tag-er{flex:none;font-size:11px;font-weight:700;color:#b42318;background:#fde4e1;border:1px solid #f3c7c3;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.arv.grande{max-height:720px}
+.campo-in{width:100%;margin:0 0 10px}
+textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
+.arv td .b.mini{padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:4px}
+.arv td{line-height:1.5}
+/* V203 — mesmo modelo da Verificação da instalação */
+.lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
+.lista li.mk{border-left-color:#9aa3b5}
+.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
+.pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
+.pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
+/* V205 — botões cinza com a letra preta (pedido do PCP) */
+.b.p,.b.p:hover:not(:disabled){color:#000}
+/* V206 — caminho aceito fica verde (igual às outras abas) */
+input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
+input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
+/* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.cx:has(>.cx-h){background:#eef1f5}
+.drop{background:#eef1f5;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv{background:#eef1f5;border:1px solid #99a3af}
+.arv .vz{color:#374151}
+.kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+
+.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
+.fb-ic svg{width:24px;height:24px}
+.fb-oq{font-size:14px;line-height:1.55;color:#111827}
+.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
+.fb-ol li{margin:4px 0}
+.fb-st{display:flex;flex-direction:column;gap:8px}
+.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
+.fb-l b{min-width:118px}
+.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
+.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
+.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
+.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
+.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
+.fb-pill.on{background:#dcf5e3;color:#15803d}
+.fb-pill.no{background:#fde2e2;color:#b91c1c}
+.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.b.fb-abrir{font-size:15px;padding:10px 18px}
+.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
+.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
+.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
+.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="pr-topo"><b>Preparação fábrica | Renomear DXF:</b><span class="c">Pasta dos CAM</span><i>→</i><span class="c">Pasta dos DXF/DWG</span><i>→</i><span class="c">nome no padrão do PPCP</span></div>
+
+<div class="cx">
+  <div class="cx-h"><span class="badge">1</span><h3>O que o Renomear DXF faz</h3></div>
+  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div><div class="fb-oq">Renomeia DXF/DWG que já foram exportados por fora (Tekla/Tecno) para o padrão do PPCP, pegando a QUANTIDADE do .CAM da mesma posição:  &lt;posição&gt; - OF&lt;obra/trecho&gt; - Q&lt;qtd&gt;&lt;extensão original&gt;</div></div>
+</div>
+
+<div class="grid2">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
+    <ol class="fb-ol"><li>Escolha a pasta dos .CAM.</li><li>Escolha a pasta dos .DXF/.DWG (sugestão inicial: Área de Trabalho\DXF). Ela é lida com subpastas.</li><li>Clique em analisar: a tabela mostra nome atual, posição, quantidade, nome final e situação de cada arquivo.</li><li>Confira a obra/trecho e a &#x27;liberação&#x27; (nome da pasta acima da pasta CAM) mostrados na tela.</li><li>Marque só as linhas que quer renomear e confirme. Nada é renomeado antes disso.</li></ol>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
+    <div class="fb-st" id="fb-status">
+      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
+      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
+      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
+      <div class="fb-acoes">
+        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Renomear DXF</button>
+        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
+        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
+        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
+      </div>
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FB_ABA = 'pg19'; window.FB_NOME = 'Renomear DXF';
+
+(function () {
+  'use strict';
+  var ABA = window.FB_ABA, NOME = window.FB_NOME;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  if (!local()) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+    });
+    return;
+  }
+  function api(acao, corpo) {
+    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  }
+  var ultimo = null;
+  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
+  function desenhar(e) {
+    ultimo = e;
+    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
+    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
+    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
+    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
+    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
+    var falta = e.faltam && e.faltam.length;
+    $('#fb-inst').style.display = falta ? '' : 'none';
+    $('#fb-abrir').disabled = !e.existe || !!falta;
+    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  }
+  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-fb]'); if (!b) return;
+    var a = b.dataset.fb;
+    if (a === 'abrir' || a === 'msgs') {
+      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
+      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
+        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
+        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
+      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
+        .then(function () { b.disabled = false; atualizar(); });
+    } else if (a === 'inst') {
+      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
+      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
+    } else if (a === 'dados' || a === 'pasta') {
+      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+})();
+
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-pg20">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCPM — Conversor CAM → DXF</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef1f5;color:#111827;font:600 13px 'Segoe UI',Inter,system-ui,Arial,sans-serif}
+body{padding:18px 22px 40px}
+.pr-topo{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pr-topo b{font-size:14px}
+.pr-topo .c{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:4px 10px;font-size:12.5px}
+.pr-topo i{font-style:normal;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.cx{background:#fff;border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:4px;padding:14px 16px;margin:0 0 14px;min-width:0}
+.grid2>.cx,.grid3>.cx{margin:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.cx-h h3{margin:0;font-size:15px;font-weight:700;color:#111827}
+.cx-h .sub{font-size:12px;font-weight:500;color:#5f6b7a}
+.cx-h .dir{margin-left:auto;display:flex;gap:8px}
+.badge{flex:none;width:22px;height:22px;border-radius:50%;background:#0b3d91;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.linha:last-child{margin-bottom:0}
+.cresce{flex:1;min-width:160px}
+.b{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#111827;border:1px solid #c5cbd6;border-radius:4px;padding:8px 14px;font:700 13px 'Segoe UI',Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.b:hover:not(:disabled){background:#f3f5f8;border-color:#9aa3b5}
+.b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}
+.b.p:hover:not(:disabled){background:#4c5664;border-color:#4c5664}
+.b:disabled{opacity:.45;cursor:not-allowed}
+.b svg{flex:none}
+.b.mini{padding:5px 9px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;background:#f3f6fb;border:2px dashed #b9c3d3;border-radius:4px;color:#4b5563;font-weight:600;text-align:center;padding:10px;cursor:pointer;margin:0 0 10px}
+.drop:hover,.drop.over{background:#e8eef7;border-color:#5f6b7a;color:#111827}
+.campo{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;color:#1c2a38}
+.lista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.lista li{display:flex;align-items:center;gap:9px;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:6px 10px;font-size:12.5px}
+.lista li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lista li.vazio{background:#f1f3f6;border:0;color:#4b5563;font-weight:600;justify-content:center}
+.tag-ok{flex:none;font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:10px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chk:last-child{margin-bottom:2px}
+.chk input{width:16px;height:16px;accent-color:#5f6b7a;margin:0}
+.chk small{color:#4b5563;font-size:12px;font-weight:500}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:4px;background:#fff;color:#111827;padding:7px 10px;font:600 13px 'Segoe UI',Inter,system-ui,sans-serif}
+textarea{width:100%;resize:vertical;font-family:Consolas,monospace;font-size:12.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-shadow:0 0 0 2px #dfe3ea}
+.status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
+.status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
+.status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
+@keyframes prPulse{50%{opacity:.25}}
+.barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
+.saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
+.saida.on{display:flex}
+.saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* árvores */
+.arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
+.arv table{border-collapse:collapse;width:100%;font-size:12.5px}
+.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th:last-child{border-right:0}
+.arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
+.arv td.q{white-space:normal;min-width:240px}
+.arv tr:nth-child(even) td{background:#f6f7f9}
+.arv tr:hover td{background:#e8ebf0}
+.arv tr.sel td{background:#dde6f3!important}
+.arv tr{cursor:default}
+.arv .tg{display:inline-block;width:15px;color:#5f6b7a;cursor:pointer;user-select:none;font-size:10px}
+.arv .vz{color:#8a93a5;font-weight:500;padding:14px;text-align:center}
+.arv input[type=checkbox]{width:14px;height:14px;accent-color:#5f6b7a;vertical-align:-2px;margin:0 5px 0 0}
+.split{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:12px}
+.lbl-det{font-size:12.5px;color:#374151;background:#f1f3f6;border-radius:4px;padding:7px 10px;margin:0 0 8px;white-space:pre-wrap}
+.busca{width:100%;margin:0 0 8px;padding-left:32px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 10px center/14px!important}
+.rec>.cx-h{cursor:pointer;user-select:none}
+.rec>.cx-h .sv{transition:transform .15s;color:#5f6b7a}
+.rec.fechada>.cx-h .sv{transform:rotate(-90deg)}
+.rec.fechada>:not(.cx-h){display:none!important}
+/* site sem o app */
+.pr-site{max-width:720px;margin:40px auto;text-align:center}
+.pr-site h2{margin:0 0 8px;font-size:18px}
+.pr-site p{color:#4b5563;font-weight:500;line-height:1.55}
+/* janelas */
+.pr-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pr-modal{width:min(660px,100%);max-height:90vh;overflow:auto;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;padding:20px 22px;box-shadow:0 12px 32px rgba(0,0,0,.18);animation:prEntra .22s ease-out}
+.pr-modal.erro{border-top-color:#b42318}
+@keyframes prEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.pr-modal h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px;font-weight:700}
+.pr-modal p{margin:0 0 10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;font-weight:500}
+.pr-modal details{margin:0 0 10px}.pr-modal summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#374151}
+.pr-modal pre{white-space:pre-wrap;background:#f3f5f7;border:1px solid #d6dee7;border-radius:4px;padding:8px 10px;max-height:300px;overflow:auto;font:12px Consolas,monospace}
+.pr-modal .bts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pr-modal input[type=text],.pr-modal select{width:100%}
+@media(max-width:1000px){.grid2,.grid3,.split{grid-template-columns:1fr}}
+.lista li.mk{background:#fff;border:1px solid #d6dee7}
+.lista li.mk label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.lista li.mk input{width:15px;height:15px;accent-color:#5f6b7a;margin:0}
+.lista li.er{background:#fdf2f2;border-color:#f3c7c3}
+.tag-er{flex:none;font-size:11px;font-weight:700;color:#b42318;background:#fde4e1;border:1px solid #f3c7c3;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.arv.grande{max-height:720px}
+.campo-in{width:100%;margin:0 0 10px}
+textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
+.arv td .b.mini{padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:4px}
+.arv td{line-height:1.5}
+/* V203 — mesmo modelo da Verificação da instalação */
+.lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
+.lista li.mk{border-left-color:#9aa3b5}
+.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
+.pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
+.pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
+/* V205 — botões cinza com a letra preta (pedido do PCP) */
+.b.p,.b.p:hover:not(:disabled){color:#000}
+/* V206 — caminho aceito fica verde (igual às outras abas) */
+input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
+input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
+/* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.cx:has(>.cx-h){background:#eef1f5}
+.drop{background:#eef1f5;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv{background:#eef1f5;border:1px solid #99a3af}
+.arv .vz{color:#374151}
+.kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+
+.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
+.fb-ic svg{width:24px;height:24px}
+.fb-oq{font-size:14px;line-height:1.55;color:#111827}
+.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
+.fb-ol li{margin:4px 0}
+.fb-st{display:flex;flex-direction:column;gap:8px}
+.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
+.fb-l b{min-width:118px}
+.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
+.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
+.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
+.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
+.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
+.fb-pill.on{background:#dcf5e3;color:#15803d}
+.fb-pill.no{background:#fde2e2;color:#b91c1c}
+.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.b.fb-abrir{font-size:15px;padding:10px 18px}
+.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
+.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
+.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
+.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="pr-topo"><b>Preparação fábrica | Conversor CAM → DXF:</b><span class="c">Pasta dos CAM</span><i>→</i><span class="c">escolher as peças</span><i>→</i><span class="c">DXF de corte</span></div>
+
+<div class="cx">
+  <div class="cx-h"><span class="badge">1</span><h3>O que o Conversor CAM → DXF faz</h3></div>
+  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg></div><div class="fb-oq">Lê os arquivos .CAM (exportados do Tekla/Tecno) de uma pasta e gera um DXF de CORTE por peça, com o nome no padrão do PPCP:  &lt;posição&gt; - OF&lt;obra&gt; - Q&lt;quantidade&gt;.dxf</div></div>
+</div>
+
+<div class="grid2">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
+    <ol class="fb-ol"><li>Clique em selecionar pasta e escolha a pasta onde estão os .CAM (só a raiz da pasta é lida, não entra em subpastas).</li><li>A tabela mostra cada CAM: posição, quantidade, espessura, material, obra e tipo (PLANIFICADO ou DOBRADO).</li><li>Se a obra calculada estiver errada, use &#x27;Editar Obra&#x27; e digite a certa (vale só para a peça escolhida; &#x27;Restaurar automático&#x27; volta ao cálculo).</li><li>Marque as peças que quer converter (ou todas).</li><li>Marque/desmarque &#x27;organizar em subpastas por espessura + material&#x27;.</li><li>Clique em converter e escolha a pasta de SAÍDA.</li><li>No fim aparece o total convertido e a lista de erros (ex.: CAM com dobra).</li></ol>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
+    <div class="fb-st" id="fb-status">
+      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
+      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
+      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
+      <div class="fb-acoes">
+        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Conversor CAM → DXF</button>
+        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
+        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
+        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
+      </div>
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FB_ABA = 'pg20'; window.FB_NOME = 'Conversor CAM → DXF';
+
+(function () {
+  'use strict';
+  var ABA = window.FB_ABA, NOME = window.FB_NOME;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  if (!local()) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+    });
+    return;
+  }
+  function api(acao, corpo) {
+    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  }
+  var ultimo = null;
+  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
+  function desenhar(e) {
+    ultimo = e;
+    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
+    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
+    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
+    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
+    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
+    var falta = e.faltam && e.faltam.length;
+    $('#fb-inst').style.display = falta ? '' : 'none';
+    $('#fb-abrir').disabled = !e.existe || !!falta;
+    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  }
+  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-fb]'); if (!b) return;
+    var a = b.dataset.fb;
+    if (a === 'abrir' || a === 'msgs') {
+      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
+      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
+        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
+        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
+      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
+        .then(function () { b.disabled = false; atualizar(); });
+    } else if (a === 'inst') {
+      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
+      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
+    } else if (a === 'dados' || a === 'pasta') {
+      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+})();
+
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-pg21">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCPM — Criar Pasta / Auditoria</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef1f5;color:#111827;font:600 13px 'Segoe UI',Inter,system-ui,Arial,sans-serif}
+body{padding:18px 22px 40px}
+.pr-topo{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pr-topo b{font-size:14px}
+.pr-topo .c{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:4px 10px;font-size:12.5px}
+.pr-topo i{font-style:normal;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.cx{background:#fff;border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:4px;padding:14px 16px;margin:0 0 14px;min-width:0}
+.grid2>.cx,.grid3>.cx{margin:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.cx-h h3{margin:0;font-size:15px;font-weight:700;color:#111827}
+.cx-h .sub{font-size:12px;font-weight:500;color:#5f6b7a}
+.cx-h .dir{margin-left:auto;display:flex;gap:8px}
+.badge{flex:none;width:22px;height:22px;border-radius:50%;background:#0b3d91;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.linha:last-child{margin-bottom:0}
+.cresce{flex:1;min-width:160px}
+.b{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#111827;border:1px solid #c5cbd6;border-radius:4px;padding:8px 14px;font:700 13px 'Segoe UI',Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.b:hover:not(:disabled){background:#f3f5f8;border-color:#9aa3b5}
+.b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}
+.b.p:hover:not(:disabled){background:#4c5664;border-color:#4c5664}
+.b:disabled{opacity:.45;cursor:not-allowed}
+.b svg{flex:none}
+.b.mini{padding:5px 9px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;background:#f3f6fb;border:2px dashed #b9c3d3;border-radius:4px;color:#4b5563;font-weight:600;text-align:center;padding:10px;cursor:pointer;margin:0 0 10px}
+.drop:hover,.drop.over{background:#e8eef7;border-color:#5f6b7a;color:#111827}
+.campo{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;color:#1c2a38}
+.lista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.lista li{display:flex;align-items:center;gap:9px;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:6px 10px;font-size:12.5px}
+.lista li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lista li.vazio{background:#f1f3f6;border:0;color:#4b5563;font-weight:600;justify-content:center}
+.tag-ok{flex:none;font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:10px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chk:last-child{margin-bottom:2px}
+.chk input{width:16px;height:16px;accent-color:#5f6b7a;margin:0}
+.chk small{color:#4b5563;font-size:12px;font-weight:500}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:4px;background:#fff;color:#111827;padding:7px 10px;font:600 13px 'Segoe UI',Inter,system-ui,sans-serif}
+textarea{width:100%;resize:vertical;font-family:Consolas,monospace;font-size:12.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-shadow:0 0 0 2px #dfe3ea}
+.status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
+.status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
+.status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
+@keyframes prPulse{50%{opacity:.25}}
+.barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
+.saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
+.saida.on{display:flex}
+.saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* árvores */
+.arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
+.arv table{border-collapse:collapse;width:100%;font-size:12.5px}
+.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th:last-child{border-right:0}
+.arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
+.arv td.q{white-space:normal;min-width:240px}
+.arv tr:nth-child(even) td{background:#f6f7f9}
+.arv tr:hover td{background:#e8ebf0}
+.arv tr.sel td{background:#dde6f3!important}
+.arv tr{cursor:default}
+.arv .tg{display:inline-block;width:15px;color:#5f6b7a;cursor:pointer;user-select:none;font-size:10px}
+.arv .vz{color:#8a93a5;font-weight:500;padding:14px;text-align:center}
+.arv input[type=checkbox]{width:14px;height:14px;accent-color:#5f6b7a;vertical-align:-2px;margin:0 5px 0 0}
+.split{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:12px}
+.lbl-det{font-size:12.5px;color:#374151;background:#f1f3f6;border-radius:4px;padding:7px 10px;margin:0 0 8px;white-space:pre-wrap}
+.busca{width:100%;margin:0 0 8px;padding-left:32px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 10px center/14px!important}
+.rec>.cx-h{cursor:pointer;user-select:none}
+.rec>.cx-h .sv{transition:transform .15s;color:#5f6b7a}
+.rec.fechada>.cx-h .sv{transform:rotate(-90deg)}
+.rec.fechada>:not(.cx-h){display:none!important}
+/* site sem o app */
+.pr-site{max-width:720px;margin:40px auto;text-align:center}
+.pr-site h2{margin:0 0 8px;font-size:18px}
+.pr-site p{color:#4b5563;font-weight:500;line-height:1.55}
+/* janelas */
+.pr-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pr-modal{width:min(660px,100%);max-height:90vh;overflow:auto;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;padding:20px 22px;box-shadow:0 12px 32px rgba(0,0,0,.18);animation:prEntra .22s ease-out}
+.pr-modal.erro{border-top-color:#b42318}
+@keyframes prEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.pr-modal h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px;font-weight:700}
+.pr-modal p{margin:0 0 10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;font-weight:500}
+.pr-modal details{margin:0 0 10px}.pr-modal summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#374151}
+.pr-modal pre{white-space:pre-wrap;background:#f3f5f7;border:1px solid #d6dee7;border-radius:4px;padding:8px 10px;max-height:300px;overflow:auto;font:12px Consolas,monospace}
+.pr-modal .bts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pr-modal input[type=text],.pr-modal select{width:100%}
+@media(max-width:1000px){.grid2,.grid3,.split{grid-template-columns:1fr}}
+.lista li.mk{background:#fff;border:1px solid #d6dee7}
+.lista li.mk label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.lista li.mk input{width:15px;height:15px;accent-color:#5f6b7a;margin:0}
+.lista li.er{background:#fdf2f2;border-color:#f3c7c3}
+.tag-er{flex:none;font-size:11px;font-weight:700;color:#b42318;background:#fde4e1;border:1px solid #f3c7c3;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.arv.grande{max-height:720px}
+.campo-in{width:100%;margin:0 0 10px}
+textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
+.arv td .b.mini{padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:4px}
+.arv td{line-height:1.5}
+/* V203 — mesmo modelo da Verificação da instalação */
+.lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
+.lista li.mk{border-left-color:#9aa3b5}
+.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
+.pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
+.pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
+/* V205 — botões cinza com a letra preta (pedido do PCP) */
+.b.p,.b.p:hover:not(:disabled){color:#000}
+/* V206 — caminho aceito fica verde (igual às outras abas) */
+input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
+input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
+/* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.cx:has(>.cx-h){background:#eef1f5}
+.drop{background:#eef1f5;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv{background:#eef1f5;border:1px solid #99a3af}
+.arv .vz{color:#374151}
+.kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+
+.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
+.fb-ic svg{width:24px;height:24px}
+.fb-oq{font-size:14px;line-height:1.55;color:#111827}
+.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
+.fb-ol li{margin:4px 0}
+.fb-st{display:flex;flex-direction:column;gap:8px}
+.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
+.fb-l b{min-width:118px}
+.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
+.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
+.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
+.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
+.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
+.fb-pill.on{background:#dcf5e3;color:#15803d}
+.fb-pill.no{background:#fde2e2;color:#b91c1c}
+.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.b.fb-abrir{font-size:15px;padding:10px 18px}
+.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
+.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
+.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
+.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="pr-topo"><b>Preparação fábrica | Criar Pasta / Auditoria:</b><span class="c">Planilha de lotes</span><i>→</i><span class="c">LOTE 9999</span><i>→</i><span class="c">LOTE &lt;n&gt;\&lt;OF&gt;</span></div>
+
+<div class="cx">
+  <div class="cx-h"><span class="badge">1</span><h3>O que o Criar Pasta / Auditoria faz</h3></div>
+  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="fb-oq">Cria a estrutura de pastas &#x27;LOTE &lt;n&gt;\&lt;OF&gt;&#x27; a partir da planilha de lotes, resgatando as OFs que estão na pasta &#x27;LOTE 9999&#x27;, e audita a LOTE 9999 contra a planilha. Também busca em que lote/pasta está uma obra/pacote.</div></div>
+</div>
+
+<div class="grid2">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
+    <ol class="fb-ol"><li>1ª vez: tela &#x27;Configurações&#x27; -&gt; escolha a PLANILHA .xlsx, a PASTA onde criar os lotes e cadastre os DIRETÓRIOS RAIZ onde procurar a LOTE 9999 (ex.: K:\8.M08-2026). Fica salvo no banco (auditoria_config / auditoria_raizes).</li><li>Tela &#x27;Criar Pastas&#x27;: digite o NÚMERO DO LOTE (ex.: 650) e clique em &#x27;Criar Pastas&#x27;. O resultado mostra: resgatadas da 9999 · criadas do zero · já existentes.</li><li>Tela &#x27;Auditar Lote 9999&#x27;: &#x27;Rodar Auditoria&#x27; compara a LOTE 9999 com a planilha. Para cada problema: &#x27;Mover p/ LOTE &lt;n&gt;&#x27; (vai direto pro lote da planilha) ou &#x27;Mover para...&#x27; (você escolhe). Marque &#x27;Mostrar também as que batem&#x27; para ver tudo.</li><li>Tela &#x27;Buscar Obra/Pacote&#x27;: busca por obra (ex.: 1956 ou 1956-2-01) ou por pacote/lote (ex.: 427). &#x27;Atualizar Base de Busca&#x27; (em Configurações) reimporta a planilha.</li></ol>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
+    <div class="fb-st" id="fb-status">
+      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
+      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
+      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
+      <div class="fb-acoes">
+        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Criar Pasta / Auditoria</button>
+        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
+        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
+        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
+      </div>
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FB_ABA = 'pg21'; window.FB_NOME = 'Criar Pasta / Auditoria';
+
+(function () {
+  'use strict';
+  var ABA = window.FB_ABA, NOME = window.FB_NOME;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  if (!local()) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+    });
+    return;
+  }
+  function api(acao, corpo) {
+    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  }
+  var ultimo = null;
+  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
+  function desenhar(e) {
+    ultimo = e;
+    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
+    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
+    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
+    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
+    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
+    var falta = e.faltam && e.faltam.length;
+    $('#fb-inst').style.display = falta ? '' : 'none';
+    $('#fb-abrir').disabled = !e.existe || !!falta;
+    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  }
+  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-fb]'); if (!b) return;
+    var a = b.dataset.fb;
+    if (a === 'abrir' || a === 'msgs') {
+      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
+      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
+        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
+        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
+      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
+        .then(function () { b.disabled = false; atualizar(); });
+    } else if (a === 'inst') {
+      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
+      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
+    } else if (a === 'dados' || a === 'pasta') {
+      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+})();
+
+<\/script>
+</body>
+</html>
+</script>
+<script type="text/plain" id="src-pg22">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPCPM — Roteirizador DXF</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#eef1f5;color:#111827;font:600 13px 'Segoe UI',Inter,system-ui,Arial,sans-serif}
+body{padding:18px 22px 40px}
+.pr-topo{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.pr-topo b{font-size:14px}
+.pr-topo .c{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:4px 10px;font-size:12.5px}
+.pr-topo i{font-style:normal;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin:0 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.cx{background:#fff;border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:4px;padding:14px 16px;margin:0 0 14px;min-width:0}
+.grid2>.cx,.grid3>.cx{margin:0}
+.cx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.cx-h h3{margin:0;font-size:15px;font-weight:700;color:#111827}
+.cx-h .sub{font-size:12px;font-weight:500;color:#5f6b7a}
+.cx-h .dir{margin-left:auto;display:flex;gap:8px}
+.badge{flex:none;width:22px;height:22px;border-radius:50%;background:#0b3d91;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.linha{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}
+.linha:last-child{margin-bottom:0}
+.cresce{flex:1;min-width:160px}
+.b{display:inline-flex;align-items:center;gap:7px;background:#fff;color:#111827;border:1px solid #c5cbd6;border-radius:4px;padding:8px 14px;font:700 13px 'Segoe UI',Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.b:hover:not(:disabled){background:#f3f5f8;border-color:#9aa3b5}
+.b.p{background:#5f6b7a;border-color:#5f6b7a;color:#fff}
+.b.p:hover:not(:disabled){background:#4c5664;border-color:#4c5664}
+.b:disabled{opacity:.45;cursor:not-allowed}
+.b svg{flex:none}
+.b.mini{padding:5px 9px;font-size:12px}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:64px;background:#f3f6fb;border:2px dashed #b9c3d3;border-radius:4px;color:#4b5563;font-weight:600;text-align:center;padding:10px;cursor:pointer;margin:0 0 10px}
+.drop:hover,.drop.over{background:#e8eef7;border-color:#5f6b7a;color:#111827}
+.campo{background:#f1f3f6;border-radius:4px;padding:8px 12px;font-size:12.5px;color:#374151;margin:0 0 10px;word-break:break-word;white-space:pre-wrap}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;color:#1c2a38}
+.lista{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:5px;max-height:220px;overflow:auto}
+.lista li{display:flex;align-items:center;gap:9px;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:6px 10px;font-size:12.5px}
+.lista li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lista li.vazio{background:#f1f3f6;border:0;color:#4b5563;font-weight:600;justify-content:center}
+.tag-ok{flex:none;font-size:11px;font-weight:700;color:#1e6b34;background:#dff3e5;border:1px solid #b9e0c4;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chk{display:grid;grid-template-columns:16px max-content 1fr;column-gap:10px;align-items:center;margin:0 0 12px;font-size:13px;font-weight:700;cursor:pointer}
+.chk:last-child{margin-bottom:2px}
+.chk input{width:16px;height:16px;accent-color:#5f6b7a;margin:0}
+.chk small{color:#4b5563;font-size:12px;font-weight:500}
+input[type=text],select,textarea{border:1px solid #c5cbd6;border-radius:4px;background:#fff;color:#111827;padding:7px 10px;font:600 13px 'Segoe UI',Inter,system-ui,sans-serif}
+textarea{width:100%;resize:vertical;font-family:Consolas,monospace;font-size:12.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-shadow:0 0 0 2px #dfe3ea}
+.status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
+.status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
+.status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
+@keyframes prPulse{50%{opacity:.25}}
+.barra{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.kpi{background:#fff;border:1px solid #d6dee7;border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:14px;min-height:66px}
+.kpi .ic{width:34px;height:34px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;flex:none}.kpi .ic svg{width:18px;height:18px;fill:none;stroke:#0b3d91;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.kpi .r{font-size:11px;color:#374151;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.kpi .v{font-size:22px;line-height:1.15;font-weight:800;color:#000}
+.saida{display:none;align-items:center;gap:8px;flex-wrap:wrap;background:#f3faf5;border:1px solid #cfe8d6;border-radius:4px;padding:8px 12px;margin:10px 0 0}
+.saida.on{display:flex}
+.saida .n{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* árvores */
+.arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
+.arv table{border-collapse:collapse;width:100%;font-size:12.5px}
+.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th:last-child{border-right:0}
+.arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
+.arv td.q{white-space:normal;min-width:240px}
+.arv tr:nth-child(even) td{background:#f6f7f9}
+.arv tr:hover td{background:#e8ebf0}
+.arv tr.sel td{background:#dde6f3!important}
+.arv tr{cursor:default}
+.arv .tg{display:inline-block;width:15px;color:#5f6b7a;cursor:pointer;user-select:none;font-size:10px}
+.arv .vz{color:#8a93a5;font-weight:500;padding:14px;text-align:center}
+.arv input[type=checkbox]{width:14px;height:14px;accent-color:#5f6b7a;vertical-align:-2px;margin:0 5px 0 0}
+.split{display:grid;grid-template-columns:minmax(0,42%) minmax(0,1fr);gap:12px}
+.lbl-det{font-size:12.5px;color:#374151;background:#f1f3f6;border-radius:4px;padding:7px 10px;margin:0 0 8px;white-space:pre-wrap}
+.busca{width:100%;margin:0 0 8px;padding-left:32px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6b7a' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5 21 21'/%3E%3C/svg%3E") no-repeat 10px center/14px!important}
+.rec>.cx-h{cursor:pointer;user-select:none}
+.rec>.cx-h .sv{transition:transform .15s;color:#5f6b7a}
+.rec.fechada>.cx-h .sv{transform:rotate(-90deg)}
+.rec.fechada>:not(.cx-h){display:none!important}
+/* site sem o app */
+.pr-site{max-width:720px;margin:40px auto;text-align:center}
+.pr-site h2{margin:0 0 8px;font-size:18px}
+.pr-site p{color:#4b5563;font-weight:500;line-height:1.55}
+/* janelas */
+.pr-fundo{position:fixed;inset:0;z-index:9999;background:rgba(20,30,50,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.pr-modal{width:min(660px,100%);max-height:90vh;overflow:auto;background:#fff;color:#000;border:1.5px solid #000;border-top:6px solid #0b3d91;border-radius:10px;padding:20px 22px;box-shadow:0 12px 32px rgba(0,0,0,.18);animation:prEntra .22s ease-out}
+.pr-modal.erro{border-top-color:#b42318}
+@keyframes prEntra{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.pr-modal h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px;font-weight:700}
+.pr-modal p{margin:0 0 10px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;font-weight:500}
+.pr-modal details{margin:0 0 10px}.pr-modal summary{cursor:pointer;font-weight:700;font-size:12.5px;color:#374151}
+.pr-modal pre{white-space:pre-wrap;background:#f3f5f7;border:1px solid #d6dee7;border-radius:4px;padding:8px 10px;max-height:300px;overflow:auto;font:12px Consolas,monospace}
+.pr-modal .bts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+.pr-modal input[type=text],.pr-modal select{width:100%}
+@media(max-width:1000px){.grid2,.grid3,.split{grid-template-columns:1fr}}
+.lista li.mk{background:#fff;border:1px solid #d6dee7}
+.lista li.mk label{display:flex;align-items:center;gap:8px;flex:1;min-width:0;cursor:pointer}
+.lista li.mk input{width:15px;height:15px;accent-color:#5f6b7a;margin:0}
+.lista li.er{background:#fdf2f2;border-color:#f3c7c3}
+.tag-er{flex:none;font-size:11px;font-weight:700;color:#b42318;background:#fde4e1;border:1px solid #f3c7c3;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.arv.grande{max-height:720px}
+.campo-in{width:100%;margin:0 0 10px}
+textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
+.arv td .b.mini{padding:2px 9px;font-size:11.5px;font-weight:700;margin-left:4px}
+.arv td{line-height:1.5}
+/* V203 — mesmo modelo da Verificação da instalação */
+.lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
+.lista li.mk{border-left-color:#9aa3b5}
+.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
+.pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
+.pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
+.pr-modal{width:min(600px,100%)!important;padding:18px 20px!important}
+.pr-modal h3{font-size:16.5px!important;margin:0 0 8px!important}
+.pr-modal p{font-size:13px!important;margin:0 0 12px!important}
+.pr-modal .bts{border-top:1px solid #e1e5ea;padding-top:14px;margin-top:16px!important}
+.pr-modal .pr-campo{margin:0}
+.pr-modal input.erro,.pr-modal .drop.erro{border-color:#dc2626!important;box-shadow:0 0 0 2px #fde4e1!important}
+.pr-err{color:#b42318;font-size:12px;font-weight:700;margin:6px 0 0;min-height:0}
+.pr-err:empty{display:none}
+/* V205 — botões cinza com a letra preta (pedido do PCP) */
+.b.p,.b.p:hover:not(:disabled){color:#000}
+/* V206 — caminho aceito fica verde (igual às outras abas) */
+input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
+input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
+/* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
+.cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
+.cx:not(:has(>.cx-h)){padding:12px}
+.cx>.cx-h{margin:0 -12px 10px;padding:9px 12px;background:linear-gradient(#d7dce3,#c2c9d3);border-bottom:1px solid #aab2bd}
+.rec.fechada>.cx-h{margin-bottom:-12px;border-bottom:0}
+.cx:has(>.cx-h){background:#eef1f5}
+.drop{background:#eef1f5;border:1px dashed #a3acb8}
+.drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
+.lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+.arv{background:#eef1f5;border:1px solid #99a3af}
+.arv .vz{color:#374151}
+.kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+
+.fb-topo{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fb-ic{flex:none;width:46px;height:46px;border-radius:6px;background:#e3e8f0;display:grid;place-items:center;color:#0b3d91}
+.fb-ic svg{width:24px;height:24px}
+.fb-oq{font-size:14px;line-height:1.55;color:#111827}
+.fb-ol{margin:0;padding-left:22px;font-size:13.5px;line-height:1.55;color:#111827}
+.fb-ol li{margin:4px 0}
+.fb-st{display:flex;flex-direction:column;gap:8px}
+.fb-l{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid #c5cbd6;border-radius:4px;font-size:13.5px}
+.fb-l b{min-width:118px}
+.fb-l .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,'Courier New',monospace;font-size:12.5px;color:#374151}
+.fb-libs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-lib{display:inline-flex;align-items:center;gap:6px;padding:2px 10px 2px 7px;background:#fff;border:1px solid #d5dbe4;border-radius:3px;font-size:12.5px;font-weight:600}
+.fb-lib::before{content:'';width:9px;height:9px;border-radius:50%;background:#16a34a;box-shadow:0 0 0 2.5px #bbf7d0}
+.fb-lib.no::before{background:#dc2626;box-shadow:0 0 0 2.5px #fecaca}
+.fb-pill{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#e5e7eb;color:#374151}
+.fb-pill.on{background:#dcf5e3;color:#15803d}
+.fb-pill.no{background:#fde2e2;color:#b91c1c}
+.fb-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.b.fb-abrir{font-size:15px;padding:10px 18px}
+.fb-msg{margin-top:10px;padding:9px 12px;border-radius:4px;font-size:13.5px;font-weight:600;display:none}
+.fb-msg.ok{display:block;background:#eaf7ee;border:1px solid #a7e0b8;color:#15803d}
+.fb-msg.er{display:block;background:#fdeeee;border:1px solid #f1b9b9;color:#b91c1c}
+.fb-nota{margin-top:10px;font-size:12.5px;color:#4b5563}
+</style>
+</head>
+<body>
+<div class="pr-topo"><b>Preparação fábrica | Roteirizador DXF:</b><span class="c">Planilha da obra</span><i>→</i><span class="c">Pasta dos DXF</span><i>→</i><span class="c">pastas por fluxo</span></div>
+
+<div class="cx">
+  <div class="cx-h"><span class="badge">1</span><h3>O que o Roteirizador DXF faz</h3></div>
+  <div class="fb-topo"><div class="fb-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></svg></div><div class="fb-oq">Cruza os DXF de uma obra com a planilha da obra e MOVE cada DXF para a pasta do fluxo certo (Fluxo 1/2/3/4, LASER, Perfiladeira L1/L2, Perfiladeira U e C, Joist, Terça Z, Acessórios Padrão), gera o relatório de divergências, o peso por fluxo e confere obras já roteirizadas.</div></div>
+</div>
+
+<div class="grid2">
+  <div class="cx">
+    <div class="cx-h"><span class="badge">2</span><h3>Passo a passo</h3><span class="sub">dentro da janela do app</span></div>
+    <ol class="fb-ol"><li>Tela ROTEIRIZADOR: escolha a planilha (CSV do sistema, Excel de tabela dinâmica ou o WF.xls do Focco) e a pasta dos DXF; clique em processar.</li><li>Acompanhe o log na própria tela. Os DXF são movidos para &#x27;&lt;Fluxo&gt; [&lt;espessura&gt;]&#x27; dentro da pasta da obra.</li><li>Tela RELATÓRIO DE DIVERGÊNCIAS: abas Faltantes · Não Roteirizado · Divergência Tamanho · [PADRÃO] PLANILHA · Sem CAM · Ignorados. Daqui você marca ignorado, força CAM, define fluxo manual — tudo vai para a memória e vale para as próximas obras.</li><li>Tela PESO POR FLUXO: soma de peso (kg) e quantidade de peças por fluxo, com cores por fluxo (dá para trocar a cor).</li><li>Tela VERIFICADOR: adicione pastas de obras já roteirizadas -&gt; mostra o que foi movido à mão depois da roteirização (pede o motivo) e &#x27;Conferir pelas regras (somente leitura)&#x27; mostra o que está fora da regra sem mover nada.</li></ol>
+  </div>
+  <div class="cx">
+    <div class="cx-h"><span class="badge">3</span><h3>Abrir o app</h3><span class="sub">abre numa janela própria do Windows</span></div>
+    <div class="fb-st" id="fb-status">
+      <div class="fb-l"><b>App</b><span id="fb-app"><span class="fb-pill">conferindo…</span></span><span style="margin-left:auto" id="fb-sit"></span></div>
+      <div class="fb-l"><b>Bibliotecas</b><span class="fb-libs" id="fb-libs"></span></div>
+      <div class="fb-l"><b>Pasta de dados</b><span class="v" id="fb-dados">—</span><button class="b mini" data-fb="dados" title="Abrir a pasta de dados"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></button></div>
+      <div class="fb-acoes">
+        <button class="b p fb-abrir" id="fb-abrir" data-fb="abrir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Abrir Roteirizador DXF</button>
+        <button class="b" id="fb-inst" data-fb="inst" style="display:none"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg> Instalar bibliotecas</button>
+        <button class="b" data-fb="msgs" title="Abre com a janela preta mostrando mensagens e erros"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12l-4 4H4z"/><path d="M16 20v-4h4M8 9h8M8 13h5"/></svg> Abrir com mensagens</button>
+        <button class="b" data-fb="pasta" title="Abrir a pasta do app no Explorador"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Pasta do app</button>
+      </div>
+      <div class="fb-msg" id="fb-msg"></div>
+      <div class="fb-nota">A pasta de dados é a mesma <b>Pasta de dados do PCP</b> escolhida no Agrupador | Base (memória, bancos e configurações dos apps).</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FB_ABA = 'pg22'; window.FB_NOME = 'Roteirizador DXF';
+
+(function () {
+  'use strict';
+  var ABA = window.FB_ABA, NOME = window.FB_NOME;
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var Hd = { 'X-PPCPM': '1' };
+  function local() {
+    if (typeof window.PPCPM_PASTA === 'function') return true;
+    try { return /^(127\.0\.0\.1|localhost)$/.test(window.top.location.hostname); } catch (e) { return /^(127\.0\.0\.1|localhost)$/.test(location.hostname); }
+  }
+  if (!local()) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var st = $('#fb-status'); if (st) st.closest('.cx').outerHTML = '<div class="cx pr-site"><h2>Abrir o ' + esc(NOME) + '</h2>' +
+        '<p>Este app roda no <b>SISTEMA PPCPM instalado no seu computador</b> (ele lê e grava os DXF, CAM e pastas direto no PC e abre numa janela própria do Windows).</p>' +
+        '<p>Abra o sistema pelo atalho <b>SISTEMA - PPCPM</b> da área de trabalho e entre nesta mesma aba.</p></div>';
+    });
+    return;
+  }
+  function api(acao, corpo) {
+    var op = corpo === undefined ? { headers: Hd, cache: 'no-store' } :
+      { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, Hd), body: JSON.stringify(corpo) };
+    return fetch('/api/fabrica/' + acao, op).then(function (r) { return r.json(); });
+  }
+  var ultimo = null;
+  function msg(tipo, t) { var m = $('#fb-msg'); m.className = 'fb-msg ' + tipo; m.textContent = t; }
+  function desenhar(e) {
+    ultimo = e;
+    if (!e || !e.ok) { $('#fb-app').innerHTML = '<span class="fb-pill no">' + esc((e && e.erro) || 'sem resposta') + '</span>'; return; }
+    $('#fb-app').innerHTML = e.existe ? '<span class="fb-pill on">instalado</span>' : '<span class="fb-pill no">não encontrado nesta instalação</span>';
+    $('#fb-libs').innerHTML = e.bibliotecas.map(function (l) { return '<span class="fb-lib' + (l.ok ? '' : ' no') + '">' + esc(l.nome) + '</span>'; }).join('');
+    $('#fb-dados').textContent = e.dados || '—'; $('#fb-dados').title = e.dados || '';
+    $('#fb-sit').innerHTML = e.rodando ? '<span class="fb-pill on">aberto — janela do app no Windows</span>' : '<span class="fb-pill">fechado</span>';
+    var falta = e.faltam && e.faltam.length;
+    $('#fb-inst').style.display = falta ? '' : 'none';
+    $('#fb-abrir').disabled = !e.existe || !!falta;
+    $('#fb-abrir').title = falta ? 'Instale as bibliotecas que faltam primeiro' : '';
+  }
+  function atualizar() { return api('estado?aba=' + ABA).then(desenhar).catch(function () { }); }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-fb]'); if (!b) return;
+    var a = b.dataset.fb;
+    if (a === 'abrir' || a === 'msgs') {
+      b.disabled = true; msg('ok', 'Abrindo o ' + NOME + '…');
+      api('abrir', { aba: ABA, mensagens: a === 'msgs' }).then(function (r) {
+        if (r.ok) msg('ok', r.ja_aberto ? 'O ' + NOME + ' já está aberto — veja na barra de tarefas do Windows.' : 'O ' + NOME + ' abriu numa janela própria do Windows.');
+        else { msg('er', r.erro || 'Não consegui abrir.'); try { if (r.faltam && top.__pjQuadroErro) top.__pjQuadroErro({ titulo: 'Faltam bibliotecas', texto: r.erro }); } catch (e) { } }
+      }).catch(function (e) { msg('er', 'Não consegui falar com o sistema: ' + e); })
+        .then(function () { b.disabled = false; atualizar(); });
+    } else if (a === 'inst') {
+      try { if (top.instAbrir) return top.instAbrir(); } catch (e) { }
+      msg('er', 'Abra a "Verificação da instalação" no rodapé do sistema e clique em Instalar bibliotecas.');
+    } else if (a === 'dados' || a === 'pasta') {
+      api('pasta', { aba: ABA, qual: a }).then(function (r) { if (!r.ok) msg('er', r.erro || 'Não consegui abrir a pasta.'); });
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () { atualizar(); setInterval(atualizar, 3000); });
+})();
+
+<\/script>
+</body>
+</html>
+</script>
 <script>
 /* ===== IDIOMA E TEMA (Versão 31) =====
    Textos do sistema ficam em português no código. Para inglês e espanhol, cada texto é trocado por este dicionário
@@ -19104,7 +20966,7 @@ const DICT=[
 ["Início","Home","Inicio"],["Produção","Production","Producción"],
 ["Ordens de Produção","Production Orders","Órdenes de Producción"],["Área de impressão","Print Area","Área de impresión"],["ÁREA DE IMPRESSÃO","PRINT AREA","ÁREA DE IMPRESIÓN"],
 ["Materiais / Estoque","Materials / Inventory","Materiales / Inventario"],
-["Planejamento","Planning","Planificación"],["Capacidade","Capacity","Capacidad"],
+["Planejamento","Planning","Planificación"],["Preparação fábrica","Factory preparation","Preparación de fábrica"],["Capacidade","Capacity","Capacidad"],
 ["Qualidade / RNC","Quality / NCR","Calidad / NC"],["Planejamento RNC","NCR Planning","Planificación NC"],["Indicadores","KPIs","Indicadores"],
 ["Relatórios","Reports","Informes"],["Usuários","Users","Usuarios"],["Configurações","Settings","Configuración"],
 ["Indústria Metalúrgica","Metalworking Industry","Industria Metalúrgica"],
@@ -19356,7 +21218,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 256';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 257';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -19563,16 +21425,16 @@ IC.usr='<circle cx="10.5" cy="8" r="4.2"/><path d="M3.5 20.5a7.5 7.5 0 0 1 12.2-
 const ico=(n,c='')=>`<svg class="ic ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
 
 /* NAV */
-const NAV=[['home','Tela inicial','dash'],['prod','Produção','fab'],['val','Processo de validação','op'],['ops','Ordens de Produção','op'],['rot','Gerenciador de Roteiros','pal'],['exp','Área de impressão','fab'],['plan','Planejamento','gan'],['qual','Planejamento RNC','nut'],['usr','Usuários','usr'],['cfg','Configurações','cfg']];
+const NAV=[['home','Tela inicial','dash'],['prod','Produção','fab'],['val','Processo de validação','op'],['ops','Ordens de Produção','op'],['rot','Gerenciador de Roteiros','pal'],['exp','Área de impressão','fab'],['fab','Preparação fábrica','gan'],['qual','Planejamento RNC','nut'],['usr','Usuários','usr'],['cfg','Configurações','cfg']];
 const CHV='<svg class="ic chv" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 /* V213 — tema único dos botões (cinza-azulado claro, letra preta) em todas as abas */
 const TEMA_BOT='<style id="tema-bot-v213">html body :is(button.b,label.b,#an-add,#an-focco-btn,#an-analisar,#an-exportar,#an-limpar,#an-focco-limpar,.ppn-p,.ppn-s,.b3d,.btn-prim,.btn-limpar):not(.gr-abas>*):not(.bulk-tabs>*):not(.rtabs>*):not(.abas>*):not(.pg-ctrl *):not(.ppn-on):not(.on):not(.modal *):not(.pr-modal *):not([role=dialog] *):not(.x){background:linear-gradient(#e3e8ee,#cdd4de)!important;border:1px solid #98a3b3!important;color:#000!important;border-radius:4px!important;box-shadow:0 1px 1px rgba(16,24,40,.08)!important}html body :is(button.b,label.b,#an-add,#an-focco-btn,#an-analisar,#an-exportar,#an-limpar,#an-focco-limpar,.ppn-p,.ppn-s,.b3d,.btn-prim,.btn-limpar):not(.gr-abas>*):not(.bulk-tabs>*):not(.rtabs>*):not(.abas>*):not(.pg-ctrl *):not(.ppn-on):not(.on):not(.modal *):not(.pr-modal *):not([role=dialog] *):not(.x) *{color:#000!important}html body :is(button.b,label.b,#an-add,#an-focco-btn,#an-analisar,#an-exportar,#an-limpar,#an-focco-limpar,.ppn-p,.ppn-s,.b3d,.btn-prim,.btn-limpar):not(.gr-abas>*):not(.bulk-tabs>*):not(.rtabs>*):not(.abas>*):not(.pg-ctrl *):not(.ppn-on):not(.on):not(.modal *):not(.pr-modal *):not([role=dialog] *):not(.x) svg{stroke:#000!important}html body :is(button.b,label.b,#an-add,#an-focco-btn,#an-analisar,#an-exportar,#an-limpar,#an-focco-limpar,.ppn-p,.ppn-s,.b3d,.btn-prim,.btn-limpar):not(.gr-abas>*):not(.bulk-tabs>*):not(.rtabs>*):not(.abas>*):not(.pg-ctrl *):not(.ppn-on):not(.on):not(.modal *):not(.pr-modal *):not([role=dialog] *):not(.x):hover:not(:disabled){background:linear-gradient(#d9dfe7,#c2cad5)!important;border-color:#808c9e!important;color:#000!important}html body :is(button.b,label.b,#an-add,#an-focco-btn,#an-analisar,#an-exportar,#an-limpar,#an-focco-limpar,.ppn-p,.ppn-s,.b3d,.btn-prim,.btn-limpar):not(.gr-abas>*):not(.bulk-tabs>*):not(.rtabs>*):not(.abas>*):not(.pg-ctrl *):not(.ppn-on):not(.on):not(.modal *):not(.pr-modal *):not([role=dialog] *):not(.x):active:not(:disabled){background:#c2cad5!important}html body :is(button.b,label.b,#an-add,#an-focco-btn,#an-analisar,#an-exportar,#an-limpar,#an-focco-limpar,.ppn-p,.ppn-s,.b3d,.btn-prim,.btn-limpar):not(.gr-abas>*):not(.bulk-tabs>*):not(.rtabs>*):not(.abas>*):not(.pg-ctrl *):not(.ppn-on):not(.on):not(.modal *):not(.pr-modal *):not([role=dialog] *):not(.x):disabled{background:linear-gradient(#e3e8ee,#cdd4de)!important;border-color:#98a3b3!important;color:#000!important;opacity:.55!important}html body select.f4-alvo,html body .etq-filtros select,html body .etq-filtros input[type=text],html body input#filtro{background:linear-gradient(#f3f5f8,#e6eaf0)!important;border:1px solid #98a3b3!important;color:#000!important;font-weight:700!important}html body select.f4-alvo:focus,html body .etq-filtros select:focus,html body .etq-filtros input:focus,html body input#filtro:focus{background:#fff!important;border-color:#5f6b7a!important}</style>';
 /* V224 — quadros no modelo do Agrupador nas abas do padrão novo (ppn) e na Análise DBF */
 const TEMA_QUADROS='<style id="tema-quadros-v224">html body .step.ppn-q:not(#zz){background:#eef1f5!important;border:1px solid #545659!important;border-top:3px solid #0b3d91!important}html body .bulk-panel:not(#zz){background:#eef1f5!important;border:1px solid #545659!important;border-top:3px solid #0b3d91!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important}html body .bulk-panel>.bulk-title:not(#zz){margin:-14px -16px 12px!important;padding:9px 16px!important;background:linear-gradient(#d7dce3,#c2c9d3)!important;border-bottom:1px solid #aab2bd!important;color:#000!important;font-weight:700!important}html body .bulk-panel>.bulk-title *{color:#000!important;stroke:#000}html body .bulk-tabs>.bulk-tab:not(#zz){background:linear-gradient(#e3e8ee,#cdd4de)!important;border:1px solid #98a3b3!important;color:#000!important;font-weight:700!important;border-radius:4px!important;box-shadow:0 1px 1px rgba(16,24,40,.08)!important}html body .bulk-tabs>.bulk-tab:not(#zz):hover{background:linear-gradient(#d9dfe7,#c2cad5)!important;border-color:#808c9e!important}html body .bulk-tabs>.bulk-tab.active:not(#zz){background:linear-gradient(#c2cad5,#aeb8c5)!important;border-color:#5f6b7a!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.18)!important}html body .bulk-panel select:not(#zz),html body .bulk-panel input[type=text]:not(#zz),html body .bulk-panel input[type=search]:not(#zz),html body .bulk-panel input:not([type]):not(#zz){background:linear-gradient(#f3f5f8,#e6eaf0)!important;border:1px solid #98a3b3!important;color:#000!important;font-weight:700!important;border-radius:4px!important}html body .bulk-panel select:focus,html body .bulk-panel input:focus{background:#fff!important;border-color:#5f6b7a!important}html body .bulk-panel input::placeholder{color:#4b5563!important}html body .cx.res th:not(#zz){text-align:center!important}html body table thead th:not(#zz),html body table thead td:not(#zz){background:linear-gradient(#e3e8ee,#cdd4de)!important;color:#000!important;font-weight:700!important;border-right:1px solid #98a3b3!important;border-bottom:1px solid #98a3b3!important}html body table thead th:not(#zz) *,html body table thead td:not(#zz) *{color:#000!important}html body table thead th:not(#zz) svg{stroke:#000!important}html body .ppn-q{background:#eef1f5!important;border:1px solid #545659!important;border-top:3px solid #0b3d91!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(15,23,42,.12)!important}html body .ppn-q[data-tbq="0"]:not(.res){background:linear-gradient(#e3e7ec,#d5dae1)!important}html body .tb-h{background:linear-gradient(#d7dce3,#c2c9d3)!important;border-bottom:1px solid #aab2bd!important;border-radius:0!important}html body .ppn-q2{background:#eef1f5!important;border:1px solid #99a3af!important;border-radius:4px!important}html body .ppn-d{background:#eef1f5!important;border:1px dashed #a3acb8!important;border-radius:4px!important}html body #an-lista:has(li.tb-vz){background:none!important;border:0!important;padding:0!important}html body .cx #an-lista li.tb-vz.tb-vz{margin:0!important;padding:8px 11px!important}html body .tb-vz,html body #an-focco-lbl.tb-vz,html body .cx #an-lista li.tb-vz.tb-vz{background:#c9d0d8!important;border:1px solid #99a3af!important;color:#111827!important;font-weight:700!important;border-radius:4px!important}</style><scr'+'ipt>(function(){\nvar pg1=!!document.getElementById(\'an-drop\');\nfunction marcar(){\n if(pg1){document.querySelectorAll(\'.cx\').forEach(function(e){e.classList.add(\'ppn-q\')});document.querySelectorAll(\'.drop\').forEach(function(e){e.classList.add(\'ppn-d\')});\n  document.querySelectorAll(\'#an-lista li.fraco\').forEach(function(e){e.classList.add(\'tb-vz\')});\n  var l=document.getElementById(\'an-focco-lbl\');if(l)l.classList.toggle(\'tb-vz\',!l.classList.contains(\'ok\'));}\n document.querySelectorAll(\'.ppn-q:not([data-tbq])\').forEach(function(q){\n  var h=q.firstElementChild; if(!q.offsetWidth)return;\n  if(!h||!(h.matches(\'h1,h2,h3,h4\')||h.querySelector(\'h1,h2,h3,h4,.ppn-n\'))){q.dataset.tbq=\'0\';return}\n  var cs=getComputedStyle(q),pl=parseFloat(cs.paddingLeft)||0,pr=parseFloat(cs.paddingRight)||0,pt=parseFloat(cs.paddingTop)||0;\n  if(h.offsetWidth<q.clientWidth-pl-pr-4){q.dataset.tbq=\'0\';return}\n  var mb=Math.max(parseFloat(getComputedStyle(h).marginBottom)||0,12);\n  h.classList.add(\'tb-h\');\n  h.style.setProperty(\'margin\',(-pt)+\'px \'+(-pr)+\'px \'+mb+\'px \'+(-pl)+\'px\',\'important\');\n  h.style.setProperty(\'padding\',\'10px \'+pr+\'px 10px \'+pl+\'px\',\'important\');\n  q.dataset.tbq=\'1\';});\n}\nfunction ini(){marcar();var t;new MutationObserver(function(){clearTimeout(t);t=setTimeout(marcar,120)}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:[\'class\',\'hidden\',\'style\']});setInterval(marcar,1500)}\nif(document.readyState===\'loading\')document.addEventListener(\'DOMContentLoaded\',ini);else ini();\n})();</scr'+'ipt>';
 const TEMA_QUADROS_PG=['pg1','pg10','pg11','pg12','pg13','pg14','pg15'];
-const GRP={val:['pg1'],rot:['pg13','pg10','pg15','pg11'],exp:['pg12','pg14']};const grpOf=id=>GRP.val.includes(id)?'val':GRP.rot.includes(id)?'rot':GRP.exp.includes(id)?'exp':'prod';
+const GRP={val:['pg1'],rot:['pg13','pg10','pg15','pg11'],exp:['pg12','pg14'],fab:['pg22','pg19','pg20','pg17','pg18','pg16','pg21']};const grpOf=id=>GRP.val.includes(id)?'val':GRP.rot.includes(id)?'rot':GRP.exp.includes(id)?'exp':GRP.fab.includes(id)?'fab':'prod';
 const subHTML=k=>`<div class="sub" id="sub-${k}">${PROG.filter(p=>grpOf(p[0])===k).sort((a,b)=>(GRP[k]||[]).indexOf(a[0])-(GRP[k]||[]).indexOf(b[0])).map(p=>`<button class="n" data-v="${p[0]}">${ico('rel')}<span>${p[1]}</span></button>`).join('')}</div>`;
-$('#nv').innerHTML=NAV.map(n=>n[0]==='ops'?'':(n[0]==='prod'||n[0]==='val'||n[0]==='rot'||n[0]==='exp')?`<button class="n grp" data-tg="${n[0]}" aria-expanded="false">${ico(n[2])}<span>${n[1]}</span>${CHV}</button>${subHTML(n[0])}`:`<button class="n" data-v="${n[0]}">${ico(n[2])}<span>${n[1]}</span></button>`).join('')+'<div class="plant"><img src="'+$('#nv').dataset.plant+'" alt="" decoding="async"><div><b>Grupo Projeart</b><br>Indústria Metalúrgica</div></div>';
+$('#nv').innerHTML=NAV.map(n=>n[0]==='ops'?'':(n[0]==='prod'||n[0]==='val'||n[0]==='rot'||n[0]==='exp'||n[0]==='fab')?`<button class="n grp" data-tg="${n[0]}" aria-expanded="false">${ico(n[2])}<span>${n[1]}</span>${CHV}</button>${subHTML(n[0])}`:`<button class="n" data-v="${n[0]}">${ico(n[2])}<span>${n[1]}</span></button>`).join('')+'<div class="plant"><img src="'+$('#nv').dataset.plant+'" alt="" decoding="async"><div><b>Grupo Projeart</b><br>Indústria Metalúrgica</div></div>';
 $('#nv').onclick=e=>{const t=e.target.closest('[data-tg]');if(t){const k=t.dataset.tg;return subTg(!$('#sub-'+k).classList.contains('open'),k)}const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)};$('#bg').onclick=()=>$('#nv').classList.toggle('open');
 
 /* V72 · estado da conexão: online / congestionamento / buffer */
@@ -19748,7 +21610,7 @@ window.__net=n=>{netSet(n)};window.__irEnvioRoteiro=()=>go('pg11');
 
 let cur='home';const F={p:'',s:'',q:''};let CM=new Date();CM.setDate(1);
 function subTg(o,k){k=k||'prod';$('#sub-'+k).classList.toggle('open',o);const g=$('nav .grp[data-tg='+k+']');g.setAttribute('aria-expanded',o);g.classList.toggle('opn',o)}
-function go(v){cur=v;$('#nv').classList.remove('open');document.querySelectorAll('nav .n').forEach(b=>b.classList.toggle('on',b.dataset.v===v));{const gv=/^pg/.test(v)?grpOf(v):'';['prod','val','rot','exp'].forEach(k=>{if(gv===k)subTg(true,k);$('nav .grp[data-tg='+k+']').classList.toggle('in',gv===k)})}render();scrollTo(0,0);savePrefs()}
+function go(v){cur=v;$('#nv').classList.remove('open');document.querySelectorAll('nav .n').forEach(b=>b.classList.toggle('on',b.dataset.v===v));{const gv=/^pg/.test(v)?grpOf(v):'';['prod','val','rot','exp','fab'].forEach(k=>{if(gv===k)subTg(true,k);$('nav .grp[data-tg='+k+']').classList.toggle('in',gv===k)})}render();scrollTo(0,0);savePrefs()}
 function prodV(){const p=PROG.find(x=>x[0]===cur);return`<div class="prh"><h2 class="up"${/^pg\d+$/.test(cur)?' style="text-align:center"':''}>${p[2]}</h2><div class="prr"><button type="button" class="pgreset" data-pgreset="${cur}" title="Apaga os dados desta tela para começar outro projeto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>Atualizar</button>${/^pg\d+$/.test(cur)?`<span class="onl${NET==='ok'?'':' '+NET}" role="status"><i></i>${NETTXT[NET]}</span>`:''}</div></div>`}
 /* V145 — cada tela (pgN) fica VIVA em segundo plano ao trocar de aba: nada do que o usuário carregou/fez se perde.
    Só zera quando ele clica em ATUALIZAR (ou sai do sistema). */
@@ -19852,7 +21714,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 `;document.head.appendChild(st)})();
 function zerarTodas(){const pool=$('#pgpool');if(pool)pool.innerHTML=''}
 
-function render(){if(cur==='cap'||cur==='kpi'||cur==='rel')cur='home';if(cur==='prod')cur='pg3';if(cur==='val'||cur==='pg8')cur='pg1';if(cur==='rot')cur='pg10';if(cur==='exp')cur='pg12';{const f=$('#ppcp');if(/^pg/.test(cur)&&f&&f.dataset.pg===cur&&$('#vtop .prh'))return}if(cur==='usr'&&!(USER&&USER.adm))cur='home';const nb=$('nav .n[data-v=usr]');if(nb){const q=USER&&USER.adm?pend().length:0;nb.innerHTML=ico('usr')+'<span>Usuários</span>'+(q?`<span class="nb" title="Cadastros aguardando aprovação">${q}</span>`:'')}
+function render(){if(cur==='cap'||cur==='kpi'||cur==='rel')cur='home';if(cur==='prod')cur='pg3';if(cur==='val'||cur==='pg8')cur='pg1';if(cur==='rot')cur='pg10';if(cur==='exp')cur='pg12';if(cur==='fab'||cur==='plan')cur='pg22';{const f=$('#ppcp');if(/^pg/.test(cur)&&f&&f.dataset.pg===cur&&$('#vtop .prh'))return}if(cur==='usr'&&!(USER&&USER.adm))cur='home';const nb=$('nav .n[data-v=usr]');if(nb){const q=USER&&USER.adm?pend().length:0;nb.innerHTML=ico('usr')+'<span>Usuários</span>'+(q?`<span class="nb" title="Cadastros aguardando aprovação">${q}</span>`:'')}
  const isP=/^pg/.test(cur);const V=isP?prodV:{home,ops:opsV,plan:planV,cfg:cfgV,usr:usrV}[cur];const nm=isP?'':NAV.find(n=>n[0]===cur)[1];
  const _sc={};['pkL','pkO'].forEach(id=>{const e=document.getElementById(id);if(e)_sc[id]=e.scrollTop}); $('#vtop').innerHTML=V?V():`<h2>${nm}</h2><div class="pn empty"><b>${ico('cone')}</b>Este módulo chega em uma versão futura.<br>Diga o que ele precisa fazer e montamos o próximo.</div>`;['pkL','pkO'].forEach(id=>{const e=document.getElementById(id);if(e&&_sc[id])e.scrollTop=_sc[id]});if(cur==='home')pkFiltrar();
  $('#vst').innerHTML=(`<div class="st"><span><i style="${NET==='ok'?'':NET==='slow'?'background:#e0a21a':'background:#ef4444'}"></i>${NETTXT[NET]} · dados salvos no servidor · ${VERSAO}</span>${instChip()}</div>`);instAgendar();{const u=$('#upd');if(u)u.innerHTML=`<span><i class="dt">•</i> Última atualização: <b>${hm(DB.meta().atualizado_em)}</b></span>`}if(/^pg/.test(cur)){telaViva(cur);mostrarPool(cur)}else mostrarPool('');if(cur==='ops')lst();if(cur==='home')initPk();applyI18n($('#app'));markUI();if(cur==='home'&&INTRO){INTRO=false;coverIntro();runIntro()}}

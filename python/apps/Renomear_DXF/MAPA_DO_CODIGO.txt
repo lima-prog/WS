@@ -1,0 +1,153 @@
+MAPA DO CÓDIGO — Renomear DXF (Tekla/Tecno)
+====================================================================================================
+Gerado automaticamente do código (AST). Linha = número da linha no arquivo. Texto = 1ª frase da docstring.
+
+
+####################################################################################################
+# renomear_dxf/aba.py   (476 linhas)   — TELA (interface principal)
+####################################################################################################
+  CONSTANTES
+      29  _COLUNAS = [ ("arquivo_atual", "ARQUIVO ATUAL"), ("posicao", "POSIÇÃO"), ("quantidade", "QUANTIDADE"), ("nome_final", "NOME FINAL"), ("status", "STATUS"), ]
+      36  _COLUNAS_LARGURA = { "arquivo_atual": 200, "posicao": 100, "quantidade": 140, "nome_final": 260, "status": 260, }
+      53  _STATUS_INFO = { "ok": ("✅ Pronto pra renomear", "#E9F3EA", COR_VERDE), "sem_cam": ("❌ Sem .CAM correspondente", "#FBE7E4", COR_VERMELHO), "sem_quantidade": ("⚠ CAM sem QTA_PEZ", "#FBF0DC", COR_AMAREL…
+      64  _ESTILO_BOTAO_PRINCIPAL = "font-size:13px; padding:12px 28px;"
+  JANELAS DE ESCOLHER ARQUIVO/PASTA (tipos aceitos)
+     278  pasta = QFileDialog.getExistingDirectory( self, "Selecione a pasta dos arquivos .CAM") if not pasta: return self._definir_pasta_cam(pasta)
+     312  pasta = QFileDialog.getExistingDirectory( self, "Selecione a pasta dos arquivos .DXF/.DWG já exportados", diretorio_inicial) if not pasta: return
+  FUNÇÕES / CLASSES / MÉTODOS
+      67  class AbaRenomearDxf
+      68      .__init__()
+      77      .setup_ui()
+     231      .mostrar_ajuda()
+     266      ._definir_pasta_cam()
+     277      .selecionar_pasta_cam()
+     284      ._pasta_cam_editada_manualmente()   — Chamado quando o usuário digita/cola um caminho direto no campo (Enter, ou sair do campo) em vez de usar o botão de diálogo. Aceita colar um caminho c…
+     303      ._definir_pasta_dxf()
+     309      .selecionar_pasta_dxf()
+     319      ._pasta_dxf_editada_manualmente()
+     331      ._atualizar_habilitacao_analisar()
+     336      .analisar_pastas()
+     370      ._preencher_tabela()
+     400      ._linhas_selecionadas()
+     409      .atualizar_selecao()
+     419      .renomear_selecionados()
+     475      .atualizar_status()
+
+####################################################################################################
+# renomear_dxf/processador.py   (159 linhas)   — LÓGICA (motor de processamento)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      23  def analisar()   — Devolve (linhas, obra_trecho, liberacao, avisos): - linhas: lista de dicts, um por arquivo .dxf/.dwg encontrado em `pasta_dxf`: {"caminho_atual", "arq…
+      95  def renomear()   — Executa o rename de cada linha em `linhas` (só as que o chamador já filtrou como prontas — normalmente status == "ok"). Cada arquivo é renomeado dentr…
+
+####################################################################################################
+# renomear_dxf/utilitarios.py   (123 linhas)   — LÓGICA (funções puras / regras)
+####################################################################################################
+  CONSTANTES
+      41  _EXTENSOES_VALIDAS = (".dxf", ".dwg")
+  FUNÇÕES / CLASSES / MÉTODOS
+      44  def derivar_obra_trecho()   — A pasta escolhida pelo usuário é a pasta de .CAM (ex.: ".../2104-2-55_L1/CAM"). A pasta UM NÍVEL ACIMA dela (aqui chamada "liberação", mesmo nome que …
+      65  def ler_quantidade_cam()   — Lê só o valor de QTA_PEZ (quantidade de peças) de um arquivo .CAM, percorrendo as linhas de texto direto — essa ferramenta só precisa desse único camp…
+      98  def listar_dxf_dwg()   — Varre `pasta_raiz` recursivamente (igual ao script original, que sempre olhava dentro de Desktop\DXF e todas as subpastas) e devolve o caminho complet…
+     115  def nome_renomeado()   — Nome final do arquivo renomeado: "<posição> - OF<obra_trecho> - Q<qtd><extensão original>".
+
+####################################################################################################
+# nucleo/banco_dados.py   (146 linhas)   — COMUM: SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+####################################################################################################
+  TABELAS DE BANCO CRIADAS
+      26  corte_processamentos
+      31  corte_arquivos
+      39  corte_partes
+      48  corte_eventos
+  FUNÇÕES / CLASSES / MÉTODOS
+      15  class BancoDados
+      16      .__init__()
+      22      .criar_tabelas()
+      62      .registrar_processamento()
+      69      .registrar_arquivo()
+      76      .registrar_parte()
+      82      .registrar_evento()
+      92      .buscar_eventos()
+     112      .buscar_partes_editadas()   — Lista cada parte gerada (arquivo editado/dividido), com o nome do arquivo original que deu origem a ela.
+     130      .buscar_arquivos_originais()   — Lista cada arquivo original processado, com a estratégia usada e a quantidade de partes em que foi dividido.
+
+####################################################################################################
+# nucleo/caminhos.py   (126 linhas)   — COMUM: onde ficam código, dados, banco e logs
+####################################################################################################
+  CONSTANTES
+      57  RODANDO_CONGELADO = getattr(sys, 'frozen', False)
+      59  PASTA_NUCLEO_FONTE = os.path.dirname(os.path.abspath(__file__))
+      92  RAIZ_DADOS = os.path.normpath(os.path.abspath(_dados_env)) if _dados_env else RAIZ_PROJETO
+      93  MODO_RAPIDO = RAIZ_DADOS != RAIZ_PROJETO
+      95  PASTA_PAI = os.path.dirname(RAIZ_DADOS)
+      97  CAMINHO_BANCO_DADOS = os.path.join(PASTA_PAI, "pcp_projeart.db")
+     117  PASTA_LOGS = _pasta_logs()
+     124  PASTA_ASSETS = os.path.join(PASTA_NUCLEO, "assets")
+     125  CAMINHO_LOGO_PROJEART = os.path.join(PASTA_ASSETS, "logo_projeart.png")
+     126  CAMINHO_ICONE_PROJEART = os.path.join(PASTA_ASSETS, "icone_projeart.png")
+  FUNÇÕES / CLASSES / MÉTODOS
+     100  def _pasta_logs()   — Log local no modo rápido (gravar log em pasta de rede, a cada linha, pesa); senão ao lado do programa.
+
+####################################################################################################
+# nucleo/estilo.py   (226 linhas)   — COMUM: cores e estilo das telas Qt
+####################################################################################################
+  CONSTANTES
+      22  COR_AZUL_MARCA = "#0B3D91"
+      23  COR_MARINHO = "#082E6E"
+      25  COR_BG = "#EEF1F5"
+      26  COR_PAINEL = "#FFFFFF"
+      27  COR_CAMPO = "#F3F5F8"
+      28  COR_BORDA = "#98A3B3"
+      29  COR_TEXTO = "#000000"
+      30  COR_TEXTO_SUB = "#4B5563"
+      31  COR_DESTAQUE = COR_AZUL_MARCA
+      32  COR_VERDE = "#15803D"
+      33  COR_VERMELHO = "#C62828"
+      34  COR_AMARELO = "#B45309"
+      37  COR_QUADRO_BORDA = "#545659"
+      38  COR_FAIXA_TITULO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D7DCE3, stop:1 #C2C9D3)"
+      39  COR_LINHA_TITULO = "#AAB2BD"
+      40  COR_BOTAO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E3E8EE, stop:1 #CDD4DE)"
+      41  COR_BOTAO_HOVER = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D9DFE7, stop:1 #C2CAD5)"
+      42  COR_BOTAO_BORDA_HV = "#808C9E"
+      43  COR_CAMPO_GRAD = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F3F5F8, stop:1 #E6EAF0)"
+      44  COR_LINHA_ALT = "#F6F7F9"
+      45  COR_LINHA_HOVER = "#EEF4FB"
+      46  COR_LINHA_SEL = "#DBE8FB"
+      47  COR_OK_FAIXA = "#1E9E4A"
+      48  COR_OK_FUNDO = "#DCF5E3"
+      49  COR_ERRO_FUNDO = "#FDEEEE"
+      50  COR_ERRO_BORDA = "#F1B9B9"
+      51  COR_LARANJA = "#EA580C"
+      53  CORES_PARTES = [ QColor(11, 61, 145, 210), # azul Projeart QColor(30, 158, 74, 210), # verde QColor(234, 88, 12, 210), # laranja QColor(124, 58, 237, 210), # roxo QColor(198, 40, 40, 210), # vermelho …
+      61  ESTILO_GERAL = f""" QMainWindow, QWidget {{ background-color: {COR_BG}; color: {COR_TEXTO}; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }} QDialog {{ background-color: {COR_BG}; }} QTabWidget:…
+  FUNÇÕES / CLASSES / MÉTODOS
+
+####################################################################################################
+# nucleo/logging_config.py   (84 linhas)   — COMUM: registro de erros (log)
+####################################################################################################
+  CONSTANTES
+      33  LOG_PATH = os.path.join(PASTA_LOGS, "app_dxf_ppcp_log.txt")
+  FUNÇÕES / CLASSES / MÉTODOS
+      38  def registrar_erro_fatal()   — Grava um erro fatal no arquivo de log E imprime no console. Usado tanto pelo try/except do main.py quanto pelo excepthook global abaixo.
+      55  def _excepthook_global()   — Pega qualquer erro que escape sem tratamento e garante que fica registrado no log antes do programa fechar, em vez de simplesmente sumir junto com o t…
+      63  def configurar_logging()   — Liga o log em arquivo + console e o excepthook global. Chamar uma vez só, bem no início do main.py. Retorna o logger compartilhado.
+
+####################################################################################################
+# nucleo/modo_local.py   (110 linhas)   — COMUM: cópia local do código (abre rápido)
+####################################################################################################
+  CONSTANTES
+      22  PASTAS_EXCLUIDAS = {"__pycache__", "claude outputs", "relatorio", "roteirizador_dxf", "referencia_html", "icones_usuario", ".git", ".vscode", ".idea", "venv", ".venv"}
+      24  ARQUIVOS_EXCLUIDOS = ("*.db", "*.db-journal", "*.db-wal", "*.db-shm", "app_dxf_ppcp_log.txt*", "layout_desktop_*.json", "etiquetas_impressora.json", "continuidade.md", "*.bak", "*.pyc", "*.tmp")
+  FUNÇÕES / CLASSES / MÉTODOS
+      28  def _em_unidade_de_rede()
+      40  def _arquivo_excluido()
+      45  def _mesmo()
+      53  def sincronizar()   — Espelha o código de `origem` em `destino` (copia o que mudou, apaga o que sumiu). Devolve (copiados, apagados).
+      84  def garantir_execucao_local()   — Chamar no topo do main.py. Se estiver em rede: sincroniza, roda de lá (espera) e encerra com o mesmo código de saída.
+
+####################################################################################################
+# nucleo/normalizacao.py   (60 linhas)   — COMUM: regra normalizar_obra (nome da pasta da obra -> OF)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      17  def normalizar_obra()   — Converte NUM_COM (ou o nome da pasta da obra, no fallback) para o identificador da obra usado no DXF. Exemplos: 2058-102_01_L1 -> 2058-102-01 2058-102…

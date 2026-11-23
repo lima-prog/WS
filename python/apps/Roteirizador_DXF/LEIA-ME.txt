@@ -1,0 +1,158 @@
+Roteirizador DXF  —  app do SISTEMA - PPCPM (tema do sistema)
+====================================================================================================
+
+Tela            : Python 3 + Tkinter (janela Tk)
+Chave no PPCP   : roteirizador_dxf   (mesma ferramenta do PPCP Ferramentas: MESMAS regras, só a aparência mudou — ver item 10)
+
+1. O QUE FAZ
+----------------------------------------------------------------------------------------------------
+   ROTEIRIZADOR DXF PROJEART v19.4 (Tkinter). Cruza os DXF de uma obra com a planilha da obra e MOVE cada DXF para a pasta do fluxo certo (Fluxo 1/2/3/4, LASER, Perfiladeira L1/L2, Perfiladeira U e C, Joist, Terça Z, Acessórios Padrão), gera o relatório de divergências, o peso por fluxo e confere obras já roteirizadas.
+
+2. PASSO A PASSO
+----------------------------------------------------------------------------------------------------
+   1. Tela ROTEIRIZADOR: escolha a planilha (CSV do sistema, Excel de tabela dinâmica ou o WF.xls do Focco) e a pasta dos DXF; clique em processar.
+   2. Acompanhe o log na própria tela. Os DXF são movidos para '<Fluxo> [<espessura>]' dentro da pasta da obra.
+   3. Tela RELATÓRIO DE DIVERGÊNCIAS: abas Faltantes · Não Roteirizado · Divergência Tamanho · [PADRÃO] PLANILHA · Sem CAM · Ignorados. Daqui você marca ignorado, força CAM, define fluxo manual — tudo vai para a memória e vale para as próximas obras.
+   4. Tela PESO POR FLUXO: soma de peso (kg) e quantidade de peças por fluxo, com cores por fluxo (dá para trocar a cor).
+   5. Tela VERIFICADOR: adicione pastas de obras já roteirizadas -> mostra o que foi movido à mão depois da roteirização (pede o motivo) e 'Conferir pelas regras (somente leitura)' mostra o que está fora da regra sem mover nada.
+
+   TELAS (menu lateral)
+   • Roteirizador                tela: _montar_aba_roteirizador
+                                 lógica: processar(), processar_pastas_xadrez(), consolidar_pastas_variantes(), padronizar_espessura(), salvar_log_roteirizacao()
+   • Relatório de Divergências   tela: _montar_aba_relatorio / _montar_aba_relatorio_vazia
+                                 lógica: analisar_divergencias(), funções de memória (marcar ignorado, forçar CAM, padrão planilha, ajuste manual)
+   • Peso por Fluxo              tela: _montar_aba_pesos / _montar_aba_pesos_vazia
+                                 lógica: agregar_pesos_por_fluxo(), calcular_peso(), carregar_cores_fluxo_customizadas()
+   • Verificador                 tela: _montar_aba_verificador
+                                 lógica: conferir_pasta_com_regras(), detectar_pecas_fora_do_fluxo(), processar(simulacao=[]) (somente leitura)
+
+3. REGRAS (LÓGICA)
+----------------------------------------------------------------------------------------------------
+   • NOME DO DXF esperado: '<posição> - OF<obra> - Q<qtd>.dxf' (posição antes do 1º ' - ', OF depois; marca [A]/[B] de peça dividida é ignorada).
+   • Casa DXF com a linha da planilha por (OF, posição). Posição repetida em várias linhas = soma das quantidades.
+   • ESPESSURA padronizada para a mais próxima de ESPESSURAS_PADRAO (tolerância 0,20 mm): 1,25 1,55 1,70 1,80 1,95 2,00 2,25 2,30 2,65 2,70 3,00 3,35 3,75 4,25 4,75 6,35 8,00 9,50 12,70 16,00 19,00 22,20 25,40.
+   • Tolerância de tamanho DXF x planilha: 3 mm (Terça Z: 10 mm), considerando peça girada e a coluna alternativa de largura.
+   • PREFIXOS_SEM_CAM = BR, TB (barra/tubo não geram DXF; não contam como faltante, salvo 'forçar CAM').
+   • Ignorados por padrão: identificador BR_RED, W_, PS, vazio, 'Z' que não é Terça Z, descrição BR/BR_RED.
+   • ORDEM DE PRIORIDADE DO FLUXO (decidir_fluxo_peca + processar):
+     0) Movido à mão depois da última roteirização (retrato no log) -> mantém. Ajuste manual da memória -> usa direto (prioridade absoluta).
+     1) Terça Z (nome/posição TZ e definição Z) -> 'Terça Z [esp]'.
+     2) GC, ou largura 92 mm (±3) com 4,75 mm -> Fluxo 3.
+     3) Escada de marinheiro (OF com subtrecho 50, ex. 2089-2-50) e largura 38/50 mm (±3): comprimento > 400 -> Fluxo 3; até 400 -> Fluxo 4 (mais de 2 furos -> Fluxo 3).
+     4) Prefixo ACE -> Fluxo 4. Prefixos XH0800296, XI0630250, MI0630200, PR0300180 -> Fluxo 4.
+     5) JOIST (J, BJ, AJ1, NM1 no identificador/posição, ou GRUPO LIC com JOIST), exceto 'Perfil J' dobrado -> 'Joist [esp]'.
+     6) Regra de furos (esp >= 3,75 e comprimento > 3000) -> Fluxo 3 se: A) largura > 450 e > 2 furos; B) esp <= 6,35, largura > 100 e > 4 furos; C) recorte, largura >= 370 e > 2 furos; D) largura > 600.
+        Exceção: peça irregular sem furo, < 1000 x < 3000, com recorte simples (pequeno, de um lado só) -> Fluxo 2.
+     7) Por espessura: irregular -> Fluxo 3; > 9,50 -> Fluxo 3; 9,50 e 8,00 -> Fluxo 3 se maior > 400, senão Fluxo 4; 6,35/4,75/4,25/3,75/3,35 -> > 3000 Fluxo 1, > 400 Fluxo 2, senão Fluxo 4.
+     8) Prefixos PC/SD/SEZ/SE -> 'Acessórios Padrão [esp]' (PC com 50 mm -> Fluxo 4).
+     9) Perfiladeira (1,25 a 3,00 mm): U com alma 100-400 e aba 50-103 -> 'Perfiladeira U e C'; C com alma 100-400, aba 25-90 e lábio < 30 -> 'Perfiladeira U e C'; L de abas iguais 52-100 (ou L-100/L-150, ou L32X32X1.25/1.55 e L52X52X1.55) -> 'Perfiladeira L1' (L32X32X1.25, L32X32X1.55, L52X52X1.55 com comprimento > 595) ou 'Perfiladeira L2' (demais).
+        Identificador L/U/C fora do catálogo: abas iguais >= 400 com DESENVOLVIMENTO 495 -> Perfiladeira U e C; senão por tamanho (> 3000 F1, > 400 F2, senão F4).
+        3,00 mm, 300 x 190-310 com 4 furos de 14 -> Fluxo 4. Prefixo MF/ED -> Perfiladeira U e C. Resto 1,25-3,00 -> por tamanho (> 3000 F1, > 400 F2, senão F4).
+     10) Ajustes finais: esticador E-n em Perfiladeira U e C até 800 -> Fluxo 2; Perfiladeira (U/C ou peça de preparação) <= 3,00 mm e < 700 -> Fluxo 4; Fluxo 4 com 4,75/6,35/8,00/9,50 e recorte grande (> 150 mm) ou dos dois lados -> Fluxo 3; Fluxo 4 com furo oblongo (exceto 14x28) -> Fluxo 3; Fluxo 1/2 > 3,75 mm com ângulo -> Fluxo 3; Fluxo 4 (não 3,00) com ângulo significativo -> Fluxo 3; posição T + C de catálogo -> Perfiladeira U e C; Fluxo 3 GALVANIZADO -> volta por tamanho (F1/F2/F4); peça de PREPARAÇÃO (Focco: consome chapa cortada) nunca fica em Perfiladeira -> por tamanho; CIV<n>/CSV<n> 1,25-3,00 -> Perfiladeira U e C.
+     11) Conjunto (mesma posição-base @N / _2 / -2, lado esq/dir): se um lado foi Fluxo 3, todos vão Fluxo 3.
+     12) LASER: tudo que deu Fluxo 3 com esp <= 12,70 e comprimento <= 6000 vai para 'LASER [esp]'.
+   • PEÇA > 6001 mm: vai para a subpasta 'Editar' do fluxo (dividir em [A]/[B] — use o Corte Inteligente).
+   • CHAPA XADREZ: depois, pastas com 'XADREZ' no nome: peça irregular -> subpasta 'Banco de Corte'; lisa -> Fluxo 1 (> 3000) ou Fluxo 2.
+   • Pastas variantes da mesma espessura são juntadas (consolidar_pastas_variantes / padronizar_espessura). Nome da pasta usa vírgula: 'Fluxo 4 [6,35]'.
+   • PESO = largura x comprimento x espessura x 7,85 g/cm³ (DENSIDADE_ACO) x quantidade.
+   • Furo circular: tolerância 0,1 (TOLERANCIA_FURO_CIRCULAR).
+
+4. TIPOS DE ARQUIVO
+----------------------------------------------------------------------------------------------------
+   Planilha (tela Roteirizador): *.csv *.xlsx *.xls — o formato é reconhecido pelo CONTEÚDO, não pela extensão:
+      CSV do sistema: colunas NUM_DIS, POS_PEZ, IDENTIFICADOR, NOM_PRO, LUN_PRO, LAR_PRO, ESPESSURA, DESENVOLVIMENTO, Qtd, DES_PEZ, MAR_PEZ (OF tirada do NUM_DIS: padrão 0000-0-00)
+      Excel de tabela dinâmica: POSIÇÃO, IDENTIFICADOR, DEFINIÇÃO, ESPESSURA, LARGURA, COMPRIMENTO, DESENVOLVIMENTO, QTD/SOMA
+      Relatório do Focco (WF.xls, pode ser texto/HTML/XML com extensão .xls): PACOTE, OBRA, SUB TRECHO, POSICAO, ORDEM, MASCARA, COMP...
+      Se escolher uma PASTA em vez de arquivo, pega o 1º .csv, senão .xlsx, senão .xls de dentro.
+   DXF: pasta da obra (lida com subpastas, inclusive as de fluxo já existentes — reavaliação).
+   Verificador: pastas de obras já roteirizadas (+ planilha para conferir pelas regras).
+   Onde o código abre as janelas de escolher (arquivo:linha):
+     roteirizador_original/roteirizador_dxf_projeart.py:7062
+     roteirizador_original/roteirizador_dxf_projeart.py:7070
+     roteirizador_original/roteirizador_dxf_projeart.py:7291
+     roteirizador_original/roteirizador_dxf_projeart.py:7299
+     roteirizador_original/roteirizador_dxf_projeart.py:7324
+     roteirizador_original/roteirizador_dxf_projeart.py:8704
+     roteirizador_original/roteirizador_dxf_projeart.py:8768
+
+5. O QUE SAI (SAÍDAS)
+----------------------------------------------------------------------------------------------------
+   <pasta da obra>\<Fluxo> [<esp>]\<arquivo>.dxf   (os DXF são MOVIDOS)
+   <pasta da obra>\<Fluxo> [<esp>]\Editar\...      (peças > 6001 mm)
+   <pasta da obra>\...XADREZ...\Banco de Corte\...
+   <pasta da obra>\_log_roteirizacao_projeart.json   (arquivo oculto: 'retrato' de onde cada DXF foi colocado — usado pelo Verificador)
+
+6. CAMINHOS
+----------------------------------------------------------------------------------------------------
+   Onde o app fica             = python\apps\Roteirizador_DXF\   (dentro da pasta python do SISTEMA - PPCPM)
+   Pasta de DADOS (PPCP_DADOS), nesta ordem:
+      1) caminho escrito à mão na 1ª linha do pasta_dados.txt (ex.: a pasta ppcp_dxf_ferramentas do servidor);
+      2) a pasta de dados escolhida na tela do SISTEMA - PPCPM (python\dados_locais\producao\pasta_dados.txt,
+         a mesma que o Validador de Fluxos usa dentro do sistema);
+      3) padrão: python\dados_locais\producao  (criada sozinha na 1ª vez; a atualização do sistema nunca apaga dados_locais).
+   Banco compartilhado         = <pasta ACIMA da pasta de dados>\pcp_projeart.db   (no padrão: python\dados_locais\pcp_projeart.db)
+   Python                      = python\ferramentas\achar_python.bat do sistema (.venv do sistema, Python portátil ou o do PC)
+   Cópia local do código       = %LOCALAPPDATA%\PPCP_Apps\Roteirizador_DXF\app   (feita pelo .bat com robocopy /MIR)
+   Log deste app               = %LOCALAPPDATA%\PPCP_Apps\Roteirizador_DXF\logs\app_dxf_ppcp_log.txt   (variável PPCP_LOGS)
+   MEMÓRIA: <PPCP_DADOS>\roteirizador_original\roteirizador_memoria.db  (SQLite, vale para TODAS as obras). Tabelas:
+      ignorados (não gera DXF) · ajustes_manuais (fluxo definido à mão) · divergencias_tamanho_ignoradas
+      forcar_cam (BR/TB que geram CAM) · padrao_planilha_manual · cores_fluxo_customizadas · preferencias_ui
+      Sem PPCP_DADOS: ao lado do .exe (empacotado) ou ao lado do script.
+   Logo/ícone: embutidos no próprio script (_LOGO_PROJEART_PNG_B64) — não precisa de arquivo de imagem.
+   Este app abre pelo main.py com '--roteirizador' (o '--ordens' = Relatório de Ordens é OUTRO app, fora do quadro).
+   Tabelas criadas pelo código: ajustes_manuais, cores_fluxo_customizadas, corte_arquivos, corte_eventos, corte_partes, corte_processamentos, divergencias_tamanho_ignoradas, forcar_cam, ignorados, padrao_planilha_manual, preferencias_ui
+
+7. COMO ABRIR
+----------------------------------------------------------------------------------------------------
+   • 1ª vez no PC: dois cliques em instalar_bibliotecas_Roteirizador_DXF.bat (usa o Python do sistema)
+   • Depois: dois cliques em iniciar_Roteirizador_DXF.bat (copia o código pro PC e abre). Com problema: iniciar_Roteirizador_DXF.bat debug
+   • Ou, pelo CMD dentro desta pasta: python main.py
+   • Para virar .exe: pyinstaller Roteirizador_DXF.spec
+
+8. ARQUIVOS DENTRO DO APP
+----------------------------------------------------------------------------------------------------
+   roteirizador_original/
+      __init__.py                            0 linhas  (marca a pasta como pacote Python)
+      lancador.py                          108 linhas  INÍCIO (abre o roteirizador como processo à parte, no unificador)
+      modo_embutido.py                      73 linhas  INÍCIO (ajuste DPI/transparência quando abre dentro do unificador)
+      roteirizador_dxf_projeart.py        9173 linhas  TUDO (regras + memória SQLite + telas Tkinter) — arquivo único
+   nucleo/   (COMUM a todos os apps)
+      __init__.py                            0 linhas  (pacote)
+      ambiente_qt.py                        33 linhas  ajustes do Qt antes de abrir
+      banco_dados.py                       146 linhas  SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+      caminhos.py                          126 linhas  onde ficam código, dados, banco e logs
+      estilo.py                            194 linhas  cores e estilo das telas Qt
+      logging_config.py                     84 linhas  registro de erros (log)
+      modo_local.py                        110 linhas  cópia local do código (abre rápido)
+      normalizacao.py                       60 linhas  regra normalizar_obra (nome da pasta da obra -> OF)
+      assets/icone_projeart.ico                        imagem da marca
+      assets/icone_projeart.png                        imagem da marca
+      assets/logo_projeart.png                         imagem da marca
+   main.py                                   INÍCIO (gerado: prepara dados/log e abre só esta ferramenta)
+   iniciar_Roteirizador_DXF.bat              atalho rápido (cópia local + abre sem janela preta)
+   instalar_bibliotecas_Roteirizador_DXF.bat instala o requirements.txt no Python do sistema
+   pasta_dados.txt                           1ª linha = pasta de DADOS (padrão: python\dados_locais\producao)
+   requirements.txt                          bibliotecas
+   Roteirizador_DXF.spec                     receita do PyInstaller (.exe)
+   MANIFESTO.json                            impressão digital (sha256) de cada arquivo
+   MAPA_DO_CODIGO.txt                        índice de TODAS as funções/constantes com o número da linha
+
+9. BIBLIOTECAS (pip install -r requirements.txt)
+----------------------------------------------------------------------------------------------------
+   - ezdxf
+   - numpy
+   - openpyxl
+   - pandas
+   - xlrd
+   (o resto é biblioteca padrão do Python: os, sys, re, sqlite3, json, shutil...)
+
+10. TEMA DO SISTEMA - PPCPM (só aparência)
+----------------------------------------------------------------------------------------------------
+   Padrão de docs/REQUISITOS_FLUXO_DE_TRABALHO.md, seção 10: azul Projeart #0b3d91 nas faixas e destaques; fundo #eef1f5;
+   quadros com borda #545659, faixa azul de 3px em cima e título numa faixa cinza; TODOS os botões cinza-azulado
+   (#e3e8ee -> #cdd4de, borda #98a3b3) com letra preta negrito; campos #f3f5f8 -> #e6eaf0 (brancos ao focar);
+   tabelas com cabeçalho no tema dos botões, letra preta, linhas brancas alternando com #f6f7f9, selecionada #dbe8fb.
+   Arquivos que mudaram (só cores/bordas/textos de estilo — conferido pela árvore do código, regras idênticas):
+     - roteirizador_original/roteirizador_dxf_projeart.py
+     - main.py e iniciar_*.bat (pasta de dados do sistema, Python do sistema, seleção azul-clara, título)
+

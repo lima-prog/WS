@@ -1,0 +1,7 @@
+# Bibliotecas do app "Roteirizador DXF" (só as que ele usa; tiradas do requirements.txt do PPCP Ferramentas)
+#   pip install -r requirements.txt
+ezdxf
+numpy
+openpyxl
+pandas
+xlrd

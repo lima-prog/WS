@@ -1,0 +1,233 @@
+MAPA DO CÓDIGO — Criar Pasta / Auditoria
+====================================================================================================
+Gerado automaticamente do código (AST). Linha = número da linha no arquivo. Texto = 1ª frase da docstring.
+
+
+####################################################################################################
+# auditoria/aba.py   (1244 linhas)   — TELA (interface principal)
+####################################################################################################
+  CONSTANTES
+      67  COR_ROXO = "#818CF8"
+      68  COR_AMBAR = "#F59E0B"
+      73  COR_ROXO_TEXTO = "#5B4FC4"
+      74  COR_ROSA_TEXTO = "#A6296B"
+      75  COR_SIDEBAR = "#E4E8ED"
+      76  COR_PAINEL_RESULTADO = "#FFFFFF"
+      80  COR_TOTAL_BG = "#DBE8FB"
+      81  COR_TOTAL_TEXTO = "#0B3D91"
+      83  _ITENS_MENU = [ ("criar", "📁 Criar Pastas"), ("auditoria", "🔍 Auditar Lote 9999"), ("buscar", "🔎 Buscar Obra / Pacote"), ("config", "⚙️ Configurações"), ]
+     105  _CORES_DIAGNOSTICO = { "bate": ("#E9F3EA", COR_TEXTO_SUB), "lugar_errado": ("#FBF0DC", COR_AMARELO), "nao_encontrada": ("#FBE7E4", COR_VERMELHO), "sem_registro": ("#EEEAFB", COR_ROXO_TEXTO), "duplicad…
+     112  _TEXTOS_DIAGNOSTICO = { "bate": "✅ Bate", "lugar_errado": "⚠️ Lugar errado", "nao_encontrada": "❌ Não encontrada", "sem_registro": "👻 Sem registro", "duplicada": "🔀 Duplicada", }
+     124  _COLUNAS_PLANILHA = [ ("lote", "Lote", 90, False), ("of_trecho", "OF-Trecho", 110, False), ("obra", "Obra", 80, False), ("trecho", "Trecho", 70, False), ("subtrecho", "Subtrecho", 95, False), ("ano_se…
+     138  _MAPA_CAMPO_BANCO = { "lote": "lote", "of_trecho": "of_trecho", "obra": "obra", "trecho": "trecho", "subtrecho": "subtrecho", "ano_semana": "ano_semana", "peso_lic": "peso_lic_lote", "prep": "qtd_tt_k…
+  JANELAS DE ESCOLHER ARQUIVO/PASTA (tipos aceitos)
+     833  pasta_destino = QFileDialog.getExistingDirectory( self, "Selecione a pasta onde a OF deve ficar (ela será colocada dentro dela)") if not pasta_destino: return resposta = QMessageBox.question(
+    1144  arquivo, _ = QFileDialog.getOpenFileName( self, "Selecione a planilha .xlsx", "", "Planilha Excel (*.xlsx);;Todos os arquivos (*.*)") if arquivo: self.entry_planilha.setText(arquivo) banco.salvar_config("caminho_planilha
+    1152  pasta = QFileDialog.getExistingDirectory(self, "Selecione onde criar as pastas do lote") if pasta: self.entry_salvar.setText(pasta) banco.salvar_config("caminho_destino", pasta) if not banco.listar_raizes():
+    1162  pasta = QFileDialog.getExistingDirectory(self, "Selecione um diretório raiz (ex: K:\\)") if not pasta: return if not banco.adicionar_raiz(pasta): QMessageBox.information(self, "Já cadastrada", "Esse diretório já está na 
+  FUNÇÕES / CLASSES / MÉTODOS
+     146  class TabelaPlanilha   — Tabela "chapada" com cara de planilha, usada pelas duas buscas da tela "Buscar Obra / Pacote": cabeçalho fixo, linhas zebradas, linha de TOTAL destaca…
+     156      .__init__()
+     186      .limpar()
+     190      .preencher()   — Recebe uma lista/tupla de sqlite3.Row (ou objetos com __getitem__ por chave).
+     195      ._redesenhar()
+     217      ._adicionar_linha()
+     231      ._ao_clicar_cabecalho()
+     251  class AbaAuditoria
+     252      .__init__()
+     265      .setup_ui()
+     303      ._montar_menu()
+     324      ._estilo_botao_menu()
+     336      ._mostrar_pagina()
+     341      ._limpar_layout()   — Remove todos os widgets/sub-layouts de `layout` sem deixar 'fantasmas' na tela (mesmo padrão de corte/dialogos.py::PainelMedidas).
+     357      ._pagina_criar_pastas()
+     429      ._criar_card()
+     442      ._executar_criar()
+     469      ._resultado_processando()
+     476      ._resultado_erro()
+     483      ._atualizar_resultado_criacao()
+     506      ._pagina_auditoria()
+     554      ._executar_auditoria()
+     576      ._exibir_resultado_auditoria()
+     680      ._ao_alternar_mostrar_tudo()
+     685      ._preencher_tabela_auditoria()
+     766      ._estilo_botao_acao()
+     777      ._mover_pasta_auto()   — Botão "✂️ Mover p/ LOTE X": corta a pasta direto pro lote que a planilha aponta (linha["lote_planilha"]), sem perguntar pra onde — só pede uma confirm…
+     824      ._mover_pasta_manual_ui()   — Botão "📂 Mover para...": pergunta pro usuário em qual pasta colocar a OF.
+     858      ._pagina_buscar()
+     928      ._tratar_busca_vazia()   — Chamado quando uma busca (obra, OF-Trecho ou pacote) não encontra nenhum registro. Se a base de busca inteira estiver vazia (ninguém clicou em "🔄 Atua…
+     951      ._buscar_obra()
+     983      ._buscar_pacote()
+    1001      ._atualizar_base_busca()   — Botão "🔄 Atualizar Base de Busca" (em Configurações): reimporta a planilha configurada pra base usada em Buscar por Obra/Pacote. Nunca roda sozinho — …
+    1026      ._pagina_configuracoes()
+    1120      ._campo_config()   — Cria um bloco padrão de campo de configuração: título, explicação, entry + botão.
+    1143      ._selecionar_planilha()
+    1151      ._selecionar_destino()
+    1161      ._adicionar_raiz_ui()
+    1169      ._remover_raiz_ui()
+    1173      ._atualizar_lista_raizes()
+    1211      ._carregar_caminhos_salvos()
+    1221      ._atualizar_preview_xlsx()
+    1231      ._verificar_nova_versao_ui()   — Ao abrir a aba, avisa se existe uma versão mais nova desta ferramenta disponível.
+
+####################################################################################################
+# auditoria/banco.py   (234 linhas)   — BANCO DE DADOS (tabelas próprias no pcp_projeart.db)
+####################################################################################################
+  TABELAS DE BANCO CRIADAS
+      31  auditoria_config
+      37  auditoria_pacotes
+      49  auditoria_raizes
+      59  auditoria_registros
+  FUNÇÕES / CLASSES / MÉTODOS
+      26  def inicializar_banco()   — Cria as tabelas desta ferramenta se ainda não existirem.
+      80  def listar_raizes()   — Todos os diretórios raiz cadastrados, na ordem em que foram adicionados.
+      88  def adicionar_raiz()   — Cadastra um novo diretório raiz. Retorna False se já estava na lista.
+     104  def remover_raiz()
+     111  def salvar_config()
+     122  def carregar_config()
+     131  def salvar_pacotes()   — Insere pares (lote, of_trecho) ignorando duplicatas. Retorna (inseridos, ignorados).
+     158  def substituir_registros()   — Recarrega auditoria_registros DO ZERO a partir de `linhas` (lista de dicts com as chaves lote/of_trecho/obra/trecho/subtrecho/ano_semana/ peso_lic_lot…
+     187  def contar_registros_busca()   — Quantos registros existem hoje em `auditoria_registros`. Usado pra diferenciar "a base nunca foi carregada" de "a base está carregada mas esse valor e…
+     201  def buscar_por_obra()   — Todos os OF-TRECHO que pertencem a uma obra, em qualquer pacote.
+     213  def buscar_por_of_trecho()   — Um OF-TRECHO específico (ex: 1956-2-01).
+     225  def buscar_por_pacote()   — Todas as obras/trechos que pertencem a um pacote (LOTE).
+
+####################################################################################################
+# auditoria/processador.py   (484 linhas)   — LÓGICA (motor de processamento)
+####################################################################################################
+  CONSTANTES
+      39  VERSAO_ATUAL = "1.1.0"
+      40  VERSAO_ARQUIVO = os.path.join(PASTA_PAI, "versao.txt")
+  FUNÇÕES / CLASSES / MÉTODOS
+      43  def verificar_nova_versao()   — Compara VERSAO_ATUAL com o conteúdo de versao.txt. Não lança exceção: qualquer problema de acesso ao arquivo é reportado em "erro" e tratado como "sem…
+      68  def processar()   — Lê a planilha, cria a estrutura de pastas do lote e salva no banco. Antes de criar cada pasta de OF do zero, verifica (por código normalizado) se ela …
+     168  def auditar_lote_9999()   — Confronta, pra cada OF que tem alguma relação com uma pasta LOTE 9999 (de QUALQUER raiz cadastrada em Configurações) ou que exista fisicamente em qual…
+     436  def importar_planilha_busca()   — Lê a planilha inteira e recarrega auditoria_registros do zero — base usada pelas telas "Buscar por Obra" e "Buscar por Pacote". Chamada pelo botão "🔄 …
+     455  def mover_pasta_of()   — Move a pasta de uma OF (caminho_atual) para dentro de pasta_destino, mantendo o nome original da pasta. Cria pasta_destino se não existir. Nunca sobre…
+
+####################################################################################################
+# auditoria/utilitarios.py   (338 linhas)   — LÓGICA (funções puras / regras)
+####################################################################################################
+  CONSTANTES
+      17  NOME_PASTA_9999 = "LOTE 9999"
+      24  CODE_DIGITS = 9
+      28  PLACEHOLDER_SEM_PESO = "—"
+  FUNÇÕES / CLASSES / MÉTODOS
+      31  def normalizar_codigo()   — Extrai só os dígitos do texto e mantém os primeiros CODE_DIGITS. Isso permite casar "1923-12-27__" / "1923-12-27Ø" com "1923-12-27", e também códigos …
+      41  def mapear_pastas_por_codigo()   — Lista as subpastas de `diretorio` e monta um dicionário {codigo_normalizado: caminho_completo}. Em caso de duas pastas com o mesmo código normalizado,…
+      60  def mapear_pastas_por_codigo_multi()   — Igual a `mapear_pastas_por_codigo()`, mas guarda TODAS as pastas que compartilham o mesmo código normalizado dentro de `diretorio`, não só a primeira.…
+      82  def encontrar_arquivo_xlsx()   — Aceita tanto o caminho direto do .xlsx quanto uma pasta que contém um.
+      93  def ler_ofs_da_planilha()   — Lê a planilha (dados a partir da linha 5, cabeçalho na linha 4) e retorna a lista de OF/Trecho (coluna B) cujo LOTE (coluna A) bate com lote_filtro.
+     115  def ler_todas_as_linhas_planilha()   — Lê TODAS as linhas da planilha (a partir da linha 5), sem filtrar por lote, e retorna uma lista de tuplas (lote, of_trecho). Usada quando é preciso de…
+     134  def obter_mtime()   — Data de modificação do arquivo (usado pra detectar mudanças na planilha).
+     139  def parse_of_trecho()   — Quebra o código OF-TRECHO em (obra, trecho, subtrecho). Exemplo: "1956-5-21" -> ("1956", "5", "21")
+     151  def parse_numero_br()   — Converte valores numéricos vindos da planilha (float ou string BR '1.234,56'). Retorna None se a célula estiver vazia (pra diferenciar de peso == 0).
+     171  def formatar_kg()   — Formata número no padrão brasileiro (1.234,567); traço se None.
+     178  def chave_ordenacao()   — Ordena numericamente quando possível, senão alfabeticamente.
+     186  def ler_linhas_busca_planilha()   — Lê a planilha INTEIRA (dados a partir da linha 5) pras telas Buscar por Obra / Buscar por Pacote (FASE 2) — colunas: A=LOTE B=OF-TRECHO C=ANO-SEMANA D…
+     223  def obter_pasta_9999()
+     227  def listar_pastas_mes()   — Todas as subpastas da raiz, exceto a própria LOTE 9999.
+     239  def indexar_estrutura()   — Percorre TODAS as pastas de mês da raiz (exceto `ignorar`), entra em cada subpasta que começa com "LOTE" e monta um índice único: codigo_normalizado -…
+     277  def indexar_estrutura_multi()   — Igual a `indexar_estrutura()`, mas guarda TODAS as pastas que compartilham o mesmo código normalizado em toda a raiz, não só a primeira encontrada dur…
+     316  def localizar_pasta_lote_existente()   — Procura, em todas as pastas de mês de todas as raízes cadastradas, uma pasta "LOTE {lote}" já existente (ignorando maiúsc./minúsc. e espaços nas ponta…
+
+####################################################################################################
+# nucleo/banco_dados.py   (146 linhas)   — COMUM: SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+####################################################################################################
+  TABELAS DE BANCO CRIADAS
+      26  corte_processamentos
+      31  corte_arquivos
+      39  corte_partes
+      48  corte_eventos
+  FUNÇÕES / CLASSES / MÉTODOS
+      15  class BancoDados
+      16      .__init__()
+      22      .criar_tabelas()
+      62      .registrar_processamento()
+      69      .registrar_arquivo()
+      76      .registrar_parte()
+      82      .registrar_evento()
+      92      .buscar_eventos()
+     112      .buscar_partes_editadas()   — Lista cada parte gerada (arquivo editado/dividido), com o nome do arquivo original que deu origem a ela.
+     130      .buscar_arquivos_originais()   — Lista cada arquivo original processado, com a estratégia usada e a quantidade de partes em que foi dividido.
+
+####################################################################################################
+# nucleo/caminhos.py   (126 linhas)   — COMUM: onde ficam código, dados, banco e logs
+####################################################################################################
+  CONSTANTES
+      57  RODANDO_CONGELADO = getattr(sys, 'frozen', False)
+      59  PASTA_NUCLEO_FONTE = os.path.dirname(os.path.abspath(__file__))
+      92  RAIZ_DADOS = os.path.normpath(os.path.abspath(_dados_env)) if _dados_env else RAIZ_PROJETO
+      93  MODO_RAPIDO = RAIZ_DADOS != RAIZ_PROJETO
+      95  PASTA_PAI = os.path.dirname(RAIZ_DADOS)
+      97  CAMINHO_BANCO_DADOS = os.path.join(PASTA_PAI, "pcp_projeart.db")
+     117  PASTA_LOGS = _pasta_logs()
+     124  PASTA_ASSETS = os.path.join(PASTA_NUCLEO, "assets")
+     125  CAMINHO_LOGO_PROJEART = os.path.join(PASTA_ASSETS, "logo_projeart.png")
+     126  CAMINHO_ICONE_PROJEART = os.path.join(PASTA_ASSETS, "icone_projeart.png")
+  FUNÇÕES / CLASSES / MÉTODOS
+     100  def _pasta_logs()   — Log local no modo rápido (gravar log em pasta de rede, a cada linha, pesa); senão ao lado do programa.
+
+####################################################################################################
+# nucleo/estilo.py   (226 linhas)   — COMUM: cores e estilo das telas Qt
+####################################################################################################
+  CONSTANTES
+      22  COR_AZUL_MARCA = "#0B3D91"
+      23  COR_MARINHO = "#082E6E"
+      25  COR_BG = "#EEF1F5"
+      26  COR_PAINEL = "#FFFFFF"
+      27  COR_CAMPO = "#F3F5F8"
+      28  COR_BORDA = "#98A3B3"
+      29  COR_TEXTO = "#000000"
+      30  COR_TEXTO_SUB = "#4B5563"
+      31  COR_DESTAQUE = COR_AZUL_MARCA
+      32  COR_VERDE = "#15803D"
+      33  COR_VERMELHO = "#C62828"
+      34  COR_AMARELO = "#B45309"
+      37  COR_QUADRO_BORDA = "#545659"
+      38  COR_FAIXA_TITULO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D7DCE3, stop:1 #C2C9D3)"
+      39  COR_LINHA_TITULO = "#AAB2BD"
+      40  COR_BOTAO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E3E8EE, stop:1 #CDD4DE)"
+      41  COR_BOTAO_HOVER = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D9DFE7, stop:1 #C2CAD5)"
+      42  COR_BOTAO_BORDA_HV = "#808C9E"
+      43  COR_CAMPO_GRAD = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F3F5F8, stop:1 #E6EAF0)"
+      44  COR_LINHA_ALT = "#F6F7F9"
+      45  COR_LINHA_HOVER = "#EEF4FB"
+      46  COR_LINHA_SEL = "#DBE8FB"
+      47  COR_OK_FAIXA = "#1E9E4A"
+      48  COR_OK_FUNDO = "#DCF5E3"
+      49  COR_ERRO_FUNDO = "#FDEEEE"
+      50  COR_ERRO_BORDA = "#F1B9B9"
+      51  COR_LARANJA = "#EA580C"
+      53  CORES_PARTES = [ QColor(11, 61, 145, 210), # azul Projeart QColor(30, 158, 74, 210), # verde QColor(234, 88, 12, 210), # laranja QColor(124, 58, 237, 210), # roxo QColor(198, 40, 40, 210), # vermelho …
+      61  ESTILO_GERAL = f""" QMainWindow, QWidget {{ background-color: {COR_BG}; color: {COR_TEXTO}; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }} QDialog {{ background-color: {COR_BG}; }} QTabWidget:…
+  FUNÇÕES / CLASSES / MÉTODOS
+
+####################################################################################################
+# nucleo/logging_config.py   (84 linhas)   — COMUM: registro de erros (log)
+####################################################################################################
+  CONSTANTES
+      33  LOG_PATH = os.path.join(PASTA_LOGS, "app_dxf_ppcp_log.txt")
+  FUNÇÕES / CLASSES / MÉTODOS
+      38  def registrar_erro_fatal()   — Grava um erro fatal no arquivo de log E imprime no console. Usado tanto pelo try/except do main.py quanto pelo excepthook global abaixo.
+      55  def _excepthook_global()   — Pega qualquer erro que escape sem tratamento e garante que fica registrado no log antes do programa fechar, em vez de simplesmente sumir junto com o t…
+      63  def configurar_logging()   — Liga o log em arquivo + console e o excepthook global. Chamar uma vez só, bem no início do main.py. Retorna o logger compartilhado.
+
+####################################################################################################
+# nucleo/modo_local.py   (110 linhas)   — COMUM: cópia local do código (abre rápido)
+####################################################################################################
+  CONSTANTES
+      22  PASTAS_EXCLUIDAS = {"__pycache__", "claude outputs", "relatorio", "roteirizador_dxf", "referencia_html", "icones_usuario", ".git", ".vscode", ".idea", "venv", ".venv"}
+      24  ARQUIVOS_EXCLUIDOS = ("*.db", "*.db-journal", "*.db-wal", "*.db-shm", "app_dxf_ppcp_log.txt*", "layout_desktop_*.json", "etiquetas_impressora.json", "continuidade.md", "*.bak", "*.pyc", "*.tmp")
+  FUNÇÕES / CLASSES / MÉTODOS
+      28  def _em_unidade_de_rede()
+      40  def _arquivo_excluido()
+      45  def _mesmo()
+      53  def sincronizar()   — Espelha o código de `origem` em `destino` (copia o que mudou, apaga o que sumiu). Devolve (copiados, apagados).
+      84  def garantir_execucao_local()   — Chamar no topo do main.py. Se estiver em rede: sincroniza, roda de lá (espera) e encerra com o mesmo código de saída.
+
+####################################################################################################
+# nucleo/normalizacao.py   (60 linhas)   — COMUM: regra normalizar_obra (nome da pasta da obra -> OF)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      17  def normalizar_obra()   — Converte NUM_COM (ou o nome da pasta da obra, no fallback) para o identificador da obra usado no DXF. Exemplos: 2058-102_01_L1 -> 2058-102-01 2058-102…

@@ -1,0 +1,222 @@
+MAPA DO CÓDIGO — Visualizador DXF
+====================================================================================================
+Gerado automaticamente do código (AST). Linha = número da linha no arquivo. Texto = 1ª frase da docstring.
+
+
+####################################################################################################
+# visualizador/aba.py   (1280 linhas)   — TELA (interface principal)
+####################################################################################################
+  JANELAS DE ESCOLHER ARQUIVO/PASTA (tipos aceitos)
+     785  path = QtWidgets.QFileDialog.getExistingDirectory( self, "Selecione a pasta com arquivos DXF", self.folder_path) if path: self.folder_path = path self.root_path = path # define a raiz para o navegador
+  FUNÇÕES / CLASSES / MÉTODOS
+      24  def _sem_borda_nos_rotulos()   — QLabel é um QFrame: sem isso, os rótulos herdam a borda/padding do quadro onde estão (viravam "caixinhas").
+      29  class AbaVisualizador
+      30      .__init__()
+      78      .setup_header_area()
+     127      .setup_visualization_area()
+     193      .resizeEvent()
+     197      .showEvent()
+     201      ._reposition_hud()
+     209      .setup_context_menu()
+     213      .show_context_menu()
+     232      .open_folder_navigator()   — Abre a telinha de navegação centralizada no visualizador.
+     253      ._load_folder_from_navigator()   — Carrega os DXFs da pasta selecionada no navegador.
+     271      ._make_scroll_panel()
+     304      .setup_folder_creation_panel()
+     325      .setup_move_file_panel()
+     352      .setup_info_panel()
+     380      .setup_controls()
+     459      ._lbl()
+     465      .setup_status_bar()   — QWidget não tem QStatusBar (isso é privilégio de QMainWindow), então essa aba usa um QLabel no rodapé com o mesmo visual, e _show_status() abaixo imit…
+     481      ._show_status()
+     486      ._clear_status_if_unchanged()
+     491      .setup_connections()
+     500      .setup_shortcuts()
+     531      .set_atalhos_ativos()   — Liga/desliga todos os atalhos de teclado dessa aba de uma vez. Chamado pela JanelaPrincipal quando o usuário troca de aba.
+     539      .show_empty_state()
+     561      .clear_info_panel()
+     573      .update_buttons_state()
+     585      .update_hud()
+     597      .update_current_folders_display()
+     609      .extract_folder_structure()
+     627      .is_fluxo_folder()
+     633      .extract_thickness_from_folder_name()
+     647      .create_folder()
+     685      .update_move_buttons_state()
+     700      .move_current_file()
+     742      .open_current_folder()
+     748      .open_folder_in_explorer()
+     761      .toggle_auto_fit()
+     767      .configure_shortcuts()
+     784      .load_folder()
+     803      .discard_files()
+     812      .navigate()
+     818      .previous_file()
+     819      .next_file()
+     821      ._get_dxf_files()
+     830      ._get_dxf_units()
+     837      ._safe_convert()
+     843      ._calculate_normalization()
+     870      ._bulge_to_arc()
+     887      ._bulge_arc_points()
+     904      ._collect_arcs_and_lines()
+     951      ._arc_span()
+     954      ._arc_endpoints()
+     961      ._points_close()
+     964      ._detect_oblong_holes()
+    1001      ._analyze_piece()
+    1046      ._calculate_polygon_area()
+    1050      .display_piece_info()
+    1113      .load_current_file()
+    1217      .apply_view()
+    1225      .update_zoom()
+    1231      .update_status()
+    1238      .reset_zoom()
+    1244      ._plot_items()   — Compatibilidade entre versões do pyqtgraph: em versões mais antigas PlotItem.items é um MÉTODO; a partir da 0.14 virou uma lista/atributo. Essa função…
+    1251      .fit_to_view()
+    1277      .show_error()
+
+####################################################################################################
+# visualizador/atalhos.py   (102 linhas)   — TELA (atalhos de teclado)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+       8  class ShortcutConfigDialog
+       9      .__init__()
+      35      .load_shortcuts()
+      44      .get_shortcuts()
+      50      .restore_defaults()
+      57      .on_cell_double_clicked()
+      61      .capture_shortcut()
+      83      .key_to_string()
+
+####################################################################################################
+# visualizador/estilo.py   (181 linhas)   — TELA (cores e estilo)
+####################################################################################################
+  CONSTANTES
+      16  COR_TELA = "#0B2150"
+      17  COR_TELA_BORDA = "#545659"
+      18  COR_DESABILITADO = "#9A9AA2"
+      19  COR_HINT = "#8A8A8A"
+      21  STYLE = f""" QMainWindow, QWidget {{ background-color: {COR_BG}; color: {COR_TEXTO}; font-family: 'Segoe UI', Arial, sans-serif; }} QDialog {{ background-color: {COR_BG}; color: {COR_TEXTO}; }} QTable…
+  FUNÇÕES / CLASSES / MÉTODOS
+     153  def make_btn_style()   — Estilo de botão do Visualizador. `primario=True`: azul Projeart cheio (ação principal da tela).
+
+####################################################################################################
+# visualizador/navegador_pastas.py   (305 linhas)   — TELA (navegador de pastas / mover arquivo)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      14  class FolderNavigatorDialog   — Navegador contextual de pastas. Exibe a árvore completa a partir da raiz carregada, com a pasta atual destacada. Duplo clique ou Enter carrega os DXFs…
+      23      .__init__()
+      44      ._build_ui()
+     140      ._has_dxf()   — Verifica recursivamente se há algum DXF na pasta.
+     154      ._dxf_count()   — Conta DXFs diretos na pasta (não recursivo).
+     162      ._populate_tree()
+     176      ._add_children()
+     219      ._font()
+     225      ._expand_to_current()   — Expande a árvore até a pasta atual e rola até ela.
+     242      ._on_selection_changed()
+     256      ._on_double_click()
+     259      ._load_selected()
+     282      .keyPressEvent()
+     294      .center_on_parent()
+
+####################################################################################################
+# nucleo/banco_dados.py   (146 linhas)   — COMUM: SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+####################################################################################################
+  TABELAS DE BANCO CRIADAS
+      26  corte_processamentos
+      31  corte_arquivos
+      39  corte_partes
+      48  corte_eventos
+  FUNÇÕES / CLASSES / MÉTODOS
+      15  class BancoDados
+      16      .__init__()
+      22      .criar_tabelas()
+      62      .registrar_processamento()
+      69      .registrar_arquivo()
+      76      .registrar_parte()
+      82      .registrar_evento()
+      92      .buscar_eventos()
+     112      .buscar_partes_editadas()   — Lista cada parte gerada (arquivo editado/dividido), com o nome do arquivo original que deu origem a ela.
+     130      .buscar_arquivos_originais()   — Lista cada arquivo original processado, com a estratégia usada e a quantidade de partes em que foi dividido.
+
+####################################################################################################
+# nucleo/caminhos.py   (126 linhas)   — COMUM: onde ficam código, dados, banco e logs
+####################################################################################################
+  CONSTANTES
+      57  RODANDO_CONGELADO = getattr(sys, 'frozen', False)
+      59  PASTA_NUCLEO_FONTE = os.path.dirname(os.path.abspath(__file__))
+      92  RAIZ_DADOS = os.path.normpath(os.path.abspath(_dados_env)) if _dados_env else RAIZ_PROJETO
+      93  MODO_RAPIDO = RAIZ_DADOS != RAIZ_PROJETO
+      95  PASTA_PAI = os.path.dirname(RAIZ_DADOS)
+      97  CAMINHO_BANCO_DADOS = os.path.join(PASTA_PAI, "pcp_projeart.db")
+     117  PASTA_LOGS = _pasta_logs()
+     124  PASTA_ASSETS = os.path.join(PASTA_NUCLEO, "assets")
+     125  CAMINHO_LOGO_PROJEART = os.path.join(PASTA_ASSETS, "logo_projeart.png")
+     126  CAMINHO_ICONE_PROJEART = os.path.join(PASTA_ASSETS, "icone_projeart.png")
+  FUNÇÕES / CLASSES / MÉTODOS
+     100  def _pasta_logs()   — Log local no modo rápido (gravar log em pasta de rede, a cada linha, pesa); senão ao lado do programa.
+
+####################################################################################################
+# nucleo/estilo.py   (226 linhas)   — COMUM: cores e estilo das telas Qt
+####################################################################################################
+  CONSTANTES
+      22  COR_AZUL_MARCA = "#0B3D91"
+      23  COR_MARINHO = "#082E6E"
+      25  COR_BG = "#EEF1F5"
+      26  COR_PAINEL = "#FFFFFF"
+      27  COR_CAMPO = "#F3F5F8"
+      28  COR_BORDA = "#98A3B3"
+      29  COR_TEXTO = "#000000"
+      30  COR_TEXTO_SUB = "#4B5563"
+      31  COR_DESTAQUE = COR_AZUL_MARCA
+      32  COR_VERDE = "#15803D"
+      33  COR_VERMELHO = "#C62828"
+      34  COR_AMARELO = "#B45309"
+      37  COR_QUADRO_BORDA = "#545659"
+      38  COR_FAIXA_TITULO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D7DCE3, stop:1 #C2C9D3)"
+      39  COR_LINHA_TITULO = "#AAB2BD"
+      40  COR_BOTAO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E3E8EE, stop:1 #CDD4DE)"
+      41  COR_BOTAO_HOVER = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D9DFE7, stop:1 #C2CAD5)"
+      42  COR_BOTAO_BORDA_HV = "#808C9E"
+      43  COR_CAMPO_GRAD = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F3F5F8, stop:1 #E6EAF0)"
+      44  COR_LINHA_ALT = "#F6F7F9"
+      45  COR_LINHA_HOVER = "#EEF4FB"
+      46  COR_LINHA_SEL = "#DBE8FB"
+      47  COR_OK_FAIXA = "#1E9E4A"
+      48  COR_OK_FUNDO = "#DCF5E3"
+      49  COR_ERRO_FUNDO = "#FDEEEE"
+      50  COR_ERRO_BORDA = "#F1B9B9"
+      51  COR_LARANJA = "#EA580C"
+      53  CORES_PARTES = [ QColor(11, 61, 145, 210), # azul Projeart QColor(30, 158, 74, 210), # verde QColor(234, 88, 12, 210), # laranja QColor(124, 58, 237, 210), # roxo QColor(198, 40, 40, 210), # vermelho …
+      61  ESTILO_GERAL = f""" QMainWindow, QWidget {{ background-color: {COR_BG}; color: {COR_TEXTO}; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }} QDialog {{ background-color: {COR_BG}; }} QTabWidget:…
+  FUNÇÕES / CLASSES / MÉTODOS
+
+####################################################################################################
+# nucleo/logging_config.py   (84 linhas)   — COMUM: registro de erros (log)
+####################################################################################################
+  CONSTANTES
+      33  LOG_PATH = os.path.join(PASTA_LOGS, "app_dxf_ppcp_log.txt")
+  FUNÇÕES / CLASSES / MÉTODOS
+      38  def registrar_erro_fatal()   — Grava um erro fatal no arquivo de log E imprime no console. Usado tanto pelo try/except do main.py quanto pelo excepthook global abaixo.
+      55  def _excepthook_global()   — Pega qualquer erro que escape sem tratamento e garante que fica registrado no log antes do programa fechar, em vez de simplesmente sumir junto com o t…
+      63  def configurar_logging()   — Liga o log em arquivo + console e o excepthook global. Chamar uma vez só, bem no início do main.py. Retorna o logger compartilhado.
+
+####################################################################################################
+# nucleo/modo_local.py   (110 linhas)   — COMUM: cópia local do código (abre rápido)
+####################################################################################################
+  CONSTANTES
+      22  PASTAS_EXCLUIDAS = {"__pycache__", "claude outputs", "relatorio", "roteirizador_dxf", "referencia_html", "icones_usuario", ".git", ".vscode", ".idea", "venv", ".venv"}
+      24  ARQUIVOS_EXCLUIDOS = ("*.db", "*.db-journal", "*.db-wal", "*.db-shm", "app_dxf_ppcp_log.txt*", "layout_desktop_*.json", "etiquetas_impressora.json", "continuidade.md", "*.bak", "*.pyc", "*.tmp")
+  FUNÇÕES / CLASSES / MÉTODOS
+      28  def _em_unidade_de_rede()
+      40  def _arquivo_excluido()
+      45  def _mesmo()
+      53  def sincronizar()   — Espelha o código de `origem` em `destino` (copia o que mudou, apaga o que sumiu). Devolve (copiados, apagados).
+      84  def garantir_execucao_local()   — Chamar no topo do main.py. Se estiver em rede: sincroniza, roda de lá (espera) e encerra com o mesmo código de saída.
+
+####################################################################################################
+# nucleo/normalizacao.py   (60 linhas)   — COMUM: regra normalizar_obra (nome da pasta da obra -> OF)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      17  def normalizar_obra()   — Converte NUM_COM (ou o nome da pasta da obra, no fallback) para o identificador da obra usado no DXF. Exemplos: 2058-102_01_L1 -> 2058-102-01 2058-102…

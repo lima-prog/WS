@@ -1,0 +1,7 @@
+..\..\dados_locais\producao
+# ^ 1a linha = pasta de DADOS (bancos pcp_projeart.db / roteirizador_memoria.db).
+#   Padrao do SISTEMA - PPCPM: python\dados_locais\producao (a mesma do Validador de Fluxos; a atualizacao
+#   automatica do sistema nunca apaga dados_locais). E criada sozinha na 1a vez.
+#   Para TODOS usarem a mesma memoria, troque pela pasta ppcp_dxf_ferramentas do servidor, ex.:
+#   \\servidor\compartilhamento\PPCP\ppcp_dxf_ferramentas
+#   Se esta linha nao existir/abrir, o app usa a pasta de dados escolhida na tela do SISTEMA - PPCPM.

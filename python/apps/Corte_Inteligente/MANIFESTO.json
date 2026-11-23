@@ -1,0 +1,36 @@
+{
+ "app": "Corte Inteligente",
+ "chave": "corte",
+ "gerado_em": "17/11/2026 11:46",
+ "gerador": "1.0",
+ "origem": "ppcp_dxf_ferramentas (PPCP Ferramentas) + tema SISTEMA - PPCPM",
+ "pastas_de_codigo": [
+  "corte",
+  "nucleo"
+ ],
+ "arquivos": {
+  "Corte_Inteligente.spec": "9816d6c39575d7124a9bac426bff832cc2017704c60b9cfd9e152dea8b06fa9c",
+  "LEIA-ME.txt": "5ba7e6c133c18118a991f650849df229018e7c7d34529edbe151429b47b849f8",
+  "MAPA_DO_CODIGO.txt": "8a090ca0f8958878769e94ca7d38623a8a2b2056517c406ee424a94107b99c0c",
+  "iniciar_Corte_Inteligente.bat": "bf376b65dd7b5156c39cd2d1e23617ca9e2ee723f48bfaaf2a7564a841aa2f6c",
+  "instalar_bibliotecas_Corte_Inteligente.bat": "35f98687ba55751c51e71275334a8c32fc3d7ccc40b33c9123fbd4fe0122cdcb",
+  "main.py": "0514bd5711dbe7f48b7177be424c39b1edfaef66af40ed308d849b9e09124788",
+  "pasta_dados.txt": "7751ab758857c3cfaa3e4688622f4241e3098de7ee4a15b022ab972e67b200a7",
+  "requirements.txt": "b7060804c7b36d93e1e3d8e5ad794d24f07ec45c7daff710b801c21fb20e75a5",
+  "nucleo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nucleo/ambiente_qt.py": "b25e51c71a1deedc0ca6483ede0993e608afe6f0303d7c20e196d9efff49c0d0",
+  "nucleo/banco_dados.py": "93c8efd7a464c15430e4f2ecd9cb2fc5a167be61964e6915f07d6feb4bf81c89",
+  "nucleo/caminhos.py": "e53bbfb0b756f903cf5318a9ee0126a2432a09b3ca4ac561a761c02915e60296",
+  "nucleo/estilo.py": "74809b4e21d92e4def1afdfffd5c2479c2f3451b89a62de17ca50d5526915ab7",
+  "nucleo/logging_config.py": "2e975b06f8ff221cad98dc750d127fe71141e73a9ab86bd02ad9a42384c890bb",
+  "nucleo/modo_local.py": "c9ef47d98540c713e970eab1be09ee3031fe995933217732bb134cec5e591c5f",
+  "nucleo/normalizacao.py": "aef26a55e7a726486a9221814c67f5a0c85edb1099a0bf194087afbccd1dd992",
+  "nucleo/assets/icone_projeart.ico": "b7efc192189fd8e5300d4395763cc821fe5ced3b7ae7d3224c604a013fe0df2b",
+  "nucleo/assets/icone_projeart.png": "40c201d3d94c917586081a9f049a3e626994cb65032b757a70acd110d5c92632",
+  "nucleo/assets/logo_projeart.png": "b912912337502a42a86576d152459e7f6006b7b476308d6e11148b14ea7d6036",
+  "corte/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "corte/aba.py": "dd1ce29bc8d226645a1dade8032636ca27469241db4eb30b55754a9951d09c17",
+  "corte/dialogos.py": "901accd401e1a1d628950ffebe06ab5a44c0748c256660bf072ddb5d306538ce",
+  "corte/processador.py": "e15f30cbd6af6ff8804d90971ac5318710e9c96575437583bfdb30f3230e5f9f"
+ }
+}

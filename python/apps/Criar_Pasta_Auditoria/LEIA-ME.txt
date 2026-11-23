@@ -1,0 +1,114 @@
+Criar Pasta / Auditoria  —  app do SISTEMA - PPCPM (tema do sistema)
+====================================================================================================
+
+Tela            : Python 3 + PyQt5 (janela Qt)
+Chave no PPCP   : auditoria   (mesma ferramenta do PPCP Ferramentas: MESMAS regras, só a aparência mudou — ver item 10)
+
+1. O QUE FAZ
+----------------------------------------------------------------------------------------------------
+   Cria a estrutura de pastas 'LOTE <n>\<OF>' a partir da planilha de lotes, resgatando as OFs que estão na pasta 'LOTE 9999', e audita a LOTE 9999 contra a planilha. Também busca em que lote/pasta está uma obra/pacote.
+
+2. PASSO A PASSO
+----------------------------------------------------------------------------------------------------
+   1. 1ª vez: tela 'Configurações' -> escolha a PLANILHA .xlsx, a PASTA onde criar os lotes e cadastre os DIRETÓRIOS RAIZ onde procurar a LOTE 9999 (ex.: K:\8.M08-2026). Fica salvo no banco (auditoria_config / auditoria_raizes).
+   2. Tela 'Criar Pastas': digite o NÚMERO DO LOTE (ex.: 650) e clique em 'Criar Pastas'. O resultado mostra: resgatadas da 9999 · criadas do zero · já existentes.
+   3. Tela 'Auditar Lote 9999': 'Rodar Auditoria' compara a LOTE 9999 com a planilha. Para cada problema: 'Mover p/ LOTE <n>' (vai direto pro lote da planilha) ou 'Mover para...' (você escolhe). Marque 'Mostrar também as que batem' para ver tudo.
+   4. Tela 'Buscar Obra/Pacote': busca por obra (ex.: 1956 ou 1956-2-01) ou por pacote/lote (ex.: 427). 'Atualizar Base de Busca' (em Configurações) reimporta a planilha.
+
+3. REGRAS (LÓGICA)
+----------------------------------------------------------------------------------------------------
+   • Planilha .xlsx: cabeçalho na LINHA 4, dados a partir da LINHA 5.
+   • Colunas: A=LOTE · B=OF-TRECHO · C=ANO-SEMANA · D=PESO LIC/LOTE · E=QTD TT KG PREP · F=QTD TT KG ÑPREP · G=DATA INICIO ARTIA · H=STATUS.
+   • Cria 'LOTE <n>' e dentro uma pasta para cada OF daquele lote na planilha. Se a pasta da OF já existir dentro da 'LOTE 9999' (em qualquer raiz cadastrada), ela é MOVIDA (resgatada) em vez de criar vazia.
+   • Código da OF normalizado: só os 9 primeiros dígitos contam na comparação.
+   • Diagnóstico da auditoria: bate (está certo) · lugar_errado (existe, mas no lote errado) · nao_encontrada (na planilha, sem pasta) · sem_registro (pasta sem linha na planilha) · duplicada (aparece mais de uma vez).
+   • Pesos mostrados formatados em kg; sem peso aparece um marcador.
+   • Versão do programa: VERSAO_ATUAL = 1.1.0; ao abrir compara com versao.txt para avisar de versão nova.
+
+4. TIPOS DE ARQUIVO
+----------------------------------------------------------------------------------------------------
+   ENTRADA: planilha Excel (*.xlsx) escolhida em Configurações
+   ENTRADA: número do lote + pasta destino dos lotes + diretórios raiz (Configurações)
+   SAÍDA: pastas LOTE <n>\<OF> no disco
+   Onde o código abre as janelas de escolher (arquivo:linha):
+     auditoria/aba.py:833
+     auditoria/aba.py:1144
+     auditoria/aba.py:1152
+     auditoria/aba.py:1162
+
+5. O QUE SAI (SAÍDAS)
+----------------------------------------------------------------------------------------------------
+   <pasta escolhida>\LOTE <n>\<OF>\
+   registros no banco (auditoria_registros)
+
+6. CAMINHOS
+----------------------------------------------------------------------------------------------------
+   Onde o app fica             = python\apps\Criar_Pasta_Auditoria\   (dentro da pasta python do SISTEMA - PPCPM)
+   Pasta de DADOS (PPCP_DADOS), nesta ordem:
+      1) caminho escrito à mão na 1ª linha do pasta_dados.txt (ex.: a pasta ppcp_dxf_ferramentas do servidor);
+      2) a pasta de dados escolhida na tela do SISTEMA - PPCPM (python\dados_locais\producao\pasta_dados.txt,
+         a mesma que o Validador de Fluxos usa dentro do sistema);
+      3) padrão: python\dados_locais\producao  (criada sozinha na 1ª vez; a atualização do sistema nunca apaga dados_locais).
+   Banco compartilhado         = <pasta ACIMA da pasta de dados>\pcp_projeart.db   (no padrão: python\dados_locais\pcp_projeart.db)
+   Python                      = python\ferramentas\achar_python.bat do sistema (.venv do sistema, Python portátil ou o do PC)
+   Cópia local do código       = %LOCALAPPDATA%\PPCP_Apps\Criar_Pasta_Auditoria\app   (feita pelo .bat com robocopy /MIR)
+   Log deste app               = %LOCALAPPDATA%\PPCP_Apps\Criar_Pasta_Auditoria\logs\app_dxf_ppcp_log.txt   (variável PPCP_LOGS)
+   Banco: pcp_projeart.db (pasta acima de PPCP_DADOS), tabelas próprias:
+      auditoria_config (caminho_planilha, caminho_destino...) · auditoria_pacotes (planilha importada p/ busca)
+      auditoria_raizes (diretórios raiz cadastrados) · auditoria_registros (histórico de cada execução)
+   versao.txt: na pasta acima de PPCP_DADOS (mesma do pcp_projeart.db).
+   Tabelas criadas pelo código: auditoria_config, auditoria_pacotes, auditoria_raizes, auditoria_registros, corte_arquivos, corte_eventos, corte_partes, corte_processamentos
+
+7. COMO ABRIR
+----------------------------------------------------------------------------------------------------
+   • 1ª vez no PC: dois cliques em instalar_bibliotecas_Criar_Pasta_Auditoria.bat (usa o Python do sistema)
+   • Depois: dois cliques em iniciar_Criar_Pasta_Auditoria.bat (copia o código pro PC e abre). Com problema: iniciar_Criar_Pasta_Auditoria.bat debug
+   • Ou, pelo CMD dentro desta pasta: python main.py
+   • Para virar .exe: pyinstaller Criar_Pasta_Auditoria.spec
+
+8. ARQUIVOS DENTRO DO APP
+----------------------------------------------------------------------------------------------------
+   auditoria/
+      __init__.py                            0 linhas  (marca a pasta como pacote Python)
+      aba.py                              1244 linhas  TELA (interface principal)
+      banco.py                             234 linhas  BANCO DE DADOS (tabelas próprias no pcp_projeart.db)
+      processador.py                       484 linhas  LÓGICA (motor de processamento)
+      utilitarios.py                       338 linhas  LÓGICA (funções puras / regras)
+   nucleo/   (COMUM a todos os apps)
+      __init__.py                            0 linhas  (pacote)
+      ambiente_qt.py                        33 linhas  ajustes do Qt antes de abrir
+      banco_dados.py                       146 linhas  SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+      caminhos.py                          126 linhas  onde ficam código, dados, banco e logs
+      estilo.py                            226 linhas  cores e estilo das telas Qt
+      logging_config.py                     84 linhas  registro de erros (log)
+      modo_local.py                        110 linhas  cópia local do código (abre rápido)
+      normalizacao.py                       60 linhas  regra normalizar_obra (nome da pasta da obra -> OF)
+      assets/icone_projeart.ico                        imagem da marca
+      assets/icone_projeart.png                        imagem da marca
+      assets/logo_projeart.png                         imagem da marca
+   main.py                                   INÍCIO (gerado: prepara dados/log e abre só esta ferramenta)
+   iniciar_Criar_Pasta_Auditoria.bat         atalho rápido (cópia local + abre sem janela preta)
+   instalar_bibliotecas_Criar_Pasta_Auditoria.batinstala o requirements.txt no Python do sistema
+   pasta_dados.txt                           1ª linha = pasta de DADOS (padrão: python\dados_locais\producao)
+   requirements.txt                          bibliotecas
+   Criar_Pasta_Auditoria.spec                receita do PyInstaller (.exe)
+   MANIFESTO.json                            impressão digital (sha256) de cada arquivo
+   MAPA_DO_CODIGO.txt                        índice de TODAS as funções/constantes com o número da linha
+
+9. BIBLIOTECAS (pip install -r requirements.txt)
+----------------------------------------------------------------------------------------------------
+   - PyQt5
+   - openpyxl
+   (o resto é biblioteca padrão do Python: os, sys, re, sqlite3, json, shutil...)
+
+10. TEMA DO SISTEMA - PPCPM (só aparência)
+----------------------------------------------------------------------------------------------------
+   Padrão de docs/REQUISITOS_FLUXO_DE_TRABALHO.md, seção 10: azul Projeart #0b3d91 nas faixas e destaques; fundo #eef1f5;
+   quadros com borda #545659, faixa azul de 3px em cima e título numa faixa cinza; TODOS os botões cinza-azulado
+   (#e3e8ee -> #cdd4de, borda #98a3b3) com letra preta negrito; campos #f3f5f8 -> #e6eaf0 (brancos ao focar);
+   tabelas com cabeçalho no tema dos botões, letra preta, linhas brancas alternando com #f6f7f9, selecionada #dbe8fb.
+   Arquivos que mudaram (só cores/bordas/textos de estilo — conferido pela árvore do código, regras idênticas):
+     - nucleo/estilo.py
+     - auditoria/aba.py
+     - main.py e iniciar_*.bat (pasta de dados do sistema, Python do sistema, seleção azul-clara, título)
+

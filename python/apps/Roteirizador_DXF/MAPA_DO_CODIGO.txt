@@ -1,0 +1,498 @@
+MAPA DO CÓDIGO — Roteirizador DXF
+====================================================================================================
+Gerado automaticamente do código (AST). Linha = número da linha no arquivo. Texto = 1ª frase da docstring.
+
+SEÇÕES DO roteirizador_dxf_projeart.py (arquivo único)
+   linha    19  CONSTANTES
+   linha    58  FUNÇÕES DE ANÁLISE
+   linha    61  MÓDULO DE MEMÓRIA (SQLite) - exceções aprendidas entre obras
+   linha   241  Memória: divergências de TAMANHO (DXF x planilha) conferidas
+   linha   286  Memória: FORÇAR geração de CAM (desconsiderar BR/TB)
+   linha   330  Memória: mover manualmente para "[PADRÃO] PLANILHA" (Faltantes)
+   linha   381  Memória: cores customizadas por fluxo (aba "⚖️ Peso por Fluxo")
+   linha   417  Memória: preferências gerais de interface (chave/valor)
+   linha  1495  FUNÇÕES AUXILIARES DE PREFIXO E FUROS (integradas do pro_rp_v13)
+   linha  1522  REGRAS
+   linha  1591  DESTINAÇÃO DE PEÇAS L (L1 / L2) - mesma regra do programador "PERFILADOS - PROGRAMADOR DE L"
+   linha  1636  REGRA PARA IDENTIFICADOR J
+   linha  1727  FUNÇÃO PROCESSAR
+   linha  3086  MÓDULO "VERIFICADOR"
+   linha  3431  TEMA VISUAL COMPARTILHADO DAS TELAS (Tkinter) - NEON FUTURISTA
+   linha  3432  PADRÃO VISUAL PROJEART (o mesmo dos sistemas web da empresa)
+   linha  3809  TERMINAL OCULTO + LOG DENTRO DA PRÓPRIA INTERFACE
+   linha  3816  RELATÓRIO DE ORDENS x FLUXOS (Focco + roteirização)
+   linha  4113  LEITURA ROBUSTA DO RELATÓRIO DO FOCCO (reconhece o formato pelo CONTEÚDO)
+   linha  4605  ROTAS DO HTML "PPCP - ROTEIRIZAÇÃO L - UC" (classificação por linha de demanda)
+   linha  4802  PADRÃO DO RELATÓRIO (igual ao arquivo tratado pelo usuário)
+   linha  4991  BASE DE DADOS completa (todas as colunas do Focco + as calculadas da planilha PCP)
+   linha  6272  COMPONENTES VISUAIS EXTRAS (dicas, texto-guia, menu de contexto, log colorido)
+   linha  6436  JANELA ÚNICA DO ROTEIRIZADOR
+
+
+####################################################################################################
+# roteirizador_original/lancador.py   (108 linhas)   — INÍCIO (abre o roteirizador como processo à parte, no unificador)
+####################################################################################################
+  CONSTANTES
+      25  TITULO_JANELA = "ROTEIRIZADOR DXF PROJEART"
+      26  TITULO_JANELA_ORDENS = "RELATÓRIO DE ORDENS PROJEART"
+      27  _CREATE_NO_WINDOW = 0x08000000
+  FUNÇÕES / CLASSES / MÉTODOS
+      30  def _comando()
+      37  def _trazer_para_frente()   — Windows: acha a janela do processo `pid` pelo título e traz pra frente. Devolve True se achou.
+      72  class LancadorRoteirizador   — Fábrica "externa": a área de trabalho chama o objeto em vez de criar uma janela interna.
+      76      .__init__()
+      82      .em_execucao()
+      85      .__call__()   — Abre o roteirizador (ou traz pra frente). Devolve (mensagem, erro).
+     100  def criar_app_embutido()   — Roteirizador (ou, com modo="ordens", o Relatório de Ordens) DENTRO de uma janela do unificador (ver desktop/externo_embutido.py).
+
+####################################################################################################
+# roteirizador_original/modo_embutido.py   (73 linhas)   — INÍCIO (ajuste DPI/transparência quando abre dentro do unificador)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      19  def _dpi()
+      32  def _transparente_ate_encaixar()
+      65  def preparar()
+
+####################################################################################################
+# roteirizador_original/roteirizador_dxf_projeart.py   (9173 linhas)   — TUDO (regras + memória SQLite + telas Tkinter) — arquivo único
+####################################################################################################
+  CONSTANTES
+      20  DENSIDADE_ACO = 7.85
+      21  VERSAO = "ROTEIRIZADOR DXF PROJEART v19.4"
+      22  TITULO_RELATORIO_ORDENS = "RELATÓRIO DE ORDENS PROJEART v19.4"
+      23  TOLERANCIA_FURO_CIRCULAR = 0.1
+      27  NOME_BANCO_MEMORIA = "roteirizador_memoria.db"
+      32  PREFIXOS_SEM_CAM = ["BR", "TB"]
+      37  ESPESSURAS_PADRAO = [ 1.25, 1.55, 1.70, 1.80, 1.95, 2.00, 2.25, 2.30, 2.65, 2.70, 3.00, 3.35, 3.75, 4.25, 4.75, 6.35, 8.00, 9.50, 12.70, 16.00, 19.00, 22.20, 25.40 ]
+      41  TOLERANCIA_PADRONIZACAO_ESPESSURA = 0.20
+     785  _RE_PARTE = re.compile(r"\s*[\[\(]\s*([A-Za-z])\s*[\]\)]")
+    1594  _L1_PERFIS = ("L52X52X1.55", "L32X32X1.25", "L32X32X1.55")
+    1595  _L1_COMP_MIN = 595.0
+    1891  _RE_CIV_CSV = re.compile(r"^(CIV|CSV)\d")
+    2316  _MANUAIS_PRESERVAR = {}
+    3099  NOME_LOG_ROTEIRIZACAO = "_log_roteirizacao_projeart.json"
+    3104  _SUBPASTAS_AUXILIARES_FLUXO = {"editar", "banco de corte"}
+    3113  _PREFIXOS_NOME_DE_FLUXO = ( "fluxo ", "terça z", "terca z", "perfiladeira u e c", "perfiladeira l", "acessórios padrão", "acessorios padrao", "joist ", "laser", )
+    3435  _COR_MARINHO = "#0B2150"
+    3436  _COR_PAGINA = "#EEF1F5"
+    3437  _COR_FUNDO = "#FFFFFF"
+    3438  _COR_PAINEL = "#F6F7F9"
+    3439  _COR_PAINEL_2 = "#EEF1F5"
+    3440  _COR_TEXTO = "#000000"
+    3441  _COR_TEXTO_SEC = "#4B5563"
+    3442  _COR_DESTAQUE = "#0B3D91"
+    3443  _COR_DESTAQUE_HOVER = "#082E6E"
+    3444  _COR_OK = "#1E9E4A"
+    3445  _COR_ALERTA = "#C62828"
+    3446  _COR_INFO = "#0B3D91"
+    3447  _COR_AVISO = "#EA580C"
+    3448  _COR_BORDA = "#C9D0D8"
+    3449  _COR_BORDA_CAMPO = "#98A3B3"
+    3450  _NEON_CIANO = "#0B3D91"
+    3451  _NEON_CIANO_SUAVE = "#0B3D91"
+    3452  _NEON_ROSA = "#C2549B"
+    3453  _NEON_VERDE = "#1F9D55"
+    3454  _NEON_ROXO = "#6B4FBB"
+    3455  _NEON_AMARELO = "#B7791F"
+    3456  _COR_SOBRE_NEON = "#FFFFFF"
+    3457  _FONTE_TITULO = "Segoe UI"
+    3459  _PALETA_CORES_FLUXO = [ "#2E6AAD", "#1F9D55", "#D64545", "#C98A12", "#6B4FBB", "#1B8EA6", "#7A9A1E", "#C2549B", "#4F5FD6", "#17A589", "#D9722B", "#3E4FB5", "#5E8F1E", "#B58B00", "#2D9C72", "#B8489A", …
+    3464  _FLUXOS_BASE_DISPONIVEIS = [ "Fluxo 1", "Fluxo 2", "Fluxo 3", "Fluxo 4", "Perfiladeira L", "Perfiladeira L1", "Perfiladeira L2", "Perfiladeira U e C", "Acessórios Padrão", "Terça Z", "Joist", "LASER",…
+    3814  _FILA_LOG = queue.Queue()
+    3827  _ALIASES_FOCCO = { "lote": ["LOTE OF", "PACOTE", "LOTE"], "num_ordem": ["NUM ORDEM", "ORDEM", "NUM ORD", "NUMERO ORDEM"], "tp_ord": ["TP ORD", "TIPO ORDEM", "TIPO ORD"], "dt_emissao": ["DT EMISSAO", "…
+    3856  _MAQUINAS_POR_FLUXO = { "FLUXO 1": {"centro": "PREPARAÇÃO", "corte": "GUILHOTINA 6M", "furo": "PUNCIONADEIRA P113", "furo_sempre": False, "dobra": None}, "FLUXO 2": {"centro": "PREPARAÇÃO", "corte": "…
+    3873  _INCLUIR_ORDENS_SEM_POSICAO = False
+    3893  _RE_DATA_TXT = re.compile(r"^\s*(\d{4})-(\d{2})-(\d{2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?\s*$")
+    4116  _EXT_TABELA = (".xlsx", ".xlsm", ".xls", ".csv", ".txt", ".html", ".htm", ".xml")
+    4579  _SEQ_PCP = { # fluxo: (corte, furo, dobra permitida) "FLUXO 1": ("GUILHOTINA 6M", "PUNCIONADEIRA P113", "DOBRADEIRA 6M"), "FLUXO 2": ("GUILHOTINA 3M", "PUNCIONADEIRA P51", "DOBRADEIRA 3M"), "FLUXO 4":…
+    4609  _ROTAS_PREP = ("PREPARAÇÃO", "PREPARAÇÃO (DOBRA)")
+    4610  _ROTAS_ORDEM = ["PREPARAÇÃO", "PREPARAÇÃO (DOBRA)", "PERFILADEIRA U/C", "PERFILADEIRA L", "PERFILADEIRA Z", "PERFILADEIRA BANZO JOIST", "PERFILADEIRA U JOIST", "ACESSÓRIOS JOIST", "ACESSÓRIO PADRÃO", …
+    4613  _OBS_ROTA = { "PREPARAÇÃO": "Chapa bruta/cortada ASTM · sem intermediários", "PREPARAÇÃO (DOBRA)": "Perfil U/C dentro do parâmetro mas comp < 800mm", "PERFILADEIRA U/C": "Alma ≥100, aba ≤106 (U) · alm…
+    4631  _ROTA_PARA_FLUXO = { "PERFILADEIRA L": "Perfiladeira L", "PERFILADEIRA U/C": "Perfiladeira U e C", "PERFILADEIRA Z": "Terça Z", "PERFILADEIRA BANZO JOIST": "Joist", "PERFILADEIRA U JOIST": "Joist", "A…
+    4636  _FLUXOS_PREP_NORM = {"FLUXO 1", "FLUXO 2", "FLUXO 3", "FLUXO 4", "LASER"}
+    4637  _BARRAS_HTML = {s.upper() for s in [ "BARRA REDONDA ASTM A36 12,70MM", "BARRA REDONDA ASTM A36 16,00MM", "BARRA REDONDA ASTM A36 19,00MM", "BARRA REDONDA ASTM A36 22,20MM", "BARRA REDONDA ASTM A36 25,…
+    4642  _ACESS_PADRAO_HTML = {s.upper() for s in [ "SE2 ESTOQUE", "SE3 ESTOQUE", "SE4 ESTOQUE", "SEZ1 ESTOQUE", "SEZ2 ESTOQUE", "SEZ3 ESTOQUE", "SEZ4 ESTOQUE", "SD1 ESTOQUE", "TIRA BLANK 25 X 3000 A572 PC", "…
+    4645  _CS_PERFIS_HTML = {"ARREMATE", "CALHA", "TELHA TP100", "TELHA TP17", "TELHA TP35", "TELHA TP40", "TELHA ZIPADA"}
+    4650  _RE_ITEM_CENTRO_SERVICO = re.compile(r"(?<![A-Z0-9])TELAS?(?![A-Z0-9])|PASSARINHEIRO")
+    4751  _ABA_PINTURA = "ORDENS PARA DESCONSIDERAR"
+    4752  _ABA_PS_PREP = "PS PREP"
+    4753  _ABA_AUX_CONCATENAR = "AUX_CONCATENAR"
+    4772  _RE_MARCA_DESCONSIDERAR = re.compile(r"^(?:\d+-\d+_)?(?:SD1|SEZ[1-4])(?:-\d+)?(?:_U)?$")
+    4804  _ORDEM_ABAS_RELATORIO = ["ROTEIRIZAÇÃO FOCCO", "Preparação", "Não Preparação", "PS PREP", "ORDENS PARA DESCONSIDERAR", "Relatório Consolidado (FLuxos)", "CSC", "Ordens x DXF", "BASE DE DADOS", "Resumo…
+    4806  _GERAR_ABA_CONFERENCIA = False
+    4807  _COLUNAS_FORA_PREPARACAO = ("TP ORD", "OBRA", "SUB TRECHO")
+    4808  _COLUNAS_NAO_PREPARACAO = ["LOTE OF", "SETOR", "OF-TRECHO", "NUM ORDEM", "POSIÇÃO", "ESPESSURA (mm)", "COD ITEM", "MARCA", "QTDE (ORDEM)", "DESCRIÇÃO DO ITEM", "MATERIAL", "LARGURA (mm)", "ALTURA (mm)…
+    4811  _LARGURAS_USUARIO = { "PLAN DIN": { "ESPESSURA": 28.2, "ORDEM": 27.6, "POSICAO": 13.1, "OBRA E TRECHO": 19.0, "FLUXO DE PRODUÇÃO": 24.1 }, "Preparação": { "LOTE OF": 28.4, "NUM ORDEM": 28.4, "OF-TRECH…
+    4981  _LARGURAS_ROTEIRIZACAO_FOCCO = [62, 24, 32, 16, 26, 66, 48]
+    4992  _COLUNAS_CALC = ["ESPESSURA", "OBRA E TRECHO", "OBRA E TRECHO_POSIÇÃO", "FLUXO DE PRODUÇÃO", "FURAÇÃO", "DOBRA", "SEQUÊNCIA DE ROTEIRO", "ORDEM ARM/LIMP", "ORDEM DE PINTURA/LANTERNIM", "PERFIL SOLDADO…
+    4996  _COLUNAS_CALC_FIM = [c for c in _COLUNAS_CALC if c != "OBRA E TRECHO"]
+    4999  _MAQUINA_CONSOLIDADO = { "FLUXO 1": "GUILHOTINA 6M", "FLUXO 2": "GUILHOTINA 3M", "FLUXO 3": "AUTOCUT EDGE CONNECT", "FLUXO 4": "CHINESSINHA", "LASER": "LASER", "PERFILADEIRA L": "PERFILADEIRA", "PERFI…
+    5134  _LOGO_PROJEART_PNG_B64 = (imagem PNG em base64 — logo embutido)
+  JANELAS DE ESCOLHER ARQUIVO/PASTA (tipos aceitos)
+    7062  caminho = filedialog.askopenfilename( title="Selecione a planilha", filetypes=[("Planilhas", "*.csv *.xlsx *.xls"), ("CSV", "*.csv"), ("Excel", "*.xlsx *.xls"), ("Todos os arquivos", "*.*")], )
+    7070  caminho = filedialog.askdirectory(title="Selecione a pasta dos arquivos DXF") if caminho: self.var_pasta.set(caminho) def _confirmar_selecao(self): if self._processando:
+    7291  caminho = filedialog.askopenfilename( title="Selecione o relatório do Focco (Relatório de Ordens Liberadas x Demandas)", filetypes=[("Excel", "*.xlsx *.xlsm *.xls"), ("Todos os arquivos", "*.*")], ) if caminho:
+    7299  caminho = filedialog.askdirectory(title="Selecione a pasta dos DXF roteirizados") if caminho: self.var_ro_pasta.set(caminho) self._ro_adicionar_pasta()
+    7324  caminho = filedialog.askdirectory(title="Pasta onde salvar o relatório") if caminho: self.var_ro_saida.set(caminho) def _ro_log(self, texto):
+    8704  caminho = filedialog.askdirectory(title="Selecione a pasta da obra (arquivos DXF já roteirizados)") if caminho: self.var_verificador_caminho.set(caminho) @staticmethod def _verificador_limpar_caminho(texto):
+    8768  caminho = filedialog.askopenfilename( title="Selecione a planilha da obra", filetypes=[("Planilhas", "*.csv *.xlsx *.xls"), ("CSV", "*.csv"), ("Excel", "*.xlsx *.xls"), ("Todos os arquivos", "*.*")], parent=self.root) if
+  TABELAS DE BANCO CRIADAS
+     111  ignorados
+     120  ajustes_manuais
+     130  divergencias_tamanho_ignoradas
+     139  forcar_cam
+     148  padrao_planilha_manual
+     157  cores_fluxo_customizadas
+     164  preferencias_ui
+  FUNÇÕES / CLASSES / MÉTODOS
+      42  def padronizar_valor_espessura()   — Arredonda a espessura para o valor padrão mais próximo (ESPESSURAS_PADRAO), se estiver dentro da tolerância. Caso contrário, devolve o valor original …
+      59  def log()
+      68  def _caminho_banco_memoria()   — Caminho do banco de memória, salvo ao lado do executável/script (não da pasta de DXFs) - assim ele persiste entre execuções e entre obras diferentes. …
+      97  def _normalizar_chave_memoria()   — Normaliza (identificador, posição) para maiúsculas/sem espaço nas pontas, igual ao resto do script - garante que a busca não perca por causa de difere…
+     104  def inicializar_memoria()   — Cria o banco/tabelas de memória se ainda não existirem. Idempotente - pode ser chamada toda vez que o script roda, sem apagar dados existentes.
+     173  def carregar_memoria()   — Carrega as duas tabelas do banco de memória em dicionários rápidos de consulta, chaveados por (identificador, posição) normalizados: - dict_ignorados:…
+     194  def marcar_ignorado()   — Marca (identificador, posição) como 'não gera DXF mesmo' - vale pra qualquer obra a partir de agora. Sobrescreve se já existir (mesma chave).
+     208  def marcar_ajuste_manual()   — Salva um fluxo manual para (identificador, posição) - vale pra qualquer obra a partir de agora, sobrepondo as regras automáticas.
+     223  def remover_ignorado()   — Remove uma entrada da tabela de ignorados (caso tenha sido marcada por engano).
+     232  def remover_ajuste_manual()   — Remove uma entrada da tabela de ajustes manuais (caso tenha sido marcada por engano).
+     247  def carregar_divergencias_tamanho_ignoradas()   — Carrega o dict {(identificador, posicao): motivo} de divergências de tamanho já conferidas/aceitas pelo usuário.
+     260  def marcar_divergencia_tamanho_ignorada()   — Marca (identificador, posição) como 'divergência de tamanho conferida/ aceita' - vale para qualquer obra a partir de agora.
+     274  def remover_divergencia_tamanho_ignorada()   — Remove uma entrada da tabela de divergências de tamanho conferidas (caso o usuário queira voltar a ver aquele alerta).
+     294  def carregar_forcar_cam()   — Carrega o dict {(identificador, posicao): motivo} de itens marcados para NÃO seguir a regra automática de 'sem CAM' (BR/TB).
+     307  def marcar_forcar_cam()   — Marca (identificador, posição) para desconsiderar a regra automática de 'sem CAM' (BR/TB) - vale para qualquer obra a partir de agora.
+     320  def remover_forcar_cam()   — Remove uma entrada da tabela de CAM forçado (caso tenha sido marcada por engano, voltando ao comportamento automático BR/TB).
+     342  def carregar_padrao_planilha_manual()   — Carrega o dict {(identificador, posicao): motivo} de itens movidos manualmente para "[PADRÃO] PLANILHA" na aba de Faltantes.
+     355  def marcar_padrao_planilha_manual()   — Marca (identificador, posição) como "[PADRÃO] PLANILHA" - vale para qualquer obra a partir de agora, MAS não impede que um DXF real futuro para essa m…
+     371  def remover_padrao_planilha_manual()   — Remove uma entrada da tabela padrao_planilha_manual (caso tenha sido marcada por engano, voltando a aparecer em Faltantes se ainda sem DXF).
+     385  def carregar_cores_fluxo_customizadas()   — Carrega o dict {fluxo: cor} das cores customizadas pelo usuário.
+     396  def salvar_cor_fluxo_customizada()   — Salva/atualiza a cor customizada de um fluxo - vale para qualquer obra futura.
+     408  def remover_cor_fluxo_customizada()   — Remove a cor customizada de um fluxo, voltando à cor automática (_cor_para_fluxo).
+     420  def carregar_preferencia_ui()   — Carrega uma preferência de UI salva (ex: tipo de gráfico escolhido). Retorna `padrao` se a chave nunca foi salva.
+     430  def salvar_preferencia_ui()   — Salva uma preferência de UI (chave/valor) - vale para qualquer obra futura, até ser trocada de novo.
+     447  def calcular_peso()   — Calcula o peso de uma peça em kg Volume = largura × altura × espessura (em mm³) Converte para cm³ (dividindo por 1000) Peso = Volume (cm³) × densidade…
+     467  def analisar_furos_dxf()   — Analisa o arquivo DXF para identificar furos na peça Retorna: (tem_furo, tipo_furo, diametro, descricao, quantidade_furos) - tem_furo: bool - tipo_fur…
+     548  def obter_dimensoes_dxf()
+     594  def _contar_cantos_contorno_linhas()   — Recebe uma lista de segmentos (par de pontos (x,y) arredondados) e tenta encaixá-los ponta a ponta num único contorno fechado. Se conseguir, retorna a…
+     664  def possui_recorte_escalonado()   — Detecta peças com contorno "em degrau" (ex: uma chapa/base com uma aba ou saliência mais estreita no meio, tipo formato de "T" ou "chapéu") feitas SÓ …
+     695  def possui_irregularidade()
+     711  def irregularidade_so_arcos_pequenos()   — True quando a "irregularidade" do DXF é SÓ de arcos pequenos - furo oblongo (rasgo) ou canto arredondado: tem arco, nenhum arco com diâmetro maior que…
+     728  def normalizar_posicao()
+     730  def extrair_quantidade_arquivo()   — Extrai a quantidade do nome do arquivo DXF (ex: Q8, Q6, Q4)
+     741  def extrair_posicao_base_conjunto()   — Remove o sufixo de "lado" do final da posição, usado para identificar peças que fazem parte do mesmo conjunto (ex: lado esquerdo/direito de um mesmo p…
+     766  def extrair_posicao_base()   — Extrai a posição base do nome do arquivo, removendo apenas o sufixo _U quando presente. NÃO remove nada antes do primeiro underscore para preservar o …
+     788  def separar_parte_posicao()   — '110-2[A]' -> ('110-2', 'A'); '110-2[B]_U' -> ('110-2_U', 'B'); sem marca -> (texto, None).
+     797  def extrair_parte_nome()   — Letra da parte ('A', 'B'...) no nome do DXF, ou None se a peça não foi dividida.
+     805  def _status_dimensao()   — Mesma checagem de dimensão usada por arquivo, para conferir o conjunto A+B.
+     818  def extrair_nome()   — Extrai OF e POSIÇÃO do nome do arquivo DXF (sem a marca de parte [A]/[B])
+     828  def verificar_terca_z()   — Verifica se é uma Terça Z com base em: - Nome do arquivo começando com TZ - POSIÇÃO na planilha começando com TZ - DEFINIÇÃO na planilha começando com…
+     848  def extrair_tipo_identificador()   — Extrai o tipo principal do identificador: - PRIORIDADE 1: Verificar se deve IGNORAR (campos vazios) - PRIORIDADE 2: Verificar IGNORADOS específicos (B…
+     898  def eh_terca_z()   — Verifica se é uma Terça Z (para tolerância especial) - "ZD" não conta (é chapa dobrada, categoria diferente que só coincide na letra inicial).
+     908  def carregar_planilha_xlsx()   — Carrega planilha no formato Excel (tabela dinâmica) - mantido para compatibilidade.
+     920  def _normalizar_planilha_pivot()   — Normaliza a planilha no formato da tabela dinâmica (OF, POSIÇÃO, IDENTIFICADOR, DEFINIÇÃO...).
+    1005  def carregar_planilha_csv()   — Carrega a planilha de roteirização diretamente do CSV exportado do sistema (ex: 2012-2-01_L2.csv), sem passar pela tabela dinâmica do Excel. Formato e…
+    1087  def _normalizar_planilha_csv()   — Normaliza a planilha no formato do CSV exportado do sistema (NUM_DIS, POS_PEZ, NOM_PRO...).
+    1200  def _planilha_de_tabela()   — DataFrame cru (sem cabeçalho) de HTML/XML/texto -> (df com cabeçalho, 'csv' ou 'pivot') ou None.
+    1219  def _id_para_regras()   — IDENTIFICADOR que as regras do roteirizador esperam, a partir do COD ITEM do relatório do Focco (WF): tira o sufixo _INT/_PREP; chapa 'CH' vira 'CH.';…
+    1232  def _planilha_do_focco()   — Planilha no formato do relatório do Focco (WF.xls: PACOTE, OBRA, SUB TRECHO, POSICAO, ORDEM, MASCARA, COMP...) -> as mesmas colunas normalizadas que o…
+    1294  def _tentar_planilha_focco()   — Devolve a planilha normalizada se o arquivo for um relatório no formato do Focco (WF.xls); senão None.
+    1316  def carregar_planilha()   — Ponto de entrada único para carregar a planilha de roteirização. Reconhece o formato pelo CONTEÚDO do arquivo (e não pela extensão): CSV do sistema (n…
+    1368  def pasta_valida()
+    1373  def buscar_posicao()   — Busca na planilha uma posição que corresponda ao arquivo. Estratégia: 1. Match exato primeiro 2. Se não achar, tenta remover apenas _U do final 3. Se …
+    1427  def extrair_dimensoes_U()
+    1438  def eh_perfil_j_dobrado()   — Identifica se a DEFINIÇÃO representa um perfil "J" DOBRADO EM CHAPA (ex: "J190X196X3.75" - alma x aba x espessura, no mesmo padrão de catálogo de extr…
+    1453  def extrair_dimensoes_C()
+    1465  def extrair_abas_L()
+    1473  def extrair_abas_generico()   — Extrai as duas abas (flanges) de uma DEFINIÇÃO de perfil, tentando os padrões de L, U e C nessa ordem (reaproveitando os extratores já existentes), in…
+    1496  def verificar_prefixo()   — Verifica se o arquivo começa com algum dos prefixos, ignorando: - Prefixos de obra/trecho (ex: 2-01_, 101-01_) - Números após hífen (ex: ED-1 → ED, PP…
+    1508  def contar_furos_diametro()   — Conta quantos furos circulares de um diâmetro específico existem no DXF.
+    1523  def regra_terca_z()
+    1525  def regra_pc()
+    1554  def regra_perfilar_U()
+    1570  def regra_perfilar_C()
+    1598  def destino_perfiladeira_L()   — 'L1' ou 'L2' para uma peça que vai para a Perfiladeira L (perfil na lista da L1 e comprimento > 595mm -> L1).
+    1605  def regra_perfilar_L()   — Regra de catálogo da Perfiladeira L (abas iguais, espessura até 3,00mm), ajustada para a limitação física da máquina: - Abas iguais entre 52mm e 100mm…
+    1637  def regra_perfil_J()   — Regra para perfis J (JOIST) - inclui nomenclaturas "J", "BJ", "AJ1" e "NM1": - Essas nomenclaturas podem aparecer no IDENTIFICADOR, na POSIÇÃO/marca (…
+    1681  def decidir_fluxo()
+    1708  def comparar_dimensoes_com_tolerancia()   — Compara dimensões considerando possível rotação da peça Retorna (status)
+    1728  def analisar_recorte_dxf()   — Analisa recortes/irregularidades (ARC, SPLINE, ELLIPSE) no DXF. Retorna (recorte_grande, recorte_dos_dois_lados): - recorte_grande: True se algum reco…
+    1790  def possui_angulo_dxf()   — Verifica se o DXF tem linhas em ângulo/grau (diagonais) - segmentos que não são puramente horizontais nem verticais, indicando corte em ângulo.
+    1814  def possui_angulo_dxf_significativo()   — Igual a possui_angulo_dxf(), mas só considera "corte em ângulo real" uma linha diagonal cujos DOIS catetos (dx e dy) sejam de pelo menos min_cateto mm…
+    1849  def eh_escada_marinheiro()   — Identifica se a peça pertence à escada de marinheiro, com base no "subtrecho" da OF - o terceiro número, separado por hífen (ex: "2089-2-50" -> subtre…
+    1862  def regra_escada_marinheiro()   — Regra de fluxo específica para peças da escada de marinheiro (subtrecho 50 da OF). A máquina de Fluxo 1/2/4 tem limitação de largura e de quantidade d…
+    1894  def eh_civ_csv()   — True se a posição (ou o nome do arquivo sem o prefixo da obra) é uma peça CIV<n> / CSV<n> - Perfiladeira U e C, mesmo curta.
+    1899  def decidir_fluxo_peca()   — preparacao=True (a posição consome CHAPA CORTADA e nenhuma bobina, no Focco): perfil L/U/C feito na PREPARAÇÃO a partir da chapa - nunca vai para Perf…
+    2250  def identificar_grupos_fluxo3()   — Pré-varredura: identifica conjuntos de peças (mesma posição-base, variando apenas o sufixo de lado - "@N", "_2/_3" ou "-2/-3" - lado esquerdo/direito …
+    2306  def extrair_fluxo_base()   — Remove o sufixo de espessura entre colchetes do nome do fluxo (ex: "Fluxo 3 [4,75]" -> "Fluxo 3"), usado para agrupar o gráfico de peso por fluxo pela…
+    2319  def _fluxo_do_arquivo()   — Se o DXF já está dentro de uma pasta de FLUXO (ou de 'Editar'/'Banco de Corte' dentro dela) devolve (nome da pasta de fluxo, pasta que CONTÉM essa pas…
+    2333  def _limpar_pastas_de_fluxo_vazias()   — Depois de tirar um arquivo de uma pasta de fluxo (ou 'Editar'), apaga a pasta se ficou vazia (sobe enquanto for pasta de fluxo).
+    2347  def _espessura_do_nome_fluxo()
+    2357  def _mesmo_fluxo()   — Compara o nome da pasta de fluxo onde o DXF ESTÁ com o fluxo que a regra manda, de forma tolerante (só para a conferência SOMENTE LEITURA): ignora mai…
+    2374  def processar()
+    2831  def consolidar_pastas_variantes()   — Percorre as pastas de saída (Fluxo 1/2/3/4, Perfiladeira L, Perfiladeira U e C, CSC, Terça Z) e funde variações de espessura que na prática são a mesm…
+    2875  def _extrair_esp_material_pasta()   — Extrai (espessura, material) do nome de uma pasta de nível raiz da obra, aceitando tanto o formato "bruto" com underscore (ex: "6_35_A572-GR50", "3_CI…
+    2907  def _normalizar_material_pasta()   — Normaliza o texto do material (parte do nome da pasta que vem depois da espessura, ex: "ZAR 400 GALVANIZADO") para servir de CHAVE de comparação ao de…
+    2921  def padronizar_espessura()   — Renomeia e MESCLA as pastas de nível raiz da obra (espessura + material, ex: "6_35_A572-GR50" ou já "6,35 A572-GR50") em uma única pasta canônica por …
+    2988  def processar_pastas_xadrez()   — Pós-processamento específico para peças de CHAPA XADREZ (chapa antiderrapante em relevo) - baseado na mesma abordagem usada na roteirização de escada …
+    3117  def _nome_parece_fluxo()   — Diz se `nome` (nome de uma pasta) é uma pasta de fluxo de verdade.
+    3123  def _detectar_pasta_por_caminho()   — Descobre o nome da pasta onde um arquivo DXF está, a partir do caminho completo dele e da pasta raiz da obra. Se o arquivo estiver dentro de uma subpa…
+    3139  def _mapear_arquivos_por_pasta()   — Varre a pasta da obra e devolve, para cada DXF encontrado, em qual pasta ele está agora e o nome dessa pasta.
+    3152  def _ocultar_arquivo_windows()   — Marca o arquivo como OCULTO no Windows (atributo de sistema de arquivos, não é só o nome começar com "_") - assim ele não aparece no Explorer por padr…
+    3166  def _mostrar_arquivo_windows()   — Tira o atributo OCULTO (necessário pra regravar: no Windows, abrir um arquivo oculto com "w" dá PermissionError - por isso o retrato só gravava na 1ª …
+    3175  def _gravar_json_oculto()   — Grava o JSON do retrato: destrava (se estava oculto), grava e oculta de novo. Levanta a exceção se não gravar.
+    3187  def salvar_log_roteirizacao()   — Salva, dentro de `pasta_base`, um retrato de em qual pasta cada peça roteirizada (lista `dxfs_encontrados`, vinda de processar()) ficou - depois de pa…
+    3227  def _localizar_pasta_com_log()   — Procura o log a partir de `pasta_inicial`, subindo pelas pastas PAI se não achar direto nela - útil quando o usuário aponta o Verificador para uma sub…
+    3243  def atualizar_entrada_log_roteirizacao()   — Depois que o usuário resolve uma divergência pelo Verificador (grava o ajuste na memória), atualiza também o log salvo em disco pra refletir o novo fl…
+    3265  def comparar_roteirizacao_com_atual()   — Compara o log salvo por salvar_log_roteirizacao() com a organização ATUAL da mesma pasta. Retorna None se não achar log em nenhum nível (nem subindo p…
+    3313  def _localizar_logs_abaixo()   — Pastas ABAIXO de `pasta_inicial` que têm o retrato (o usuário apontou uma pasta que contém várias obras).
+    3328  def comparar_roteirizacoes_da_pasta()   — Como comparar_roteirizacao_com_atual, mas aceita também uma pasta que CONTÉM várias obras: devolve uma lista de resultados (um por retrato achado — ac…
+    3340  def conferir_pasta_com_regras()   — VERIFICADOR - CONFERÊNCIA SOMENTE LEITURA. Roda as mesmas regras do Roteirizador (processar em modo simulação) sobre os DXF que estão em `pasta` e dev…
+    3362  def _extrair_espessura_de_pasta()   — Tenta extrair a espessura numérica a partir do nome de uma pasta de espessura/material (ex: '1,95 ZAR 400 GALVANIZADO' -> 1.95). Retorna None se o nom…
+    3375  def detectar_pecas_fora_do_fluxo()   — Varre `pasta_base` de verdade (depois de toda a roteirização/padronização já ter rodado) e lista TODO arquivo .DXF que esteja fora de uma pasta de flu…
+    3420  def _peca_nao_gera_cam()   — Verifica se o IDENTIFICADOR corresponde a um item que nunca gera DXF/CAM (ex: BR = barra, TB = tubo - cortados por serra, não por laser/plasma). Usa o…
+    3469  def _cor_para_fluxo()   — Mantém a cor estável de cada fluxo entre execuções.
+    3473  def formatar_numero_br()   — Formata número no padrão brasileiro.
+    3477  def _ativar_dpi_awareness()   — Deixa o Windows renderizar a janela em resolução nativa (sem esticar a imagem) - é o que faz textos e ícones ficarem nítidos em telas com escala de 12…
+    3488  def _aplicar_estilo_base()   — Tema visual PADRÃO PROJEART (claro): fundo #F1F5FA, cartões brancos com borda #DFE6EF, azul-marinho #0B1D3A, destaque #2E6AAD, cabeçalho de tabela azu…
+    3634  def _criar_tabela_somente_leitura()   — Cria uma Treeview simples (sem seleção/ação) para as abas de referência do relatório.
+    3656  def analisar_divergencias()   — Compara o que consta na planilha com o que foi efetivamente encontrado entre os arquivos DXF, para as OFs processadas nesta rodada, e devolve os dados…
+    3782  def agregar_pesos_por_fluxo()   — Agrupa a lista de pesos por peça (analise_pesos, gerada em processar()) pela categoria principal do fluxo (fluxo_base - sem a espessura entre colchete…
+    3876  def _norm_cab()
+    3882  def _foc_texto()
+    3896  def _trechos_conhecidos()   — Trechos escritos como texto na coluna SUB TRECHO ('4_01' / '4-01'), no formato 'a_bb'.
+    3901  def _sub_trecho_texto()   — SUB TRECHO como texto ('4_01'). Se o Excel converteu o valor em DATA (ex.: '4-01' virou 01/04), reconstrói o trecho: 1) pelo prefixo da posição ('4-01…
+    3928  def _foc_float()
+    3944  def _foc_int()
+    3949  def _foc_data()
+    3963  def _achar_cabecalho_focco()   — Procura, nas primeiras linhas, a linha de cabeçalho; devolve (indice_da_linha, {chave: indice_da_coluna}, pontuação) ou None.
+    3981  def _tipo_ordem()   — Tipo da ordem (TP ORD): se o relatório do Focco traz a coluna, usa o valor dela (OFA/OFM/OFE). Se não traz, deduz pela MÁSCARA: ordem criada MANUALMEN…
+    3992  def _esp_do_nome()   — Espessura/bitola escrita no NOME do item quando o campo ESP do Focco vem vazio: barras 'BR_RED_9.50' -> 9,5 (diâmetro) e tubos 'TB_50.80X2.00-IND-LL' …
+    4006  def tipo_pintura_da_mascara()   — TIPO DE PINTURA lido da MÁSCARA do Focco (campos separados por '#'). O campo muda de posição conforme o tipo de peça, então procura pelo CONTEÚDO: 'SE…
+    4033  def _marcas_da_ordem()   — '109-01_V-34, 109-01_V-35' -> ['109-01_V-34', '109-01_V-35'].
+    4038  def mapa_pintura_por_marca()   — {(OBRA-TRECHO, MARCA): {tipos de pintura}} lido da MÁSCARA de TODAS as linhas do Focco. A ordem de preparação (CH_PREP, U_PREP...) não traz a pintura …
+    4064  def tipo_pintura_da_ordem()   — TIPO DE PINTURA da ordem: o da PRÓPRIA máscara; se ela não informa ('-'), o das ordens da mesma peça montada (mesma OF-TRECHO e MARCA). Se essas orden…
+    4076  def parse_mascara_focco()   — Extrai peso unitário, comprimento, largura/desenvolvimento, espessura e material do texto MASCARA (campos separados por #). O layout varia por tipo de…
+    4119  def _normalizar_caminho()   — Limpa um caminho colado/arrastado: tira aspas, espaços, 'file:///' e variáveis.
+    4134  def _sniff_formato()   — 'xlsx', 'xls', 'xml2003', 'html', 'protegido' ou 'texto' (CSV/TSV).
+    4153  def _ler_texto_arquivo()
+    4164  def _tabelas_html()   — Extrai todas as <table> de um HTML (sem bibliotecas externas): lista de DataFrames.
+    4206  def _tabelas_xml2003()   — Planilha 'XML do Excel 2003' (SpreadsheetML): uma tabela por aba.
+    4233  def _abrir_tabelas_focco()   — Abre o relatório do Focco, seja qual for o formato, e devolve {nome_da_aba: DataFrame} (sem cabeçalho, tudo como objeto). Levanta ValueError com mensa…
+    4277  def _resolver_arquivo_focco()   — Aceita um arquivo OU uma pasta (procura o relatório do Focco dentro dela).
+    4300  def _classificar_caminho()   — Entende o que é um caminho solto/arrastado. Devolve (tipo, caminho_resolvido): 'tabela' (relatório/planilha: arquivo Excel/CSV), 'pasta_dxf' (pasta co…
+    4329  def ler_relatorio_focco()   — Lê o relatório do Focco e devolve uma lista de ordens (dicts), uma por ordem+obra+trecho+posição, já com a chave de cruzamento.
+    4393  def _pos_variantes()   — Formas equivalentes de escrever a mesma posição: com/sem o trecho na frente (ex: "100-20_SEZ2-1" = "SEZ2-1") e com/sem o sufixo de lado (ex: "ARL1_U" …
+    4408  def _num_limpo()
+    4415  def _sequencia_e_maquinas()   — Aplica as regras de máquinas (planilha PCP). Devolve (centro, corte, furo, dobra, sequencia).
+    4434  def _regra_dobra()   — Regra da planilha PCP: só dobra se a máscara diz PERFIL DOBRADO; até 400mm de comprimento = PQ, até 3000mm = 3M, acima = 6M.
+    4446  def _fluxo_perfilado_do_planejador()   — Regra dos PERFILADOS (planilha PCP): a ordem é de perfiladeira quando o PLANEJADOR do Focco é "PERFILADEIRA" (PL-005 / PL-024). A máquina vem do tipo …
+    4464  def coletar_registros_das_pastas()   — Lê TODOS os DXF já roteirizados nas pastas informadas e devolve um registro por arquivo: fluxo = nome da pasta de fluxo onde o arquivo está (None se e…
+    4519  def _descricao_e_chapa()   — True quando a DESCRIÇÃO DO ITEM é uma CHAPA (CHAPA, CHAPA XADREZ...).
+    4524  def _item_e_chapa()   — True quando o item da ordem é uma CHAPA pela descrição do item (a mesma da coluna DESCRIÇÃO DO ITEM).
+    4530  def _rota_chapa_so_pintura()   — Chapa (descrição CHAPA) cuja demanda é SÓ pintura/galvânica (ordem 'ULT.PROC'): a rota (PINTURA, GALVÂNICA...) vira PREPARAÇÃO.
+    4538  def _flag_desconsiderar()   — Igual à coluna ORDENS PARA DESCONSIDERAR da planilha (armação/limpeza ou pintura). Vale para a BASE DE DADOS e para a lista da ROTEIRIZAÇÃO FOCCO: a o…
+    4545  def _demanda_principal()   — UMA descrição de demanda por ORDEM na ROTEIRIZAÇÃO FOCCO (a ordem não se repete): a da chapa que será cortada. Prefere 'CHAPA CORTADA...', depois 'CHA…
+    4566  def _flags_pcp()   — Regras da planilha PCP (colunas AH-AL da BASE DE DADOS): devolve (armação/limpeza, pintura/lanternim, perfil soldado, CSC, desconsiderar).
+    4586  def _sequencia_pcp()   — Réplica EXATA da fórmula SEQUÊNCIA DE ROTEIRO da planilha PCP. Devolve "" quando a combinação fluxo x dobra x furação não tem regra (a planilha deixa …
+    4653  def item_e_centro_servico()   — True se algum dos textos (COD ITEM, DESCRIÇÃO DO ITEM, NOME PERFIL) é uma TELA ou um PASSARINHEIRO -> SETOR CENTRO DE SERVIÇO.
+    4658  def classificar_rota_html()   — Mesma lógica do HTML (função classify), na mesma ordem de prioridade (+ TELAS/PASSARINHEIRO = CENTRO DE SERVIÇO, logo depois de pintura/galvânica).
+    4730  def _rota_da_ordem()   — ROTA única da ORDEM (as linhas de demanda de uma ordem podem cair em rotas diferentes): se alguma linha ainda 'conta' (não é armação/limpeza nem pintu…
+    4756  def _ordem_ps_prep()   — True para a ordem de PS PREP. É a regra da planilha PCP, coluna PERFIL SOLDADO da BASE DE DADOS: =SE(OU(ÉNÚM(PROCURAR("PS";[@[COD ITEM]])));"X";"") ou…
+    4764  def _setor_exibicao()   — SETOR mostrado nos relatórios: a rota 'PERFILADEIRA L' aparece como 'PERFILADEIRA L1' ou 'PERFILADEIRA L2' (mesma regra do programador das perfiladeir…
+    4775  def _marca_pos_desconsiderar()   — True quando a MARCA / POSIÇÃO é SD1, SEZ1, SEZ2, SEZ3 ou SEZ4 - com ou sem o trecho colado na frente (4-01_SEZ2-1) e com ou sem o sufixo da peça (-1, …
+    4782  def _item_estoque_acessorio()   — DXF SEM ordem no Focco cuja POSIÇÃO é SD1 ou SEZ1-SEZ4 (acessório padrão de estoque): devolve (COD ITEM, DESCRIÇÃO DO ITEM) como o HTML "Roteirização …
+    4792  def _ordem_de_pintura()   — True quando a ORDEM é de pintura/galvânica (todas as linhas de demanda dela são tinta, zinco, diluente/catalisador, intermediário ou terceirizado - a …
+    5008  def _nome_fluxo_pcp()   — Nome do fluxo como aparece na planilha PCP ("Perfiladeira U E C" com E maiúsculo).
+    5015  def _foc_vazio()
+    5026  def _xl()   — Valor seguro p/ escrever no Excel (tira tipos numpy/NaN).
+    5037  def _carregar_aba_focco()   — Abre o relatório (qualquer formato, arquivo ou pasta) e acha a aba/tabela com o cabeçalho.
+    5051  def ler_focco_linhas()   — Todas as LINHAS (ordem x demanda) do relatório do Focco, com TODAS as colunas originais.
+    5065  def montar_base_dados()   — Monta a BASE DE DADOS: colunas originais do Focco + as colunas calculadas (mesmas regras das fórmulas da planilha PCP) + ROTA do HTML. `mapa_ordem` li…
+    5421  def _inserir_imagem_xlsx()   — Coloca uma imagem PNG no canto A1 de uma aba de um .xlsx já salvo, escrevendo o XML diretamente (não depende do Pillow). Devolve True se inseriu.
+    5502  def gerar_relatorio_ordens_fluxos()   — Cruza as ordens/máscara do Focco com os DXF roteirizados (registros) e gera o .xlsx de ordens x fluxos em `pasta_saida`. Devolve o caminho.
+    6243  class _RedirecionadorLogParaGUI   — Substitui sys.stdout (e sys.stderr): em vez de escrever no terminal, empilha o texto na fila que a interface gráfica consome.
+    6246      .write()
+    6249      .flush()
+    6251  def ocultar_console()   — Oculta a janela do console/terminal no Windows, caso exista (ex: quando o script é executado via python.exe em vez de pythonw.exe, ou via um .exe gera…
+    6274  class _DicaFlutuante   — Balão de dica que aparece ao parar o mouse sobre um widget.
+    6276      .__init__()
+    6283      ._agendar()
+    6286      ._cancelar()
+    6293      ._mostrar()
+    6312      ._ocultar()
+    6320  def _placeholder()   — Texto-guia dentro do campo vazio. É só um rótulo por cima do campo: o valor da variável (var.get()) NÃO é alterado, então a lógica que lê o campo segu…
+    6341  def _instalar_menu_contexto()   — Menu do botão direito (Recortar/Copiar/Colar/Selecionar tudo) nos campos de texto.
+    6360  def _tag_para_log()   — Cor da linha do log conforme o tipo de mensagem (só aparência).
+    6373  def _configurar_tags_log()
+    6379  def _instalar_arrastar_soltar()   — Arrastar e soltar nativo do Windows (sem bibliotecas externas): aceita arquivos e pastas soltos em QUALQUER ponto da janela e chama callback(lista_de_…
+    6442  class _AreaRolavel   — Contêiner que se adapta a QUALQUER tela: se o conteúdo cabe, ele ocupa todo o espaço (como antes); se a janela é menor do que o conteúdo, aparece a ba…
+    6446      .__init__()
+    6466      ._ajustar()
+    6503      ._ao_entrar()
+    6509      ._ao_sair()
+    6514      ._tem_rolagem_propria()
+    6520      ._rolar()
+    6524      ._roda()
+    6529      ._roda_h()
+    6534  class AplicativoRoteirizador
+    6536      .__init__()
+    6585      ._criar_icone_projeart()   — Ícone da janela desenhado em código: quadrado azul-marinho com o "P" da Projeart sobre o azul de destaque.
+    6619      ._montar_estrutura_projeart()
+    6711      ._ao_redimensionar()
+    6721      ._atualizar_menu_compacto()   — Janela estreita: o menu lateral recolhe (fica só com o número de cada tela, que é o atalho Ctrl+número).
+    6748      ._aba_atual()   — Frame interno da tela que está aberta.
+    6756      ._ir_para_aba()
+    6762      ._sincronizar_menu()   — Destaca no menu lateral a tela que está aberta.
+    6772      ._menu_hover()
+    6780      ._atualizar_rodape()
+    6798      ._aplicar_barra_titulo_escura()   — Barra de título do Windows no tema escuro (botões minimizar/maximizar/fechar ficam claros sobre fundo escuro e a borda acende em ciano - Windows 10/11…
+    6820      ._separar_caminhos()   — Separa vários caminhos colados (um por linha, com ou sem aspas).
+    6825      ._ro_mensagem_zona()
+    6831      ._ro_entender_caminhos()   — Entende o que cada item é: arquivo Excel/CSV = relatório do Focco; pasta com DXF = pasta dos DXF.
+    6854      ._rot_entender_caminhos()   — Aba Roteirizador: planilha (arquivo ou pasta DBF com a planilha) e pasta dos DXF.
+    6867      ._ao_soltar_arquivos()   — Chamado quando arquivos/pastas são soltos na janela: cada aba entende do seu jeito.
+    6887      ._ativar_arrastar_soltar()
+    6890      ._acabamento_visual()   — Textos-guia, dicas, menu do botão direito, atalhos e barra de título escura. Cada item é independente e protegido - uma falha aqui nunca derruba o pro…
+    6940      ._quebra_de_linha_dinamica()   — Textos longos (subtítulos, avisos) que ocupam a linha inteira passam a quebrar conforme a largura da janela, em vez de um tamanho fixo: a tela se adap…
+    6965      ._instalar_atalhos()
+    6968      .run()
+    6971      ._agendar_drenagem_log()
+    6974      ._drenar_log()
+    6999      ._montar_aba_roteirizador()
+    7061      ._escolher_planilha()
+    7069      ._escolher_pasta()
+    7073      ._confirmar_selecao()
+    7088      ._iniciar_processamento()
+    7115      ._executar_processamento()
+    7163      ._reabilitar_selecao()
+    7176      ._limpar_tela()   — Limpa os campos de entrada, o log de processamento e o relatório de divergências, deixando a tela pronta para uma nova operação sem precisar fechar e …
+    7199      ._montar_aba_relatorio_ordens()   — Aba para gerar, SOB DEMANDA, o relatório de ordens x fluxos: lê todos os DXF já roteirizados nas pastas informadas e junta, posição por posição, com a…
+    7290      ._ro_escolher_focco()
+    7298      ._ro_escolher_pasta()
+    7304      ._ro_adicionar_pasta()
+    7319      ._ro_remover_pastas()
+    7323      ._ro_escolher_saida()
+    7328      ._ro_log()   — Escreve no log da aba - seguro para chamar de outra thread.
+    7341      ._ro_gerar()
+    7379      ._ro_executar()
+    7389      ._ro_finalizar()
+    7405      ._ro_abrir()
+    7413      ._erro_processamento()
+    7417      ._valores_fluxo_combobox()   — Monta as opções do combobox de 'Fluxo' usado nas edições inline (Faltantes / Não Roteirizado) - já com a espessura formatada quando conhecida (ex: 'Fl…
+    7430      ._finalizar_processamento()
+    7438      ._verificador_incluir_pasta_roteirizada()   — Depois de roteirizar, a pasta já entra sozinha na lista do Verificador (sem precisar colar o caminho): o retrato acabou de ser gravado nela, então qua…
+    7455      ._montar_aba_relatorio_vazia()
+    7464      ._montar_aba_relatorio()
+    8193      ._montar_aba_pesos_vazia()
+    8202      ._montar_aba_pesos()   — Monta o gráfico (barras horizontais, pizza ou velas/colunas - conforme preferência salva) e a tabela de apoio com o peso total roteirizado por fluxo (…
+    8405      ._abrir_editor_cores_fluxo()   — Diálogo modal para customizar a cor de cada fluxo (usada no gráfico E na tabela de detalhamento da aba "⚖️ Peso por Fluxo"). Clique no quadrado colori…
+    8489      ._criar_area_rolavel()   — Cria um Canvas+Scrollbar+Frame interno com rolagem por mouse wheel já configurada e uma barra de rolagem mais visível/larga.
+    8517      ._montar_aba_verificador()   — Monta a aba "🔍 Verificador": permite apontar uma ou mais pastas de obras já roteirizadas e comparar automaticamente (assim que a pasta é adicionada, e…
+    8703      ._verificador_escolher_pasta()
+    8708      ._verificador_limpar_caminho()   — Aceita o caminho como vem do Windows: com aspas ("Copiar como caminho"), com espaços nas pontas, com %VARIAVEIS% ou apontando pra um arquivo (aí usa a…
+    8717      ._verificador_adicionar_pasta()
+    8740      ._verificador_clicar_pasta()
+    8749      ._verificador_selecionar_todas_pastas()
+    8756      ._verificador_remover_pastas()
+    8767      ._verificador_escolher_planilha()
+    8775      ._vregra_conferir()
+    8820      ._vregra_esperar()
+    8854      ._vregra_criar_linha()
+    8894      ._vregra_remover_linha()
+    8903      ._vregra_salvar_linha()
+    8932      ._vregra_salvar_todos()
+    8945      ._verificador_garantir_monitoramento()
+    8950      ._verificador_ciclo_atualizacao()
+    8957      ._verificador_atualizar_comparacoes()   — Compara cada pasta com o retrato. A leitura das pastas (pode ser em rede, com milhares de DXF) roda numa THREAD — antes rodava na tela e travava o pro…
+    8990      ._verificador_esperar()
+    9011      ._verificador_aplicar()
+    9084      ._verificador_criar_linha_resultado()
+    9120      ._verificador_remover_linha_resultado()
+    9128      ._verificador_salvar_linha()
+    9147      ._verificador_salvar_todos_preenchidos()
+    9167  def main()
+
+####################################################################################################
+# nucleo/banco_dados.py   (146 linhas)   — COMUM: SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+####################################################################################################
+  TABELAS DE BANCO CRIADAS
+      26  corte_processamentos
+      31  corte_arquivos
+      39  corte_partes
+      48  corte_eventos
+  FUNÇÕES / CLASSES / MÉTODOS
+      15  class BancoDados
+      16      .__init__()
+      22      .criar_tabelas()
+      62      .registrar_processamento()
+      69      .registrar_arquivo()
+      76      .registrar_parte()
+      82      .registrar_evento()
+      92      .buscar_eventos()
+     112      .buscar_partes_editadas()   — Lista cada parte gerada (arquivo editado/dividido), com o nome do arquivo original que deu origem a ela.
+     130      .buscar_arquivos_originais()   — Lista cada arquivo original processado, com a estratégia usada e a quantidade de partes em que foi dividido.
+
+####################################################################################################
+# nucleo/caminhos.py   (126 linhas)   — COMUM: onde ficam código, dados, banco e logs
+####################################################################################################
+  CONSTANTES
+      57  RODANDO_CONGELADO = getattr(sys, 'frozen', False)
+      59  PASTA_NUCLEO_FONTE = os.path.dirname(os.path.abspath(__file__))
+      92  RAIZ_DADOS = os.path.normpath(os.path.abspath(_dados_env)) if _dados_env else RAIZ_PROJETO
+      93  MODO_RAPIDO = RAIZ_DADOS != RAIZ_PROJETO
+      95  PASTA_PAI = os.path.dirname(RAIZ_DADOS)
+      97  CAMINHO_BANCO_DADOS = os.path.join(PASTA_PAI, "pcp_projeart.db")
+     117  PASTA_LOGS = _pasta_logs()
+     124  PASTA_ASSETS = os.path.join(PASTA_NUCLEO, "assets")
+     125  CAMINHO_LOGO_PROJEART = os.path.join(PASTA_ASSETS, "logo_projeart.png")
+     126  CAMINHO_ICONE_PROJEART = os.path.join(PASTA_ASSETS, "icone_projeart.png")
+  FUNÇÕES / CLASSES / MÉTODOS
+     100  def _pasta_logs()   — Log local no modo rápido (gravar log em pasta de rede, a cada linha, pesa); senão ao lado do programa.
+
+####################################################################################################
+# nucleo/estilo.py   (194 linhas)   — COMUM: cores e estilo das telas Qt
+####################################################################################################
+  CONSTANTES
+      43  COR_AZUL_MARCA = "#1003AA"
+      44  COR_MARINHO = "#1A1A37"
+      46  COR_BG = "#E6E6E6"
+      47  COR_PAINEL = "#FFFFFF"
+      48  COR_CAMPO = "#F3F3F3"
+      49  COR_BORDA = "#CCCCCC"
+      50  COR_TEXTO = "#1D1D1B"
+      51  COR_TEXTO_SUB = "#4D4C4C"
+      52  COR_DESTAQUE = COR_AZUL_MARCA
+      53  COR_VERDE = "#1A7F37"
+      54  COR_VERMELHO = "#B42318"
+      55  COR_AMARELO = "#8A5A1E"
+      57  CORES_PARTES = [ QColor(16, 3, 170, 210), # azul Projeart QColor(35, 134, 54, 210), # verde QColor(188, 140, 24, 210), # amarelo QColor(163, 72, 161, 210), # roxo QColor(214, 84, 74, 210), # vermelho …
+      65  ESTILO_GERAL = f""" QMainWindow, QWidget {{ background-color: {COR_BG}; color: {COR_TEXTO}; font-family: 'Segoe UI', Arial, sans-serif; }} QTabWidget::pane {{ border: 1px solid {COR_BORDA}; border-rad…
+  FUNÇÕES / CLASSES / MÉTODOS
+
+####################################################################################################
+# nucleo/logging_config.py   (84 linhas)   — COMUM: registro de erros (log)
+####################################################################################################
+  CONSTANTES
+      33  LOG_PATH = os.path.join(PASTA_LOGS, "app_dxf_ppcp_log.txt")
+  FUNÇÕES / CLASSES / MÉTODOS
+      38  def registrar_erro_fatal()   — Grava um erro fatal no arquivo de log E imprime no console. Usado tanto pelo try/except do main.py quanto pelo excepthook global abaixo.
+      55  def _excepthook_global()   — Pega qualquer erro que escape sem tratamento e garante que fica registrado no log antes do programa fechar, em vez de simplesmente sumir junto com o t…
+      63  def configurar_logging()   — Liga o log em arquivo + console e o excepthook global. Chamar uma vez só, bem no início do main.py. Retorna o logger compartilhado.
+
+####################################################################################################
+# nucleo/modo_local.py   (110 linhas)   — COMUM: cópia local do código (abre rápido)
+####################################################################################################
+  CONSTANTES
+      22  PASTAS_EXCLUIDAS = {"__pycache__", "claude outputs", "relatorio", "roteirizador_dxf", "referencia_html", "icones_usuario", ".git", ".vscode", ".idea", "venv", ".venv"}
+      24  ARQUIVOS_EXCLUIDOS = ("*.db", "*.db-journal", "*.db-wal", "*.db-shm", "app_dxf_ppcp_log.txt*", "layout_desktop_*.json", "etiquetas_impressora.json", "continuidade.md", "*.bak", "*.pyc", "*.tmp")
+  FUNÇÕES / CLASSES / MÉTODOS
+      28  def _em_unidade_de_rede()
+      40  def _arquivo_excluido()
+      45  def _mesmo()
+      53  def sincronizar()   — Espelha o código de `origem` em `destino` (copia o que mudou, apaga o que sumiu). Devolve (copiados, apagados).
+      84  def garantir_execucao_local()   — Chamar no topo do main.py. Se estiver em rede: sincroniza, roda de lá (espera) e encerra com o mesmo código de saída.
+
+####################################################################################################
+# nucleo/normalizacao.py   (60 linhas)   — COMUM: regra normalizar_obra (nome da pasta da obra -> OF)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      17  def normalizar_obra()   — Converte NUM_COM (ou o nome da pasta da obra, no fallback) para o identificador da obra usado no DXF. Exemplos: 2058-102_01_L1 -> 2058-102-01 2058-102…

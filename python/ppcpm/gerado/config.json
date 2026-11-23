@@ -1,5 +1,5 @@
 {
-  "versao": "Versão 256",
+  "versao": "Versão 257",
   "pacote_atual": 700,
   "obra_impressao": "2139-5-01",
   "supabase_url": "https://zlbgiodxpywrqapjlldg.supabase.co",
@@ -82,6 +82,48 @@
       "nome": "Engenharia",
       "titulo": "PPCPM - ENGENHARIA",
       "arquivo": "modulos/pg14.html"
+    },
+    {
+      "id": "pg16",
+      "nome": "Visualizador DXF",
+      "titulo": "PPCPM - VISUALIZADOR DXF",
+      "arquivo": "modulos/pg16.html"
+    },
+    {
+      "id": "pg17",
+      "nome": "Espelhar DXF",
+      "titulo": "PPCPM - ESPELHAR DXF",
+      "arquivo": "modulos/pg17.html"
+    },
+    {
+      "id": "pg18",
+      "nome": "Corte Inteligente",
+      "titulo": "PPCPM - CORTE INTELIGENTE",
+      "arquivo": "modulos/pg18.html"
+    },
+    {
+      "id": "pg19",
+      "nome": "Renomear DXF",
+      "titulo": "PPCPM - RENOMEAR DXF",
+      "arquivo": "modulos/pg19.html"
+    },
+    {
+      "id": "pg20",
+      "nome": "Conversor CAM → DXF",
+      "titulo": "PPCPM - CONVERSOR CAM → DXF",
+      "arquivo": "modulos/pg20.html"
+    },
+    {
+      "id": "pg21",
+      "nome": "Criar Pasta / Auditoria",
+      "titulo": "PPCPM - CRIAR PASTA / AUDITORIA",
+      "arquivo": "modulos/pg21.html"
+    },
+    {
+      "id": "pg22",
+      "nome": "Roteirizador DXF",
+      "titulo": "PPCPM - ROTEIRIZADOR DXF",
+      "arquivo": "modulos/pg22.html"
     }
   ],
   "modulos_no_arquivo": [
@@ -97,6 +139,13 @@
     "pg11",
     "pg12",
     "pg13",
-    "pg14"
+    "pg14",
+    "pg16",
+    "pg17",
+    "pg18",
+    "pg19",
+    "pg20",
+    "pg21",
+    "pg22"
   ]
 }

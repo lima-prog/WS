@@ -1,0 +1,110 @@
+Visualizador DXF  —  app do SISTEMA - PPCPM (tema do sistema)
+====================================================================================================
+
+Tela            : Python 3 + PyQt5 (janela Qt)
+Chave no PPCP   : visualizador   (mesma ferramenta do PPCP Ferramentas: MESMAS regras, só a aparência mudou — ver item 10)
+
+1. O QUE FAZ
+----------------------------------------------------------------------------------------------------
+   Visualiza DXF um por um, bem rápido, e ajuda a SEPARAR os arquivos em pastas de fluxo (move o arquivo atual para a pasta escolhida).
+
+2. PASSO A PASSO
+----------------------------------------------------------------------------------------------------
+   1. Carregue uma pasta (botão ou tecla Tab). Lista todos os .dxf da pasta.
+   2. Navegue: seta direita = próximo, seta esquerda = anterior, 0 = zoom original, A = enquadrar, D = descartar da lista, Espaço = navegador de pastas.
+   3. No navegador de pastas, escolha o tipo (Fluxo 1, Fluxo 2, Fluxo 3, Fluxo 4, Acessórios Padrão, Perfiladeira U E C, Perfiladeira L, Joist, Terça Z) para mover o DXF atual.
+   4. Os atalhos podem ser trocados na tela de atalhos (ficam salvos para a próxima vez).
+
+3. REGRAS (LÓGICA)
+----------------------------------------------------------------------------------------------------
+   • Unidade do desenho lida do cabeçalho $INSUNITS do DXF.
+   • Ao escolher um tipo, cria (se não existir) a pasta '<tipo> [<espessura>]' — a espessura vem do nome da pasta atual — e MOVE o arquivo (shutil.move).
+   • Se a pasta aberta já for uma pasta de fluxo, a pasta nova é criada um nível acima (ao lado dela), nunca dentro.
+   • 'Descartar' (D) só tira o arquivo da lista na tela — não apaga nada do disco.
+   • Enquadrar automático ao trocar de arquivo pode ser ligado/desligado (fica salvo).
+
+4. TIPOS DE ARQUIVO
+----------------------------------------------------------------------------------------------------
+   ENTRADA: pasta com .DXF
+   SAÍDA: o mesmo .DXF movido para a pasta de fluxo
+   Onde o código abre as janelas de escolher (arquivo:linha):
+     visualizador/aba.py:785
+
+5. O QUE SAI (SAÍDAS)
+----------------------------------------------------------------------------------------------------
+   <pasta da obra>\<tipo> [<espessura>]\<arquivo>.dxf
+
+6. CAMINHOS
+----------------------------------------------------------------------------------------------------
+   Onde o app fica             = python\apps\Visualizador_DXF\   (dentro da pasta python do SISTEMA - PPCPM)
+   Pasta de DADOS (PPCP_DADOS), nesta ordem:
+      1) caminho escrito à mão na 1ª linha do pasta_dados.txt (ex.: a pasta ppcp_dxf_ferramentas do servidor);
+      2) a pasta de dados escolhida na tela do SISTEMA - PPCPM (python\dados_locais\producao\pasta_dados.txt,
+         a mesma que o Validador de Fluxos usa dentro do sistema);
+      3) padrão: python\dados_locais\producao  (criada sozinha na 1ª vez; a atualização do sistema nunca apaga dados_locais).
+   Banco compartilhado         = <pasta ACIMA da pasta de dados>\pcp_projeart.db   (no padrão: python\dados_locais\pcp_projeart.db)
+   Python                      = python\ferramentas\achar_python.bat do sistema (.venv do sistema, Python portátil ou o do PC)
+   Cópia local do código       = %LOCALAPPDATA%\PPCP_Apps\Visualizador_DXF\app   (feita pelo .bat com robocopy /MIR)
+   Log deste app               = %LOCALAPPDATA%\PPCP_Apps\Visualizador_DXF\logs\app_dxf_ppcp_log.txt   (variável PPCP_LOGS)
+   Preferências no Registro do Windows (QSettings 'SuaEmpresa' / 'DXFViewer'):
+      HKEY_CURRENT_USER\Software\SuaEmpresa\DXFViewer  ->  last_folder (última pasta), shortcuts (atalhos), auto_fit (enquadrar)
+   Não usa banco de dados.
+   Tabelas criadas pelo código: corte_arquivos, corte_eventos, corte_partes, corte_processamentos
+
+7. COMO ABRIR
+----------------------------------------------------------------------------------------------------
+   • 1ª vez no PC: dois cliques em instalar_bibliotecas_Visualizador_DXF.bat (usa o Python do sistema)
+   • Depois: dois cliques em iniciar_Visualizador_DXF.bat (copia o código pro PC e abre). Com problema: iniciar_Visualizador_DXF.bat debug
+   • Ou, pelo CMD dentro desta pasta: python main.py
+   • Para virar .exe: pyinstaller Visualizador_DXF.spec
+
+8. ARQUIVOS DENTRO DO APP
+----------------------------------------------------------------------------------------------------
+   visualizador/
+      __init__.py                            0 linhas  (marca a pasta como pacote Python)
+      aba.py                              1280 linhas  TELA (interface principal)
+      atalhos.py                           102 linhas  TELA (atalhos de teclado)
+      estilo.py                            181 linhas  TELA (cores e estilo)
+      navegador_pastas.py                  305 linhas  TELA (navegador de pastas / mover arquivo)
+   nucleo/   (COMUM a todos os apps)
+      __init__.py                            0 linhas  (pacote)
+      ambiente_qt.py                        33 linhas  ajustes do Qt antes de abrir
+      banco_dados.py                       146 linhas  SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+      caminhos.py                          126 linhas  onde ficam código, dados, banco e logs
+      estilo.py                            226 linhas  cores e estilo das telas Qt
+      logging_config.py                     84 linhas  registro de erros (log)
+      modo_local.py                        110 linhas  cópia local do código (abre rápido)
+      normalizacao.py                       60 linhas  regra normalizar_obra (nome da pasta da obra -> OF)
+      assets/icone_projeart.ico                        imagem da marca
+      assets/icone_projeart.png                        imagem da marca
+      assets/logo_projeart.png                         imagem da marca
+   main.py                                   INÍCIO (gerado: prepara dados/log e abre só esta ferramenta)
+   iniciar_Visualizador_DXF.bat              atalho rápido (cópia local + abre sem janela preta)
+   instalar_bibliotecas_Visualizador_DXF.bat instala o requirements.txt no Python do sistema
+   pasta_dados.txt                           1ª linha = pasta de DADOS (padrão: python\dados_locais\producao)
+   requirements.txt                          bibliotecas
+   Visualizador_DXF.spec                     receita do PyInstaller (.exe)
+   MANIFESTO.json                            impressão digital (sha256) de cada arquivo
+   MAPA_DO_CODIGO.txt                        índice de TODAS as funções/constantes com o número da linha
+
+9. BIBLIOTECAS (pip install -r requirements.txt)
+----------------------------------------------------------------------------------------------------
+   - PyQt5
+   - ezdxf
+   - numpy
+   - pyqtgraph
+   (o resto é biblioteca padrão do Python: os, sys, re, sqlite3, json, shutil...)
+
+10. TEMA DO SISTEMA - PPCPM (só aparência)
+----------------------------------------------------------------------------------------------------
+   Padrão de docs/REQUISITOS_FLUXO_DE_TRABALHO.md, seção 10: azul Projeart #0b3d91 nas faixas e destaques; fundo #eef1f5;
+   quadros com borda #545659, faixa azul de 3px em cima e título numa faixa cinza; TODOS os botões cinza-azulado
+   (#e3e8ee -> #cdd4de, borda #98a3b3) com letra preta negrito; campos #f3f5f8 -> #e6eaf0 (brancos ao focar);
+   tabelas com cabeçalho no tema dos botões, letra preta, linhas brancas alternando com #f6f7f9, selecionada #dbe8fb.
+   Arquivos que mudaram (só cores/bordas/textos de estilo — conferido pela árvore do código, regras idênticas):
+     - nucleo/estilo.py
+     - visualizador/estilo.py
+     - visualizador/navegador_pastas.py
+     - visualizador/aba.py
+     - main.py e iniciar_*.bat (pasta de dados do sistema, Python do sistema, seleção azul-clara, título)
+

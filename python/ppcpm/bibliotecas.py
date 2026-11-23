@@ -29,6 +29,8 @@ LIBS = {
     "reportlab":  ("reportlab", "reportlab>=4.2", "Gerar PDF (etiquetas centralizadas, relatórios)"),
     "pywin32":    ("win32print", "pywin32>=306; sys_platform == 'win32'", "Imprimir direto na Zebra ZD220 (ZPL), listar impressoras e ler/fixar pastas no Acesso rápido do Windows"),
     "ezdxf":      ("ezdxf", "ezdxf>=1.3", "Ler os arquivos DXF roteirizados (peças, medidas) direto no Python"),
+    "PyQt5":      ("PyQt5", "PyQt5>=5.15", "Janelas dos apps da Preparação fábrica (Visualizador, Espelhar, Corte Inteligente, Renomear, Conversor CAM, Auditoria)"),
+    "pyqtgraph":  ("pyqtgraph", "pyqtgraph>=0.13", "Desenho rápido do DXF no Visualizador DXF (zoom e enquadrar)"),
     "playwright": ("playwright", "playwright>=1.45", "Abrir o intranet já com a planilha de roteiro anexada (usa o Edge ou o Chrome do PC)"),
     "requests":   ("requests", "requests>=2.32", "Enviar arquivos para a Intranet PCP"),
     "waitress":   ("waitress", "waitress>=3.0", "Servidor mais forte quando muitos usuários acessam pela rede"),
@@ -57,6 +59,13 @@ SECOES = [
     ("pg15", "Gerenciador de Roteiros › Gerenciamento de roteiro - ERP", ["openpyxl"], ["playwright"]),
     ("pg11", "Gerenciador de Roteiros › Acesso ao Intranet", ["requests"], []),
     ("pg12", "Área de impressão › Impressão de Etiquetas", ["pandas", "openpyxl", "xlrd", "dbfread", "reportlab", "pywin32"], []),
+    ("pg16", "Preparação fábrica › Visualizador DXF", ["PyQt5", "ezdxf", "numpy", "pyqtgraph"], []),
+    ("pg17", "Preparação fábrica › Espelhar DXF", ["PyQt5", "ezdxf"], []),
+    ("pg18", "Preparação fábrica › Corte Inteligente", ["PyQt5", "ezdxf"], []),
+    ("pg19", "Preparação fábrica › Renomear DXF", ["PyQt5"], []),
+    ("pg20", "Preparação fábrica › Conversor CAM → DXF", ["PyQt5", "ezdxf"], []),
+    ("pg21", "Preparação fábrica › Criar Pasta / Auditoria", ["PyQt5", "openpyxl"], []),
+    ("pg22", "Preparação fábrica › Roteirizador DXF", ["ezdxf", "numpy", "openpyxl", "pandas", "xlrd"], []),
 ]
 
 

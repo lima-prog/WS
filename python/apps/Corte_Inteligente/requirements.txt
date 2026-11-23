@@ -1,0 +1,4 @@
+# Bibliotecas do app "Corte Inteligente" (só as que ele usa; tiradas do requirements.txt do PPCP Ferramentas)
+#   pip install -r requirements.txt
+PyQt5
+ezdxf

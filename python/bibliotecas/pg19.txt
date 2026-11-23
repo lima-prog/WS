@@ -1,0 +1,4 @@
+# Preparação fábrica › Renomear DXF
+# Instalar:  INSTALAR_BIBLIOTECAS.bat   (ou: python -m pip install -r este_arquivo.txt)
+
+PyQt5>=5.15                                # Janelas dos apps da Preparação fábrica (Visualizador, Espelhar, Corte Inteligente, Renomear, Conversor CAM, Auditoria)

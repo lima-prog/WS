@@ -1,0 +1,112 @@
+Corte Inteligente  —  app do SISTEMA - PPCPM (tema do sistema)
+====================================================================================================
+
+Tela            : Python 3 + PyQt5 (janela Qt)
+Chave no PPCP   : corte   (mesma ferramenta do PPCP Ferramentas: MESMAS regras, só a aparência mudou — ver item 10)
+
+1. O QUE FAZ
+----------------------------------------------------------------------------------------------------
+   Divide peças compridas (DXF) em partes que cabem nos tamanhos padrão de barra/chapa, sem cortar em cima de furo, e grava cada parte como um DXF novo [A], [B], [C]... na mesma pasta.
+
+2. PASSO A PASSO
+----------------------------------------------------------------------------------------------------
+   1. Selecione a pasta com os DXF (só a raiz da pasta).
+   2. Ligue/desligue a visualização e ajuste a velocidade (mostra o desenho de cada peça cortada).
+   3. Clique em processar: barra de progresso + log de cada arquivo.
+   4. Veja o resultado nos botões 'Diagnóstico' (cortes forçados e segmentos bloqueados) e 'Arquivos Processados' (histórico do banco).
+
+3. REGRAS (LÓGICA)
+----------------------------------------------------------------------------------------------------
+   • TAMANHOS_CORTE = [6000, 5590, 5500] mm (tenta nessa ordem).
+   • MARGEM_FURO = 30 mm: não corta a menos de 30 mm do centro de um furo (CIRCLE).
+   • PARTE_MINIMA = 500 mm: nenhuma parte pode ficar menor que isso.
+   • Peça com comprimento (eixo X) até 6000 mm não é dividida.
+   • Acima de 6000: tenta corte em início+tamanho ou fim-tamanho para cada tamanho padrão; se nenhum servir, faz CORTE FORÇADO perto do fim ou do início (±30 mm) fora de furo.
+   • Se nem o forçado couber, o segmento fica como está e registra 'segmento_bloqueado'. Repete até nenhum pedaço passar de 6000.
+   • Dimensão lida de LINE, CIRCLE, ARC e LWPOLYLINE. As linhas são aparadas exatamente na posição do corte (geometria original preservada).
+   • Nome de cada parte: '<1º trecho do nome>[A] - <resto do nome>.dxf' (ex.: 'P12[A] - OF2058-102-01 - Q2.dxf'). Nome sem ' - ' vira '<nome>[A].dxf'.
+   • O arquivo original NÃO é apagado. Peça que não precisa dividir também ganha o arquivo [A].
+
+4. TIPOS DE ARQUIVO
+----------------------------------------------------------------------------------------------------
+   ENTRADA: pasta com .DXF (só raiz)
+   SAÍDA: .DXF de cada parte, na mesma pasta
+   Onde o código abre as janelas de escolher (arquivo:linha):
+     corte/aba.py:204
+
+5. O QUE SAI (SAÍDAS)
+----------------------------------------------------------------------------------------------------
+   <mesma pasta>\<pos>[A] - <resto>.dxf, <pos>[B] - <resto>.dxf ...
+
+6. CAMINHOS
+----------------------------------------------------------------------------------------------------
+   Onde o app fica             = python\apps\Corte_Inteligente\   (dentro da pasta python do SISTEMA - PPCPM)
+   Pasta de DADOS (PPCP_DADOS), nesta ordem:
+      1) caminho escrito à mão na 1ª linha do pasta_dados.txt (ex.: a pasta ppcp_dxf_ferramentas do servidor);
+      2) a pasta de dados escolhida na tela do SISTEMA - PPCPM (python\dados_locais\producao\pasta_dados.txt,
+         a mesma que o Validador de Fluxos usa dentro do sistema);
+      3) padrão: python\dados_locais\producao  (criada sozinha na 1ª vez; a atualização do sistema nunca apaga dados_locais).
+   Banco compartilhado         = <pasta ACIMA da pasta de dados>\pcp_projeart.db   (no padrão: python\dados_locais\pcp_projeart.db)
+   Python                      = python\ferramentas\achar_python.bat do sistema (.venv do sistema, Python portátil ou o do PC)
+   Cópia local do código       = %LOCALAPPDATA%\PPCP_Apps\Corte_Inteligente\app   (feita pelo .bat com robocopy /MIR)
+   Log deste app               = %LOCALAPPDATA%\PPCP_Apps\Corte_Inteligente\logs\app_dxf_ppcp_log.txt   (variável PPCP_LOGS)
+   Banco: pcp_projeart.db (pasta acima de PPCP_DADOS), tabelas:
+      corte_processamentos (cada vez que roda: pasta, data, total de arquivos)
+      corte_arquivos (cada DXF: estratégia, eficiência, perda_mm)
+      corte_partes (cada parte gerada: nome, comprimento, furos)
+      corte_eventos (corte_forcado / segmento_bloqueado / erro, com posição X e comprimento)
+   Tabelas criadas pelo código: corte_arquivos, corte_eventos, corte_partes, corte_processamentos
+
+7. COMO ABRIR
+----------------------------------------------------------------------------------------------------
+   • 1ª vez no PC: dois cliques em instalar_bibliotecas_Corte_Inteligente.bat (usa o Python do sistema)
+   • Depois: dois cliques em iniciar_Corte_Inteligente.bat (copia o código pro PC e abre). Com problema: iniciar_Corte_Inteligente.bat debug
+   • Ou, pelo CMD dentro desta pasta: python main.py
+   • Para virar .exe: pyinstaller Corte_Inteligente.spec
+
+8. ARQUIVOS DENTRO DO APP
+----------------------------------------------------------------------------------------------------
+   corte/
+      __init__.py                            0 linhas  (marca a pasta como pacote Python)
+      aba.py                               390 linhas  TELA (interface principal)
+      dialogos.py                          272 linhas  TELA (janelas de diálogo)
+      processador.py                       378 linhas  LÓGICA (motor de processamento)
+   nucleo/   (COMUM a todos os apps)
+      __init__.py                            0 linhas  (pacote)
+      ambiente_qt.py                        33 linhas  ajustes do Qt antes de abrir
+      banco_dados.py                       146 linhas  SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+      caminhos.py                          126 linhas  onde ficam código, dados, banco e logs
+      estilo.py                            226 linhas  cores e estilo das telas Qt
+      logging_config.py                     84 linhas  registro de erros (log)
+      modo_local.py                        110 linhas  cópia local do código (abre rápido)
+      normalizacao.py                       60 linhas  regra normalizar_obra (nome da pasta da obra -> OF)
+      assets/icone_projeart.ico                        imagem da marca
+      assets/icone_projeart.png                        imagem da marca
+      assets/logo_projeart.png                         imagem da marca
+   main.py                                   INÍCIO (gerado: prepara dados/log e abre só esta ferramenta)
+   iniciar_Corte_Inteligente.bat             atalho rápido (cópia local + abre sem janela preta)
+   instalar_bibliotecas_Corte_Inteligente.batinstala o requirements.txt no Python do sistema
+   pasta_dados.txt                           1ª linha = pasta de DADOS (padrão: python\dados_locais\producao)
+   requirements.txt                          bibliotecas
+   Corte_Inteligente.spec                    receita do PyInstaller (.exe)
+   MANIFESTO.json                            impressão digital (sha256) de cada arquivo
+   MAPA_DO_CODIGO.txt                        índice de TODAS as funções/constantes com o número da linha
+
+9. BIBLIOTECAS (pip install -r requirements.txt)
+----------------------------------------------------------------------------------------------------
+   - PyQt5
+   - ezdxf
+   (o resto é biblioteca padrão do Python: os, sys, re, sqlite3, json, shutil...)
+
+10. TEMA DO SISTEMA - PPCPM (só aparência)
+----------------------------------------------------------------------------------------------------
+   Padrão de docs/REQUISITOS_FLUXO_DE_TRABALHO.md, seção 10: azul Projeart #0b3d91 nas faixas e destaques; fundo #eef1f5;
+   quadros com borda #545659, faixa azul de 3px em cima e título numa faixa cinza; TODOS os botões cinza-azulado
+   (#e3e8ee -> #cdd4de, borda #98a3b3) com letra preta negrito; campos #f3f5f8 -> #e6eaf0 (brancos ao focar);
+   tabelas com cabeçalho no tema dos botões, letra preta, linhas brancas alternando com #f6f7f9, selecionada #dbe8fb.
+   Arquivos que mudaram (só cores/bordas/textos de estilo — conferido pela árvore do código, regras idênticas):
+     - nucleo/estilo.py
+     - corte/aba.py
+     - corte/dialogos.py
+     - main.py e iniciar_*.bat (pasta de dados do sistema, Python do sistema, seleção azul-clara, título)
+

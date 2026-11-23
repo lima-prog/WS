@@ -1,0 +1,37 @@
+{
+ "app": "Criar Pasta / Auditoria",
+ "chave": "auditoria",
+ "gerado_em": "17/11/2026 11:46",
+ "gerador": "1.0",
+ "origem": "ppcp_dxf_ferramentas (PPCP Ferramentas) + tema SISTEMA - PPCPM",
+ "pastas_de_codigo": [
+  "auditoria",
+  "nucleo"
+ ],
+ "arquivos": {
+  "Criar_Pasta_Auditoria.spec": "be55426e7ede7429e83481a6c907c59bd19f9aa5a7899d07bdac36c78ecb3433",
+  "LEIA-ME.txt": "ddb278459ee9d9ebba2344ffce4f00b261a6bf4c0a4d58aa43b0d1af7428d87f",
+  "MAPA_DO_CODIGO.txt": "6635491a9c5f3b54e193fde5302a9b40e4b135880b41b65e48147ced639b5640",
+  "iniciar_Criar_Pasta_Auditoria.bat": "85f6c34b51f861e203da1b4f1ed69ade41b2f7a76d3f0ee61102a4f17cb4796b",
+  "instalar_bibliotecas_Criar_Pasta_Auditoria.bat": "6ed8ac51ef782d5f47411886fe139573afa1344809dc97eafd1f729a4e97f08b",
+  "main.py": "e4351995b8eab2564fa6439d95062088d5a5a87db6ed6b24ba679bd3df77493c",
+  "pasta_dados.txt": "7751ab758857c3cfaa3e4688622f4241e3098de7ee4a15b022ab972e67b200a7",
+  "requirements.txt": "d43255e7808e707e2eb4f18c71ef46767838efabb0898b9ecfd51c7753b48376",
+  "auditoria/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "auditoria/aba.py": "a47636dec9ec81768206b15dd22e583d8bba8c17d73c8cd9e7bdcb72748bcd0d",
+  "auditoria/banco.py": "4ad6f8849bb1eb098b0a6975328e341f1bd2c2f4e8dab747979e4e79a4ecab21",
+  "auditoria/processador.py": "dc5be652325f55b0fd1a64a3f5211a035c70d219e85accd2231736c17adb3b2e",
+  "auditoria/utilitarios.py": "ddb2e3d69f4fa957c0f5ca2c9e6011f5435c161f5ec8c6f25538689559e6f48d",
+  "nucleo/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "nucleo/ambiente_qt.py": "b25e51c71a1deedc0ca6483ede0993e608afe6f0303d7c20e196d9efff49c0d0",
+  "nucleo/banco_dados.py": "93c8efd7a464c15430e4f2ecd9cb2fc5a167be61964e6915f07d6feb4bf81c89",
+  "nucleo/caminhos.py": "e53bbfb0b756f903cf5318a9ee0126a2432a09b3ca4ac561a761c02915e60296",
+  "nucleo/estilo.py": "74809b4e21d92e4def1afdfffd5c2479c2f3451b89a62de17ca50d5526915ab7",
+  "nucleo/logging_config.py": "2e975b06f8ff221cad98dc750d127fe71141e73a9ab86bd02ad9a42384c890bb",
+  "nucleo/modo_local.py": "c9ef47d98540c713e970eab1be09ee3031fe995933217732bb134cec5e591c5f",
+  "nucleo/normalizacao.py": "aef26a55e7a726486a9221814c67f5a0c85edb1099a0bf194087afbccd1dd992",
+  "nucleo/assets/icone_projeart.ico": "b7efc192189fd8e5300d4395763cc821fe5ced3b7ae7d3224c604a013fe0df2b",
+  "nucleo/assets/icone_projeart.png": "40c201d3d94c917586081a9f049a3e626994cb65032b757a70acd110d5c92632",
+  "nucleo/assets/logo_projeart.png": "b912912337502a42a86576d152459e7f6006b7b476308d6e11148b14ea7d6036"
+ }
+}

@@ -151,3 +151,16 @@ def test_zebra_raw_com_acento(tmp_path, monkeypatch):
     assert enviados[0] == ("doc", lista[0]["name"], "RAW")
     assert enviados[1][1] == "^XA^CI28^FDObservação^FS^XZ".encode("utf-8")
     assert zebra.ultima_impressora() == lista[0]["name"]
+
+
+def test_preparacao_fabrica_apps():
+    """Os 7 apps da Preparação fábrica estão na pasta apps/ e aparecem no menu."""
+    from ppcpm import fabrica
+    for aba, (pasta, nome, libs) in fabrica.APPS.items():
+        e = fabrica.estado(aba)
+        assert e["ok"] and e["existe"], (aba, pasta)
+        assert [b["nome"] for b in e["bibliotecas"]] == libs
+    html = (Path(__file__).resolve().parents[2] / "index.html").read_text(encoding="utf-8")
+    assert "['fab','Preparação fábrica','gan']" in html
+    for aba in fabrica.APPS:
+        assert f'id="src-{aba}"' in html

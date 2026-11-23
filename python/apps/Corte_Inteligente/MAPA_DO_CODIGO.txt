@@ -1,0 +1,179 @@
+MAPA DO CÓDIGO — Corte Inteligente
+====================================================================================================
+Gerado automaticamente do código (AST). Linha = número da linha no arquivo. Texto = 1ª frase da docstring.
+
+
+####################################################################################################
+# corte/aba.py   (390 linhas)   — TELA (interface principal)
+####################################################################################################
+  JANELAS DE ESCOLHER ARQUIVO/PASTA (tipos aceitos)
+     204  pasta = QFileDialog.getExistingDirectory(self, "Selecionar pasta com os DXFs") if pasta: self.txt_caminho.setPlainText(pasta) # ── navegação (Anterior/Próximo) ────────────────────────────────────────
+  FUNÇÕES / CLASSES / MÉTODOS
+      22  class AbaCorte
+      23      .__init__()
+      33      .setup_ui()
+      71      ._painel_controle()
+     158      ._painel_visual()
+     203      ._procurar_pasta()
+     210      ._navegar_anterior()
+     215      ._navegar_proximo()
+     220      ._atualizar_botoes_navegacao()
+     226      ._renderizar_indice_atual()
+     239      .mostrar_visualizacao()   — Chamado pelo ProcessadorDXF durante o processamento: grava esse arquivo no historico (pra poder rever com Anterior/Proximo depois) e desenha.
+     254      ._renderizar_corte()   — Desenho puro (sem mexer no historico) — usado tanto durante o processamento quanto ao navegar com Anterior/Proximo.
+     327      .iniciar_processamento()
+     341      ._executar()
+     352      .atualizar_progresso()
+     356      .atualizar_status()
+     360      .adicionar_log()
+     364      .visualizacao_habilitada()
+     367      .velocidade_visualizacao()
+     370      .abrir_diagnostico()
+     374      .abrir_arquivos_processados()
+     378      .limpar_interface()
+
+####################################################################################################
+# corte/dialogos.py   (272 linhas)   — TELA (janelas de diálogo)
+####################################################################################################
+  CONSTANTES
+      98  DialogoDiagnostico.TIPOS = { "Todos": "Todos", "Corte forçado": "corte_forcado", "Segmento bloqueado": "segmento_bloqueado", "Erro": "erro", }
+  FUNÇÕES / CLASSES / MÉTODOS
+      15  class PainelMedidas   — Painel inferior que exibe as medidas de cada parte com cores.
+      17      .__init__()
+      29      ._limpar_layout()   — Remove todos os widgets do layout SEM deixar 'fantasmas' na tela. setParent(None) desliga o widget da árvore de exibição na hora; deleteLater() só lib…
+      40      .atualizar()
+      83      .limpar()
+      95  class DialogoDiagnostico   — Tela de consulta dos eventos de corte (forçado, bloqueado, erro) gravados no banco.
+     105      .__init__()
+     114      ._montar_ui()
+     156      ._buscar()
+     184  class DialogoArquivosProcessados   — Tela com a lista de arquivos processados. Uma caixa de marcação (checkbox) alterna entre duas visões: - Partes editadas: cada pedaço gerado pela divis…
+     193      .__init__()
+     202      ._montar_ui()
+     229      ._buscar()
+     236      ._mostrar_editados()
+     254      ._mostrar_originais()
+
+####################################################################################################
+# corte/processador.py   (378 linhas)   — LÓGICA (motor de processamento)
+####################################################################################################
+  CONSTANTES
+      22  ProcessadorDXF.TAMANHOS_CORTE = [6000, 5590, 5500]
+      23  ProcessadorDXF.MARGEM_FURO = 30
+      24  ProcessadorDXF.PARTE_MINIMA = 500
+  FUNÇÕES / CLASSES / MÉTODOS
+      21  class ProcessadorDXF
+      26      .__init__()
+      32      .processar_pasta()
+      74      ._processar_arquivo()
+     103      ._bounding_box()
+     120      ._furo_na_posicao()
+     123      ._tentar_corte()
+     135      ._corte_forcado()
+     147      ._dividir_segmento()
+     157      ._aplicar_estrategia_corte()
+     202      ._intersecao_vertical()   — Y da interseção da vertical x=x_corte com o segmento (x1,y1)-(x2,y2).
+     212      ._aparar_linha()   — Apara o segmento (x1,y1)-(x2,y2) para o intervalo X [xa,xb]. Retorna (p_inicio, p_fim) ou None se fora do intervalo.
+     250      ._gerar_arquivos_partes()
+     346      ._y_na_posicao()   — Encontra o Y (topo ou base) da peça original na posição X dada, percorrendo as linhas (e polilinhas) e calculando interseções.
+
+####################################################################################################
+# nucleo/banco_dados.py   (146 linhas)   — COMUM: SQLite compartilhado pcp_projeart.db (tabelas corte_*)
+####################################################################################################
+  TABELAS DE BANCO CRIADAS
+      26  corte_processamentos
+      31  corte_arquivos
+      39  corte_partes
+      48  corte_eventos
+  FUNÇÕES / CLASSES / MÉTODOS
+      15  class BancoDados
+      16      .__init__()
+      22      .criar_tabelas()
+      62      .registrar_processamento()
+      69      .registrar_arquivo()
+      76      .registrar_parte()
+      82      .registrar_evento()
+      92      .buscar_eventos()
+     112      .buscar_partes_editadas()   — Lista cada parte gerada (arquivo editado/dividido), com o nome do arquivo original que deu origem a ela.
+     130      .buscar_arquivos_originais()   — Lista cada arquivo original processado, com a estratégia usada e a quantidade de partes em que foi dividido.
+
+####################################################################################################
+# nucleo/caminhos.py   (126 linhas)   — COMUM: onde ficam código, dados, banco e logs
+####################################################################################################
+  CONSTANTES
+      57  RODANDO_CONGELADO = getattr(sys, 'frozen', False)
+      59  PASTA_NUCLEO_FONTE = os.path.dirname(os.path.abspath(__file__))
+      92  RAIZ_DADOS = os.path.normpath(os.path.abspath(_dados_env)) if _dados_env else RAIZ_PROJETO
+      93  MODO_RAPIDO = RAIZ_DADOS != RAIZ_PROJETO
+      95  PASTA_PAI = os.path.dirname(RAIZ_DADOS)
+      97  CAMINHO_BANCO_DADOS = os.path.join(PASTA_PAI, "pcp_projeart.db")
+     117  PASTA_LOGS = _pasta_logs()
+     124  PASTA_ASSETS = os.path.join(PASTA_NUCLEO, "assets")
+     125  CAMINHO_LOGO_PROJEART = os.path.join(PASTA_ASSETS, "logo_projeart.png")
+     126  CAMINHO_ICONE_PROJEART = os.path.join(PASTA_ASSETS, "icone_projeart.png")
+  FUNÇÕES / CLASSES / MÉTODOS
+     100  def _pasta_logs()   — Log local no modo rápido (gravar log em pasta de rede, a cada linha, pesa); senão ao lado do programa.
+
+####################################################################################################
+# nucleo/estilo.py   (226 linhas)   — COMUM: cores e estilo das telas Qt
+####################################################################################################
+  CONSTANTES
+      22  COR_AZUL_MARCA = "#0B3D91"
+      23  COR_MARINHO = "#082E6E"
+      25  COR_BG = "#EEF1F5"
+      26  COR_PAINEL = "#FFFFFF"
+      27  COR_CAMPO = "#F3F5F8"
+      28  COR_BORDA = "#98A3B3"
+      29  COR_TEXTO = "#000000"
+      30  COR_TEXTO_SUB = "#4B5563"
+      31  COR_DESTAQUE = COR_AZUL_MARCA
+      32  COR_VERDE = "#15803D"
+      33  COR_VERMELHO = "#C62828"
+      34  COR_AMARELO = "#B45309"
+      37  COR_QUADRO_BORDA = "#545659"
+      38  COR_FAIXA_TITULO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D7DCE3, stop:1 #C2C9D3)"
+      39  COR_LINHA_TITULO = "#AAB2BD"
+      40  COR_BOTAO = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #E3E8EE, stop:1 #CDD4DE)"
+      41  COR_BOTAO_HOVER = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #D9DFE7, stop:1 #C2CAD5)"
+      42  COR_BOTAO_BORDA_HV = "#808C9E"
+      43  COR_CAMPO_GRAD = "qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #F3F5F8, stop:1 #E6EAF0)"
+      44  COR_LINHA_ALT = "#F6F7F9"
+      45  COR_LINHA_HOVER = "#EEF4FB"
+      46  COR_LINHA_SEL = "#DBE8FB"
+      47  COR_OK_FAIXA = "#1E9E4A"
+      48  COR_OK_FUNDO = "#DCF5E3"
+      49  COR_ERRO_FUNDO = "#FDEEEE"
+      50  COR_ERRO_BORDA = "#F1B9B9"
+      51  COR_LARANJA = "#EA580C"
+      53  CORES_PARTES = [ QColor(11, 61, 145, 210), # azul Projeart QColor(30, 158, 74, 210), # verde QColor(234, 88, 12, 210), # laranja QColor(124, 58, 237, 210), # roxo QColor(198, 40, 40, 210), # vermelho …
+      61  ESTILO_GERAL = f""" QMainWindow, QWidget {{ background-color: {COR_BG}; color: {COR_TEXTO}; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }} QDialog {{ background-color: {COR_BG}; }} QTabWidget:…
+  FUNÇÕES / CLASSES / MÉTODOS
+
+####################################################################################################
+# nucleo/logging_config.py   (84 linhas)   — COMUM: registro de erros (log)
+####################################################################################################
+  CONSTANTES
+      33  LOG_PATH = os.path.join(PASTA_LOGS, "app_dxf_ppcp_log.txt")
+  FUNÇÕES / CLASSES / MÉTODOS
+      38  def registrar_erro_fatal()   — Grava um erro fatal no arquivo de log E imprime no console. Usado tanto pelo try/except do main.py quanto pelo excepthook global abaixo.
+      55  def _excepthook_global()   — Pega qualquer erro que escape sem tratamento e garante que fica registrado no log antes do programa fechar, em vez de simplesmente sumir junto com o t…
+      63  def configurar_logging()   — Liga o log em arquivo + console e o excepthook global. Chamar uma vez só, bem no início do main.py. Retorna o logger compartilhado.
+
+####################################################################################################
+# nucleo/modo_local.py   (110 linhas)   — COMUM: cópia local do código (abre rápido)
+####################################################################################################
+  CONSTANTES
+      22  PASTAS_EXCLUIDAS = {"__pycache__", "claude outputs", "relatorio", "roteirizador_dxf", "referencia_html", "icones_usuario", ".git", ".vscode", ".idea", "venv", ".venv"}
+      24  ARQUIVOS_EXCLUIDOS = ("*.db", "*.db-journal", "*.db-wal", "*.db-shm", "app_dxf_ppcp_log.txt*", "layout_desktop_*.json", "etiquetas_impressora.json", "continuidade.md", "*.bak", "*.pyc", "*.tmp")
+  FUNÇÕES / CLASSES / MÉTODOS
+      28  def _em_unidade_de_rede()
+      40  def _arquivo_excluido()
+      45  def _mesmo()
+      53  def sincronizar()   — Espelha o código de `origem` em `destino` (copia o que mudou, apaga o que sumiu). Devolve (copiados, apagados).
+      84  def garantir_execucao_local()   — Chamar no topo do main.py. Se estiver em rede: sincroniza, roda de lá (espera) e encerra com o mesmo código de saída.
+
+####################################################################################################
+# nucleo/normalizacao.py   (60 linhas)   — COMUM: regra normalizar_obra (nome da pasta da obra -> OF)
+####################################################################################################
+  FUNÇÕES / CLASSES / MÉTODOS
+      17  def normalizar_obra()   — Converte NUM_COM (ou o nome da pasta da obra, no fallback) para o identificador da obra usado no DXF. Exemplos: 2058-102_01_L1 -> 2058-102-01 2058-102…

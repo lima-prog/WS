@@ -24,6 +24,13 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | Gerenciador de Roteiros › Gerenciamento de roteiro - ERP | `pg15.txt` | openpyxl (opcional: playwright) |
 | Gerenciador de Roteiros › Acesso ao Intranet | `pg11.txt` | requests |
 | Área de impressão › Impressão de Etiquetas | `pg12.txt` | pandas, openpyxl, xlrd, dbfread, reportlab, pywin32 |
+| Preparação fábrica › Visualizador DXF | `pg16.txt` | PyQt5, ezdxf, numpy, pyqtgraph |
+| Preparação fábrica › Espelhar DXF | `pg17.txt` | PyQt5, ezdxf |
+| Preparação fábrica › Corte Inteligente | `pg18.txt` | PyQt5, ezdxf |
+| Preparação fábrica › Renomear DXF | `pg19.txt` | PyQt5 |
+| Preparação fábrica › Conversor CAM → DXF | `pg20.txt` | PyQt5, ezdxf |
+| Preparação fábrica › Criar Pasta / Auditoria | `pg21.txt` | PyQt5, openpyxl |
+| Preparação fábrica › Roteirizador DXF | `pg22.txt` | ezdxf, numpy, openpyxl, pandas, xlrd |
 
 ## O que cada biblioteca faz
 
@@ -48,3 +55,5 @@ que vão sendo passados para Python. Instale uma vez em cada PC com `INSTALAR_BI
 | `playwright` | Abrir o intranet já com a planilha de roteiro anexada (usa o Edge ou o Chrome do PC) |
 | `requests` | Enviar arquivos para a Intranet PCP |
 | `reportlab` | Gerar PDF (etiquetas centralizadas, relatórios) |
+| `PyQt5` | Janelas dos apps da Preparação fábrica (Visualizador, Espelhar, Corte Inteligente, Renomear, Conversor CAM, Auditoria) |
+| `pyqtgraph` | Desenho rápido do DXF no Visualizador DXF (zoom e enquadrar) |
