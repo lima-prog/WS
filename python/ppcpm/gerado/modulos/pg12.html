@@ -2566,7 +2566,8 @@ if (typeof module !== 'undefined') module.exports = PP;
   // filtros que juntam vários setores (ex.: PERFIL L = PERFILADEIRA L1 + PERFILADEIRA L2)
   // e juntam TODAS as obras do pacote num saco só (uma etiqueta com só o nome do grupo)
   var SETOR_PS = 'PERFIL SOLDADO';   // V136: aba PS PREP (COD ITEM = PS_PREP)
-  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'], 'PERFIL U/C': ['PERFILADEIRA U/C'], 'PERFIL SOLDADO': [SETOR_PS] };   // V216: PERFIL SOLDADO também vira uma etiqueta só, sem obra
+  var SETOR_TUBO = 'TUBO';            // V262: COD ITEM = TB_PREP vira o setor "TUBO" (mesmo que o relatório mande para LAMINADOS)
+  var GRUPOS_SETOR = { 'PERFIL L': ['PERFILADEIRA L1', 'PERFILADEIRA L2'], 'PERFIL U/C': ['PERFILADEIRA U/C'], 'PERFIL SOLDADO': [SETOR_PS], 'TUBO': [SETOR_TUBO] };   // V216: PERFIL SOLDADO também vira uma etiqueta só, sem obra
   function noSetor(fluxo, fl) {
     if (!fl || fl === TODOS) return true;
     var g = GRUPOS_SETOR[fl];
@@ -2616,17 +2617,18 @@ if (typeof module !== 'undefined') module.exports = PP;
       if (!ws) return 0;
       var t = linhasDaAba(ws);
       if (!t) throw new Error('Na aba "' + nomeAba + '" não achei o cabeçalho com a coluna OF-TRECHO.');
-      var cOf = t.col('OF-TRECHO'), cG = t.col(colGrupo), cR = colReserva ? t.col(colReserva) : -1, cL = t.col('LOTE');
+      var cOf = t.col('OF-TRECHO'), cG = t.col(colGrupo), cR = colReserva ? t.col(colReserva) : -1, cL = t.col('LOTE'), cCod = t.col('COD ITEM');
       if (cG < 0) throw new Error('Na aba "' + nomeAba + '" não achei a coluna ' + colGrupo + '.');
       var n = 0;
       t.linhas.forEach(function (l) {
         var obra = valorTexto(l[cOf]); if (!obra) return;
         var g = valorTexto(l[cG]);
         if (!g && cR >= 0) g = valorTexto(String(l[cR] || '').split('>')[0]);
+        if (cCod >= 0 && semAcento(valorTexto(l[cCod])) === 'TB_PREP') g = SETOR_TUBO;   // V262: tubo tem etiqueta própria
         if (!g) return;
         if (!lote && cL >= 0 && /^\d+$/.test(valorTexto(l[cL]))) lote = valorTexto(l[cL]);
         if (!obras.has(obra)) obras.set(obra, { prep: [], nao: [] });
-        var lista = obras.get(obra)[nomeAba === 'Preparação' ? 'prep' : 'nao'];
+        var lista = obras.get(obra)[nomeAba === 'Preparação' && g !== SETOR_TUBO ? 'prep' : 'nao'];
         g = g.toUpperCase();
         if (lista.indexOf(g) < 0) { lista.push(g); n++; }
       });
@@ -2639,11 +2641,12 @@ if (typeof module !== 'undefined') module.exports = PP;
     if (tPs) {
       var pOf = tPs.col('OF-TRECHO'), pCod = tPs.col('COD ITEM'), pL = tPs.col('LOTE');
       if (pOf >= 0 && pCod >= 0) tPs.linhas.forEach(function (l) {
-        var obra = valorTexto(l[pOf]); if (!obra || semAcento(valorTexto(l[pCod])) !== 'PS_PREP') return;
+        var cod = semAcento(valorTexto(l[pCod])), obra = valorTexto(l[pOf]); if (!obra || (cod !== 'PS_PREP' && cod !== 'TB_PREP')) return;
+        var setorPs = cod === 'TB_PREP' ? SETOR_TUBO : SETOR_PS;
         if (!lote && pL >= 0 && /^\d+$/.test(valorTexto(l[pL]))) lote = valorTexto(l[pL]);
         if (!obras.has(obra)) obras.set(obra, { prep: [], nao: [] });
         var lista = obras.get(obra).nao;
-        if (lista.indexOf(SETOR_PS) < 0) { lista.push(SETOR_PS); nPs++; nNao++; }
+        if (lista.indexOf(setorPs) < 0) { lista.push(setorPs); if (setorPs === SETOR_PS) nPs++; nNao++; }
       });
     }
     if (!obras.size) throw new Error('Nenhuma obra com máquina (Preparação) ou setor (Não Preparação) encontrada no relatório.');
