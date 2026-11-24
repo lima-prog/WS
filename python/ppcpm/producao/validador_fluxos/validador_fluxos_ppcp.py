@@ -1799,6 +1799,13 @@ def _atualizar_vinculo_lantek(wb_com):
         nome = str(f).upper()
         if 'LANTEK_SKA' in nome and '00. BACK UP' not in nome:
             try:
+                # a planilha do vínculo não existe neste PC (sem o Google Drive): aponta para a cópia do sistema
+                if ska_lantek and not os.path.isfile(str(f)):
+                    novo = ska_lantek.caminho_destino()
+                    if os.path.isfile(novo) and os.path.normcase(novo) != os.path.normcase(str(f)):
+                        wb_com.ChangeLink(Name=f, NewName=novo, Type=1)
+                        n += 1
+                        continue
                 wb_com.UpdateLink(Name=f, Type=1)
                 n += 1
             except Exception:

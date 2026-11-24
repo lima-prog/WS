@@ -63,8 +63,31 @@ def _norm(v):
     return re.sub(r"\s+", " ", s).strip().upper()
 
 
+# Cópia da planilha que vem DENTRO do sistema (ppcpm/producao/lantek_ska). Ela é só o MODELO: o arquivo que é atualizado
+# fica em dados_locais/producao/lantek_ska (a atualização do sistema nunca mexe nos dados_locais, então os dados
+# colados do SKA não voltam atrás). Só é usada quando a pasta fixa do Google Drive (PASTA_SKA) não existe neste PC.
+_AQUI = os.path.dirname(os.path.abspath(__file__))
+PASTA_SKA_MODELO = os.path.join(os.path.dirname(_AQUI), "lantek_ska")
+PASTA_SKA_LOCAL = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(_AQUI))), "dados_locais", "producao",
+                               "lantek_ska")
+
+
 def caminho_destino(pasta=None, arquivo=None):
-    return os.path.join(pasta or os.environ.get("PPCP_SKA_PASTA") or PASTA_SKA, arquivo or ARQUIVO_SKA)
+    arquivo = arquivo or ARQUIVO_SKA
+    if pasta or os.environ.get("PPCP_SKA_PASTA"):
+        return os.path.join(pasta or os.environ.get("PPCP_SKA_PASTA"), arquivo)
+    drive = os.path.join(PASTA_SKA, arquivo)
+    if os.path.isfile(drive) or os.path.isdir(PASTA_SKA):          # 1) a planilha do Drive (a que as bases usam)
+        return drive
+    local = os.path.join(PASTA_SKA_LOCAL, arquivo)                 # 2) a do próprio sistema
+    modelo = os.path.join(PASTA_SKA_MODELO, arquivo)
+    if not os.path.isfile(local) and os.path.isfile(modelo):
+        try:
+            os.makedirs(PASTA_SKA_LOCAL, exist_ok=True)
+            shutil.copy2(modelo, local)
+        except OSError:
+            return modelo if os.path.isfile(modelo) else drive
+    return local if os.path.isfile(local) else drive
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
