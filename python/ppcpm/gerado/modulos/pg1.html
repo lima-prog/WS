@@ -2310,7 +2310,7 @@ $('#an-analisar').onclick = () => {
     fn: async p => { p('Lendo DBFs…'); const dbf = await parseMultiDbfAnalise(S.an.dbfs); p('Lendo FOCCO…'); const focco = await parseFoccoExport(S.an.focco); return { dbf, focco, ...buildResults(dbf, focco) }; },
     ok: r => {
       Object.assign(S.an, { det: r.det, grp: r.grp, rows: r.dbf.rows, ofTrecho: r.dbf.ofTrecho || r.focco.ofTrecho || '' });
-      if (!$('#an-nome').value.trim()) $('#an-nome').value = `Validação-peso__OF-${S.an.ofTrecho || 'trecho'}___ SISTEMA - PPCPM__${dateTag()}`;
+      $('#an-nome').value = `Validação-peso__OF-${S.an.ofTrecho || 'trecho'}___ SISTEMA - PPCPM__${dateTag()}`;   // V264: o nome sempre acompanha a DBF/relatório analisados
       const tD = r.det.reduce((s, x) => s + x.pesoDBF, 0), tF = r.det.reduce((s, x) => s + x.pesoFOCCO, 0);
       const div = r.det.filter(x => Math.abs(x.pct) > 1 && Math.abs(x.delta) > 0.001).length;
       $('#an-status').textContent = `OF/Trecho: ${S.an.ofTrecho || '—'} · Peso DBF: ${fmtBr(tD)} kg · Peso FOCCO: ${fmtBr(tF)} kg · Delta: ${sinal(tF - tD, 3)} kg · ${div} marca(s) com >1% divergência`;
