@@ -5900,7 +5900,7 @@ class MainWindow(QWidget):
         if self.base_path and self.base_fixa_path and os.path.normcase(os.path.abspath(path)) == \
                 os.path.normcase(os.path.abspath(self.base_fixa_path)):
             txt = self.lbl_base.text()
-            self.lbl_base.setText('🔒 BASE FIXA · ' + (txt[2:] if txt.startswith('✓ ') else txt))
+            self.lbl_base.setText('BASE FIXA · ' + (txt[2:] if txt.startswith('✓ ') else txt))
 
     def _processar_base_impl(self, path):
         ext = ext_of(path)
