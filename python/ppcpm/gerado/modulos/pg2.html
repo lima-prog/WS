@@ -175,10 +175,10 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
   <div class="cx-h"><span class="badge">2</span><h3>Planilha base + Relatório do fluxos + Focco - ERP + LOTE | NDPCP399</h3></div>
   <div class="grid3">
     <div class="cx" style="border-top-width:1px">
-      <div class="cx-h"><h3 style="font-size:14px">Planilha Base</h3><div class="dir"><button class="b mini" data-m="_mostrar_historico_base" title="Histórico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button></div></div>
-      <input type="text" class="campo-in" data-w="lbl_base" data-ao-mudar="_caminho_digitado_base">
-      <div class="drop" data-arq="_processar_base" data-aceita=".xlsx,.xlsm,.xlsb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg><span>arraste outra Base aqui (só se não quiser a Base fixa)</span></div>
-      <div class="linha"><button class="b p" data-arq="_processar_base" data-aceita=".xlsx,.xlsm,.xlsb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg> Usar outra Base</button><button class="b" data-m="_limpar_base"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> Base fixa</button></div>
+      <div class="cx-h"><h3 style="font-size:14px">Planilha Base</h3><span class="sub">🔒 fixa no sistema</span></div>
+      <input type="text" class="campo-in base-fixa" data-w="lbl_base" readonly tabindex="-1" title="A Base fica dentro do próprio sistema e carrega sozinha. Revisão nova: mande o arquivo para ser trocado no sistema.">
+      <div class="base-fixa-info">A planilha Base fica <b>dentro do sistema</b> e carrega sozinha ao abrir esta tela (vale sempre a revisão mais nova). Não precisa escolher nem arrastar arquivo.</div>
+      <div class="linha"><button class="b" data-m="_limpar_base" title="Carrega de novo a Base fixa do sistema"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> Recarregar Base fixa</button></div>
     </div>
     <div class="cx" style="border-top-width:1px">
       <div class="cx-h"><h3 style="font-size:14px">Relatório de Fluxos</h3><div class="dir"><button class="b mini" data-m="_mostrar_historico_fluxo" title="Histórico"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button></div></div>
@@ -227,6 +227,8 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .b:active:not(:disabled),.b.p:active:not(:disabled){background:#c2cad5}
 .st-topo{margin:0 0 0 14px!important;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 12px;border:1px solid #c5cbd6;border-radius:4px;background:#fff;font-size:12.5px}
 .st-topo:empty{display:none}
+.base-fixa{cursor:default;background:#eef7f0!important;border-color:#9fd3ad!important;color:#14532d!important;font-weight:700}
+.base-fixa-info{margin:8px 0 2px;font-size:12px;color:#4b5563;line-height:1.5}
 input[data-w="txt_lote"]{background:linear-gradient(#f3f5f8,#e6eaf0);border:1px solid #98a3b3;color:#000;font-weight:700}
 input[data-w="txt_lote"]:focus{background:#fff;border-color:#5f6b7a}
 /* V219 — Agrupador: quadros no modelo cinza (faixa de título, fundo cinza-azulado, borda escura) */
