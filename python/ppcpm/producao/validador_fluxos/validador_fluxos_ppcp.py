@@ -1787,6 +1787,30 @@ def _aplicar_filtros_das_observacoes(ws_com, pivot_table):
 
 
 
+def _pasta_downloads():
+    """Pasta Downloads do usuário (a de verdade, mesmo se foi movida/OneDrive); se não achar, a pasta do usuário."""
+    if os.name == 'nt':
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders') as k:
+                v = os.path.expandvars(winreg.QueryValueEx(k, '{374DE290-123F-4565-9164-39C4925E467B}')[0])
+                if os.path.isdir(v):
+                    return v
+        except OSError:
+            pass
+    for nome in ('Downloads', 'Transferências'):
+        p = os.path.join(os.path.expanduser('~'), nome)
+        if os.path.isdir(p):
+            return p
+    p = os.path.join(os.path.expanduser('~'), 'Downloads')
+    try:
+        os.makedirs(p, exist_ok=True)
+        return p
+    except OSError:
+        return os.path.expanduser('~')
+
+
 def _atualizar_vinculo_lantek(wb_com):
     """Atualiza, dentro da base aberta, o vínculo com a planilha LANTEK_SKA (a que alimenta MÁQUINA_LANTEK).
     Devolve quantos vínculos atualizou (0 se não houver / falhar — nunca derruba a geração)."""
@@ -6123,14 +6147,8 @@ class MainWindow(QWidget):
             QMessageBox.warning(self, 'Aviso', 'Informe o nome/número do lote.')
             return
 
-        pasta = os.path.dirname(self.base_path)
-        if self.base_fixa_path and os.path.normcase(os.path.abspath(self.base_path)) == \
-                os.path.normcase(os.path.abspath(self.base_fixa_path)):
-            # a Base fixa mora numa pasta do sistema: o arquivo NOVO sugere a última pasta de saída usada (ou Documentos)
-            ult = carregar_historico('pasta_saida_base')
-            pasta = ult[0] if ult else os.path.join(os.path.expanduser('~'), 'Documents')
-            if not os.path.isdir(pasta):
-                pasta = os.path.expanduser('~')
+        # V271: a base gerada vai SEMPRE para a pasta Downloads do usuário (fácil de achar, igual para todos)
+        pasta = _pasta_downloads()
         lote_slug = re.sub(r'[^a-zA-Z0-9-]', '-', lote)
         usar_excel = self.base_is_xlsb or _excel_com_disponivel()
 
