@@ -165,7 +165,7 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 </div>
 
 <div class="cx">
-  <div class="cx-h"><span class="badge">1</span><h3>DBFs a agrupar</h3><span class="sub">Excel, CSV/TXT, .xlsb, .dbf</span>
+  <div class="cx-h"><span class="badge">1</span><h3>DBFs a agrupar</h3><span class="sub">Excel, CSV/TXT, .xlsb, .dbf</span><div class="status st-topo" data-w="lbl_status" title="Andamento (o mesmo aviso que aparece embaixo, ao lado de Nome do Lote)"></div>
     <div class="dir"><button class="b" data-arq="_adicionar_dbf_paths" data-multi data-aceita=".xlsx,.xlsm,.xls,.xlsb,.csv,.txt,.tsv,.dbf"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Adicionar arquivos</button><button class="b" data-m="limpar_dbfs"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg> Limpar lista</button></div></div>
   <div class="drop" data-arq="_adicionar_dbf_paths" data-multi data-aceita=".xlsx,.xlsm,.xls,.xlsb,.csv,.txt,.tsv,.dbf"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg><span>arraste os DBFs aqui</span></div>
   <ul class="lista" data-w="lst_dbf" data-vazio="nenhum arquivo"></ul>
@@ -225,6 +225,8 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .b,.b.p{background:linear-gradient(#e3e8ee,#cdd4de);border:1px solid #98a3b3;color:#000;box-shadow:0 1px 1px rgba(16,24,40,.08)}
 .b:hover:not(:disabled),.b.p:hover:not(:disabled){background:linear-gradient(#d9dfe7,#c2cad5);border-color:#808c9e;color:#000}
 .b:active:not(:disabled),.b.p:active:not(:disabled){background:#c2cad5}
+.st-topo{margin:0 0 0 14px!important;min-width:0;max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 12px;border:1px solid #c5cbd6;border-radius:4px;background:#fff;font-size:12.5px}
+.st-topo:empty{display:none}
 input[data-w="txt_lote"]{background:linear-gradient(#f3f5f8,#e6eaf0);border:1px solid #98a3b3;color:#000;font-weight:700}
 input[data-w="txt_lote"]:focus{background:#fff;border-color:#5f6b7a}
 /* V219 — Agrupador: quadros no modelo cinza (faixa de título, fundo cinza-azulado, borda escura) */
