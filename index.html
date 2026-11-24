@@ -3360,7 +3360,7 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
     <input type="text" class="cresce" data-w="lbl_ska" data-ao-mudar="_caminho_digitado_ska"></div>
   <div class="drop" data-arq="_processar_relatorio_ska" data-aceita=".csv,.txt,.xlsx,.xlsm,.xlsb,.xls"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg><span>arraste o relatório SKA (CSV) aqui</span></div>
   <label class="chk" data-w="chk_ska"><input type="checkbox"><span>Atualizar a planilha LANTEK_SKA automaticamente ao gerar a base</span><small>precisa do Excel instalado neste PC</small></label>
-  <div class="linha"><button class="b" data-w="btn_ska_agora" data-m="atualizar_ska_agora"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> Atualizar a planilha LANTEK_SKA agora</button></div>
+  <div class="linha"><button class="b" data-w="btn_ska_agora" data-m="atualizar_ska_agora"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg> Atualizar a planilha LANTEK_SKA agora</button><div class="status st-ska" data-w="lbl_status" title="Andamento (o mesmo aviso que aparece embaixo, ao lado de Nome do Lote)"></div><span class="st-tempo" title="Tempo desde que o trabalho começou"></span></div>
 </div>
 
 <div class="cx">
@@ -3388,6 +3388,12 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .st-topo:empty{display:none}
 .base-fixa{cursor:default;background:#eef7f0!important;border-color:#9fd3ad!important;color:#14532d!important;font-weight:700}
 .base-fixa-info{margin:8px 0 2px;font-size:12px;color:#4b5563;line-height:1.5}
+.st-ska{margin:0 0 0 6px!important;flex:1;min-width:0;padding:6px 12px;border:1px solid #c5cbd6;border-radius:4px;background:#fff;font-size:12.5px}
+.st-ska:empty{display:none}
+.st-tempo:empty{display:none}
+.st-tempo{flex:none;padding:6px 12px;border-radius:4px;font:700 13px Consolas,"Segoe UI",monospace;border:1px solid #c5cbd6;background:#fff;color:#374151;white-space:nowrap}
+.st-tempo.on{border-color:#0b3d91;color:#0b3d91;background:#eef3fb}
+.st-tempo.fim{border-color:#9fd3ad;color:#15803d;background:#eef7f0}
 input[data-w="txt_lote"]{background:linear-gradient(#f3f5f8,#e6eaf0);border:1px solid #98a3b3;color:#000;font-weight:700}
 input[data-w="txt_lote"]:focus{background:#fff;border-color:#5f6b7a}
 /* V219 — Agrupador: quadros no modelo cinza (faixa de título, fundo cinza-azulado, borda escura) */
@@ -3491,6 +3497,7 @@ window.PR_ABA = 'agrupador';
     for (const m of e.msgs || []) { msgId = Math.max(msgId, m.id); if (!primeira) filaMsgs.push(m); }
     ocupado = !!e.ocupado;
     $$('.status[data-w]').forEach(s => s.classList.toggle('rodando', ocupado));
+    relogio(ocupado);
     if (saidaInicial === null) saidaInicial = e.saida || '';
     else if (e.saida && e.saida !== saidaInicial) mostrarSaida(e.saida);
     if (e.pasta_dados !== undefined && window.PR_pastaDados) window.PR_pastaDados(e.pasta_dados);
@@ -3498,6 +3505,22 @@ window.PR_ABA = 'agrupador';
     agendar(ocupado || e.pedido ? 450 : 2500);
   }
 
+  /* V269: relógio do trabalho em andamento (ao lado do botão da LANTEK_SKA) — conta desde que começou e,
+     no fim, mostra quanto levou */
+  let tIni = null, tTimer = null;
+  const fmtT = ms => { const t = Math.floor(ms / 1000); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+  function relogio(on) {
+    const els = $$('.st-tempo');
+    if (on && !tIni) {
+      tIni = Date.now();
+      clearInterval(tTimer);
+      tTimer = setInterval(() => els.forEach(x => { x.textContent = '⏱ ' + fmtT(Date.now() - tIni); x.className = 'st-tempo on'; }), 1000);
+      els.forEach(x => { x.textContent = '⏱ 0:00'; x.className = 'st-tempo on'; });
+    } else if (!on && tIni) {
+      clearInterval(tTimer); const d = Date.now() - tIni; tIni = null;
+      els.forEach(x => { x.textContent = '✔ levou ' + fmtT(d); x.className = 'st-tempo fim'; });
+    }
+  }
   function desenhar(n, j) {
     $$(`[data-w="${n}"]`).forEach(el => {
       if (el.dataset.semVis === undefined) el.style.display = j.vis === false ? 'none' : '';
@@ -23577,7 +23600,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 268';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 269';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
