@@ -2048,16 +2048,46 @@ def _tabela_tem_linha(pivot_table, trecho_nome):
     return False
 
 
-def _aplicar_filtros_fixos_base(ws_com, pivot_table):
-    """Passo 3 do vídeo: filtros fixos de cada aba. Devolve True se a tabela é da exceção do Quadro (FLUXO PRD = Tudo)."""
+def _aplicar_filtros_fixos_base(ws_com, pivot_table, feitos=None):
+    """Passo 3 do vídeo: filtros fixos de cada aba. Devolve True se a tabela é da exceção do Quadro (FLUXO PRD = Tudo).
+    `feitos` (set) recebe a descrição de cada filtro aplicado — vai para o quadro de aviso do fim."""
     nome_aba = norm(ws_com.Name)
     for inicio, campo, itens in FILTROS_FIXOS_BASE:
         if nome_aba.startswith(norm(inicio)):
-            _filtrar_campo_somente(pivot_table, campo, itens)
+            if _filtrar_campo_somente(pivot_table, campo, itens) and feitos is not None:
+                feitos.add(f'{inicio} · {campo} = ' + ', '.join(sorted(itens)))
     if nome_aba.startswith(norm(ABA_QUADRO_GESTAO)) and _tabela_tem_linha(pivot_table, 'MAQUINA'):
-        _filtrar_campo_somente(pivot_table, 'FLUXO PRD', None)
+        if _filtrar_campo_somente(pivot_table, 'FLUXO PRD', None) and feitos is not None:
+            feitos.add('PREP_Quadro · PESO POR BC · FLUXO PRD = (Tudo)')
         return True
     return False
+
+
+def _quadro_atualizacoes_base(resultado, usou_excel=True):
+    """Texto do quadro de aviso: o que o sistema atualizou na planilha (regras fixas V275), item por item."""
+    if not usou_excel:
+        return ('\n\nATUALIZAÇÕES DA PLANILHA (padrão do sistema)\n'
+                '  ⚠ Não feitas: gerada sem o Excel neste PC — classificação da DBF, tabelas dinâmicas, filtros, '
+                'data da PREP_Lista e nomes/cores das abas só rodam com o Excel instalado.')
+    ok = lambda v: '✔' if v else '⚠'
+    ordem = resultado.get('ordem_dbf') or []
+    linhas = ['', '', 'ATUALIZAÇÕES DA PLANILHA (padrão do sistema)']
+    linhas.append(f"  {ok(ordem)} 1. DBF classificada: "
+                  + (' → '.join(f'{n} ({"Z→A" if n == "PAI X FILHO" else "A→Z"})' for n in ordem) if ordem
+                     else 'NÃO classificou (confira a ordem manualmente)'))
+    n_pt, n_err = resultado.get('pivots_atualizados') or 0, resultado.get('pivots_com_erro') or 0
+    linhas.append(f"  {ok(n_pt and not n_err)} 2. Tabelas dinâmicas: fonte = {resultado.get('fonte_pivots') or 'DBF'}"
+                  f" · {resultado.get('caches_corrigidos') or 0} fonte(s) ajustada(s) · {n_pt} atualizada(s)"
+                  + (f' · {n_err} com erro' if n_err else ''))
+    filtros = resultado.get('filtros_fixos') or []
+    linhas.append(f"  {ok(filtros)} 3. Filtros:" + ('' if filtros else ' nenhum filtro fixo aplicado'))
+    linhas += [f'       • {t}' for t in filtros]
+    linhas.append(f"  {ok(resultado.get('data_prep_lista'))} 4. PREP_Lista · H5 = data de hoje "
+                  f"({date.today().strftime('%d/%m/%Y')})")
+    n_abas = resultado.get('abas_renomeadas') or 0
+    linhas.append(f"  {ok(n_abas)} 5. Abas com nome e cor do padrão: {n_abas} de {len(NOMES_CORES_ABAS_BASE)}"
+                  " (FOCCO_VISION_NDPCP301 → FOCCO_VISION_NDPCP399)")
+    return '\n'.join(linhas)
 
 
 def _renomear_e_pintar_abas_base(wb_com):
@@ -2343,11 +2373,13 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
             ordem_dbf = []
             avisa(f'não consegui classificar a DBF: {e}')
         # data de hoje na PREP_Lista (H5)
+        data_prep_ok = False
         for _sh in wb_com.Worksheets:
             if norm(_sh.Name).startswith(norm(ABA_PREP_LISTA)):
                 try:
                     _sh.Range(CELULA_DATA_PREP_LISTA).Value = pywintypes.Time(
                         datetime.combine(date.today(), datetime.min.time()))
+                    data_prep_ok = True
                 except Exception:
                     pass
 
@@ -2396,6 +2428,7 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
         erros_pivot = []
         pivots_sem_pintura = 0
         caches_ja_atualizados = set()      # várias tabelas dividem o mesmo cache: ler os dados UMA vez por cache
+        filtros_feitos = set()
         fase('atualizando tabelas dinâmicas')
         for ws2 in wb_com.Worksheets:
             try:
@@ -2438,12 +2471,15 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                     # "PERFILAD. L" e some "Fluxo 3" da seleção).
                     excecao_quadro = False
                     try:
-                        excecao_quadro = _aplicar_filtros_fixos_base(ws2, pt)   # V275: filtros fixos do vídeo
+                        excecao_quadro = _aplicar_filtros_fixos_base(ws2, pt, filtros_feitos)   # V275: filtros fixos do vídeo
                     except Exception:
                         pass
                     try:
                         if not excecao_quadro:
                             _fixar_filtro_fluxo_prd(pt)
+                            if norm(ws2.Name).startswith(norm(ABA_PREP_LISTA)):
+                                pt.PivotFields('FLUXO PRD')
+                                filtros_feitos.add('PREP_Lista · FLUXO PRD = Fluxo 1, 2, 3 e 4')
                     except Exception:
                         pass
                     # Qualquer outro filtro dessa aba que tenha uma
@@ -2509,7 +2545,9 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                 'caches_corrigidos': caches_corrigidos, 'caches_com_erro': caches_com_erro,
                 'pivots_sem_pintura': pivots_sem_pintura,
                 'erros_pivot': erros_pivot, 'tempos': tempos, 'vinculos_lantek': vinculos_lantek,
-                'ordem_dbf': ordem_dbf, 'abas_renomeadas': abas_renomeadas}
+                'ordem_dbf': ordem_dbf, 'abas_renomeadas': abas_renomeadas,
+                'filtros_fixos': sorted(filtros_feitos), 'data_prep_lista': data_prep_ok,
+                'fonte_pivots': f'DBF!$A$9 até a linha {ultima_linha_dbf}'}
     finally:
         try:
             if wb_com is not None:
@@ -6513,7 +6551,8 @@ class MainWindow(QWidget):
                         + '\n'.join(f'  {k.replace("|", " | ")}: {n}' for k, n in dup['chaves'][:30])
                         + (f'\n  … (+{len(dup["chaves"]) - 30})' if len(dup['chaves']) > 30 else ''))
         if resultado.get('erros_pivot'):
-            detalhe = '\n\nTabelas dinâmicas que não atualizaram:\n' + '\n'.join(resultado['erros_pivot'])
+            detalhe += '\n\nTabelas dinâmicas que não atualizaram:\n' + '\n'.join(resultado['erros_pivot'])
+        detalhe = _quadro_atualizacoes_base(resultado, usou_excel) + detalhe
         if resultado.get('tempos'):
             total = sum(resultado['tempos'].values())
             linhas_tempo = '\n'.join(f'  {nome}: {seg}s' for nome, seg in resultado['tempos'].items())
