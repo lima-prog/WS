@@ -1911,6 +1911,176 @@ def _tirar_tipo_pintura_da_lista_prep(ws_com, pivot_table):
 RECALCULO_COMPLETO_NA_BASE = False   # True = CalculateFullRebuild no fim da geração pelo Excel (mais lento)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+# V275 — REGRAS FIXAS DA ATUALIZAÇÃO DA PLANILHA BASE (passo a passo do vídeo "ATUALIZAÇÃO DA PLANILHA" do
+# Wadson, 25/11/2026). Toda Base gerada pelo sistema passa SEMPRE por isto (caminho pelo Excel):
+#   1) DBF: classifica os dados por OF-TRECHO (A→Z), Nº LIBERAÇÃO (A→Z), MARCA (A→Z), PAI X FILHO (Z→A).
+#   2) Toda tabela dinâmica que lê a DBF: fonte = DBF!$A$9:<última coluna><última linha> e atualizar.
+#   3) Filtros de cada aba (abaixo, em FILTROS_FIXOS_BASE) + os das observações "<<< ..." do próprio modelo.
+#   4) PREP_Lista: célula H5 = data de hoje.
+#   5) Renomeia as abas e pinta as cores do jeito do print (NOMES_CORES_ABAS_BASE).
+# ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+ORDEM_DBF_BASE = [            # (cabeçalho na linha 9 da DBF, crescente?)
+    ('OF-TRECHO', True),
+    ('Nº LIBERAÇÃO', True),
+    ('MARCA', True),
+    ('PAI X FILHO', False),   # Z→A: o PAI fica antes dos filhos
+]
+
+# (início do nome da aba no modelo, campo da tabela dinâmica, itens que ficam marcados — None = todos "(Tudo)")
+# Só vale para a tabela que tem o campo; se nenhum dos itens existir no lote, deixa tudo marcado.
+FILTROS_FIXOS_BASE = [
+    ('CDI_Prog', 'GRUPO LIC', {'ESCADA', 'ACESSÓRIOS', 'VIGA/PILARES/SOLDADOS', 'ACESSÓRIOS BARRA',
+                               'ACESSÓRIOS SOLDADOS'}),
+    ('CLEBER_TS', 'TS x VM x VP x PERFIL', {'VP c/ Perfil Lam.'}),
+]
+# Aba "PREP_Quadro Gestão à Vista": a tabela PESO POR BC (linhas = MÁQUINA_LANTEK) fica com FLUXO PRD = (Tudo).
+ABA_QUADRO_GESTAO = 'PREP_Quadro'
+
+ABA_PREP_LISTA = 'PREP_Lista'
+CELULA_DATA_PREP_LISTA = 'H5'
+
+# nome no modelo -> (nome na Base gerada, cor da guia RGB ou None = deixa a cor que já tem)
+NOMES_CORES_ABAS_BASE = [
+    ('DBF', 'DBF', None),
+    ('FOCCO_VISION_NDPCP301', 'FOCCO_VISION_NDPCP399', 'ACB9CA'),
+    ('Peso x Fluxo', 'PESO X FLUXO', 'F4B084'),
+    ('Det. PCT', 'DET. PCT', '66FFFF'),
+    ('PREP_Lista x Máq x Ord x Trecho', 'PREP_LISTA X MAQ X ORD X TRECHO', '666633'),
+    ('PREP_Quadro Gestão à Vista', 'PREP_QUADRO GESTÃO A VISTA', '7030A0'),
+    ('CLEBER_TS x VM x VP x PERFIL', 'CLEBER_TS x VM x VP x PERFIL', 'FFD966'),
+    ('CDI_Prog PCT', 'CDI_PROG_PCT', 'CCFF33'),
+    ('LT', 'LT', 'FF0000'),
+    ('MARLON_Posição x Perfiladeira', 'MARLON_POSIÇÃO_PERFILADEIRA', '00CC99'),
+    ('ELVIS_Perfil Lam.', 'ELVIS_PERFIL_LAM', None),
+    ('Ruptura MP', 'RUPTURA MP', 'FF66FF'),
+    ('BD', 'BD', '3399FF'),
+    ('Calendário', 'CALENDÁRIO', None),
+]
+
+
+def _rgb_para_cor_excel(hex6):
+    """'RRGGBB' -> número de cor do Excel (BGR)."""
+    r, g, b = int(hex6[0:2], 16), int(hex6[2:4], 16), int(hex6[4:6], 16)
+    return r + g * 256 + b * 65536
+
+
+def _colunas_por_cabecalho(ws_com, linha_cab, ultima_col):
+    """{cabeçalho normalizado: nº da 1ª coluna com esse nome} lendo a linha de cabeçalho de uma vez."""
+    vals = ws_com.Range(ws_com.Cells(linha_cab, 1), ws_com.Cells(linha_cab, ultima_col)).Value
+    linha = vals[0] if vals else ()
+    out = {}
+    for i, v in enumerate(linha, start=1):
+        k = norm(v)
+        if k and k not in out:
+            out[k] = i
+    return out
+
+
+def _ordenar_dbf_base(ws_com, ultima_linha, ultima_col):
+    """Passo 1 do vídeo: Classificar a DBF (OF-TRECHO, Nº LIBERAÇÃO, MARCA, PAI X FILHO Z→A).
+    Devolve a lista de cabeçalhos usados (vazia = não achou / não ordenou)."""
+    linha_cab = LINHA_INICIAL_BASE - 1
+    if ultima_linha <= LINHA_INICIAL_BASE:
+        return []
+    cols = _colunas_por_cabecalho(ws_com, linha_cab, ultima_col)
+    chaves = [(nome, cols[norm(nome)], cresc) for nome, cresc in ORDEM_DBF_BASE if norm(nome) in cols]
+    if not chaves:
+        return []
+    srt = ws_com.Sort
+    srt.SortFields.Clear()
+    for _nome, col, cresc in chaves:
+        srt.SortFields.Add(Key=ws_com.Range(ws_com.Cells(LINHA_INICIAL_BASE, col), ws_com.Cells(ultima_linha, col)),
+                           SortOn=0, Order=1 if cresc else 2, DataOption=0)   # xlSortOnValues, xlAscending/xlDescending
+    srt.SetRange(ws_com.Range(ws_com.Cells(LINHA_INICIAL_BASE, 1), ws_com.Cells(ultima_linha, ultima_col)))
+    srt.Header = 2            # xlNo — o intervalo já começa na 1ª linha de dado
+    srt.MatchCase = False
+    srt.Orientation = 1       # xlTopToBottom
+    srt.Apply()
+    srt.SortFields.Clear()
+    return [n for n, _c, _o in chaves]
+
+
+def _filtrar_campo_somente(pivot_table, nome_campo, visiveis):
+    """Deixa marcados só os itens de `visiveis` (None = todos). Liga antes de desligar (nunca zero itens)."""
+    try:
+        campo = pivot_table.PivotFields(nome_campo)
+    except Exception:
+        return False
+    if visiveis is None:
+        try:
+            campo.ClearAllFilters()
+            return True
+        except Exception:
+            return False
+    alvo = {norm(v) for v in visiveis}
+    itens = campo.PivotItems()
+    total = itens.Count
+    nomes = [norm(itens.Item(j).Name) for j in range(1, total + 1)]
+    if not any(n in alvo for n in nomes):
+        return False                       # nada do lote bate: não esvazia a tabela
+    try:
+        campo.ClearAllFilters()
+    except Exception:
+        pass
+    for j in range(1, total + 1):
+        if nomes[j - 1] in alvo:
+            try:
+                itens.Item(j).Visible = True
+            except Exception:
+                pass
+    for j in range(1, total + 1):
+        if nomes[j - 1] not in alvo:
+            try:
+                itens.Item(j).Visible = False
+            except Exception:
+                pass
+    return True
+
+
+def _tabela_tem_linha(pivot_table, trecho_nome):
+    try:
+        for f in pivot_table.RowFields():
+            if trecho_nome in norm(f.Name):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _aplicar_filtros_fixos_base(ws_com, pivot_table):
+    """Passo 3 do vídeo: filtros fixos de cada aba. Devolve True se a tabela é da exceção do Quadro (FLUXO PRD = Tudo)."""
+    nome_aba = norm(ws_com.Name)
+    for inicio, campo, itens in FILTROS_FIXOS_BASE:
+        if nome_aba.startswith(norm(inicio)):
+            _filtrar_campo_somente(pivot_table, campo, itens)
+    if nome_aba.startswith(norm(ABA_QUADRO_GESTAO)) and _tabela_tem_linha(pivot_table, 'MAQUINA'):
+        _filtrar_campo_somente(pivot_table, 'FLUXO PRD', None)
+        return True
+    return False
+
+
+def _renomear_e_pintar_abas_base(wb_com):
+    """Passo 5: nomes e cores das abas (o Excel ajusta sozinho as fórmulas que citam a aba renomeada)."""
+    por_nome = {}
+    for sh in wb_com.Worksheets:
+        por_nome[norm(sh.Name)] = sh
+    feitas = 0
+    for antigo, novo, cor in NOMES_CORES_ABAS_BASE:
+        sh = por_nome.get(norm(antigo)) or por_nome.get(norm(novo))
+        if sh is None:
+            continue
+        try:
+            if sh.Name != novo:
+                sh.Name = novo
+            if cor:
+                sh.Tab.Color = _rgb_para_cor_excel(cor)
+            feitas += 1
+        except Exception:
+            pass
+    return feitas
+
+
 def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map, lote,
                                      caminho_saida, linhas_foco=None, progresso=None,
                                      atualizar_vinculo_lantek=False):
@@ -2109,7 +2279,10 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
             try:
                 ws_foco = wb_com.Sheets(ABA_FOCCO)
             except Exception:
-                raise RuntimeError(f'a planilha base nao tem aba "{ABA_FOCCO}"')
+                try:
+                    ws_foco = wb_com.Sheets('FOCCO_VISION_NDPCP399')   # base que já saiu do sistema (aba renomeada)
+                except Exception:
+                    raise RuntimeError(f'a planilha base nao tem aba "{ABA_FOCCO}"')
             n_cols_foco = len(ESQUEMA_FOCCO)
             ultima_linha_foco = ws_foco.UsedRange.Row + ws_foco.UsedRange.Rows.Count - 1
             col_foco_fim = get_column_letter(n_cols_foco)
@@ -2156,6 +2329,27 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
             excel.Calculate()
         except Exception:
             pass
+
+        # 5-) V275: classifica a DBF igual ao vídeo (OF-TRECHO, Nº LIBERAÇÃO, MARCA, PAI X FILHO Z→A) e recalcula
+        ordem_dbf = []
+        try:
+            fase('classificando a DBF')
+            ult_lin = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+            ult_col = max(ultima_coluna_com_formula or 0, COL_DBF_FIM + 1, IDX_MAQ_G3M)
+            ordem_dbf = _ordenar_dbf_base(ws, ult_lin, ult_col)
+            if ordem_dbf:
+                excel.Calculate()
+        except Exception as e:
+            ordem_dbf = []
+            avisa(f'não consegui classificar a DBF: {e}')
+        # data de hoje na PREP_Lista (H5)
+        for _sh in wb_com.Worksheets:
+            if norm(_sh.Name).startswith(norm(ABA_PREP_LISTA)):
+                try:
+                    _sh.Range(CELULA_DATA_PREP_LISTA).Value = pywintypes.Time(
+                        datetime.combine(date.today(), datetime.min.time()))
+                except Exception:
+                    pass
 
         # 5a) Corrige o INTERVALO de cada pivot cache que aponta pra aba DBF —
         # elas ficam presas num intervalo fixo antigo (ex.: "DBF!$A$9:$GD$1021")
@@ -2242,8 +2436,14 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                     # Fluxo 1-4 ficam marcados como visiveis no filtro —
                     # o refresh as vezes troca isso sozinho (ex.: entra
                     # "PERFILAD. L" e some "Fluxo 3" da seleção).
+                    excecao_quadro = False
                     try:
-                        _fixar_filtro_fluxo_prd(pt)
+                        excecao_quadro = _aplicar_filtros_fixos_base(ws2, pt)   # V275: filtros fixos do vídeo
+                    except Exception:
+                        pass
+                    try:
+                        if not excecao_quadro:
+                            _fixar_filtro_fluxo_prd(pt)
                     except Exception:
                         pass
                     # Qualquer outro filtro dessa aba que tenha uma
@@ -2288,6 +2488,17 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
             except Exception:
                 pass
 
+        fase('renomeando e pintando as abas')
+        abas_renomeadas = 0
+        try:
+            abas_renomeadas = _renomear_e_pintar_abas_base(wb_com)
+        except Exception:
+            pass
+        try:
+            wb_com.Worksheets(1).Activate()
+        except Exception:
+            pass
+
         fase('salvando o arquivo')
         wb_com.SaveAs(caminho_saida, FileFormat=file_format)
         tempos['salvando o arquivo'] = round(time.perf_counter() - _t_fase['inicio'], 2)
@@ -2297,7 +2508,8 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                 'pivots_atualizados': pivots_atualizados, 'pivots_com_erro': pivots_com_erro,
                 'caches_corrigidos': caches_corrigidos, 'caches_com_erro': caches_com_erro,
                 'pivots_sem_pintura': pivots_sem_pintura,
-                'erros_pivot': erros_pivot, 'tempos': tempos, 'vinculos_lantek': vinculos_lantek}
+                'erros_pivot': erros_pivot, 'tempos': tempos, 'vinculos_lantek': vinculos_lantek,
+                'ordem_dbf': ordem_dbf, 'abas_renomeadas': abas_renomeadas}
     finally:
         try:
             if wb_com is not None:
@@ -6276,6 +6488,10 @@ class MainWindow(QWidget):
             msg += f" · {resultado['caches_corrigidos']} intervalo(s) de cache corrigido(s)"
         if resultado.get('pivots_atualizados'):
             msg += f" · {resultado['pivots_atualizados']} tabela(s) dinâmica(s) atualizada(s)"
+        if resultado.get('ordem_dbf'):
+            msg += ' · DBF classificada (' + ' → '.join(resultado['ordem_dbf']) + ')'
+        if resultado.get('abas_renomeadas'):
+            msg += f" · {resultado['abas_renomeadas']} aba(s) com nome e cor do padrão (FOCCO_VISION_NDPCP399)"
         if resultado.get('pivots_sem_pintura'):
             msg += ' · lista PREP: uma linha por posição/ordem (TIPO PINTURA fora das linhas)'
         if resultado.get('pivots_com_erro'):
