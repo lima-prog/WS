@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 273';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 274';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -1115,14 +1115,17 @@ function pctPreencher(texto,obras){const chave=o=>String(o).replace(/\s+/g,'');c
   if(fila.length){const blocos=fila.map(o=>String(++n).padStart(2,'0')+'\nOBRA: '+o+'\nDBF: \nN° PEDIDO: \nLIBERAÇÃO FOCCO | OTM: ');
     t=t.replace(/\s*$/,'');t=(t?t+'\n\n':'')+blocos.join('\n\n')+'\n'}
   return{texto:t,novas:novas.length,rep}}
-function ntListarPct(){const d=NT.doc;if(!d||d.getElementById('pctFundo'))return;
+/* V274: op={aoListar(obras)->msg} usa o mesmo leitor em outras telas (ex.: Agrupador | Base → Obra(s)) */
+function ntListarPct(op){const d=op?document:NT.doc;if(!d||d.getElementById('pctFundo'))return;
+  if(op&&!d.getElementById('ntCss')){const st=d.createElement('style');st.id='ntCss';st.textContent=NT_CSS;d.head.appendChild(st)}
   const f=d.createElement('div');f.id='pctFundo';f.className='nt-fundo';f.style.zIndex='2147483001';f.setAttribute('role','dialog');f.setAttribute('aria-label','Listar PCT');
   f.innerHTML=`<div class="pct-c"><div class="pct-h">${ntIc('pct')}<b>Listar PCT</b><span>ler as obras (OF-TRECHO) de um print do pacote</span><button type="button" class="pct-x" data-p="fechar" title="Fechar (Esc)">✕</button></div>
   <label class="pct-drop" id="pctDrop" tabindex="0"><input type="file" accept="image/*" id="pctArq" hidden>${ntIc('pct')}<b>Arraste a imagem aqui</b><span>ou clique para escolher · ou cole um print com <kbd>Ctrl</kbd>+<kbd>V</kbd></span><small>PNG, JPG, BMP, GIF, WEBP · qualquer tamanho · a imagem precisa mostrar a coluna <b>OF-TRECHO</b></small></label>
   <div class="pct-prev" id="pctPrev" hidden><img id="pctImg" alt=""><div><div class="pct-st" id="pctSt">Lendo a imagem…</div><div class="pct-bar"><i id="pctBar"></i></div><div class="pct-err" id="pctErr" hidden></div></div></div>
   <div class="pct-r"><button type="button" class="nt-b" data-p="fechar">Cancelar</button></div></div>`;
   d.body.appendChild(f);const q=x=>f.querySelector(x);let ocupado=false;
-  const fechar=()=>{d.removeEventListener('paste',colar,true);d.removeEventListener('keydown',tecla,true);f.remove();const t=ntTx();t&&t.focus()};
+  if(op)f.querySelectorAll('.pct-r .nt-b').forEach(b=>{b.style.cssText='background:linear-gradient(#f3f5f8,#d9dee5);border:1px solid #98a3b3;color:#000;font:700 13px Segoe UI,Arial,sans-serif;border-radius:4px;box-shadow:inset 0 1px 0 #fff;padding:6px 14px;cursor:pointer'});
+  const fechar=()=>{d.removeEventListener('paste',colar,true);d.removeEventListener('keydown',tecla,true);f.remove();if(op){try{op.aoFechar&&op.aoFechar()}catch(e){}return}const t=ntTx();t&&t.focus()};
   const tecla=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!ocupado)fechar()}};
   async function ler(file){if(!file||ocupado)return;if(!/^image\//.test(file.type)&&!/\.(png|jpe?g|bmp|gif|webp|tiff?|jfif)$/i.test(file.name||'')){q('#pctErr').hidden=false;q('#pctPrev').hidden=false;q('#pctErr').textContent='Esse arquivo não é uma imagem. Mande um print ou foto da planilha.';return}
     ocupado=true;q('#pctDrop').hidden=true;q('#pctPrev').hidden=false;q('#pctErr').hidden=true;q('#pctImg').src=URL.createObjectURL(file);
@@ -1130,6 +1133,7 @@ function ntListarPct(){const d=NT.doc;if(!d||d.getElementById('pctFundo'))return
     try{const obras=await pctLer(file,m=>{if(m.status==='recognizing text'){st.textContent='Lendo a imagem… '+Math.round(m.progress*100)+'%';bar.style.width=(20+m.progress*80)+'%'}else if(/load|init/i.test(m.status||'')){st.textContent='Preparando o leitor de imagens…';bar.style.width=(5+(m.progress||0)*15)+'%'}});
       if(!obras.length){ocupado=false;st.textContent='Nenhuma obra encontrada.';bar.style.width='0';q('#pctErr').hidden=false;
         q('#pctErr').textContent='Não achei nenhuma OF-TRECHO (ex.: 2057-100-03) nessa imagem. Mande um print mais nítido, mostrando a coluna OF-TRECHO.';q('#pctDrop').hidden=false;return}
+      if(op){bar.style.width='100%';ocupado=false;let m='';try{m=op.aoListar(obras)||''}catch(e){console.error('[Listar PCT]',e)}fechar();if(m&&window.__pjToast)__pjToast(m);return}
       const t=ntTx(),r=pctPreencher(t.value,obras);bar.style.width='100%';
       if(r.novas){t.focus();t.select();ntInserir(r.texto);t.setSelectionRange(t.value.length,t.value.length);t.scrollTop=t.scrollHeight}
       ocupado=false;fechar();
@@ -1143,7 +1147,7 @@ function ntListarPct(){const d=NT.doc;if(!d||d.getElementById('pctFundo'))return
   dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('on')});dz.addEventListener('dragleave',()=>dz.classList.remove('on'));
   dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('on');ler(e.dataTransfer.files[0])});dz.focus();
   ocrScript().catch(()=>{})}
-window.__pctObras=pctObras;window.__pctPreencher=pctPreencher;
+window.__pctObras=pctObras;window.__pctPreencher=pctPreencher;window.__listarPct=op=>ntListarPct(op||{});
 function ntInserir(txt){const t=ntTx();t.focus();if(!NT.doc.execCommand('insertText',false,txt)){t.setRangeText(txt,t.selectionStart,t.selectionEnd,'end');t.dispatchEvent(new Event('input'))}}
 function ntAchar(dir){const t=ntTx(),q=NT.el.querySelector('#ntBusca').value,info=NT.el.querySelector('#ntAchInfo');if(!q){info.textContent='';return false}
  const txt=t.value.toLowerCase(),ql=q.toLowerCase(),tot=txt.split(ql).length-1;let i=txt.indexOf(ql,t.selectionEnd);if(i<0)i=txt.indexOf(ql);

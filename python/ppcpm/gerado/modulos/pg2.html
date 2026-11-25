@@ -159,7 +159,7 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
     <div>
       <div class="linha" style="margin-bottom:6px"><b>Obra(s)</b><span class="sub" style="font-weight:500;color:#5f6b7a">— uma por linha (ex.: 2058-102-02 ou só 2058)</span></div>
       <textarea rows="3" data-w="txt_obras" data-vivo></textarea>
-      <div class="linha" style="margin-top:8px"><button class="b p" data-w="btn_buscar_obras" data-m="buscar_dbfs_por_obra_click"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg> Buscar e Carregar</button><span class="lbl-det" style="margin:0" data-w="lbl_contador_obras"></span></div>
+      <div class="linha" style="margin-top:8px"><button class="b p" data-w="btn_buscar_obras" data-m="buscar_dbfs_por_obra_click"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg> Buscar e Carregar</button><span class="lbl-det" style="margin:0" data-w="lbl_contador_obras"></span><button class="b p" type="button" id="btnListarPct" title="Ler a imagem (print) do pacote e listar as obras (OF-TRECHO) aqui em Obra(s)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="m21 15-4.5-4.5L7 19"/><path d="M14 3h4M16 1v4"/></svg> Listar PCT</button><span class="pct-msg" id="pctMsg"></span></div>
     </div>
   </div>
   <label class="chk" data-w="chk_busca_completa" style="margin-top:10px"><input type="checkbox"><span>Busca completa</span><small>se não achar pelo atalho, varrer a pasta raiz inteira (mais lento)</small></label>
@@ -231,6 +231,7 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 textarea.raiz-fixa{background:#f1f4f7!important;color:#1f2937;cursor:default;resize:none;white-space:pre;overflow-x:auto;font-size:12px}
 .raiz-st{margin-top:6px;padding:5px 10px;border-radius:4px;font-size:12.5px;font-weight:700;border:1px solid #c5cbd6;background:#fff}
 .raiz-st:empty{display:none}
+.pct-msg{font-size:12.5px;font-weight:700;color:#15803d}.pct-msg:empty{display:none}
 .raiz-st.ok{color:#15803d;border-color:#9fd3b0;background:#effaf3}
 .raiz-st.er{color:#b91c1c;border-color:#f0b4b4;background:#fdf0f0}
 .fixa-tag{display:inline-flex;align-items:center;gap:5px;color:#0b3d91!important;font-weight:700}
@@ -743,6 +744,31 @@ window.PR_ABA = 'agrupador';
       window.PR.chamar('_limpar_base');
       window.PR.aviso({ tipo: 'info', titulo: 'Pasta de dados', texto: v ? 'Pasta de dados salva. A Base fixa foi procurada de novo.' : 'Pasta de dados removida.' });
     }
+  });
+})();
+
+/* Listar PCT: lê o print do pacote (coluna OF-TRECHO) e lista as obras em Obra(s). Digitar à mão continua valendo. */
+(function () {
+  const bt = document.getElementById('btnListarPct'), msg = document.getElementById('pctMsg');
+  if (!bt) return;
+  let tm;
+  bt.addEventListener('click', () => {
+    let abrir; try { abrir = window.top.__listarPct; } catch (e) { }
+    if (typeof abrir !== 'function') return;
+    abrir({
+      aoListar(obras) {
+        const t = document.querySelector('[data-w="txt_obras"]'); if (!t) return '';
+        const chave = o => String(o).replace(/\s+/g, '');
+        const atuais = t.value.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+        const ja = new Set(atuais.map(chave));
+        const novas = []; for (const o of obras) { const k = chave(o); if (!ja.has(k)) { ja.add(k); novas.push(k); } }
+        if (novas.length) { t.value = atuais.concat(novas).join('\n'); t.dispatchEvent(new Event('input', { bubbles: true })); t.scrollTop = t.scrollHeight; }
+        const rep = obras.length - novas.length;
+        const m = novas.length ? `✓ ${novas.length === 1 ? '1 obra listada' : novas.length + ' obras listadas'}${rep ? ` · ${rep} já estava${rep > 1 ? 'm' : ''} na lista` : ''}` : `✓ Todas as ${obras.length} obras da imagem já estavam na lista`;
+        msg.textContent = m; clearTimeout(tm); tm = setTimeout(() => { msg.textContent = ''; }, 9000);
+        return '';
+      }
+    });
   });
 })();
 
