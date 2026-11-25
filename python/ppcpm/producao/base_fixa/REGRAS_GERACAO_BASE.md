@@ -3,13 +3,14 @@
 Definidas pelo Wadson (vídeo "ATUALIZAÇÃO DA PLANILHA", 25/11/2026). O sistema faz isso **sempre** que gera a Base
 (caminho pelo Excel). O código fica em `validador_fluxos/validador_fluxos_ppcp.py` (bloco "V275 — REGRAS FIXAS").
 
-1. **DBF** — classificar os dados: OF-TRECHO (A→Z) › Nº LIBERAÇÃO (A→Z) › MARCA (A→Z) › PAI X FILHO (Z→A).
-2. **Tabelas dinâmicas** — fonte de dados = `DBF!$A$9:<última coluna><última linha>` e atualizar todas.
+1. **DBF** — Classificar (A9 até a última linha, "Meus dados contêm cabeçalhos" marcado, níveis salvos na aba): OF-TRECHO (A→Z) › Nº LIBERAÇÃO (A→Z) › MARCA (A→Z) › PAI X FILHO (Z→A).
+2. **Tabelas dinâmicas** — em CADA tabela de DBF até RUPTURA MP: Alterar Fonte de Dados = `DBF!$A$9:<última coluna><última linha COM DADO>` (ex.: `$GE$1004`) e Atualizar.
 3. **Filtros**
    - PREP_Lista: FLUXO PRD = Fluxo 1, 2, 3 e 4.
    - PREP_Quadro Gestão à Vista: tabela PESO POR BC com FLUXO PRD = (Tudo); as outras ficam com Fluxo 1–4.
    - CLEBER_TS x VM x VP x PERFIL: só "VP c/ Perfil Lam.".
-   - CDI_Prog PCT: GRUPO LIC = ESCADA, ACESSÓRIOS, VIGA/PILARES/SOLDADOS, ACESSÓRIOS BARRA, ACESSÓRIOS SOLDADOS.
+   - PREP_Lista: FILTRO TD LISTA MAQ. = X.
+   - CDI_Prog PCT: COMPONENTE x L LIC = LIC; ACESSÓRIOS = (vazio); PERFIL LAMINADO = (vazio); GRUPO LIC = ESCADA, ACESSÓRIOS, VIGA/PILARES/SOLDADOS, ACESSÓRIOS BARRA, ACESSÓRIOS SOLDADOS.
    - Demais filtros: os das observações "<<< Filtrar apenas…" / "<<< Desmarcar filtro…" do próprio modelo.
 4. **PREP_Lista** — célula H5 = data do dia.
 5. **Nomes e cores das abas**

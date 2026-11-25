@@ -1930,10 +1930,15 @@ ORDEM_DBF_BASE = [            # (cabeçalho na linha 9 da DBF, crescente?)
 # (início do nome da aba no modelo, campo da tabela dinâmica, itens que ficam marcados — None = todos "(Tudo)")
 # Só vale para a tabela que tem o campo; se nenhum dos itens existir no lote, deixa tudo marcado.
 FILTROS_FIXOS_BASE = [
+    ('CDI_Prog', 'COMPONENTE', {'LIC'}),
+    ('CDI_Prog', 'ACESSÓRIOS', {'(vazio)'}),
+    ('CDI_Prog', 'PERFIL LAMINAD', {'(vazio)'}),
     ('CDI_Prog', 'GRUPO LIC', {'ESCADA', 'ACESSÓRIOS', 'VIGA/PILARES/SOLDADOS', 'ACESSÓRIOS BARRA',
                                'ACESSÓRIOS SOLDADOS'}),
     ('CLEBER_TS', 'TS x VM x VP x PERFIL', {'VP c/ Perfil Lam.'}),
+    ('PREP_Lista', 'FILTRO TD LISTA MAQ', {'X'}),          # "<<< Sempre marcar X"
 ]
+_NOMES_VAZIO = {'(VAZIO)', 'VAZIO', '(BLANK)', 'BLANK', ''}
 # Aba "PREP_Quadro Gestão à Vista": a tabela PESO POR BC (linhas = MÁQUINA_LANTEK) fica com FLUXO PRD = (Tudo).
 ABA_QUADRO_GESTAO = 'PREP_Quadro'
 
@@ -1992,20 +1997,39 @@ def _ordenar_dbf_base(ws_com, ultima_linha, ultima_col):
     for _nome, col, cresc in chaves:
         srt.SortFields.Add(Key=ws_com.Range(ws_com.Cells(LINHA_INICIAL_BASE, col), ws_com.Cells(ultima_linha, col)),
                            SortOn=0, Order=1 if cresc else 2, DataOption=0)   # xlSortOnValues, xlAscending/xlDescending
-    srt.SetRange(ws_com.Range(ws_com.Cells(LINHA_INICIAL_BASE, 1), ws_com.Cells(ultima_linha, ultima_col)))
-    srt.Header = 2            # xlNo — o intervalo já começa na 1ª linha de dado
+    # V278: igual a imagem do Wadson — intervalo começa no cabeçalho (linha 9) com "Meus dados contêm cabeçalhos"
+    # marcado, e os 4 níveis ficam SALVOS na aba (abrindo Classificar no Excel eles aparecem assim)
+    srt.SetRange(ws_com.Range(ws_com.Cells(linha_cab, 1), ws_com.Cells(ultima_linha, ultima_col)))
+    srt.Header = 1            # xlYes
     srt.MatchCase = False
     srt.Orientation = 1       # xlTopToBottom
     srt.Apply()
-    srt.SortFields.Clear()
     return [n for n, _c, _o in chaves]
 
 
-def _filtrar_campo_somente(pivot_table, nome_campo, visiveis):
-    """Deixa marcados só os itens de `visiveis` (None = todos). Liga antes de desligar (nunca zero itens)."""
+def _achar_campo(pivot_table, nome_campo):
+    """Campo da tabela pelo nome exato ou pelo começo do nome (ex.: "FILTRO TD LISTA MAQ" acha "FILTRO TD LISTA MAQ.")."""
     try:
-        campo = pivot_table.PivotFields(nome_campo)
+        return pivot_table.PivotFields(nome_campo)
     except Exception:
+        pass
+    alvo = norm(nome_campo)
+    try:
+        campos = pivot_table.PivotFields()
+        for j in range(1, campos.Count + 1):
+            c = campos.Item(j)
+            if norm(c.Name).startswith(alvo):
+                return c
+    except Exception:
+        pass
+    return None
+
+
+def _filtrar_campo_somente(pivot_table, nome_campo, visiveis):
+    """Deixa marcados só os itens de `visiveis` (None = todos). Liga antes de desligar (nunca zero itens).
+    "(vazio)" casa com o item em branco. Em campo de FILTRO (página) liga a seleção de vários itens."""
+    campo = _achar_campo(pivot_table, nome_campo)
+    if campo is None:
         return False
     if visiveis is None:
         try:
@@ -2014,6 +2038,8 @@ def _filtrar_campo_somente(pivot_table, nome_campo, visiveis):
         except Exception:
             return False
     alvo = {norm(v) for v in visiveis}
+    if alvo & _NOMES_VAZIO:
+        alvo |= _NOMES_VAZIO
     itens = campo.PivotItems()
     total = itens.Count
     nomes = [norm(itens.Item(j).Name) for j in range(1, total + 1)]
@@ -2021,6 +2047,11 @@ def _filtrar_campo_somente(pivot_table, nome_campo, visiveis):
         return False                       # nada do lote bate: não esvazia a tabela
     try:
         campo.ClearAllFilters()
+    except Exception:
+        pass
+    try:
+        if campo.Orientation == 3:         # xlPageField
+            campo.EnableMultiplePageItems = True
     except Exception:
         pass
     for j in range(1, total + 1):
@@ -2035,6 +2066,28 @@ def _filtrar_campo_somente(pivot_table, nome_campo, visiveis):
                 itens.Item(j).Visible = False
             except Exception:
                 pass
+    return True
+
+
+def _apontar_tabela_para_dbf(pivot_table, ultima_linha):
+    """V278: "Alterar Fonte de Dados" da tabela: se a fonte é a aba DBF, passa a ser DBF linha 9 até `ultima_linha`
+    (mesmas colunas). Devolve True se mudou."""
+    src = str(pivot_table.SourceData or '')
+    col_fim = None
+    m = re.match(r"^'?(?:\[[^\]]*\])?([^'!]+)'?!R(\d+)C(\d+):R(\d+)C(\d+)$", src)
+    if m and norm(m.group(1)) == 'DBF':
+        col_fim = int(m.group(5))
+    else:
+        m = re.match(r"^'?(?:\[[^\]]*\])?([^'!]+)'?!\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)$", src)
+        if m and norm(m.group(1)) == 'DBF':
+            from openpyxl.utils import column_index_from_string
+            col_fim = column_index_from_string(m.group(4))
+    if not col_fim:
+        return False
+    novo = f"DBF!R{LINHA_INICIAL_BASE - 1}C1:R{ultima_linha}C{col_fim}"
+    if src.replace("'", '').endswith(novo.split('!', 1)[1]) and 'DBF' in src.upper():
+        return False
+    pivot_table.SourceData = novo
     return True
 
 
@@ -2077,7 +2130,7 @@ def _quadro_atualizacoes_base(resultado, usou_excel=True):
                      else 'NÃO classificou (confira a ordem manualmente)'))
     n_pt, n_err = resultado.get('pivots_atualizados') or 0, resultado.get('pivots_com_erro') or 0
     linhas.append(f"  {ok(n_pt and not n_err)} 2. Tabelas dinâmicas: fonte = {resultado.get('fonte_pivots') or 'DBF'}"
-                  f" · {resultado.get('caches_corrigidos') or 0} fonte(s) ajustada(s) · {n_pt} atualizada(s)"
+                  f" · {resultado.get('fontes_tabelas') or resultado.get('caches_corrigidos') or 0} fonte(s) alterada(s) · {n_pt} atualizada(s)"
                   + (f' · {n_err} com erro' if n_err else ''))
     filtros = resultado.get('filtros_fixos') or []
     linhas.append(f"  {ok(filtros)} 3. Filtros:" + ('' if filtros else ' nenhum filtro fixo aplicado'))
@@ -2438,6 +2491,7 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
         pivots_sem_pintura = 0
         caches_ja_atualizados = set()      # várias tabelas dividem o mesmo cache: ler os dados UMA vez por cache
         filtros_feitos = set()
+        fontes_tabelas = 0
         fase('atualizando tabelas dinâmicas')
         for ws2 in wb_com.Worksheets:
             try:
@@ -2450,14 +2504,14 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                 try:
                     pt = pts.Item(i)
                     nome_pivot = pt.Name
+                    # V278: "Alterar Fonte de Dados" em CADA tabela (igual o vídeo) — DBF!$A$9 até a última linha
+                    # com dado; depois Atualizar a tabela (sempre, não só uma vez por cache)
                     try:
-                        idx_cache = pt.CacheIndex
-                    except Exception:
-                        idx_cache = None
-                    if idx_cache is None or idx_cache not in caches_ja_atualizados:
-                        pt.RefreshTable()
-                        if idx_cache is not None:
-                            caches_ja_atualizados.add(idx_cache)
+                        if _apontar_tabela_para_dbf(pt, ultima_linha_dbf):
+                            fontes_tabelas += 1
+                    except Exception as e_src:
+                        erros_pivot.append(f'{ws2.Name} / {nome_pivot}: fonte não mudou ({e_src})')
+                    pt.RefreshTable()
                     # forca a tabela a recalcular seu layout (RefreshTable
                     # sozinho as vezes deixa a area de dados velha/vazia
                     # ate a proxima interacao manual do usuario)
@@ -2478,11 +2532,8 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                     # Fluxo 1-4 ficam marcados como visiveis no filtro —
                     # o refresh as vezes troca isso sozinho (ex.: entra
                     # "PERFILAD. L" e some "Fluxo 3" da seleção).
-                    excecao_quadro = False
-                    try:
-                        excecao_quadro = _aplicar_filtros_fixos_base(ws2, pt, filtros_feitos)   # V275: filtros fixos do vídeo
-                    except Exception:
-                        pass
+                    excecao_quadro = norm(ws2.Name).startswith(norm(ABA_QUADRO_GESTAO)) and \
+                        _tabela_tem_linha(pt, 'MAQUINA')
                     try:
                         if not excecao_quadro:
                             _fixar_filtro_fluxo_prd(pt)
@@ -2503,7 +2554,15 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                     except Exception:
                         pass
                     try:
+                        _aplicar_filtros_fixos_base(ws2, pt, filtros_feitos)   # V278: por último (os do vídeo valem)
+                    except Exception:
+                        pass
+                    try:
                         pt.ManualUpdate = False
+                    except Exception:
+                        pass
+                    try:
+                        pt.RefreshTable()
                     except Exception:
                         pass
                     pivots_atualizados += 1
@@ -2556,7 +2615,7 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                 'erros_pivot': erros_pivot, 'tempos': tempos, 'vinculos_lantek': vinculos_lantek,
                 'ordem_dbf': ordem_dbf, 'abas_renomeadas': abas_renomeadas,
                 'filtros_fixos': sorted(filtros_feitos), 'data_prep_lista': data_prep_ok,
-                'fonte_pivots': f'DBF!$A$9 até a linha {ultima_linha_dbf}'}
+                'fonte_pivots': f'DBF!$A$9 até a linha {ultima_linha_dbf}', 'fontes_tabelas': fontes_tabelas}
     finally:
         try:
             if wb_com is not None:
