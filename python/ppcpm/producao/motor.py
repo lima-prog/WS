@@ -33,7 +33,7 @@ ARQ_PASTA_DADOS = PASTA_PROD / "pasta_dados.txt"
 # aba do PPCPM -> prefixo dos widgets da tela original
 ABAS = {
     "agrupador": ("", ["lst_dbf", "lbl_base", "lbl_fluxo", "lbl_foco", "lbl_ska", "lbl_status", "lbl_contador_obras",
-                       "txt_lote", "txt_obras", "txt_raiz_obras", "tbl", "btn_buscar_obras", "btn_gerar", "btn_ska_agora",
+                       "txt_lote", "txt_obras", "txt_raiz_obras", "lbl_raiz", "tbl", "btn_buscar_obras", "btn_gerar", "btn_ska_agora",
                        "btn_vis", "chk_busca_completa", "chk_ska"]),
     "imp": ("imp_", None),
     "impm": ("impm_", None),

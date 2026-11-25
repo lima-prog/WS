@@ -37,6 +37,7 @@ import io
 import json
 import re
 import time
+import threading
 import inspect
 import unicodedata
 import zipfile
@@ -792,6 +793,52 @@ def _melhor_por_arquivo(candidatos):
     if melhor_prioridade_ext == 0:  # 0 = .csv, sempre o formato preferido
         return [c[1] for c in melhores.values() if c[0][1] == 0]
     return [c[1] for c in melhores.values()]
+
+
+# ── Pastas raiz das obras FIXAS no sistema (iguais em todos os PCs; não dá pra trocar pela tela).
+# Se um PC não enxergar alguma delas, a tela avisa qual falta e o que pedir. ──
+_ID_ATALHO_LIBERACOES = '1ZwSq5uhu8VPwI99yMC0iAhkM3Ep2MZB1'
+RAIZES_FIXAS = [
+    {'nome': 'LIBERAÇÕES FOCCO (Google Drive)',
+     'caminho': 'G:\\.shortcut-targets-by-id\\' + _ID_ATALHO_LIBERACOES + '\\LIBERACOES\\LIBERAÇÕES FOCCO',
+     'precisa': 'o Google Drive para computador instalado e logado, com o atalho da pasta "LIBERACOES" compartilhada'},
+    {'nome': 'LIBERAÇÕES ENGENHARIA (rede)',
+     'caminho': '\\\\172.25.0.7\\lib-eng\\LIBERAÇÕES ENGENHARIA',
+     'precisa': 'acesso à pasta de rede \\\\172.25.0.7\\lib-eng (estar na rede da empresa e ter permissão)'},
+]
+
+
+def _isdir_com_prazo(caminho, prazo=6.0):
+    """os.path.isdir que não trava a tela quando a rede não responde."""
+    res = {}
+
+    def _v():
+        try:
+            res['ok'] = os.path.isdir(caminho)
+        except OSError:
+            res['ok'] = False
+    t = threading.Thread(target=_v, daemon=True)
+    t.start()
+    t.join(prazo)
+    return bool(res.get('ok'))
+
+
+def verificar_raizes_fixas():
+    """Para cada pasta fixa: [{nome, caminho, precisa, ok, achado}]. O Google Drive pode estar com
+    outra letra de unidade neste PC — tenta G: primeiro e depois as outras letras."""
+    saida = []
+    for r in RAIZES_FIXAS:
+        cam = r['caminho']
+        achado = cam if _isdir_com_prazo(cam) else ''
+        if not achado and re.match(r'^[A-Za-z]:\\', cam) and os.name == 'nt':
+            resto = cam[2:]
+            for letra in 'GHIJKLMNOPQRSTUVWXYZDEF':
+                alt = letra + ':' + resto
+                if alt != cam and os.path.isdir(letra + ':\\') and _isdir_com_prazo(alt, 3.0):
+                    achado = alt
+                    break
+        saida.append(dict(r, ok=bool(achado), achado=achado or cam))
+    return saida
 
 
 def diagnosticar_pasta_raiz(raiz):
@@ -3286,7 +3333,10 @@ class MainWindow(QWidget):
             r'ex: \\172.25.0.7\lib-eng' + '\n' + r'D:\LIBERAÇÕES ENGENHARIA' + '\n' + r'\\outro-servidor\outra-pasta')
         self.txt_raiz_obras.setMaximumHeight(80)
         self.txt_raiz_obras.setStyleSheet('font-size:13px; padding:6px 10px;')
+        self.txt_raiz_obras.setReadOnly(True)
         vb.addWidget(self.txt_raiz_obras)
+        self.lbl_raiz = QLabel('')
+        vb.addWidget(self.lbl_raiz)
         h0a = QHBoxLayout()
         btn_raiz = QPushButton('📁 Adicionar pasta…')
         btn_raiz.setMinimumHeight(34)
@@ -3502,9 +3552,9 @@ class MainWindow(QWidget):
         # informação desatualizada). O Relatório de Fluxos NÃO carrega sozinho — fica no botão de histórico
         # (🕘) ao lado, pra escolher manualmente, nunca carregando relatório antigo sem avisar. A BASE é
         # a exceção: é FIXA (revisão mais nova da pasta base_fixa, ver achar_base_fixa) e carrega sozinha ──
-        ultimos = carregar_ultimos_caminhos()
-        if ultimos.get('raiz_obras'):
-            self.txt_raiz_obras.setPlainText(ultimos['raiz_obras'])
+        # Pastas raiz das obras: FIXAS no sistema (RAIZES_FIXAS) — o acesso é conferido em _verificar_raizes
+        self.raizes_ok = []
+        self.txt_raiz_obras.setPlainText('\n'.join(r['caminho'] for r in RAIZES_FIXAS))
 
         # Base fixa: carrega sozinha ao abrir (depois da janela montada)
         QTimer.singleShot(0, self._carregar_base_fixa)
@@ -5780,20 +5830,32 @@ class MainWindow(QWidget):
             self.lbl_contador_obras.setText(f'{len(obras)} obras digitadas')
 
     def _escolher_raiz_obras(self):
-        pasta = QFileDialog.getExistingDirectory(self, 'Selecionar pasta raiz das obras')
-        if not pasta:
-            return
-        atual = self.txt_raiz_obras.toPlainText()
-        linhas_atuais = [l for l in atual.splitlines() if l.strip()]
-        if pasta not in linhas_atuais:
-            linhas_atuais.append(pasta)
-        self.txt_raiz_obras.setPlainText('\n'.join(linhas_atuais))
+        """As pastas raiz agora são fixas no sistema — o botão só confere o acesso de novo."""
+        self._verificar_raizes()
+
+    def _verificar_raizes(self, avisar=True):
+        """Confere se ESTE PC enxerga as pastas raiz fixas. Se faltar alguma, avisa qual e o que precisa."""
+        info = verificar_raizes_fixas()
+        self.raizes_ok = [r['achado'] for r in info if r['ok']]
+        self.txt_raiz_obras.setPlainText('\n'.join(r['achado'] for r in info))
+        faltam = [r for r in info if not r['ok']]
+        if not faltam:
+            self.lbl_raiz.setText(f'✓ As {len(info)} pastas raiz fixas estão acessíveis neste PC')
+        else:
+            self.lbl_raiz.setText(f'✕ Este PC não acessa {len(faltam)} de {len(info)} pasta(s) raiz: '
+                                  + ', '.join(r['nome'] for r in faltam))
+            if avisar:
+                texto = ('O sistema precisa destas pastas para achar os DBFs das obras, '
+                         'e este computador não está conseguindo abrir:\n\n')
+                for r in faltam:
+                    texto += f'• {r["nome"]}\n   {r["caminho"]}\n   Precisa de: {r["precisa"]}.\n\n'
+                texto += ('Peça para a TI liberar esse acesso neste PC e depois clique em "Verificar acesso".'
+                          + ('\n\nEnquanto isso, a busca usa só a(s) pasta(s) que estão acessíveis.' if self.raizes_ok else ''))
+                QMessageBox.warning(self, 'Pastas raiz das obras não encontradas neste PC', texto)
+        return info
 
     def _testar_pasta_raiz(self):
-        raizes = [r for r in self.txt_raiz_obras.toPlainText().splitlines() if r.strip()]
-        if not raizes:
-            QMessageBox.warning(self, 'Aviso', 'Digite ou adicione pelo menos uma pasta raiz primeiro.')
-            return
+        raizes = [r['achado'] for r in self._verificar_raizes(avisar=False)]
         texto_completo = ''
         for raiz in raizes:
             linhas = diagnosticar_pasta_raiz(raiz.strip())
@@ -5806,20 +5868,16 @@ class MainWindow(QWidget):
         caixa.exec_()
 
     def buscar_dbfs_por_obra_click(self):
-        raizes = [r for r in self.txt_raiz_obras.toPlainText().splitlines() if r.strip()]
         obras = [o for o in self.txt_obras.toPlainText().splitlines() if o.strip()]
-        if not raizes:
-            QMessageBox.warning(self, 'Aviso', 'Informe ao menos uma pasta raiz das obras (uma por linha).')
-            return
-        raizes_validas = [r.strip() for r in raizes if os.path.isdir(r.strip())]
+        info = self._verificar_raizes(avisar=False)
+        raizes_validas = [r['achado'] for r in info if r['ok']]
         if not raizes_validas:
-            QMessageBox.warning(self, 'Aviso', 'Nenhuma das pastas raiz informadas existe ou está acessível.')
+            self._verificar_raizes(avisar=True)
             return
         if not obras:
             QMessageBox.warning(self, 'Aviso', 'Digite ao menos uma obra (uma por linha).')
             return
         busca_completa = self.chk_busca_completa.isChecked()
-        salvar_ultimos_caminhos({'raiz_obras': self.txt_raiz_obras.toPlainText()})
         self._iniciar_trabalho_em_fundo(
             buscar_dbfs_por_obra, (raizes_validas, obras), {'busca_completa': busca_completa},
             botoes_desabilitar=[self.btn_buscar_obras, self.btn_vis, self.btn_gerar],
