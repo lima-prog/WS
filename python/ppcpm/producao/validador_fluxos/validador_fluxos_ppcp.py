@@ -2364,11 +2364,18 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
         ordem_dbf = []
         try:
             fase('classificando a DBF')
-            ult_lin = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+            # V277: classifica SÓ as linhas com dado (antes ia até o fim da planilha, junto com as linhas de
+            # fórmula vazias lá de baixo — as tabelas dinâmicas saíam só com #VALOR!/(vazio))
+            ult_lin = LINHA_INICIAL_BASE + n - 1
             ult_col = max(ultima_coluna_com_formula or 0, COL_DBF_FIM + 1, IDX_MAQ_G3M)
-            ordem_dbf = _ordenar_dbf_base(ws, ult_lin, ult_col)
+            if n > 1:
+                ordem_dbf = _ordenar_dbf_base(ws, ult_lin, ult_col)
             if ordem_dbf:
-                excel.Calculate()
+                # depois de classificar o Excel não marca as fórmulas como "sujas": recalcula TUDO antes das pivôs
+                try:
+                    excel.CalculateFull()
+                except Exception:
+                    excel.Calculate()
         except Exception as e:
             ordem_dbf = []
             avisa(f'não consegui classificar a DBF: {e}')
@@ -2387,7 +2394,9 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
         # elas ficam presas num intervalo fixo antigo (ex.: "DBF!$A$9:$GD$1021")
         # que nao cresce sozinho quando a DBF ganha mais linhas. Sem isso, o
         # RefreshTable so relê o pedacinho antigo e a tabela fica vazia/errada.
-        ultima_linha_dbf = ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1
+        # V277: a fonte das tabelas vai só até a ÚLTIMA LINHA COM DADO da DBF (igual o vídeo: DBF!$A$9:$GE$1004).
+        # Antes ia até o fim do intervalo usado (às vezes a linha 1.048.576) e as tabelas saíam vazias/#VALOR!.
+        ultima_linha_dbf = (LINHA_INICIAL_BASE + n - 1) if n else (ws.UsedRange.Row + ws.UsedRange.Rows.Count - 1)
         caches_corrigidos, caches_com_erro = 0, 0
         fase('corrigindo intervalo das tabelas dinâmicas')
         import re as _re
@@ -2419,7 +2428,7 @@ def gerar_base_preenchida_via_excel(caminho_base, linhas_consolidadas, fluxo_map
                     continue
                 if novo_src != src:
                     cache.SourceData = novo_src
-                    cache.Refresh()
+                cache.Refresh()                     # V277: sempre relê (mesmo intervalo, dados novos/classificados)
                 caches_corrigidos += 1
             except Exception:
                 caches_com_erro += 1
