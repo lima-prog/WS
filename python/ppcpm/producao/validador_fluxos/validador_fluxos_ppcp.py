@@ -5800,9 +5800,9 @@ class MainWindow(QWidget):
         self.f4_btn_gerar_pdf.clicked.connect(self._f4_gerar_pdf)
         h3.addWidget(self.f4_btn_gerar_pdf)
         self.f4_chk_pdf_por_obra = QCheckBox('Gerar um PDF separado por obra')
-        self.f4_chk_pdf_por_obra.setToolTip('só habilita quando o pacote tem mais de uma obra; cada obra vira um arquivo '
-                                             '(nome_obra_2139-2-02.pdf…), na mesma sequência — desmarque a obra na árvore pra não levar')
-        self.f4_chk_pdf_por_obra.setEnabled(False)
+        self.f4_chk_pdf_por_obra.setToolTip('cada obra vira um arquivo (nome_obra_2139-2-02.pdf…), na mesma sequência — '
+                                             'desmarque a obra na árvore pra não levar')
+        self.f4_chk_pdf_por_obra.setEnabled(True)          # V291: sempre clicável (antes só com mais de uma obra)
         h3.addWidget(self.f4_chk_pdf_por_obra)
         h3.addStretch()
         v.addLayout(h3)
@@ -5819,6 +5819,11 @@ class MainWindow(QWidget):
         if not path:
             return
         self._f4_definir_pacote(path)
+
+    def _f4_limpar_pacote(self):
+        """V291: botão Limpar do quadro 1 (PDF das Ordens do Pacote) do Fluxo 04."""
+        self.f4_caminho_pacote = None
+        self.f4_lbl_pacote.setText('nenhum arquivo carregado (ou use o já lido na aba Grupo LIC)')
 
     def _f4_definir_pacote(self, path):
         self.f4_caminho_pacote = path
@@ -5965,7 +5970,6 @@ class MainWindow(QWidget):
 
         tree.expandToDepth(2 if varias_obras else 1)
         tree.blockSignals(False)
-        self.f4_chk_pdf_por_obra.setEnabled(varias_obras)
         self.f4_lbl_status.setText(
             f"✅ {len(resultado['ordens_do_fluxo'])} ordem(ns) no Fluxo {alvo}"
             + (f" em {len({obra_por_ordem.get(x) for x in resultado['ordens_do_fluxo']})} obras" if varias_obras else '') + f" · "
@@ -6054,7 +6058,7 @@ class MainWindow(QWidget):
                                                          os.path.join(pasta, nome_sugerido), 'PDF (*.pdf)')
         if not caminho_saida:
             return
-        if self.f4_chk_pdf_por_obra.isChecked() and self.f4_chk_pdf_por_obra.isEnabled():
+        if self.f4_chk_pdf_por_obra.isChecked() and r['resultado'].get('obra_por_ordem'):
             self._iniciar_trabalho_em_fundo(
                 gerar_pdfs_fluxo_por_obra,
                 (r['caminho_pacote'], r['ordens'], ofs_marcadas, r['resultado'].get('obra_por_ordem', {}), caminho_saida),
