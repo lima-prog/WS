@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `7342d8a` V290: Impressão Grupo - LIC — botões Limpar no PDF do Pacote e na árvore Obra / Grupo LIC / Tipo / Espessura / OF
 - `4a88462` V289: mensagens de status das abas de Produção com ícones de linha (padrão ERP) no lugar dos emojis
 - `1d5257e` V288: avisos no padrão do sistema (botão cinza com Enter/Esc); PDFs da Impressão Casada e Multi obra com Sistema.ppcm no nome
 - `3e60464` V287: versão nova não apaga o trabalho — espera terminar o que está rodando, guarda todas as abas e devolve depois
