@@ -23,7 +23,8 @@
   botões cinza-azulado claro (`#f3f5f7 → #d9dee5`, borda `#8f9aa7`) com **letra preta**, cabeçalhos de tabela no tema dos botões.
 - Avisos/perguntas: modelo **Modal Azul Projeart** (erro = faixa vermelha), arrastáveis pelo título, teclas Esc/Enter.
 - **Arquivo aceito** (todas as abas): fundo verde claro `#f3faf5`, borda `#cfe8d6`, **barra verde à esquerda** `#1e8e3e`, texto escuro em negrito com ✓ (V286).
-- Ícones de linha (SVG), sem emoji; Base fixa = ícone banco de dados com cadeado.
+- Ícones de linha (SVG), sem emoji — inclusive no registro (log), status e avisos de erro de todas as abas (V289 produção, V295 Gerar relatórios); Base fixa = ícone banco de dados com cadeado.
+- Cabeçalhos das tabelas de resultado com o texto **centralizado** e números centralizados embaixo (V295).
 - Sem barra de rolagem de fora; tema claro e escuro; avisos no idioma escolhido (pt/en/es).
 
 ## PLANILHA BASE (Agrupador | Base → Gerar Base Preenchida) — sempre assim (V275–V278)
