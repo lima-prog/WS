@@ -48,6 +48,7 @@ Código: bloco "V275 — REGRAS FIXAS" em `validador_fluxos_ppcp.py`; resumo em 
 - Etiquetas: PERFIL L, PERFIL U/C, PERFIL SOLDADO e TUBO = 1 etiqueta por pacote (mesma lógica).
 - Base fixa e pastas raiz: fixas no sistema, iguais em todos os PCs; o sistema avisa o que falta no PC.
 - Listar PCT existe no Bloco de notas e no Agrupador; digitar à mão continua valendo.
+- **Janela PPCPM - ARQUIVOS** (V294, vale para todas as abas): o campo **Nome:/Pasta:** do rodapé e a barra de endereço aceitam digitar ou colar um nome (da pasta aberta) ou um caminho completo (`C:\…`, `X:\…`, `\\servidor\…`, `..\`) + **Enter**: pasta → entra nela; arquivo → abre; **Selecionar pasta** com caminho digitado escolhe essa pasta direto; Esc desfaz o que foi digitado. Código: `python/ppcpm/web/ponte.js` → `abrirDigitado`.
 - Telas não perdem dados ao trocar de aba; janelas abrem no centro e podem ir para a 2ª tela.
 
 ## APP DA REDE (main.py em X:\ppcp_dxf_ferramentas)

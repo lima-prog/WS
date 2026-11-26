@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `a8dec8e` V294: janela PPCPM - ARQUIVOS (todas as abas) — campo Nome/Pasta editável: digitar ou colar nome ou caminho completo e Enter, como no Explorador
 - `9702ee2` V293: botões de ação dentro das tabelas no padrão do sistema, com ícone de linha no lugar do emoji
 - `cc3c162` V292: cabeçalho das tabelas no tema da Tela inicial também no Grupo LIC, Fluxo 04 e apps da Preparação fábrica
 - `2d4f4b1` V291: Impressão - FLUXO 04 — 'Gerar um PDF separado por obra' sempre clicável; Limpar no PDF do Pacote
