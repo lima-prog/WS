@@ -61,9 +61,13 @@
   .badge { font-size:11.5px; padding:4px 12px; border-radius:20px; background:#e7eefa; color:#0b5cad; border:1px solid #c5d6ef; font-weight:700; }
   .grade { display:grid; grid-template-columns:1fr 1fr; gap:0 28px; }
   table { width:100%; border-collapse:collapse; font-size:13px; }
-  th { text-align:left; padding:10px 12px; background:#f3f5f9; border-bottom:1px solid #dfe3ea; font-size:12.5px; color:#4b5563; font-weight:700; }
+  th { text-align:center; padding:10px 12px; background:#f3f5f9; border-bottom:1px solid #dfe3ea; font-size:12.5px; color:#4b5563; font-weight:700; }
   td { padding:9px 12px; border-bottom:1px solid #e6e9f0; color:#1a2233; }
-  td.q { font-weight:700; text-align:right; }
+  td.q { font-weight:700; text-align:center; }
+  /* V295: ícones de linha (padrão do sistema) no registro e no status */
+  #log .stic, #status .stic, #error-msg .stic { width:15px; height:15px; vertical-align:-3px; margin-right:6px; flex:none; }
+  #status .stic.gira { animation:gira13 1.1s linear infinite; }
+  @keyframes gira13 { to { transform:rotate(360deg); } }
   .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; }
   #btn-download { margin-top:20px; width:100%; padding:13px; background:#0b5cad; color:#ffffff; border:none; border-radius:7px; font-size:14px; font-family:var(--font); font-weight:700; cursor:pointer; transition:background 0.2s; }
   #btn-download:hover { background:#1a6dc0; }
@@ -134,10 +138,10 @@
     <span class="badge" id="badge-lote">LOTE —</span>
   </div>
   <div class="grade">
-    <table><thead><tr><th>Ordens no relatório</th><th style="text-align:right">Qtde</th></tr></thead><tbody id="tb-ordens"></tbody></table>
-    <table><thead><tr><th>Abas do Excel</th><th style="text-align:right">Linhas</th></tr></thead><tbody id="tb-abas"></tbody></table>
+    <table><thead><tr><th>Ordens no relatório</th><th>Qtde</th></tr></thead><tbody id="tb-ordens"></tbody></table>
+    <table><thead><tr><th>Abas do Excel</th><th>Linhas</th></tr></thead><tbody id="tb-abas"></tbody></table>
   </div>
-  <button id="btn-download">⬇ Baixar Excel do relatório<span class="sub" id="nome-saida">Relatorio_Ordens_Fluxos.xlsx</span></button>
+  <button id="btn-download"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Baixar Excel do relatório<span class="sub" id="nome-saida">Relatorio_Ordens_Fluxos.xlsx</span></button>
 </div>
 
 <footer>Processamento 100% local — os arquivos não saem deste computador</footer>
@@ -1723,6 +1727,21 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
   "use strict";
   RO.XLSX = window.XLSX; RO.ExcelJS = window.ExcelJS; RO.JSZip = window.JSZip;
   const $ = id => document.getElementById(id);
+  /* V295: ícones de linha (padrão ERP do sistema) no lugar dos emojis do registro e do status */
+  const ICS13 = (() => {
+    const sv = (c, p, x) => `<svg class="stic${x ? ' ' + x : ''}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+    return [
+      [/⚙️|⚙/gu, sv('#0b3d91', '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', 'gira')],
+      [/✅|✔️|✔/gu, sv('#1e8e3e', '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>')],
+      [/⚠️|⚠/gu, sv('#d97706', '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>')],
+      [/❌|✖️|✖/gu, sv('#dc2626', '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>')],
+      [/📁|📂/gu, sv('#5f6b7a', '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>')],
+      [/📋|📄/gu, sv('#0b3d91', '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>')],
+      [/📑|📊/gu, sv('#0b3d91', '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/>')]
+    ];
+  })();
+  const comIcones13 = t => { let h = esc(t); for (const [re, ic] of ICS13) h = h.replace(re, ic); return h.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\uFE0F?/gu, '').replace(/(<\/svg>)\s+/g, '$1'); };
+  const stHtml = (cls, t) => { const st = $("status"); st.className = cls; st.innerHTML = comIcones13(t); };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const IC_OK = '<svg class="ic-ok" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#1e8e3e"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   function aviso(m) { try { if (window.top && window.top.__avisa) { window.top.__avisa(m); return; } } catch (e) { } alert(m); }
@@ -1853,7 +1872,7 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
   function escreverLog(texto) {
     const div = $("log"); div.style.display = "block";
     const cls = /^\s*(✅)/.test(texto) ? "ok" : /^\s*(❌)/.test(texto) ? "erro" : /^\s*(⚠)/.test(texto) ? "aviso" : "";
-    const ln = document.createElement("div"); if (cls) ln.className = cls; ln.textContent = texto;
+    const ln = document.createElement("div"); if (cls) ln.className = cls; ln.innerHTML = comIcones13(texto);
     div.appendChild(ln); div.scrollTop = div.scrollHeight;
   }
   const progresso = pct => { $("barra").style.display = "block"; $("barra-fill").style.width = pct + "%"; };
@@ -1863,7 +1882,7 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
     if (!pastas.length) { aviso("Adicione ao menos uma pasta com os DXF roteirizados."); return; }
     gerando = true; resultado = null; atualizar();
     $("log").innerHTML = ""; $("error-msg").style.display = "none"; $("resultado").style.display = "none";
-    const st = $("status"); st.className = ""; st.textContent = "⚙️ Gerando relatório, aguarde...";
+    stHtml("", "⚙️ Gerando relatório, aguarde...");
     progresso(2);
     try {
       const registros = await RO.coletar_registros_das_pastas(pastas, escreverLog, (i, n) => progresso(2 + Math.round(78 * i / n)));
@@ -1871,14 +1890,14 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
       resultado = await RO.gerar_relatorio_ordens_fluxos(focco, registros, escreverLog);
       progresso(100);
       escreverLog(`✅ Relatório gerado: ${resultado.nome}`);
-      st.className = "ok"; st.textContent = `✅ Relatório gerado: ${resultado.nome}`;
+      stHtml("ok", `✅ Relatório gerado: ${resultado.nome}`);
       mostrarResultado(resultado);
     } catch (ex) {
       console.error(ex);
       const msg = ex && ex.message ? ex.message : String(ex);
       escreverLog(`❌ Erro ao gerar o relatório: ${msg}`);
-      st.className = "erro"; st.textContent = "❌ Erro ao gerar o relatório.";
-      const box = $("error-msg"); box.textContent = "⚠ " + msg; box.style.display = "block";
+      stHtml("erro", "❌ Erro ao gerar o relatório.");
+      const box = $("error-msg"); box.innerHTML = comIcones13("⚠ " + msg); box.style.display = "block";
       aviso(msg);
     } finally {
       gerando = false; $("btn-gerar").disabled = !(focco && pastas.length);
