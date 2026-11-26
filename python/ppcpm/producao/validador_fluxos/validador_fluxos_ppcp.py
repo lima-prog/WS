@@ -5408,6 +5408,20 @@ class MainWindow(QWidget):
         self.lic_caminhos_relatorio = []
         self.lic_lbl_relatorio.setText('nenhum relatório carregado — a obra vem só do PDF')
 
+    # V290: botões Limpar — quadro 1 (PDF do Pacote) e quadro 3 (árvore Obra / Grupo LIC / Tipo / Espessura / OF)
+    def _lic_limpar_pacote(self):
+        self.lic_caminho_pacote = None
+        self.lic_lbl_pacote.setText('nenhum arquivo carregado')
+        self._lic_ordens_cache = None
+        self._lic_pos_para_ordem_cache = None
+
+    def _lic_limpar_arvore(self):
+        self.lic_tree.clear()
+        self._lic_ordens_cache = None
+        self._lic_pos_para_ordem_cache = None
+        self._lic_stats_relatorio = None
+        self.lic_lbl_status.setText('Aguardando arquivo...')
+
     def _lic_escolher_pacote(self):
         path, _ = QFileDialog.getOpenFileName(self, 'Selecionar PDF do Pacote', '', 'PDF (*.pdf)')
         if not path:
