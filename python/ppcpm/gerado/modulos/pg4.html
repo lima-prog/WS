@@ -51,6 +51,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-sh
 .status{display:flex;align-items:flex-start;gap:10px;font-weight:600;white-space:pre-wrap;word-break:break-word}
 .status::before{content:"";flex:none;width:8px;height:8px;margin-top:5px;border-radius:50%;background:#c3c9d2}
 .status .stic{display:inline-block;vertical-align:-3px;margin:0 3px}.status .sttx{flex:1;min-width:0}
+.arv button.b.mini{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:#000;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff;font-weight:700;padding:3px 10px}
+.arv button.b.mini:hover{background:linear-gradient(#e7ebef,#c9d0d8);border-color:#5f6b7a}
+.arv button.b.mini .stic{stroke:currentColor;margin:0 2px 0 0}
+.arv button.b.mini .sttx{display:inline-flex;align-items:center;gap:4px}
 
 .status.rodando::before{background:#0b3d91;animation:prPulse 1s infinite}
 @keyframes prPulse{50%{opacity:.25}}
@@ -429,7 +433,7 @@ window.PR_ABA = 'imp';
         if (c === 0) pre = `<span style="display:inline-block;width:${prof * 16}px"></span><span class="tg" data-tg="${ks}">${temF ? (aberto ? '▼' : '▶') : ''}</span>`;
         const ck = it.k && it.k[c] !== undefined ? `<input type="checkbox" data-ck="${ks}" data-col="${c}"${it.k[c] == 2 ? ' checked' : ''}>` : '';
         const dica = it.d && it.d[c] ? ` title="${esc(it.d[c])}"` : '';
-        const bw = it.w && it.w[c] ? `<button class="b mini" data-bt="${ks}" data-col="${c}"${it.w[c].a === false ? ' disabled' : ''}>${esc(it.w[c].t)}</button>` : '';
+        const bw = it.w && it.w[c] ? `<button class="b mini" data-bt="${ks}" data-col="${c}"${it.w[c].a === false ? ' disabled' : ''}>${comIcones(it.w[c].t)}</button>` : '';
         cels.push(`<td${c === ncol - 1 && ncol > 1 && !bw ? ' class="q"' : ''} style="${st.join(';')}"${dica}>${pre}${ck}${esc(t)}${bw}</td>`);
       }
       linhas.push(`<tr data-k="${ks}"${ks === atual ? ' class="sel"' : ''}>${cels.join('')}</tr>`);
