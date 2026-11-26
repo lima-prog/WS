@@ -4725,7 +4725,7 @@ class MainWindow(QWidget):
             on_sucesso=lambda r: self._imp_concluido(r, caminho_saida),
         )
 
-    def _imp_mostrar_bloqueio_pendencias(self, r):
+    def _imp_mostrar_bloqueio_pendencias(self, r, lbl_status=None, regerar=None):
         """Pop-up de bloqueio: enquanto tiver posição sem programação no
         Lantek (ou programada mas sem o CNC carregado aqui), NÃO deixa
         gerar o PDF direto — só com escolha explícita de deixar de fora
@@ -4758,9 +4758,9 @@ class MainWindow(QWidget):
         caixa.addButton('Cancelar', QMessageBox.RejectRole)
         caixa.setDefaultButton(btn_gerar_fora)
         caixa.exec_()
-        self.imp_lbl_status.setText(f"🚫 Bloqueado: 🚨 {n_vermelho} sem programação · 🟡 {n_amarelo} sem CNC aqui")
+        (lbl_status or self.imp_lbl_status).setText(f"🚫 Bloqueado: 🚨 {n_vermelho} sem programação · 🟡 {n_amarelo} sem CNC aqui")
         if caixa.clickedButton() is btn_gerar_fora:
-            self._imp_gerar(ignorar_pendencias_lantek=True)
+            (regerar or (lambda: self._imp_gerar(ignorar_pendencias_lantek=True)))()
 
     def _popular_arvore_impressao(self, tree, r, caminho_saida=None, agrupar_por_obra=False):
         """Preenche a árvore de resultado — usada tanto pela conferência
@@ -5143,7 +5143,8 @@ class MainWindow(QWidget):
             {'unir_partes': self.impm_chk_unir_partes.isChecked(),
              'exigir_completa': self.impm_chk_qtd_completa.isChecked(),
              'caminho_relatorio_fluxos': caminho_relatorio,
-             'caminho_lantek': getattr(self, 'impm_caminho_lantek', None)},
+             'caminho_lantek': getattr(self, 'impm_caminho_lantek', None),
+             'cnc_misto': True},          # Multi-Obra: CNC pode juntar peças de mais de uma obra/trecho
             botoes_desabilitar=[self.impm_btn_conferir, self.impm_btn_gerar],
             label_status=self.impm_lbl_status,
             msg_rodando='Lendo PDFs, relatório de fluxos e conferindo (sem gerar PDF ainda)…',
@@ -5179,7 +5180,7 @@ class MainWindow(QWidget):
         self.impm_lbl_obras.setText(f"{lista.count()} obra(s) no lote — marque as que vão pro PDF"
                                      + (' (ou gere um PDF por obra)' if lista.count() > 1 else ''))
 
-    def _impm_gerar(self):
+    def _impm_gerar(self, ignorar_pendencias_lantek=False):
         caminhos_cnc = getattr(self, 'impm_caminhos_cnc', [])
         caminho_ordens = list(getattr(self, 'impm_caminhos_ordens', [])) or None
         caminho_relatorio = list(getattr(self, 'impm_caminhos_relatorio', [])) or None
@@ -5202,12 +5203,16 @@ class MainWindow(QWidget):
             if len(marcadas) < lista.count():
                 obras_sel = marcadas
         separar = self.impm_chk_separar.isChecked()
-        pasta = os.path.dirname(caminho_ordens[0])
-        nome_sugerido = f'impressao_casada_multiobra_{date_tag()}.pdf'
-        titulo = 'Salvar PDFs por obra — nome base (cada obra vira um arquivo)' if separar else 'Salvar PDF de Impressão'
-        caminho_saida, _ = QFileDialog.getSaveFileName(self, titulo, os.path.join(pasta, nome_sugerido), 'PDF (*.pdf)')
-        if not caminho_saida:
-            return
+        if ignorar_pendencias_lantek and getattr(self, '_impm_caminho_saida_pendente', None):
+            caminho_saida = self._impm_caminho_saida_pendente      # "gerar mesmo assim": reaproveita o nome já escolhido
+        else:
+            pasta = os.path.dirname(caminho_ordens[0])
+            nome_sugerido = f'impressao_casada_multiobra_{date_tag()}.pdf'
+            titulo = 'Salvar PDFs por obra — nome base (cada obra vira um arquivo)' if separar else 'Salvar PDF de Impressão'
+            caminho_saida, _ = QFileDialog.getSaveFileName(self, titulo, os.path.join(pasta, nome_sugerido), 'PDF (*.pdf)')
+            if not caminho_saida:
+                return
+        self._impm_caminho_saida_pendente = caminho_saida
         self._iniciar_trabalho_em_fundo(
             gerar_impressao_casada,
             (caminhos_cnc, caminho_ordens, caminho_saida),
@@ -5218,7 +5223,9 @@ class MainWindow(QWidget):
              'exigir_completa': self.impm_chk_qtd_completa.isChecked(),
              'unir_partes': self.impm_chk_unir_partes.isChecked(),
              'caminho_relatorio_fluxos': caminho_relatorio,
-             'caminho_lantek': getattr(self, 'impm_caminho_lantek', None)},
+             'caminho_lantek': getattr(self, 'impm_caminho_lantek', None),
+             'ignorar_pendencias_lantek': ignorar_pendencias_lantek,
+             'cnc_misto': True},          # Multi-Obra: CNC pode juntar peças de mais de uma obra/trecho
             botoes_desabilitar=[self.impm_btn_gerar],
             label_status=self.impm_lbl_status,
             msg_rodando='Lendo PDFs, relatório de fluxos e montando a sequência…',
@@ -5226,6 +5233,11 @@ class MainWindow(QWidget):
         )
 
     def _impm_concluido(self, r, caminho_saida):
+        if r.get('bloqueado_pendencias'):      # Lantek: ordem sem programação / sem CNC → pergunta se gera deixando de fora
+            self._imp_mostrar_bloqueio_pendencias(
+                r, lbl_status=self.impm_lbl_status, regerar=lambda: self._impm_gerar(ignorar_pendencias_lantek=True))
+            return
+        self._impm_caminho_saida_pendente = None
         if r.get('nada_a_imprimir'):
             self._imp_mostrar_nada_a_imprimir(self.impm_tree_resultado, self.impm_lbl_status, r, com_conferencia=False)
             return
@@ -5241,6 +5253,8 @@ class MainWindow(QWidget):
         if r.get('ordens_programadas_sem_cnc'):
             msg += f" · 🟡 {len(r['ordens_programadas_sem_cnc'])} programada(s) mas sem CNC aqui"
         msg += self._imp_texto_pendentes(r)
+        if r.get('caminho_pendencias'):
+            msg += f" · ⚠️ pendências deixadas de fora — ver {os.path.basename(r['caminho_pendencias'])}"
         if r.get('ordens_repetidas_ignoradas'):
             msg += f" · ⚠ {len(r['ordens_repetidas_ignoradas'])} ordem(ns) repetida(s) em mais de um PDF — contada(s) uma vez só"
         self.impm_lbl_status.setText(msg)
@@ -7390,6 +7404,26 @@ def ordem_da_posicao(pos, pos_para_ordem):
     return None
 
 
+class PosParaOrdemMisto(dict):
+    """pos_para_ordem de um conjunto de obras ligadas por CNC "misto" (o mesmo CNC traz peças
+    de mais de uma obra/trecho — só no modo Multi-Obra). Além do dicionário geral (que
+    serve de reserva) guarda um dicionário POR obra-trecho: a posição de uma peça é casada
+    primeiro com as ordens da obra-trecho que o próprio CNC informa na referência dela
+    ("... - OF2130-2-01"), então a mesma posição em obras diferentes não se mistura."""
+    por_of = None
+
+
+def ordem_da_posicao_cnc(pos, pos_para_ordem, dado_cnc):
+    por_of = getattr(pos_para_ordem, 'por_of', None)
+    if por_of:
+        of_pos = (dado_cnc.get('of_da_pos') or {}).get(pos)
+        if of_pos and of_pos in por_of:
+            r = ordem_da_posicao(pos, por_of[of_pos])
+            if r:
+                return r
+    return ordem_da_posicao(pos, pos_para_ordem)
+
+
 def rotulo_espessura(esp):
     return (str(esp).replace('.', ',') + ' mm') if esp else 'espessura não identificada'
 
@@ -7637,6 +7671,7 @@ def processar_paginas_cnc(paginas_texto):
 
 RE_SUBTR_ORDEM = re.compile(r'\bSUB_TR\s*:\s*([0-9A-Za-z]+-[0-9A-Za-z]+)', re.I)
 RE_OF_CNC = re.compile(r'\bOF(\d{3,5}-[0-9A-Za-z]+-[0-9A-Za-z]+)')
+RE_REF_OF_CNC = re.compile(r'(?:^|\s)([A-Za-z0-9@_.\-]+(?:\s*\[[^\]]*\])?)\s*-\s*OF(\d{3,5}-[0-9A-Za-z]+-[0-9A-Za-z]+)')
 
 
 def _of_trecho_da_ordem(texto):
@@ -7708,7 +7743,7 @@ def agrupar_cncs_para_impressao(mapa_cnc, pos_para_ordem, unir_partes, exigir_co
     for c in cncs:
         conjunto, vinculos, faltas = set(), set(), set()
         for pos in mapa_cnc[c]['posicoes']:
-            of = ordem_da_posicao(pos, pos_para_ordem)
+            of = ordem_da_posicao_cnc(pos, pos_para_ordem, mapa_cnc[c])
             if of:
                 conjunto.add(of)
                 vinculos.add(of)
@@ -7716,7 +7751,7 @@ def agrupar_cncs_para_impressao(mapa_cnc, pos_para_ordem, unir_partes, exigir_co
                     faltas.add(pos)
         if unir_partes:
             for pos in mapa_cnc[c]['complementares']:
-                of = ordem_da_posicao(pos, pos_para_ordem)
+                of = ordem_da_posicao_cnc(pos, pos_para_ordem, mapa_cnc[c])
                 if of:
                     vinculos.add(of)
                     if exigir_completa and not posicao_completa(pos, soma):
@@ -8095,7 +8130,7 @@ def _chave_espessura_grupo(g):
         return float('inf')
 
 
-def particionar_por_obra(mapa_cnc, ordens, pos_para_ordem):
+def particionar_por_obra(mapa_cnc, ordens, pos_para_ordem, misto=False):
     """Separa o casamento por OBRA-TRECHO. Com várias obras no mesmo lote, a mesma
     posição pode existir em obras diferentes ("700_1" em 2139-5-02 e em 2160-2-02);
     casando só pelo nome da posição, o CNC de uma obra pegava a ordem de outra.
@@ -8103,21 +8138,61 @@ def particionar_por_obra(mapa_cnc, ordens, pos_para_ordem):
     casa SÓ com as ordens da mesma obra-trecho (campos OBRA + SUB_TR da ordem);
     as ordens em que não deu pra ler o obra-trecho ficam como reserva.
     Lote com uma obra só (ou sem obra-trecho legível) volta {None: (todos, dict)}
-    — o mesmo caminho de sempre."""
+    — o mesmo caminho de sempre.
+
+    misto=True (só na aba Multi-Obra): um CNC que traz peças de MAIS DE UMA obra-trecho
+    (nesting agrupado) liga essas obras — todas as obras ligadas por algum CNC misto viram
+    UMA partição só ("2130-2-01+2158-3-01"), com as ordens de todas elas, e a posição de
+    cada peça é casada com a ordem da obra-trecho que o CNC informa pra ela."""
     ofs = {c: m.get('of') for c, m in mapa_cnc.items()}
-    conhecidos = sorted({o for o in ofs.values() if o})
-    if len(conhecidos) <= 1 and not any(o for o in ofs.values() if o and o not in conhecidos):
+    comp = {}                                   # obra-trecho -> componente (união por CNC misto)
+    if misto:
+        pai = {}
+
+        def raiz(x):
+            while pai.setdefault(x, x) != x:
+                pai[x] = pai[pai[x]]
+                x = pai[x]
+            return x
+        for c, m in mapa_cnc.items():
+            lista = sorted(m.get('ofs') or ())
+            for o in lista[1:]:
+                pai[raiz(o)] = raiz(lista[0])
+        grupos_of = {}
+        for o in list(pai):
+            grupos_of.setdefault(raiz(o), set()).add(o)
+        for membros in grupos_of.values():
+            if len(membros) > 1:
+                rot = '+'.join(sorted(membros))
+                for o in membros:
+                    comp[o] = (rot, sorted(membros))
+
+    def parte_do(c):
+        o = ofs[c]
+        return comp[o][0] if o in comp else o
+
+    conhecidos = sorted({parte_do(c) for c in mapa_cnc if ofs[c]})
+    if len(conhecidos) <= 1 and not comp:
         return {None: (list(mapa_cnc), pos_para_ordem)}
     saida = {}
     for P in conhecidos:
-        d = {}
-        for exato in (True, False):
-            for o, dado in ordens.items():
-                of_o = dado.get('of')
-                if (exato and of_o == P) or (not exato and not of_o):
-                    for k in dado.get('chaves', ()):
-                        d.setdefault(k, o)
-        saida[P] = ([c for c in mapa_cnc if ofs[c] == P], d)
+        membros = next((m_ for r_, m_ in comp.values() if r_ == P), [P])
+        d = PosParaOrdemMisto() if len(membros) > 1 else {}
+        por_of = {}
+        for o_membro in membros:
+            d_of = {}
+            for exato in (True, False):
+                for o, dado in ordens.items():
+                    of_o = dado.get('of')
+                    if (exato and of_o == o_membro) or (not exato and not of_o):
+                        for k in dado.get('chaves', ()):
+                            d_of.setdefault(k, o)
+            por_of[o_membro] = d_of
+            for k, o in d_of.items():
+                d.setdefault(k, o)
+        if len(membros) > 1:
+            d.por_of = por_of
+        saida[P] = ([c for c in mapa_cnc if ofs[c] and parte_do(c) == P], d)
     sem_of = [c for c in mapa_cnc if not ofs[c]]
     if sem_of:
         saida[None] = (sem_of, pos_para_ordem)
@@ -8142,7 +8217,8 @@ def ler_relatorios_fluxos_pacote(caminhos):
 
 
 def _analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True, exigir_completa=True,
-                                caminho_relatorio_fluxos=None, caminho_lantek=None, progresso=None):
+                                caminho_relatorio_fluxos=None, caminho_lantek=None, progresso=None,
+                                cnc_misto=False):
     """Lê os PDFs de CNC + Ordens e faz o casamento — SEM montar o PDF
     físico. É o motor compartilhado entre gerar_impressao_casada (que
     além disso monta o PDF) e analisar_impressao_casada (só confere,
@@ -8155,6 +8231,7 @@ def _analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True
     paginas_por_cnc_arquivo = [ler_linhas_por_pagina(c) for c in caminhos_cnc]
     mapa_cnc, sem_numero = {}, []
     ofs_do_cnc = {}                                   # {CNC: Counter de obra-trecho lidos nas referências}
+    of_da_pos_cnc = {}                                # {CNC: {posição: {obra-trecho}}} — só no modo cnc_misto
     for f, paginas in enumerate(paginas_por_cnc_arquivo):
         doc_posicional = None
         try:
@@ -8179,6 +8256,13 @@ def _analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True
             mapa_cnc[numero]['paginas'].append({'arquivo': f, 'indice': p})
             ofs_do_cnc.setdefault(numero, collections.Counter()).update(
                 x.upper() for x in RE_OF_CNC.findall('\n'.join(linhas_pg)))
+            if cnc_misto:       # obra-trecho de CADA peça (CNC que junta várias obras)
+                for linha_ref in linhas_pg:
+                    for m_ref in RE_REF_OF_CNC.finditer(linha_ref):
+                        base_ref, _pt = separar_parte_da_posicao(m_ref.group(1))
+                        pos_ref = normalizar_posicao_casamento(base_ref)
+                        if pos_ref and not re.match(r'^Q\d+$', pos_ref, re.IGNORECASE):
+                            of_da_pos_cnc.setdefault(numero, {}).setdefault(pos_ref, set()).add(m_ref.group(2).upper())
             if not mapa_cnc[numero]['espessura']:
                 mapa_cnc[numero]['espessura'] = extrair_espessura_cnc(linhas_pg)
             info = extrair_posicoes_cnc(linhas_pg)
@@ -8196,6 +8280,10 @@ def _analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True
     for numero, m_ in mapa_cnc.items():
         cont_of = ofs_do_cnc.get(numero)
         m_['of'] = cont_of.most_common(1)[0][0] if cont_of else None
+        if cnc_misto and cont_of:
+            m_['ofs'] = sorted(cont_of)                # todas as obras-trecho que o CNC traz
+            # posição -> obra-trecho (só quando a posição aponta pra UMA obra; ambígua fica de fora)
+            m_['of_da_pos'] = {p_: next(iter(o_)) for p_, o_ in of_da_pos_cnc.get(numero, {}).items() if len(o_) == 1}
 
     # Quantidades pela posição das palavras na página (colunas Chapa/Total):
     # a leitura por texto só funciona em alguns layouts. Onde ela não achou
@@ -8237,13 +8325,15 @@ def _analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True
         raise RuntimeError('Nenhuma Ordem de Fabricação foi reconhecida no PDF de ordens.')
 
     avisa('Casando posições e montando sequência…')
-    particoes = particionar_por_obra(mapa_cnc, ordens, pos_para_ordem)
+    particoes = particionar_por_obra(mapa_cnc, ordens, pos_para_ordem, misto=cnc_misto)
     multi_obra = len(particoes) > 1 or (len(particoes) == 1 and None not in particoes)
     grupos_todos = []
     for P, (cncs_p, ppo_p) in particoes.items():
         gs = agrupar_cncs_para_impressao({c: mapa_cnc[c] for c in cncs_p}, ppo_p, unir_partes, exigir_completa)
         for g_ in gs:
             g_['of'] = P
+            if cnc_misto and P and '+' in P:
+                g_['obras_mistas'] = P.split('+')
         grupos_todos += gs
     if multi_obra:      # obra por obra; dentro de cada uma: espessura, laser por último
         grupos_todos.sort(key=lambda g_: (g_['of'] or '~', grupo_e_laser(g_), _chave_espessura_grupo(g_), chave_cnc(g_['cncs'][0])))
@@ -8530,7 +8620,7 @@ def montar_conferencia_cnc_ordens(a, exigir_completa=True):
         for (pos, parte) in sorted(itens_cnc[c], key=lambda k: (_chave_natural(k[0]), k[1])):
             g = globais[(P_c, pos, parte)]
             d = g['por_cnc'][c]
-            of = ordem_da_posicao(pos, ppo_por_cnc.get(c, pos_para_ordem))
+            of = ordem_da_posicao_cnc(pos, ppo_por_cnc.get(c, pos_para_ordem), m)
             if not of:
                 situacao = 'sem ordem no PDF das Ordens'
             elif exigir_completa and not posicao_completa(pos, soma_c):
@@ -8539,7 +8629,7 @@ def montar_conferencia_cnc_ordens(a, exigir_completa=True):
                 situacao = 'ok'
             if of:
                 cncs_da_ordem.setdefault(of, set()).add(c)
-            rotulo = pos + (f' [{parte}]' if parte else '') + (f' · {P_c}' if (multi_obra and P_c) else '')
+            rotulo = pos + (f' [{parte}]' if parte else '') + (f" · {(m.get('of_da_pos') or {}).get(pos) or P_c}" if (multi_obra and P_c) else '')
             linhas.append({
                 'pos': rotulo, 'pos_base': pos, 'parte_rotulo': parte,
                 'parte': bool(parte) and eh_parte_complementar(parte),
@@ -8703,7 +8793,8 @@ def verificar_pdf_gerado(caminho_pdf, conf, progresso=None):
 
 
 def analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True, exigir_completa=True,
-                               caminho_relatorio_fluxos=None, caminho_lantek=None, progresso=None):
+                               caminho_relatorio_fluxos=None, caminho_lantek=None, progresso=None,
+                               cnc_misto=False):
     """Só confere o casamento (sem montar PDF nenhum) — pro botão "Conferir antes".
     O PDF das Ordens pode ser UM ou VÁRIOS (uma lista, um por obra)."""
     if pymupdf is None:
@@ -8713,7 +8804,8 @@ def analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True,
         r = _analisar_impressao_casada_core(caminhos_cnc, efetivo, unir_partes=unir_partes,
                                              exigir_completa=exigir_completa,
                                              caminho_relatorio_fluxos=caminho_relatorio_fluxos,
-                                             caminho_lantek=caminho_lantek, progresso=progresso)
+                                             caminho_lantek=caminho_lantek, progresso=progresso,
+                                             cnc_misto=cnc_misto)
     finally:
         limpar_tmp_ordens(pasta_tmp)
     if isinstance(r, dict):
@@ -8722,7 +8814,8 @@ def analisar_impressao_casada(caminhos_cnc, caminho_ordens, *, unir_partes=True,
 
 
 def _analisar_impressao_casada_core(caminhos_cnc, caminho_ordens, *, unir_partes=True, exigir_completa=True,
-                                     caminho_relatorio_fluxos=None, caminho_lantek=None, progresso=None):
+                                     caminho_relatorio_fluxos=None, caminho_lantek=None, progresso=None,
+                                     cnc_misto=False):
     """Só confere o casamento (sem montar PDF nenhum). Roda mais rápido que gerar
     o PDF inteiro, porque pula a parte de medir área de tinta e desenhar página."""
     if pymupdf is None:
@@ -8730,7 +8823,8 @@ def _analisar_impressao_casada_core(caminhos_cnc, caminho_ordens, *, unir_partes
     a = _analisar_impressao_casada(caminhos_cnc, caminho_ordens, unir_partes=unir_partes,
                                     exigir_completa=exigir_completa,
                                     caminho_relatorio_fluxos=caminho_relatorio_fluxos,
-                                    caminho_lantek=caminho_lantek, progresso=progresso)
+                                    caminho_lantek=caminho_lantek, progresso=progresso,
+                                    cnc_misto=cnc_misto)
     grupos, ordens, mapa_cnc = a['grupos'], a['ordens'], a['mapa_cnc']
     espessuras = sorted({rotulo_espessura(g['espessura']) for g in grupos})
     descartadas = [{'ordem': o, 'posicoes': ', '.join(sorted(ordens[o]['posicoes']))} for o in a['ordens_orfas']]
@@ -8757,7 +8851,8 @@ def gerar_impressao_casada(caminhos_cnc, caminho_ordens, caminho_saida, *,
                             duplex=True, folha_dedicada_cnc=True, padronizar_a4=True,
                             exigir_completa=True, unir_partes=True, progresso=None,
                             caminho_relatorio_fluxos=None, caminho_lantek=None,
-                            ignorar_pendencias_lantek=False, obras=None, separar_por_obra=False):
+                            ignorar_pendencias_lantek=False, obras=None, separar_por_obra=False,
+                            cnc_misto=False):
     """Gera o(s) PDF(s) da Impressão Casada. O PDF das Ordens pode ser UM ou VÁRIOS
     (uma lista de caminhos, um por obra): eles são unidos sem repetir ordem."""
     if pymupdf is None:
@@ -8768,7 +8863,8 @@ def gerar_impressao_casada(caminhos_cnc, caminho_ordens, caminho_saida, *,
             caminhos_cnc, efetivo, caminho_saida, duplex=duplex, folha_dedicada_cnc=folha_dedicada_cnc,
             padronizar_a4=padronizar_a4, exigir_completa=exigir_completa, unir_partes=unir_partes,
             progresso=progresso, caminho_relatorio_fluxos=caminho_relatorio_fluxos, caminho_lantek=caminho_lantek,
-            ignorar_pendencias_lantek=ignorar_pendencias_lantek, obras=obras, separar_por_obra=separar_por_obra)
+            ignorar_pendencias_lantek=ignorar_pendencias_lantek, obras=obras, separar_por_obra=separar_por_obra,
+            cnc_misto=cnc_misto)
     finally:
         limpar_tmp_ordens(pasta_tmp)
     if isinstance(r, dict):
@@ -8780,7 +8876,8 @@ def _gerar_impressao_casada_core(caminhos_cnc, caminho_ordens, caminho_saida, *,
                                   duplex=True, folha_dedicada_cnc=True, padronizar_a4=True,
                                   exigir_completa=True, unir_partes=True, progresso=None,
                                   caminho_relatorio_fluxos=None, caminho_lantek=None,
-                                  ignorar_pendencias_lantek=False, obras=None, separar_por_obra=False):
+                                  ignorar_pendencias_lantek=False, obras=None, separar_por_obra=False,
+                                  cnc_misto=False):
     """Porta fiel de gerarImpressaoCasada (fase 2 — PDF de verdade).
     Lê os PDFs de CNC + Ordens, casa as posições, monta o PDF final na
     sequência de impressão (CNC seguido da(s) Ordem(ns) correspondente(s),
@@ -8798,7 +8895,8 @@ def _gerar_impressao_casada_core(caminhos_cnc, caminho_ordens, caminho_saida, *,
     a = _analisar_impressao_casada(caminhos_cnc, caminho_ordens, unir_partes=unir_partes,
                                     exigir_completa=exigir_completa,
                                     caminho_relatorio_fluxos=caminho_relatorio_fluxos,
-                                    caminho_lantek=caminho_lantek, progresso=progresso)
+                                    caminho_lantek=caminho_lantek, progresso=progresso,
+                                    cnc_misto=cnc_misto)
     mapa_cnc, ordens = a['mapa_cnc'], a['ordens']
     grupos = a['grupos']
     ordens_usadas, ordens_orfas = a['ordens_usadas'], a['ordens_orfas']
@@ -8948,6 +9046,13 @@ def _gerar_impressao_casada_core(caminhos_cnc, caminho_ordens, caminho_saida, *,
         origem_w, origem_h = x1 - x0, y1 - y0
         caixa_deitada = origem_w > origem_h
         alvo_w, alvo_h = (A4_PT[1], A4_PT[0]) if caixa_deitada else (A4_PT[0], A4_PT[1])
+        # Página que já é A4 (±2 pt, p.ex. Lantek 595x842 com /Rotate 90):
+        # NÃO reescreve o conteúdo. Reescrever o stream (clean_contents +
+        # matriz) deslocava os números das peças em alguns leitores de PDF.
+        if abs(origem_w - alvo_w) <= 2 and abs(origem_h - alvo_h) <= 2:
+            estado['ultimo_tamanho'] = (nova.rect.width, nova.rect.height)
+            estado['ultima_rotacao'] = nova.rotation
+            return nova
         _recortar_e_escalar_pagina(saida, nova, x0, y0, x1, y1, alvo_w, alvo_h)
         nova = saida.load_page(pos_antes)
         estado['ultimo_tamanho'] = (nova.rect.width, nova.rect.height)
@@ -9972,6 +10077,8 @@ def aplicar_relatorio_aos_grupos(grupos, mapa_cnc, ordens, linhas_rel):
         return _mais_comum(contagem)
 
     def _obra_do_grupo(g):
+        if g.get('obras_mistas'):                 # Multi-Obra: CNC com peças de várias obras fica junto, com o nome das obras
+            return g['of']
         obras = {}
         for o in g['ordens']:
             inf = info_ordem.get(str(o)) or {}
