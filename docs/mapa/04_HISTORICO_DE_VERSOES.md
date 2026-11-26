@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `cc3c162` V292: cabeçalho das tabelas no tema da Tela inicial também no Grupo LIC, Fluxo 04 e apps da Preparação fábrica
 - `2d4f4b1` V291: Impressão - FLUXO 04 — 'Gerar um PDF separado por obra' sempre clicável; Limpar no PDF do Pacote
 - `7342d8a` V290: Impressão Grupo - LIC — botões Limpar no PDF do Pacote e na árvore Obra / Grupo LIC / Tipo / Espessura / OF
 - `4a88462` V289: mensagens de status das abas de Produção com ícones de linha (padrão ERP) no lugar dos emojis
