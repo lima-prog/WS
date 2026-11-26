@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `62ff567` V283: Impressão Casada - ERP — Limpar no PDF das Ordens e na Conferência por CNC; Atualizar apaga todos os dados da aba (também no Python)
 - `f1a5b1e` V282: arquivos gerados em todas as abas vão para a pasta Downloads do usuário (Produção, Conversor CAM, salvar como)
 - `3dc1d44` V281: Multi-Obra trazida do app da rede — CNC com peças de várias obras, bloqueio Lantek com 'gerar mesmo assim', PDF já A4 não é reescrito
 - `e4c40cc` V280: nome da Base gerada = PPCPM_Programação-Fábrica_Sistema.ppcpm_LOTE_<lote>_<aammdd>
