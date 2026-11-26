@@ -64,7 +64,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5f6b7a;box-sh
 /* árvores */
 .arv{border:1px solid #c5cbd6;border-radius:4px;overflow:auto;background:#fff;max-height:560px;min-height:120px}
 .arv table{border-collapse:collapse;width:100%;font-size:12.5px}
-.arv th{position:sticky;top:0;z-index:1;background:#5f6b7a;color:#fff;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;border-right:1px solid #737e8c}
+.arv th{position:sticky;top:0;z-index:1;background:linear-gradient(#e3e8ee,#cdd4de);color:#000;text-align:center;padding:9px 10px;font-size:12.5px;font-weight:700;letter-spacing:0;white-space:nowrap;border-right:1px solid #98a3b3;border-bottom:1px solid #98a3b3;box-shadow:inset 0 1px 0 #98a3b3}
 .arv th:last-child{border-right:0}
 .arv td{padding:4px 9px;border-bottom:1px solid #e6e9ee;white-space:nowrap;vertical-align:top}
 .arv td.q{white-space:normal;min-width:240px}
@@ -112,7 +112,7 @@ textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
 .lista li{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
 .lista li.er{background:#fdf6f6;border-color:#f3c7c3;border-left-color:#dc2626}
 .lista li.mk{border-left-color:#9aa3b5}
-.campo.ok{background:#f6f7f9;border:1px solid #e1e5ea;border-left:3px solid #1e8e3e;border-radius:3px}
+.campo.ok{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:3px;color:#1c2a38;font-weight:700}
 .saida{background:#f3faf5;border:1px solid #cfe8d6;border-left:3px solid #1e8e3e;border-radius:4px}
 .pr-modal{border:1px solid #1f2937;border-top:4px solid #0b3d91;border-radius:6px}
 .pr-modal pre{background:#2b2f36;color:#e5e7eb;border:0}
@@ -128,7 +128,7 @@ textarea::placeholder,input::placeholder{color:#9aa3b5;font-weight:500}
 .b.p,.b.p:hover:not(:disabled){color:#000}
 /* V206 — caminho aceito fica verde (igual às outras abas) */
 input.campo-in,input[data-ao-mudar]{background:#f1f3f6;border:1px solid #e1e5ea;border-radius:3px;font-size:12.5px}
-input.campo-in.ok,input[data-ao-mudar].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
+input.campo-in.ok,input[data-ao-mudar].ok,input[type=text].ok{background:#f3faf5;border-color:#cfe8d6;border-left:3px solid #1e8e3e;color:#1c2a38;font-weight:700}
 input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c3;border-left:3px solid #dc2626;color:#b42318;font-weight:700}
 /* V224 — Produção (todas as abas): quadros no mesmo modelo do Agrupador | Base */
 .cx{background:linear-gradient(#e3e7ec,#d5dae1);border:1px solid #545659;border-top:3px solid #0b3d91;border-radius:4px;box-shadow:0 1px 2px rgba(15,23,42,.12);padding:0 12px 12px}
@@ -141,10 +141,10 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
 
 /* V285: arquivo aceito no mesmo formato do "✓ As 2 pastas raiz fixas estão acessíveis" (verde) */
-.campo.ok{background:#effaf3!important;border:1px solid #9fd3b0!important;border-radius:4px!important;color:#15803d!important;font-weight:700!important}
+.campo.ok{background:#f3faf5!important;border:1px solid #cfe8d6!important;border-left:3px solid #1e8e3e!important;border-radius:3px!important;color:#1c2a38!important;font-weight:700!important}
 .campo.ok::before{content:"✓ ";font-weight:800}
-.lista li:not(.vazio):not(.er):not(.mk){background:#effaf3!important;border:1px solid #9fd3b0!important;border-radius:4px!important;color:#15803d}
-.lista li:not(.vazio):not(.er):not(.mk) .n{color:#15803d}
+.lista li:not(.vazio):not(.er):not(.mk){background:#f3faf5!important;border:1px solid #cfe8d6!important;border-left:3px solid #1e8e3e!important;border-radius:3px!important;color:#1c2a38}
+.lista li:not(.vazio):not(.er):not(.mk) .n{color:#1c2a38}
 .arv{background:#eef1f5;border:1px solid #99a3af}
 .arv .vz{color:#374151}
 .kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
