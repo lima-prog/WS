@@ -4732,7 +4732,7 @@ class MainWindow(QWidget):
             caminho_saida = self._imp_caminho_saida_pendente
         else:
             pasta = os.path.dirname(caminho_ordens)
-            nome_sugerido = f'impressao_casada_{date_tag()}.pdf'
+            nome_sugerido = f'impressao_casada_Sistema.ppcm_{date_tag()}.pdf'
             caminho_saida, _ = QFileDialog.getSaveFileName(self, 'Salvar PDF de Impressão',
                                                              os.path.join(pasta, nome_sugerido), 'PDF (*.pdf)')
             if not caminho_saida:
@@ -5241,7 +5241,7 @@ class MainWindow(QWidget):
             caminho_saida = self._impm_caminho_saida_pendente      # "gerar mesmo assim": reaproveita o nome já escolhido
         else:
             pasta = os.path.dirname(caminho_ordens[0])
-            nome_sugerido = f'impressao_casada_multiobra_{date_tag()}.pdf'
+            nome_sugerido = f'impressao_casada_multiobra_Sistema.ppcm_{date_tag()}.pdf'
             titulo = 'Salvar PDFs por obra — nome base (cada obra vira um arquivo)' if separar else 'Salvar PDF de Impressão'
             caminho_saida, _ = QFileDialog.getSaveFileName(self, titulo, os.path.join(pasta, nome_sugerido), 'PDF (*.pdf)')
             if not caminho_saida:

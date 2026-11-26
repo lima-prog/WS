@@ -50,8 +50,9 @@ function avisa(msg,op){try{
   if(er.tec&&er.tec!==er.p){var p3=d.createElement('div');p3.textContent=__pjT('Detalhe técnico: ')+er.tec;p3.setAttribute('data-semtrad','1');p3.style.cssText='margin-top:10px;font-size:11.5px;color:#8a94a3;word-break:break-word';m.appendChild(p3)}}
  else{m.textContent=String(msg==null?'':msg);m.style.fontSize='15px'}
  var r=d.createElement('div');r.style.cssText='display:flex;justify-content:flex-end;gap:10px;margin-top:18px';
- var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText=__pjSim+'padding:9px 26px;background:#5f6b7a;border:1.5px solid #1f2937;border-radius:6px;outline:none';
- var c1='#4c5664',c0='#5f6b7a';b.onmouseenter=function(){b.style.background=c1};b.onmouseleave=function(){b.style.background=c0};
+ var b=d.createElement('button');b.type='button';b.textContent='OK';b.style.cssText='display:inline-flex;align-items:center;gap:8px;font:700 14px "Segoe UI",Roboto,Arial,sans-serif;color:#000;padding:8px 16px;cursor:pointer;background:linear-gradient(#f3f5f7,#d9dee5);border:1px solid #8f9aa7;border-radius:4px;box-shadow:inset 0 1px 0 #fff;outline:none';
+ var kE=d.createElement('span');kE.textContent='Enter';kE.style.cssText='padding:0 6px;background:#fff;border:1px solid #98a3b3;border-bottom-width:2px;border-radius:3px;font:600 10.5px "Segoe UI",Arial,sans-serif;color:#374151';b.appendChild(kE);
+ var c1='linear-gradient(#e7ebef,#c9d0d8)',c0='linear-gradient(#f3f5f7,#d9dee5)';b.onmouseenter=function(){b.style.background=c1};b.onmouseleave=function(){b.style.background=c0};
  function fecha(){d.removeEventListener('keydown',tecla,true);fundo.remove()}
  function tecla(e){if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();e.stopPropagation();fecha()}}
  b.onclick=fecha;d.addEventListener('keydown',tecla,true);
