@@ -139,6 +139,12 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
 .drop{background:#eef1f5;border:1px dashed #a3acb8}
 .drop:hover,.drop.over{background:#d9dee5;border-color:#5f6b7a}
 .lista li.vazio,.campo:not(.ok),.lbl-det{background:#c9d0d8;border:1px solid #99a3af;color:#111827;font-weight:700}
+
+/* V285: arquivo aceito no mesmo formato do "✓ As 2 pastas raiz fixas estão acessíveis" (verde) */
+.campo.ok{background:#effaf3!important;border:1px solid #9fd3b0!important;border-radius:4px!important;color:#15803d!important;font-weight:700!important}
+.campo.ok::before{content:"✓ ";font-weight:800}
+.lista li:not(.vazio):not(.er):not(.mk){background:#effaf3!important;border:1px solid #9fd3b0!important;border-radius:4px!important;color:#15803d}
+.lista li:not(.vazio):not(.er):not(.mk) .n{color:#15803d}
 .arv{background:#eef1f5;border:1px solid #99a3af}
 .arv .vz{color:#374151}
 .kpi{background:#eef1f5;border:1px solid #545659;box-shadow:0 1px 2px rgba(15,23,42,.12)}
@@ -326,7 +332,7 @@ window.PR_ABA = 'impm';
   const R = {
     rotulo(el, j) {
       const t = j.texto || el.dataset.vazio || '';
-      if (el.dataset.html !== undefined) el.innerHTML = t; else el.textContent = t;
+      if (el.dataset.html !== undefined) el.innerHTML = t; else el.textContent = el.classList.contains('campo') ? t.replace(/^\s*[✓✔]\s*/, '') : t;   /* V285: o ✓ vem do CSS */
       if (el.classList.contains('campo')) el.classList.toggle('ok', /^\s*✓/.test(j.texto || '') || (el.dataset.ok !== undefined && !!j.texto && !/^\s*(nenhum|—|-)/i.test(j.texto)));
     },
     botao(el, j) { el.disabled = j.ativo === false; },
