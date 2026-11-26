@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `fa34a58` V285: Impressão Casada e Multi obra — arquivo aceito em verde (✓), mesmo formato do aviso das pastas raiz
 - `8e398b0` V284: Impressão Casada | Multi obra — botão Limpar no Relatório do Lantek
 - `62ff567` V283: Impressão Casada - ERP — Limpar no PDF das Ordens e na Conferência por CNC; Atualizar apaga todos os dados da aba (também no Python)
 - `f1a5b1e` V282: arquivos gerados em todas as abas vão para a pasta Downloads do usuário (Produção, Conversor CAM, salvar como)
