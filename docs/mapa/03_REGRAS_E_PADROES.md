@@ -41,6 +41,7 @@ Código: bloco "V275 — REGRAS FIXAS" em `validador_fluxos_ppcp.py`; resumo em 
 7. **Nome do arquivo:** `PPCPM_Programação-Fábrica_Sistema.ppcpm_LOTE_<lote>_<aammdd>.xlsx`, salvo em **Downloads**.
 
 ## Outras regras combinadas
+- **Todo arquivo gerado vai para a pasta Downloads** do usuário, em todas as abas e todos os PCs (V282) — nunca ao lado do arquivo de origem. Exceção: apps que organizam arquivos no lugar (Renomear, Espelhar, Corte, Visualizador, Criar Pasta) e o envio fixo do Gerenciamento de roteiro.
 - Etiquetas: PERFIL L, PERFIL U/C, PERFIL SOLDADO e TUBO = 1 etiqueta por pacote (mesma lógica).
 - Base fixa e pastas raiz: fixas no sistema, iguais em todos os PCs; o sistema avisa o que falta no PC.
 - Listar PCT existe no Bloco de notas e no Agrupador; digitar à mão continua valendo.

@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `f1a5b1e` V282: arquivos gerados em todas as abas vão para a pasta Downloads do usuário (Produção, Conversor CAM, salvar como)
 - `3dc1d44` V281: Multi-Obra trazida do app da rede — CNC com peças de várias obras, bloqueio Lantek com 'gerar mesmo assim', PDF já A4 não é reescrito
 - `e4c40cc` V280: nome da Base gerada = PPCPM_Programação-Fábrica_Sistema.ppcpm_LOTE_<lote>_<aammdd>
 - `096ab71` V279: Listar PCT confere cada obra lida com as OF-TRECHO da planilha de pacotes (2170-22-01 lido errado vira 2170-2-01)
