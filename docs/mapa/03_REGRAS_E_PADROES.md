@@ -22,6 +22,7 @@
 - Tema **Azul Projeart + ERP clássico**: faixa/borda azul `#0b3d91`, quadros com faixa de título e borda leve,
   botões cinza-azulado claro (`#f3f5f7 → #d9dee5`, borda `#8f9aa7`) com **letra preta**, cabeçalhos de tabela no tema dos botões.
 - Avisos/perguntas: modelo **Modal Azul Projeart** (erro = faixa vermelha), arrastáveis pelo título, teclas Esc/Enter.
+- **Arquivo aceito** (todas as abas): fundo verde claro `#f3faf5`, borda `#cfe8d6`, **barra verde à esquerda** `#1e8e3e`, texto escuro em negrito com ✓ (V286).
 - Ícones de linha (SVG), sem emoji; Base fixa = ícone banco de dados com cadeado.
 - Sem barra de rolagem de fora; tema claro e escuro; avisos no idioma escolhido (pt/en/es).
 

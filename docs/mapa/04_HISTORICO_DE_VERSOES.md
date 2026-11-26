@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `d574283` V286: arquivo aceito no mesmo formato em todas as abas (verde claro, barra verde, texto escuro); cabeçalho dos resultados da Impressão Casada e Multi obra no tema da Tela inicial
 - `fa34a58` V285: Impressão Casada e Multi obra — arquivo aceito em verde (✓), mesmo formato do aviso das pastas raiz
 - `8e398b0` V284: Impressão Casada | Multi obra — botão Limpar no Relatório do Lantek
 - `62ff567` V283: Impressão Casada - ERP — Limpar no PDF das Ordens e na Conferência por CNC; Atualizar apaga todos os dados da aba (também no Python)
