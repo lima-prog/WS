@@ -81,12 +81,12 @@ def _dentro(c: str, pasta: Path) -> bool:
 
 
 def _saida(sugestao: str, titulo: str = "", pasta: bool = False) -> str:
-    """O Qt perguntaria onde salvar. Aqui: ao lado dos arquivos de origem (como o programa sugere), ou na
-    pasta 'gerados' quando a origem veio do navegador (pasta temporária)."""
+    """O Qt perguntaria onde salvar. Aqui: sempre na pasta Downloads do usuário (V282)."""
+    # V282: TODO arquivo gerado nas abas de Produção vai para a pasta Downloads do usuário (igual o Agrupador),
+    # nunca ao lado do arquivo de origem.
+    from ..caminhos import pasta_downloads
     sugestao = sugestao or ""
-    d = os.path.dirname(sugestao) if not pasta else sugestao.rstrip("\\/")
-    if not d or not os.path.isdir(d) or _dentro(d, PASTA_TEMP):
-        d = str(PASTA_SAIDA)
+    d = pasta_downloads()
     os.makedirs(d, exist_ok=True)
     if pasta:
         _S["ultima_saida"] = d

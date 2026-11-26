@@ -81,7 +81,8 @@ def converter(arquivos: list, saida: str, subpastas: bool) -> dict:
     arquivos = [a for a in (arquivos or []) if a in _S["dados"]]
     if not arquivos:
         return {"ok": False, "titulo": "Atenção", "erro": "Selecione pelo menos uma peça."}
-    s = FA.pasta_ok(saida)
+    from .caminhos import pasta_downloads
+    s = FA.pasta_ok(pasta_downloads())          # V282: DXF convertidos vão sempre para a pasta Downloads
     if not s:
         return {"ok": False, "titulo": "Pasta não encontrada", "erro": f"Não encontrei a pasta de saída:\n\n{(saida or '').strip()}"}
     _S.update(rodando=True, resultado=None, status=f"Convertendo 0/{len(arquivos)}...")

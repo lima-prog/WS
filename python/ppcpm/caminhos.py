@@ -72,3 +72,23 @@ def achar(candidatos: list[str]) -> str:
                     if os.path.isdir(p):
                         return p
     return ""
+
+
+def pasta_downloads() -> str:
+    """V282: pasta Downloads do usuário (a de verdade, mesmo movida/OneDrive). Todo arquivo GERADO pelo sistema
+    vai para cá, em qualquer PC e para qualquer usuário. Se não achar, usa a pasta do usuário."""
+    if _win():
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") as k:
+                v = os.path.expandvars(winreg.QueryValueEx(k, "{374DE290-123F-4565-9164-39C4925E467B}")[0])
+                if os.path.isdir(v):
+                    return v
+        except OSError:
+            pass
+    for nome in ("Downloads", "Transferências"):
+        p = os.path.join(os.path.expanduser("~"), nome)
+        if os.path.isdir(p):
+            return p
+    return os.path.expanduser("~")

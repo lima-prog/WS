@@ -1192,7 +1192,8 @@ if (typeof module !== 'undefined') module.exports = PP;
   }
   // Salvar arquivo escolhendo o local (QFileDialog.getSaveFileName)
   async function salvarComo(dados, nomeSugerido, tipos) {
-    if (typeof window.showSaveFilePicker === 'function') {
+    /* V282: arquivo gerado vai sempre para a pasta Downloads (sem perguntar onde salvar) */
+    if (false && typeof window.showSaveFilePicker === 'function') {
       try {
         var h = await window.showSaveFilePicker({ suggestedName: nomeSugerido, types: tipos ? [{ description: 'Arquivo', accept: tipos }] : undefined });
         var w = await h.createWritable();

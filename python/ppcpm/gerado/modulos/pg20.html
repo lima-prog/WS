@@ -449,8 +449,7 @@ input.campo-in.er,input[data-ao-mudar].er{background:#fdf6f6;border-color:#f3c7c
   function converter() {
     var s = selecionadas();
     if (!s.length) { F.info('Atenção', 'Selecione pelo menos uma peça.', 'aviso'); return; }
-    F.escolherPasta().then(function (saida) {
-      if (!saida) return;
+    Promise.resolve('Downloads').then(function (saida) {   /* V282: sempre na pasta Downloads */
       api('converter', { arquivos: s.map(function (l) { return l.arquivo; }), saida: saida, subpastas: $('#cv-sub').checked }).then(function (r) {
         if (r.ok === false) return F.erro(r, 'Conversor CAM → DXF');
         aplicar(r);
