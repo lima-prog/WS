@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `1d5257e` V288: avisos no padrão do sistema (botão cinza com Enter/Esc); PDFs da Impressão Casada e Multi obra com Sistema.ppcm no nome
 - `3e60464` V287: versão nova não apaga o trabalho — espera terminar o que está rodando, guarda todas as abas e devolve depois
 - `d574283` V286: arquivo aceito no mesmo formato em todas as abas (verde claro, barra verde, texto escuro); cabeçalho dos resultados da Impressão Casada e Multi obra no tema da Tela inicial
 - `fa34a58` V285: Impressão Casada e Multi obra — arquivo aceito em verde (✓), mesmo formato do aviso das pastas raiz
