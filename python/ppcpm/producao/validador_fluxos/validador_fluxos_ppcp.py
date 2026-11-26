@@ -6542,7 +6542,7 @@ class MainWindow(QWidget):
                     return
 
         ext_padrao = 'xlsb' if self.base_is_xlsb else 'xlsx'
-        nome_saida = f'BASE_PPCPM_Programação-Fábrica_LOTE_{lote_slug}_{date_tag()}.{ext_padrao}'
+        nome_saida = f'PPCPM_Programação-Fábrica_Sistema.ppcpm_LOTE_{lote_slug}_{date_tag()}.{ext_padrao}'
         filtro = 'Excel Binário (*.xlsb);;Excel (*.xlsx)' if self.base_is_xlsb else 'Excel (*.xlsx)'
         caminho_saida, _ = QFileDialog.getSaveFileName(self, 'Salvar Base Preenchida',
                                                          os.path.join(pasta, nome_saida),
