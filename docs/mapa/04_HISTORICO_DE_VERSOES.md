@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `2d4f4b1` V291: Impressão - FLUXO 04 — 'Gerar um PDF separado por obra' sempre clicável; Limpar no PDF do Pacote
 - `7342d8a` V290: Impressão Grupo - LIC — botões Limpar no PDF do Pacote e na árvore Obra / Grupo LIC / Tipo / Espessura / OF
 - `4a88462` V289: mensagens de status das abas de Produção com ícones de linha (padrão ERP) no lugar dos emojis
 - `1d5257e` V288: avisos no padrão do sistema (botão cinza com Enter/Esc); PDFs da Impressão Casada e Multi obra com Sistema.ppcm no nome
