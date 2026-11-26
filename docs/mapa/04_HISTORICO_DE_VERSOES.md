@@ -7,6 +7,7 @@
 
 ## 2026-11-26
 
+- `9702ee2` V293: botões de ação dentro das tabelas no padrão do sistema, com ícone de linha no lugar do emoji
 - `cc3c162` V292: cabeçalho das tabelas no tema da Tela inicial também no Grupo LIC, Fluxo 04 e apps da Preparação fábrica
 - `2d4f4b1` V291: Impressão - FLUXO 04 — 'Gerar um PDF separado por obra' sempre clicável; Limpar no PDF do Pacote
 - `7342d8a` V290: Impressão Grupo - LIC — botões Limpar no PDF do Pacote e na árvore Obra / Grupo LIC / Tipo / Espessura / OF
