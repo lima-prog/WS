@@ -1,0 +1,780 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mapa de Produção — SISTEMA PPCPM</title><style>
+:root{--azul:#0b3d91}*{box-sizing:border-box}
+body{margin:0;font:14px 'Segoe UI',Roboto,Arial,sans-serif;color:#111;background:#e9edf2;display:flex}
+nav{position:sticky;top:0;height:100vh;width:270px;flex:none;background:#0b1f44;color:#fff;padding:18px 12px;overflow:auto}
+nav h1{font-size:15px;margin:0 0 4px;color:#fff!important}nav small{color:#9fb3d6;display:block;margin-bottom:14px}
+nav a{display:block;color:#dbe6ff;text-decoration:none;padding:8px 10px;border-radius:4px;margin-bottom:4px;font-weight:600}
+nav a:hover{background:#16336b}nav input{width:100%;padding:7px 9px;border-radius:4px;border:1px solid #3a5a96;margin-bottom:12px;font:13px 'Segoe UI'}
+main{flex:1;min-width:0;padding:20px 28px}
+section{background:#fff;border:1px solid #c5cbd6;border-top:4px solid var(--azul);border-radius:6px;padding:6px 22px 18px;margin-bottom:22px}
+h1{color:var(--azul);font-size:20px}h2{color:#0b2e6b;font-size:16px;border-bottom:1px solid #d6dee7;padding-bottom:4px;margin-top:22px}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}th{background:linear-gradient(#e3e8ee,#cdd4de);text-align:left}
+th,td{border:1px solid #b6bfcc;padding:5px 8px;vertical-align:top}code{background:#eef1f5;padding:1px 4px;border-radius:3px;font-size:12.5px}
+pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:5px;overflow:auto}pre code{background:none;color:inherit}
+blockquote{margin:8px 0;padding:6px 12px;border-left:4px solid var(--azul);background:#eef3fb;color:#333}
+mark{background:#ffe066}@media(max-width:800px){body{display:block}nav{position:static;height:auto;width:auto}main{padding:12px}}
+</style></head><body><nav><h1>MAPA DE PRODUÇÃO</h1><small>SISTEMA PPCPM · Grupo Projeart</small>
+<input id="q" placeholder="Procurar (ex.: Etiquetas, V275)…"><a href="#00_INDICE">MAPA DO SISTEMA PPCPM — Índice (comece por aqui)</a><a href="#01_VISAO_GERAL">01 — Visão geral do SISTEMA PPCPM</a><a href="#02_MAPA_DAS_ABAS">02 — Mapa das abas (menu do sistema)</a><a href="#03_REGRAS_E_PADROES">03 — Regras fixas e padrões (valem para toda mudança)</a><a href="#04_HISTORICO_DE_VERSOES">04 — Histórico de versões do SISTEMA PPCPM</a><a href="#05_PROCURAR_E_RESTAURAR">05 — Como procurar e como restaurar</a></nav><main><section id="00_INDICE"><h1>MAPA DO SISTEMA PPCPM — Índice (comece por aqui)</h1>
+<blockquote>
+<p>Memória organizada de tudo que foi criado e melhorado no <strong>SISTEMA PPCPM</strong> (Grupo Projeart · PCP · Wadson Lima).
+Situação deste mapa: <strong>Versão 280 (HTML) / pacote Python 57 — 26/11/2026</strong>.
+Cada arquivo é curto e trata de um assunto só: abra <strong>só o que precisar</strong> (economiza tempo e tokens).</p>
+</blockquote>
+<h2>Onde está cada coisa</h2>
+<table>
+<thead>
+<tr>
+<th>Arquivo</th>
+<th>O que tem</th>
+<th>Quando abrir</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>01_VISAO_GERAL.md</code></td>
+<td>O que é o sistema, as 2 versões (HTML e Python), onde fica o código, publicação, banco, pastas</td>
+<td>Para entender ou explicar o sistema</td>
+</tr>
+<tr>
+<td><code>02_MAPA_DAS_ABAS.md</code></td>
+<td>Todas as abas do menu: o que fazem, onde está o código, regras de cada uma</td>
+<td>Antes de mexer numa aba</td>
+</tr>
+<tr>
+<td><code>03_REGRAS_E_PADROES.md</code></td>
+<td>Regras fixas (segurança, visual, rotina de versão, Planilha Base, nomes de arquivo)</td>
+<td>Antes de qualquer mudança</td>
+</tr>
+<tr>
+<td><code>04_HISTORICO_DE_VERSOES.md</code></td>
+<td>Lista de todas as versões publicadas (V110 → V280), por data</td>
+<td>Para achar quando/como algo mudou</td>
+</tr>
+<tr>
+<td><code>05_PROCURAR_E_RESTAURAR.md</code></td>
+<td>Como achar algo rápido e como voltar uma versão/arquivo</td>
+<td>Quando algo quebrar ou sumir</td>
+</tr>
+</tbody>
+</table>
+<h2>Atalhos de busca (Ctrl+F no arquivo certo)</h2>
+<table>
+<thead>
+<tr>
+<th>Procurando…</th>
+<th>Abra</th>
+<th>Busque por</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uma aba (ex.: Etiquetas)</td>
+<td>02</td>
+<td>o nome da aba</td>
+</tr>
+<tr>
+<td>Quando algo mudou</td>
+<td>04</td>
+<td>palavra-chave ou <code>V2xx</code></td>
+</tr>
+<tr>
+<td>Regras da Planilha Base</td>
+<td>03</td>
+<td><code>PLANILHA BASE</code></td>
+</tr>
+<tr>
+<td>Como publicar versão nova</td>
+<td>03</td>
+<td><code>ROTINA</code></td>
+</tr>
+<tr>
+<td>Voltar uma versão</td>
+<td>05</td>
+<td><code>VOLTAR</code></td>
+</tr>
+</tbody>
+</table>
+<h2>Regra de ouro (para pessoa ou Claude)</h2>
+<ol>
+<li>Toda mudança é feita <strong>uma vez</strong> no <code>index.html</code>; o Python é <strong>gerado</strong> dele (<code>gerar_python.py</code>).</li>
+<li>Toda versão nova: subir número, testar, publicar e <strong>acrescentar 1 linha</strong> no <code>04_HISTORICO_DE_VERSOES.md</code> (ou regenerar pelo Git).</li>
+<li>Regra nova combinada com o Wadson → escrever no <code>03_REGRAS_E_PADROES.md</code>.</li>
+</ol>
+<h2>Onde este mapa fica guardado</h2>
+<ul>
+<li><strong>PC / rede:</strong> <code>X:\WADSON  LIMA\05  -  MAPA  DO  APP\01  -  MEMORIA  DO  SISTEMA</code></li>
+<li><strong>Dentro do sistema (GitHub):</strong> pasta <code>docs/mapa/</code> do repositório <code>lima-prog/WS</code></li>
+<li><strong>Projeto no Claude:</strong> "SISTEMA PCPM - PROJEART" → <code>claude/MAPA-SISTEMA-PPCPM.md</code> (resumo)</li>
+</ul></section><section id="01_VISAO_GERAL"><h1>01 — Visão geral do SISTEMA PPCPM</h1>
+<h2>O que é</h2>
+<p>Sistema operacional de <strong>PCP (Planejamento e Controle da Produção)</strong> do <strong>Grupo Projeart</strong> (indústria metalúrgica).
+Dono e quem pede as mudanças: <strong>Wadson Lima (PCP)</strong>. Reúne num lugar só as ferramentas do PCP: análise de DBF × FOCCO,
+geração da Planilha Base, roteiros, impressões, etiquetas Zebra, engenharia (PDF/3D) e os apps de DXF da Preparação fábrica.</p>
+<h2>As duas versões (sempre iguais na tela)</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>HTML (navegador)</th>
+<th>Python (instalado no PC)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Onde roda</td>
+<td>Vercel: <code>sistemaoperacional-grupoprojeartv92.vercel.app</code></td>
+<td><code>C:\Users\&lt;usuário&gt;\SISTEMA-PPCPM</code> (atalho <strong>SISTEMA - PPCPM</strong> na área de trabalho)</td>
+</tr>
+<tr>
+<td>De onde vem</td>
+<td><code>index.html</code> (fonte única)</td>
+<td>Gerado do <code>index.html</code> por <code>python/gerar_python.py</code> + módulos <code>python/ppcpm/</code></td>
+</tr>
+<tr>
+<td>Atualiza</td>
+<td>Sozinho a cada envio ao GitHub</td>
+<td>Sozinho: confere a cada 1 min e avisa "Atualização obrigatória"</td>
+</tr>
+<tr>
+<td>Número</td>
+<td><code>VERSAO</code> (ex.: Versão 280)</td>
+<td><code>pacote</code> (ex.: 57) em <code>versao_python.json</code></td>
+</tr>
+<tr>
+<td>O que só ele faz</td>
+<td>—</td>
+<td>Ler/gravar arquivos do PC e da rede, Excel (COM), Zebra pelo cabo, apps DXF, Base Preenchida</td>
+</tr>
+</tbody>
+</table>
+<h2>Código e publicação</h2>
+<ul>
+<li><strong>GitHub:</strong> <code>lima-prog/WS</code> (público), branch <code>main</code>. Cada versão = 1 commit "VNNN: …".</li>
+<li><strong>Vercel</strong> publica o HTML sozinho após cada envio.</li>
+<li><strong>Supabase</strong> (projeto <code>zlbgiodxpywrqapjlldg</code>): login/cadastro, usuários e administradores, dados da Tela inicial
+  (<code>pacotes_impressao</code>: lote, of_trecho, impresso, revisão, observação), alterações de lote, configurações compartilhadas.</li>
+</ul>
+<h2>Estrutura de pastas (repositório)</h2>
+<pre><code>index.html                 ← FONTE ÚNICA (todas as abas: blocos &lt;script type=&quot;text/plain&quot; id=&quot;src-pgN&quot;&gt;)
+versao.json                ← versão do HTML
+versao_python.json         ← pacote do Python (há uma cópia em python/)
+docs/                      ← documentos (requisitos + este mapa em docs/mapa/)
+python/
+  app.py                   ← servidor local (127.0.0.1) + rotas /api/...
+  gerar_python.py          ← gera python/ppcpm/gerado/ a partir do index.html (tem que dar &quot;remontagem IDÊNTICA&quot;)
+  ABRIR_SISTEMA.bat / INSTALAR.bat / INSTALAR_BIBLIOTECAS.bat / VERIFICAR_SISTEMA.bat
+  ppcpm/
+    producao/              ← Agrupador | Base (motor.py + qtfalso.py rodam validador_fluxos_ppcp.py)
+      base_fixa/           ← BASE_PPCPM_Programação-Fábrica_rev.22_PCT.xlsx + REGRAS_GERACAO_BASE.md
+      lantek_ska/          ← modelo LANTEK_SKA rev.02 (.xlsb)
+      validador_fluxos/    ← validador_fluxos_ppcp.py (gera a Base pelo Excel), ska_lantek.py
+    fabrica_*.py           ← backends dos 7 apps da Preparação fábrica (rot, ren, cam, esp, cor, vis, aud)
+    zebra.py               ← impressão de etiquetas
+    atualizador.py, instalacao.py, arquivos_pc.py …
+  dados_locais/            ← dados de trabalho do PC (ex.: cópia local da LANTEK_SKA)
+  testes/                  ← pytest (13 testes)
+</code></pre>
+<h2>Caminhos fixos usados pelo sistema</h2>
+<ul>
+<li><strong>Base fixa:</strong> dentro do sistema (<code>producao/base_fixa</code>), rev.22.</li>
+<li><strong>Pastas raiz das obras (fixas):</strong>
+  <code>G:\.shortcut-targets-by-id\1ZwSq5uhu8VPwI99yMC0iAhkM3Ep2MZB1\LIBERACOES\LIBERAÇÕES FOCCO</code> e
+  <code>\\172.25.0.7\lib-eng\LIBERAÇÕES ENGENHARIA</code> (o sistema avisa se o PC não acessa).</li>
+<li><strong>Base gerada:</strong> pasta <strong>Downloads</strong> do usuário, nome <code>PPCPM_Programação-Fábrica_Sistema.ppcpm_LOTE_&lt;lote&gt;_&lt;aammdd&gt;.xlsx</code>.</li>
+<li><strong>LANTEK_SKA:</strong> no Google Drive (G:) se existir; senão cópia em <code>python/dados_locais/producao/lantek_ska/</code>.</li>
+</ul>
+<h2>Documentos relacionados</h2>
+<ul>
+<li><code>docs/REQUISITOS_FLUXO_DE_TRABALHO.md</code> — guia detalhado do fluxo de trabalho e padrão visual (V256).</li>
+<li>Projeto Claude: <code>claude/SISTEMA-PPCPM-como-publicar-versoes.md</code>.</li>
+</ul>
+<h2>Pastas de trabalho do Wadson (conectadas ao Claude em 26/11/2026)</h2>
+<blockquote>
+<p>Pastas que ele usa para fazer o sistema acontecer. G: = Google Drive (atalhos compartilhados); X: = unidade de rede.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Pasta</th>
+<th>Para que serve</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>X:\</code> (inteiro) e <code>X:\WADSON  LIMA</code></td>
+<td>Área do Wadson: 00 Versões · 01 Planilhas para teste · 02 Cópias do sistema · 03 VS Code · 04 Instalador Python · 05 Mapa do app</td>
+</tr>
+<tr>
+<td><code>X:\WADSON  LIMA\05  -  MAPA  DO  APP\01  -  MEMORIA  DO  SISTEMA</code></td>
+<td><strong>Este mapa</strong></td>
+</tr>
+<tr>
+<td><code>X:\10. Programação Fábrica\16. Programação- Maquina -Lantek- 2026</code></td>
+<td>Programação das máquinas Lantek 2026</td>
+</tr>
+<tr>
+<td><code>G:\…\1QJ57NfcTjhvbinkho-hL7zV2UPrjgZ4d\PCP-REDE\PPCPM</code></td>
+<td>Pasta raiz do PCP na rede (PCP-REDE)</td>
+</tr>
+<tr>
+<td><code>…\PPCPM\08. Base Dados Relatórios\03. LANTEK_SKA-REPORT_REL-ANALISE-NESTINGS</code></td>
+<td>Planilha LANTEK_SKA (atualizada pelo Agrupador)</td>
+</tr>
+<tr>
+<td><code>…\PPCPM\10. Programação Fábrica\06. Programação Preparação</code></td>
+<td>Programação da Preparação</td>
+</tr>
+<tr>
+<td><code>…\PPCPM\18. FOCCO ERP\04. GO LIVE\02. Validação Peso LIC x POSIÇÕES</code></td>
+<td>Validação de peso (Análise DBF × FOCCO)</td>
+</tr>
+<tr>
+<td><code>…\PPCPM\23. CONTROLE DE PACOTES</code></td>
+<td>Controle de pacotes (Tela inicial)</td>
+</tr>
+<tr>
+<td><code>…\PPCPM\24. Controle de Impressões por Pacote</code></td>
+<td>Controle de impressões por pacote</td>
+</tr>
+<tr>
+<td><code>…\PPCPM\1001 - Diego</code></td>
+<td>Pasta do Diego</td>
+</tr>
+<tr>
+<td><code>G:\…\1ZwSq5uhu8VPwI99yMC0iAhkM3Ep2MZB1\LIBERACOES</code></td>
+<td>Liberações (pasta raiz das obras: LIBERAÇÕES FOCCO)</td>
+</tr>
+<tr>
+<td><code>C:\Users\wadson.lima\Downloads</code></td>
+<td>Onde cai a Base gerada e os arquivos baixados</td>
+</tr>
+<tr>
+<td><code>C:\Users\wadson.lima\Documents</code> · <code>Pictures</code> · <code>Videos</code></td>
+<td>Documentos, prints e vídeos de explicação</td>
+</tr>
+<tr>
+<td><code>C:\Users\wadson.lima\Desktop\DXF</code></td>
+<td>Arquivos DXF (apps da Preparação fábrica)</td>
+</tr>
+</tbody>
+</table></section><section id="02_MAPA_DAS_ABAS"><h1>02 — Mapa das abas (menu do sistema)</h1>
+<blockquote>
+<p>Código de cada aba: no <code>index.html</code>, bloco <code>&lt;script type="text/plain" id="src-pgN"&gt;</code>. Lista oficial: <code>const PROG=[…]</code> no <code>index.html</code>.
+"Py" = parte que só roda no sistema instalado (Python).</p>
+</blockquote>
+<h2>TELA INICIAL</h2>
+<p>Ligada à <strong>PLANILHA DE CONTROLE DE PACOTES ENTREGUES.xlsx</strong> (aba LIBERAÇÃO DE PCTS).
+- Pacote atual (filtro), % impresso, total realizado; tabela <strong>Pacote para revisão</strong> (OF-trecho, ano-semana, peso, status Impressa/Pendente, Revisão, <strong>Observação editável</strong> — fica no Supabase, não mexe na planilha).
+- Pesquisar obra (uma ou várias), Selecionar todos, Obras para validar (pacote 9999).
+- <strong>Alteração de LOTE</strong> (janela própria) para mover obras revisadas de lote.
+- <strong>Blocos de notas</strong> próprio (abas, salvar .txt, localizar, zoom) com <strong>Listar PCT</strong>: lê o print do pacote (OCR Tesseract.js)
+  e cria blocos OBRA / DBF / Nº PEDIDO / LIBERAÇÃO FOCCO | OTM. Desde V279 confere com as OF-TRECHO da planilha (corrige 2170-22-01 → 2170-2-01).</p>
+<h2>Produção</h2>
+<table>
+<thead>
+<tr>
+<th>Aba</th>
+<th>id</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Agrupador | Base</strong></td>
+<td>pg2</td>
+<td>Junta DBFs das obras + Relatório de Fluxos + FOCCO ERP + relatório SKA e <strong>gera a Planilha Base Preenchida</strong> (Py, Excel). Base fixa rev.22 dentro do sistema; pastas raiz fixas com aviso de acesso; <strong>Listar PCT</strong> ao lado de Obra(s); LANTEK_SKA atualizada sozinha (com relógio do tempo); saída em Downloads. Regras da Base: ver 03 › PLANILHA BASE. Motor: <code>producao/motor.py</code> + <code>qtfalso.py</code> executando <code>validador_fluxos_ppcp.py</code> (widgets ligados por <code>data-w</code>, métodos por <code>data-m</code>).</td>
+</tr>
+<tr>
+<td>Roteirização produção</td>
+<td>pg3</td>
+<td>Barra de roteirização (inclui Terça Z), "Últimos usados".</td>
+</tr>
+<tr>
+<td>Impressão Casada - ERP</td>
+<td>pg4</td>
+<td>Impressão casada; pendências Lantek por posição + obra + lote.</td>
+</tr>
+<tr>
+<td>Impressão Casada | Multi obra</td>
+<td>pg5</td>
+<td>Mesma lógica para várias obras; botão ATUALIZAR zera a tela.</td>
+</tr>
+<tr>
+<td>Impressão Grupo - LIC</td>
+<td>pg6</td>
+<td>Impressão por grupo LIC.</td>
+</tr>
+<tr>
+<td>Impressão - FLUXO 04</td>
+<td>pg7</td>
+<td>Impressão do fluxo 04.</td>
+</tr>
+</tbody>
+</table>
+<h2>Processo de validação</h2>
+<table>
+<thead>
+<tr>
+<th>Aba</th>
+<th>id</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Análise da DBF X Focco - ERP</td>
+<td>pg1</td>
+<td>Compara DBF × relatório FOCCO; nome do arquivo de saída se atualiza a cada Analisar: <code>Validação-peso__OF-&lt;of-trecho&gt;___ SISTEMA - PPCPM__&lt;data&gt;</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2>Gerenciador de Roteiros</h2>
+<table>
+<thead>
+<tr>
+<th>Aba</th>
+<th>id</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gerar relatórios das ordens</td>
+<td>pg13</td>
+<td>Relatório de Ordens x Fluxos a partir do arquivo do Focco.</td>
+</tr>
+<tr>
+<td>Gerenciamento de roteiro - ERP</td>
+<td>pg15</td>
+<td>Gerencia roteiros do ERP; regras em massa.</td>
+</tr>
+<tr>
+<td>Alteração de Roteiros</td>
+<td>pg10</td>
+<td>Altera roteiros; regras em massa.</td>
+</tr>
+</tbody>
+</table>
+<h2>Área de impressão</h2>
+<table>
+<thead>
+<tr>
+<th>Aba</th>
+<th>id</th>
+<th>O que faz</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Impressão de Etiquetas</td>
+<td>pg12</td>
+<td>Lê <code>Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx</code> e imprime direto na <strong>Zebra pelo cabo</strong> (Py). Regras: Preparação obra por obra (máquinas em sequência), Não Preparação obra por obra (setor por setor); <strong>PERFIL L</strong> (L1+L2), <strong>PERFIL U/C</strong>, <strong>PERFIL SOLDADO</strong> (PS_PREP) e <strong>TUBO</strong> (TB_PREP) = 1 etiqueta só por pacote, sem obra; Selecionar impressora; Confirmar impressão (Esc/Enter).</td>
+</tr>
+<tr>
+<td>Engenharia</td>
+<td>pg14</td>
+<td>Desenhos PDF de pastas e .zip (zip dentro de zip), busca por obra na pasta da engenharia, <strong>VISUALIZAR 3D</strong> (SHX, furações, legenda, arquivos .CAM).</td>
+</tr>
+<tr>
+<td>Acesso ao Intranet</td>
+<td>pg11</td>
+<td>Acesso/envio para a intranet.</td>
+</tr>
+</tbody>
+</table>
+<h2>Preparação fábrica (7 apps, rodam dentro da aba — Py)</h2>
+<p>Backends <code>python/ppcpm/fabrica_{rot,ren,cam,esp,cor,vis,aud}.py</code>, carregados por <code>fabrica_apps.py</code>; rotas <code>/api/fabrica/&lt;app&gt;/&lt;ação&gt;</code>.
+| App | id | backend |
+|---|---|---|
+| Roteirizador DXF (Roteirizador, Divergências, Peso por fluxo, Verificador) | pg22 | rot |
+| Renomear DXF | pg19 | ren |
+| Conversor CAM → DXF | pg20 | cam |
+| Espelhar DXF | pg17 | esp |
+| Corte Inteligente | pg18 | cor |
+| Visualizador DXF | pg16 | vis |
+| Criar Pasta / Auditoria | pg21 | aud |</p>
+<h2>Outros itens do menu</h2>
+<ul>
+<li><strong>Planejamento RNC</strong> (antes Qualidade / RNC).</li>
+<li><strong>Usuários:</strong> aprovação de cadastro, administradores (o administrador principal libera/tira acesso de administrador).</li>
+<li><strong>Configurações:</strong> tema claro/escuro, idioma dos avisos (pt/en/es), etc.</li>
+<li><strong>Login:</strong> e-mail e senha ou <strong>Entrar com Google</strong> (e-mail corporativo cria/ativa o cadastro sozinho); animação de entrada.</li>
+</ul>
+<h2>Janelas próprias do sistema</h2>
+<p>PPCPM - ARQUIVOS (explorador de arquivos do PC, Py), Verificação da instalação, Alteração de LOTE, Blocos de notas, VISUALIZAR 3D —
+todas arrastáveis, no tema do sistema, com zoom próprio (Ctrl+rodinha, Ctrl +/−/0).</p></section><section id="03_REGRAS_E_PADROES"><h1>03 — Regras fixas e padrões (valem para toda mudança)</h1>
+<h2>SEGURANÇA (obrigatório)</h2>
+<ul>
+<li><strong>Não usar PowerShell em nada</strong> (o Bitdefender da empresa bloqueia). Instalar/abrir é por <code>.bat</code> e Python.</li>
+<li><strong>Nunca</strong> pedir para desligar o antivírus.</li>
+<li>APIs de arquivos só no próprio PC: <code>127.0.0.1</code> + cabeçalho <code>X-PPCPM: 1</code> + conferência do Host (<code>_do_proprio_pc()</code>).
+  Quem acessa pela rede (<code>--rede</code>) <strong>não</strong> vê os arquivos do Wadson.</li>
+<li>Claude não digita nem copia senhas, chaves ou segredos pelo usuário.</li>
+<li>O repositório GitHub é <strong>público</strong>: o que vai para ele (inclusive planilhas modelo) pode ser baixado por qualquer um.</li>
+</ul>
+<h2>ROTINA de cada versão nova</h2>
+<ol>
+<li>Mudar no <code>index.html</code> (blocos <code>src-pgN</code>; dentro deles escrever <code>&lt;\/script&gt;</code>).</li>
+<li>Subir <code>VERSAO</code> no <code>index.html</code> e em <code>versao.json</code>; se mudou Python não gerado, subir <code>pacote</code> nos <strong>dois</strong> <code>versao_python.json</code>.</li>
+<li><code>cd python &amp;&amp; python3 gerar_python.py</code> → tem que dizer <strong>"remontagem IDÊNTICA"</strong>.</li>
+<li><code>python3 -m pytest -q</code> → todos os testes passando.</li>
+<li>Conferir com prints (Playwright) a tela mudada.</li>
+<li>Commit <strong>"VNNN: o que mudou"</strong>, enviar ao GitHub e esperar o Vercel ficar <code>success</code>.</li>
+<li>Responder em português; se o pedido veio com print, devolver print do resultado.</li>
+<li>Acrescentar a versão no <code>04_HISTORICO_DE_VERSOES.md</code> (ou regenerar pelo Git).</li>
+</ol>
+<h2>PADRÃO VISUAL</h2>
+<ul>
+<li>Tema <strong>Azul Projeart + ERP clássico</strong>: faixa/borda azul <code>#0b3d91</code>, quadros com faixa de título e borda leve,
+  botões cinza-azulado claro (<code>#f3f5f7 → #d9dee5</code>, borda <code>#8f9aa7</code>) com <strong>letra preta</strong>, cabeçalhos de tabela no tema dos botões.</li>
+<li>Avisos/perguntas: modelo <strong>Modal Azul Projeart</strong> (erro = faixa vermelha), arrastáveis pelo título, teclas Esc/Enter.</li>
+<li>Ícones de linha (SVG), sem emoji; Base fixa = ícone banco de dados com cadeado.</li>
+<li>Sem barra de rolagem de fora; tema claro e escuro; avisos no idioma escolhido (pt/en/es).</li>
+</ul>
+<h2>PLANILHA BASE (Agrupador | Base → Gerar Base Preenchida) — sempre assim (V275–V278)</h2>
+<p>Código: bloco "V275 — REGRAS FIXAS" em <code>validador_fluxos_ppcp.py</code>; resumo em <code>producao/base_fixa/REGRAS_GERACAO_BASE.md</code>.
+1. <strong>DBF:</strong> Classificar (linha 9 = cabeçalho, "Meus dados contêm cabeçalhos", níveis salvos):
+   OF-TRECHO A→Z › Nº LIBERAÇÃO A→Z › MARCA A→Z › PAI X FILHO Z→A. Depois recalcular tudo.
+2. <strong>Tabelas dinâmicas (DBF até RUPTURA MP):</strong> em <strong>cada</strong> tabela, Alterar Fonte de Dados = <code>DBF!$A$9:&lt;última coluna&gt;&lt;última linha COM DADO&gt;</code> e Atualizar.
+3. <strong>Filtros:</strong> PREP_Lista FLUXO PRD = Fluxo 1–4 e FILTRO TD LISTA MAQ. = X; PREP_Quadro tabela PESO POR BC = FLUXO PRD (Tudo);
+   CLEBER = "VP c/ Perfil Lam."; CDI = COMPONENTE LIC, ACESSÓRIOS (vazio), PERFIL LAMINADO (vazio),
+   GRUPO LIC = ESCADA, ACESSÓRIOS, VIGA/PILARES/SOLDADOS, ACESSÓRIOS BARRA, ACESSÓRIOS SOLDADOS; + filtros das observações "&lt;&lt;&lt;" do modelo.
+4. <strong>PREP_Lista H5</strong> = data do dia.
+5. <strong>Nomes e cores das abas:</strong> DBF (mantém) · FOCCO_VISION_NDPCP301 → <strong>FOCCO_VISION_NDPCP399</strong> #ACB9CA · PESO X FLUXO #F4B084 ·
+   DET. PCT #66FFFF · PREP_LISTA X MAQ X ORD X TRECHO #666633 · PREP_QUADRO GESTÃO A VISTA #7030A0 · CLEBER_TS x VM x VP x PERFIL #FFD966 ·
+   CDI_PROG_PCT #CCFF33 · LT #FF0000 · MARLON_POSIÇÃO_PERFILADEIRA #00CC99 · ELVIS_PERFIL_LAM (sem cor) · RUPTURA MP #FF66FF · BD #3399FF · CALENDÁRIO (mantém).
+6. <strong>Quadro de aviso</strong> no fim lista cada atualização com ✔/⚠ (só com Excel instalado).
+7. <strong>Nome do arquivo:</strong> <code>PPCPM_Programação-Fábrica_Sistema.ppcpm_LOTE_&lt;lote&gt;_&lt;aammdd&gt;.xlsx</code>, salvo em <strong>Downloads</strong>.</p>
+<h2>Outras regras combinadas</h2>
+<ul>
+<li>Etiquetas: PERFIL L, PERFIL U/C, PERFIL SOLDADO e TUBO = 1 etiqueta por pacote (mesma lógica).</li>
+<li>Base fixa e pastas raiz: fixas no sistema, iguais em todos os PCs; o sistema avisa o que falta no PC.</li>
+<li>Listar PCT existe no Bloco de notas e no Agrupador; digitar à mão continua valendo.</li>
+<li>Telas não perdem dados ao trocar de aba; janelas abrem no centro e podem ir para a 2ª tela.</li>
+</ul></section><section id="04_HISTORICO_DE_VERSOES"><h1>04 — Histórico de versões do SISTEMA PPCPM</h1>
+<blockquote>
+<p>Gerado do histórico do GitHub (<code>lima-prog/ws</code>). Uma linha por versão publicada, da mais nova para a mais antiga.
+<strong>Como procurar:</strong> Ctrl+F pelo nome da aba (ex.: "Agrupador", "Etiquetas", "Tela inicial") ou pelo número (ex.: "V275").
+"pacote N" = versão do Python instalado nos PCs. Versões antes da V110 ficaram no projeto antigo (não estão aqui).</p>
+</blockquote>
+<h2>2026-11-26</h2>
+<ul>
+<li><code>e4c40cc</code> V280: nome da Base gerada = PPCPM_Programação-Fábrica_Sistema.ppcpm_LOTE_<lote>_<aammdd></li>
+<li><code>096ab71</code> V279: Listar PCT confere cada obra lida com as OF-TRECHO da planilha de pacotes (2170-22-01 lido errado vira 2170-2-01)</li>
+</ul>
+<h2>2026-11-25</h2>
+<ul>
+<li><code>3c99f5e</code> V278: Base gerada — Alterar Fonte de Dados em cada tabela dinâmica (DBF!$A$9 até a última linha com dado) e atualizar todas; filtros PREP_Lista (X) e CDI (LIC, vazio); Classificar com cabeçalho e níveis salvos na DBF</li>
+<li><code>45bbc7f</code> V277: Base gerada — tabelas dinâmicas leem DBF!$A$9 só até a última linha com dado; classificação só nas linhas de dado + recálculo completo antes de atualizar</li>
+<li><code>2ea2614</code> V276: quadro de aviso da Base gerada lista as atualizações da planilha (DBF classificada, tabelas dinâmicas, filtros, data, abas)</li>
+<li><code>2508f28</code> V275: Planilha Base — regras fixas do vídeo: classifica a DBF, filtros fixos (CDI, CLEBER, Quadro), data H5 da PREP_Lista, nomes e cores das abas (FOCCO_VISION_NDPCP399)</li>
+<li><code>329999f</code> V274: Agrupador | Base — botão Listar PCT ao lado das obras (lê o print e lista as OF-TRECHO em Obra(s)); digitar à mão continua</li>
+<li><code>52d5b48</code> V273: Agrupador | Base — pastas raiz das obras fixas no sistema + aviso quando o PC não acessa</li>
+</ul>
+<h2>2026-11-24</h2>
+<ul>
+<li><code>20d77e0</code> V272: Agrupador | Base — ícone da Base fixa (banco de dados com cadeado, no padrão do sistema) no lugar do emoji</li>
+<li><code>1152406</code> V271: Agrupador | Base — a base gerada vai para a pasta Downloads do usuário</li>
+<li><code>6318807</code> V270: Agrupador | Base — cabeçalho da tabela do consolidado no tema da Tela inicial (cinza claro, texto preto)</li>
+<li><code>b88d532</code> V269: Agrupador | Base — andamento e relógio do tempo ao lado de Atualizar a planilha LANTEK_SKA agora</li>
+<li><code>6bdd9b1</code> V268: planilha LANTEK_SKA rev.02 dentro do sistema (cópia de trabalho em dados_locais quando o Google Drive não está no PC)</li>
+<li><code>3fd18b8</code> V267: Agrupador | Base — Base fixa rev.22 dentro do sistema; quadro Planilha Base só com a Base fixa</li>
+<li><code>b015e59</code> V266: janelas de pergunta (ex.: Atualizar) com botões no padrão do sistema, iguais ao Buscar e Carregar</li>
+<li><code>94f0347</code> V265: Agrupador | Base — andamento (Gerando / Cruzando resultados…) também ao lado de DBFs a agrupar</li>
+<li><code>598fa8b</code> V264: Análise DBF x FOCCO — o nome do arquivo de saída se atualiza a cada Analisar (OF/trecho da DBF/relatório)</li>
+<li><code>cf22d25</code> V263: Tela inicial — coluna Observação editável (fica no servidor, não mexe na planilha)</li>
+</ul>
+<h2>2026-11-23</h2>
+<ul>
+<li><code>c0c4bc2</code> V262: Impressão de Etiquetas — COD ITEM TB_PREP vira o setor TUBO (etiqueta própria, como PERFIL L / PERFIL SOLDADO / PERFIL U/C)</li>
+<li><code>1027f26</code> V261: Visualizador DXF e Criar Pasta / Auditoria rodam dentro da aba — os 7 apps da Preparação fábrica no padrão do sistema</li>
+<li><code>1b2ceea</code> V260: Renomear DXF, Conversor CAM → DXF, Espelhar DXF e Corte Inteligente rodam dentro da aba</li>
+<li><code>9244f1c</code> V259: Roteirizador DXF roda dentro da aba (Roteirizador, Relatório de divergências, Peso por fluxo, Verificador)</li>
+<li><code>71eaa72</code> V258: janela Verificação da instalação (e Alteração de LOTE / Bloco de notas) volta a ser arrastável</li>
+<li><code>edbcdd2</code> V257 / pacote 44: menu Planejamento vira Preparação fábrica com 7 apps (Roteirizador, Renomear, Conversor CAM, Espelhar, Corte Inteligente, Visualizador, Criar Pasta/Auditoria)</li>
+<li><code>72f4b95</code> docs: documento de requisitos do fluxo de trabalho e padrões (para reutilizar em projeto novo)</li>
+</ul>
+<h2>2026-11-19</h2>
+<ul>
+<li><code>0720169</code> V256: Etiquetas — sem o aviso Impressão enviada depois de imprimir (a confirmação antes já basta)</li>
+<li><code>5355b37</code> V255: Etiquetas — Confirmar impressão no modelo do sistema (impressora em etiqueta, Esc/Enter), arrastável</li>
+<li><code>e9d432f</code> V254: Etiquetas — IMPORTAR DADOS já vai direto para Emitir etiqueta; sai o botão Ir para Emitir etiqueta</li>
+<li><code>7603414</code> V253: quadros Impressão enviada e Formato inválido/erro com a faixa colorida em cima do título (mesmo padrão da Selecionar impressora)</li>
+<li><code>7b0a802</code> V252 / pacote 43: Selecionar impressora no modelo novo (busca, tabela Impressora/Conexão/Situação, grupos Etiquetas/Documentos/Arquivo, faixa azul em cima)</li>
+<li><code>672fd53</code> V251: Etiquetas — aviso 'Impressão enviada' no modelo do sistema (contador, pacote/etapas, impressora) com botão Reimprimir</li>
+<li><code>eda0d3a</code> V250: Etiquetas — barra de situação (importadas · pacote · operador · impressora) no resumo; sai o selo de etiquetas e a linha de status abaixo</li>
+<li><code>087304d</code> V249: Etiquetas — resumo da importação aparece dentro do quadro 1 (padrão 'Carregado com sucesso'), sem janela por cima</li>
+<li><code>d79a6f6</code> V248: Etiquetas — resumo da importação no modelo novo (faixa verde, tabela com ícones, botão Ir para Emitir etiqueta)</li>
+<li><code>f983cbb</code> V247: quadro 'Formato de documento inválido' no modelo novo em todas as abas (arquivo recusado e erros de arquivo do sistema), com 'Escolher outro arquivo'</li>
+<li><code>ea0dacc</code> Pacote 42: instalação de bibliotecas mais rápida — pymupdf fixo em 1.x (2.x baixava onnxruntime/layout, +100 MB) e opcionais instaladas por último</li>
+</ul>
+<h2>2026-11-18</h2>
+<ul>
+<li><code>09e2002</code> V246: Entrar com Google + e-mail corporativo cria/ativa o cadastro sozinho (sem chave); cadastro normal continua igual</li>
+<li><code>731cad7</code> V245: com zoom próprio, janelas e abas se reajustam inteiras (altura/largura da tela divididas pelo zoom)</li>
+<li><code>53b856c</code> V244: zoom próprio em todas as abas (Ctrl+rodinha / Ctrl +/−/0 sobre a aba), sem mexer na tela principal</li>
+<li><code>d38656d</code> V243 / pacote 41: Alteração de LOTE sem barras de rolagem; janelas separadas com zoom próprio (Ctrl+rodinha, Ctrl +/−/0)</li>
+<li><code>8f0a9a6</code> V242: Alteração de LOTE — Impressa/Pendente no modelo da Tela inicial (selo branco com bolinha)</li>
+<li><code>5cb0716</code> V241: Alteração de LOTE no padrão do sistema (quadros com faixa de título, tabela clara, selos com ícone, faixa colorida por obra)</li>
+<li><code>4e608c1</code> V240 / pacote 40: só um aviso de atualização — o app instalado também usa a Atualização obrigatória</li>
+<li><code>96102bf</code> V239: Blocos de notas — botões no tema claro com letra preta, Salvar .txt azul, ícone do título branco</li>
+<li><code>90511e8</code> V238: Blocos de notas — botão Listar PCT lê o print do pacote (OCR) e preenche OBRA/DBF/Nº PEDIDO/LIBERAÇÃO por obra</li>
+<li><code>8f357c6</code> V237: ajuste automático da altura da aba preservando o tamanho original (sem barra de rolagem de fora)</li>
+<li><code>66a1447</code> V235: barra de rolagem da janela — menu sem altura fixa e área da aba se ajusta sozinha ao tamanho real da tela</li>
+<li><code>1285e89</code> V234: Gerenciamento de roteiro - ERP com o Sistema online ao lado do Atualizar e título no centro</li>
+<li><code>fe36a15</code> V233: botão Atualizar de todas as abas no tema dos botões</li>
+<li><code>640119c</code> V232: menu lateral não aumenta mais a janela (sem barra de rolagem de fora em nenhuma aba)</li>
+<li><code>d0777a3</code> V231: Regras em massa (Alteração / Gerenciamento de roteiro) no tema dos quadros, abas e filtros</li>
+<li><code>5189caf</code> V230: avisos de erro no idioma escolhido pelo usuário (pt/en/es) em todas as abas</li>
+<li><code>c7933a8</code> V229: Análise DBF × Focco — títulos das colunas da tabela no centro</li>
+<li><code>e05fd77</code> V228: Tela inicial — tabela um pouco mais baixa para não aparecer barra de rolagem na janela</li>
+<li><code>2ba3717</code> V227: aviso de Atualização obrigatória no tema Projeart (Agora como padrão, contagem, salva e restaura a tela)</li>
+<li><code>b1fcc17</code> V226: cabeçalhos das tabelas (Roteiros, Etiquetas, Engenharia…) no tema dos botões</li>
+<li><code>1a4aed5</code> V225: Tela inicial — seletor do pacote no modelo do Fluxo alvo</li>
+<li><code>4a1d4a6</code> V224: quadros no modelo do Agrupador em todas as abas (Produção, Análise DBF, Roteiros, Intranet, Etiquetas, Engenharia)</li>
+<li><code>b185165</code> V223: Impressão Casada - ERP — quadros, cartões e listas no mesmo modelo do Agrupador</li>
+<li><code>1d3cac7</code> V222: Agrupador | Base — corpo dos quadros na cor do fundo da página</li>
+<li><code>3020061</code> V221: Roteirização — fundo do quadro na mesma cor do fundo da página</li>
+<li><code>d067470</code> V220: Roteirização produção — quadros no mesmo modelo do Agrupador</li>
+<li><code>910ac34</code> V219: Agrupador | Base — quadros no modelo cinza com faixa de título</li>
+<li><code>de92930</code> V218: Tela inicial — faixa da planilha volta com a borda azul; trocar planilha / ler agora no modelo anterior</li>
+<li><code>151083f</code> V217: Tela inicial — faixa da planilha, botões e busca no tema dos botões</li>
+<li><code>d950645</code> V216: Etiquetas — PERFIL SOLDADO vira uma etiqueta só por pacote, sem obra (igual PERFIL L)</li>
+<li><code>a4aaf4f</code> V215: cartões de KPI da Produção no padrão do sistema (ícones de linha, número grande)</li>
+<li><code>2963997</code> V214: Tela inicial — cabeçalho da tabela no tema dos botões</li>
+<li><code>1b906b3</code> V213: todos os botões das abas no tema cinza-azulado claro com letra preta (mesmo do Agrupador)</li>
+</ul>
+<h2>2026-11-17</h2>
+<ul>
+<li><code>11ebf79</code> V212: Tela inicial — nomes do cabeçalho da tabela no centro, negrito</li>
+<li><code>b3d9ae7</code> V211: Tela inicial — Alteração de LOTE no modelo dos botões do Agrupador; cabeçalho com letra preta</li>
+<li><code>d252990</code> V210: Roteirização produção — Últimos usados (abre de novo com um clique)</li>
+<li><code>cf1b16c</code> V209: Agrupador — todos os botões e o Nome do Lote no mesmo modelo</li>
+<li><code>b911c4f</code> V208: Agrupador — Adicionar/Testar pasta no mesmo modelo e botões um pouco mais fortes</li>
+<li><code>45b74b7</code> V207: Agrupador — botões principais no modelo claro</li>
+<li><code>d437c88</code> V206: Agrupador — caminho do arquivo aceito fica verde (base, fluxos, FOCCO, SKA)</li>
+<li><code>98cc9e8</code> V205: botões cinza de Produção com a letra preta</li>
+<li><code>8d4cfeb</code> V204: janelas de escolher pasta/arquivo no modelo novo (ícone, separador, validação)</li>
+<li><code>b86bb59</code> V203: Verificação da instalação no modelo novo (e listas de arquivos no mesmo padrão)</li>
+<li><code>0a6d373</code> V202 / pacote 39: Produção com a lógica nova do Validador de Fluxos</li>
+<li><code>9e0e58a</code> V201: Agrupador | Base — cabeçalho da tabela na cor do botão, letra preta</li>
+<li><code>b7c4575</code> V200: Agrupador | Base — cabeçalho da tabela com borda no tema do sistema, letra preta</li>
+<li><code>25b8237</code> V199: Gerar relatórios — arquivo aceito em verde, seletor de pasta do sistema e avisos no padrão</li>
+<li><code>4501244</code> V198: Gerar relatórios — arquivo do Focco aparece embaixo, no mesmo estilo da lista de pastas</li>
+</ul>
+<h2>2026-11-16</h2>
+<ul>
+<li><code>e4671a4</code> V197: status das etiquetas no mesmo estilo da Tela inicial</li>
+<li><code>e0e6ce4</code> V196: Impressão de Etiquetas no modelo novo (ícones, tabela, status)</li>
+<li><code>24aab8d</code> V195: Acesso ao Intranet no modelo da imagem 01</li>
+<li><code>09ecd66</code> V194: Alteração de Roteiros no modelo da imagem 02 (tabela no mesmo padrão também no Gerenciamento ERP)</li>
+<li><code>ed361f5</code> V193: Impressão - FLUXO 04 no padrão da imagem 01</li>
+<li><code>5943b3d</code> V192: Impressão Grupo - LIC no padrão da imagem 01</li>
+<li><code>876f091</code> V191: Impressão Casada no padrão da imagem 02</li>
+<li><code>f33b3fc</code> V190: aba Gerenciamento de roteiro - ERP no modelo da imagem 01</li>
+<li><code>61c9c92</code> V189 / pacote 38: nova aba Gerenciamento de roteiro - ERP</li>
+<li><code>99f6a52</code> V188: Impressão de Etiquetas — avisos e Selecionar impressora no modelo do sistema</li>
+<li><code>093e8e0</code> V187: padrão novo (quadros brancos, faixa azul, borda leve, botões cinza-azulado) em todas as abas restantes</li>
+<li><code>3eb21aa</code> V186 / pacote 37: pastas raiz fixadas acham a pasta em qualquer letra (caminho de rede + troca de letra)</li>
+<li><code>7c9dc3c</code> V185: Agrupador | Base — pastas raiz fixadas no servidor para todos os usuários e PCs</li>
+<li><code>5e06b21</code> V184: janelas Blocos de notas e Alteração de LOTE acompanham o tema do sistema (escuro/claro)</li>
+<li><code>da9f253</code> V183: Blocos de notas próprio do sistema (janela própria, abas, salvar/abrir .txt, localizar/substituir, zoom)</li>
+<li><code>c7bc241</code> V182 / pacote 36: botão Blocos de notas em Obras para validar (abre o Bloco de Notas do Windows)</li>
+</ul>
+<h2>2026-11-13</h2>
+<ul>
+<li><code>b889241</code> V181: avisos e confirmações no mesmo padrão do aviso de erro (botão cinza-azulado com borda)</li>
+<li><code>c75c6c7</code> V180: avisos de erro no padrão SISTEMA PPCPM - ERRO (faixa vermelha, frase principal e explicação)</li>
+<li><code>7aca673</code> V179: Análise DBF × Focco no padrão novo (quadros brancos, faixa azul, borda leve, botões cinza-azulado)</li>
+<li><code>569ef46</code> V178: menu — grupo aberto dentro de um quadro com borda</li>
+<li><code>8db7abc</code> V177: Agrupador | Base — leve borda preta em todos os quadros (faixa azul mantida)</li>
+<li><code>a37470c</code> V176: Agrupador | Base no padrão novo (quadros brancos, faixa azul, botões cinza-azulado)</li>
+</ul>
+<h2>2026-11-12</h2>
+<ul>
+<li><code>7d49188</code> V175: 'só obras em revisão' no mesmo estilo do botão Revisão</li>
+<li><code>454228d</code> V174: etiqueta 'veio do lote' no mesmo estilo (bolinha e borda)</li>
+<li><code>f82fafc</code> V173: leve borda preta nos quadros da Tela inicial</li>
+<li><code>608bbf1</code> V172: Tela inicial — cabeçalho da tabela cinza-azulado e barra da planilha com faixa azul</li>
+<li><code>be84f95</code> V171: etiquetas com bolinha de cor e borda (Tela inicial e Alteração de LOTE)</li>
+<li><code>d2946c7</code> V170: botão Revisão quadrado (Tela inicial e Alteração de LOTE)</li>
+<li><code>021128f</code> V169: etiquetas quadradas também na Tela inicial</li>
+<li><code>18f9252</code> V168: etiqueta Impressa/Pendente quadrada na Alteração de LOTE</li>
+<li><code>c9aaa5e</code> V167 / pacote 35: verificação da instalação — o sistema avisa o que falta no PC e oferece para instalar</li>
+<li><code>17be270</code> V166: pacote selecionado e botão Alterar lote na cor do cabeçalho</li>
+<li><code>27ccd2a</code> V165: cabeçalho da Alteração de LOTE no formato de cores pedido</li>
+<li><code>cbf1be1</code> V164: janela Alteração de LOTE com ícone da Projeart e sem o X duplicado</li>
+<li><code>24b44c5</code> V163: Alteração de LOTE abre em janela própria (pode ir para a segunda tela)</li>
+<li><code>4148d64</code> V162: Alteração de LOTE — janela para mover obras (revisadas) para outro lote</li>
+<li><code>1528d72</code> V161: Observação obrigatória ao colocar obra em revisão e card % impresso obras revisão</li>
+<li><code>6ab9639</code> V160: Tela inicial — tabela única Pacote para revisão, coluna Revisão e quadro Obras para revisão</li>
+<li><code>cf045ba</code> V159: quadro Obras para validar ligado direto no pacote 9999</li>
+</ul>
+<h2>2026-11-11</h2>
+<ul>
+<li><code>4f62fa2</code> V158: tema claro — menu lateral e Sistema online visíveis</li>
+<li><code>dc1d26f</code> V157: quadros de aviso no modelo Modal Azul Projeart</li>
+<li><code>1ad5cae</code> V156 / pacote 34: botão Atualizar da Tela inicial zera os pacotes para colocar uma planilha nova</li>
+<li><code>84b9845</code> V155: Tela inicial alinhada e botões trocar planilha / ler agora com borda e sombra</li>
+<li><code>5c93b70</code> V154: Tela inicial — Selecionar todos, filtro TODOS, Obras para validar (coluna D), pesquisa no tema do sistema</li>
+<li><code>37928a3</code> V153: Tela inicial — Pesquisar obra (uma ou várias) e botão Atualizar</li>
+<li><code>6ac0fdb</code> V152 / pacote 33: Tela inicial ligada à PLANILHA DE CONTROLE DE PACOTES ENTREGUES (filtro de pacote, marcação de impresso, % e lista de obras)</li>
+<li><code>8c0ee51</code> Pacote 32: ícones do painel da esquerda da janela de arquivos maiores</li>
+<li><code>ffd8516</code> V151: borda azul das janelas de aviso mais grossa</li>
+<li><code>cf0cb7f</code> V150: borda das janelas de aviso na cor azul do sistema</li>
+<li><code>bacacb8</code> V149 / pacote 31: filtro por coluna na janela de arquivos (como no Explorador); tira os botões Atualizar de dentro das telas</li>
+<li><code>0595b3a</code> Pacote 30: painel da janela de arquivos se ajusta ao maior nome; alça visível; nome completo no balão</li>
+<li><code>28fb854</code> Pacote 29: janela PPCPM - ARQUIVOS com colunas e painel ajustáveis (cursor ↔), tamanho guardado por usuário</li>
+<li><code>30f398d</code> V148: janelas de aviso/pergunta podem ser arrastadas pelo título (abrem no centro; duplo clique volta ao centro)</li>
+<li><code>746dd05</code> V147: pergunta do Atualizar e avisos rápidos no centro, no padrão SISTEMA PPCPM</li>
+<li><code>d3e695c</code> V146: botão Atualizar (modelo claro com ícone) em todas as abas, ao lado do Sistema online</li>
+<li><code>b4abf20</code> V145: telas ficam vivas ao trocar de aba (não perdem dados); botão ATUALIZAR na Multi obra zera a tela</li>
+<li><code>101d424</code> V144: pendências Lantek mostram a obra ao lado de cada posição</li>
+<li><code>e30e7e2</code> V143: Multi obra/Impressão casada — pendência Lantek considera posição + obra (OF/trecho) + lote da ordem</li>
+<li><code>8f63d96</code> V142: tira Capacidade, Indicadores e Relatórios do menu; Qualidade / RNC vira Planejamento RNC</li>
+</ul>
+<h2>2026-11-10</h2>
+<ul>
+<li><code>986a5ea</code> V141 / pacote 28: base preenchida sempre pelo Python (aceita fórmulas compartilhadas/matriz); janela nunca monta base grande</li>
+<li><code>6d986f9</code> V140: menu 'Gerar relatórios das ordens'</li>
+<li><code>5ce3516</code> V139 / pacote 27: Gerenciador de roteiros (Relatório de Ordens x Fluxos) no grupo Gerenciador de Roteiros, acima de Alteração de Roteiros</li>
+<li><code>b520003</code> V138 / Python pacote 26: Gerar Base Preenchida montada pelo Python do sistema (sem Out of Memory)</li>
+<li><code>aefa5d2</code> V137: Gerar Base Preenchida sem estourar a memória (aba DBF escrita direto no XML, linha por linha)</li>
+</ul>
+<h2>2026-11-09</h2>
+<ul>
+<li><code>0b2524f</code> V136: Etiquetas — filtros digitáveis e setor PERFIL SOLDADO (aba PS PREP, COD ITEM = PS_PREP)</li>
+<li><code>7a691e4</code> Python pacote 25: cópia do drive não se atualiza nem mexe no atalho; gerado/ se recupera sozinho</li>
+<li><code>8bafc4b</code> Python pacote 24: desliga o modo Selecionar da janela preta (pausava o sistema e a atualização)</li>
+<li><code>0a4c9ce</code> Python pacote 23: atualização não trava com 'Acesso negado' em gerado_velho</li>
+<li><code>cb7388a</code> V135: botão Entrar com Google na tela de login (mesma conta do cadastro aprovado)</li>
+<li><code>77d5d50</code> V134: tira a frase da animação obrigatória para quem não é administrador</li>
+<li><code>b5ec8b7</code> V133: botão da animação só para o administrador; administrador principal libera/tira acesso de administrador na aba Usuários</li>
+<li><code>2c1a764</code> V132: pacote atual 700 (teste de atualização)</li>
+<li><code>b152caa</code> Python pacote 22: INSTALAR copia sempre para o PC (mesmo do drive da rede), cria o atalho e instala as bibliotecas</li>
+<li><code>26072db</code> Python pacote 21: atalho da Área de Trabalho volta sozinho; .venv copiado de outro PC é recriado na instalação</li>
+</ul>
+<h2>2026-11-06</h2>
+<ul>
+<li><code>eb95de0</code> V131: busca automática por obra acha a pasta da obra mesmo abaixo de subpastas</li>
+<li><code>2b0c0bd</code> Python pacote 20: o Acesso rápido do Windows não trava mais "Adicionar arquivos" / "Adicionar pasta"</li>
+<li><code>fc514c7</code> V130: etiqueta do PERFIL L / PERFIL U/C sem o 1º traço e com o nome mais para baixo</li>
+<li><code>b71ebb3</code> V129: PERFIL L e PERFIL U/C — todas as obras num saco só (uma etiqueta com só o nome)</li>
+<li><code>098adc6</code> V128: filtro PERFIL L junta a mesma obra de L1 e L2 numa etiqueta só</li>
+<li><code>d4b494f</code> V127: Impressão de Etiquetas — filtro "PERFIL L" (PERFILADEIRA L1 + L2)</li>
+<li><code>d814b13</code> V126: tela de login não fica mais "travada" no botão girando</li>
+</ul>
+<h2>2026-11-05</h2>
+<ul>
+<li><code>0c9fc18</code> Python pacote 19: escolher pasta sem o aviso "Permitir que este site veja e copie arquivos?"</li>
+<li><code>77fe92a</code> Python pacote 18: PPCPM - ARQUIVOS com pastas fixadas e seleção de vários arquivos (como no Explorador)</li>
+<li><code>e35128b</code> Python pacote 17: janela PPCPM - ARQUIVOS no estilo do Explorador de Arquivos (Windows 11)</li>
+<li><code>3fbecef</code> V125 + Python pacote 16: VISUALIZAR 3D abre como janela de aplicativo (sem barra de endereço)</li>
+<li><code>11c929b</code> V124: VISUALIZAR 3D lê arquivos .CAM da máquina (formato ENTITY4)</li>
+<li><code>8f66ba5</code> V123: VISUALIZAR 3D usa a legenda do desenho (nome do arquivo, soldas e emendas)</li>
+<li><code>ea6fca8</code> V122: VISUALIZAR 3D mostra as furações (furos de verdade + destaque laranja)</li>
+<li><code>35c0fd2</code> V121: VISUALIZAR 3D lê desenhos com texto em traços (AutoCAD SHX) e monta estruturas (viga mestra / treliça)</li>
+<li><code>276b1d5</code> V120 + Python pacote 15: VISUALIZAR 3D na aba Engenharia</li>
+<li><code>0b4cb05</code> V119: nova aba Área de impressão › Engenharia — desenhos PDF de pastas, .zip (e zip dentro de zip), busca por obra na pasta da engenharia (Python), ver, imprimir e baixar juntos</li>
+<li><code>b940a7c</code> Python pacote 14: atualização mais rápida — confere a cada 1 minuto pela Vercel (sem o cache de 5 min do GitHub)</li>
+<li><code>8e9168a</code> Python pacote 13: sistema abre como aplicativo (sem barra de endereço) e janela PPCPM - ARQUIVOS sem about:blank</li>
+<li><code>cf41e40</code> V118: animação na tela de login — carregando no ENTRAR, erro (card treme e campos vermelhos), sucesso (✓ BEM-VINDO verde e card sumindo)</li>
+</ul>
+<h2>2026-11-04</h2>
+<ul>
+<li><code>06785c9</code> Python pacote 12: janela PPCPM - ARQUIVOS separada do navegador (arrasta para o outro monitor, reabre onde ficou)</li>
+<li><code>c09dcfb</code> V117: nova aba Produção › Relatórios dos fluxos (Relatório de Ordens x Fluxos, pg13)</li>
+<li><code>3be7131</code> V116: regras de impressão das etiquetas — saquinho, Preparação obra por obra (máquinas em sequência), Não Preparação obra por obra (setor por setor); filtro Etapa</li>
+<li><code>6df9449</code> V115: Impressão de Etiquetas lê o Relatorio_Ordens_Fluxos_LOTE_xxx.xlsx</li>
+<li><code>71e25cd</code> V114 + Python pacote 11: Impressão de Etiquetas direto na Zebra pelo cabo</li>
+<li><code>7a8dd26</code> Python pacote 10: ícone do atalho fixo e atualização arquivo por arquivo (o ícone não some mais)</li>
+<li><code>9acc5d2</code> V113: remove a aba Validação de Peso | Análise; Análise da DBF X Focco - ERP passa para Processo de validação</li>
+<li><code>73dc1c2</code> Python pacote 9: aviso de versão nova também para atualizações do Python; confere a cada 5 minutos</li>
+<li><code>e8c8025</code> Python pacote 8: abrir .zip/.tar/.7z/.rar como pasta na janela PPCPM - ARQUIVOS</li>
+<li><code>e43a3f3</code> Python pacote 7: ícones e textos da barra da janela PPCPM - ARQUIVOS em branco</li>
+</ul>
+<h2>2026-11-03</h2>
+<ul>
+<li><code>4b4b5a6</code> Python pacote 6: botão Sair com [S] Sim encerra o sistema por completo neste PC</li>
+<li><code>51eebd1</code> Python pacote 5: janela PPCPM - ARQUIVOS redimensionável, título central no tema do sistema, ícones corporativos</li>
+<li><code>b1bee49</code> Python pacote 4: instalador e abertura sem PowerShell (Bitdefender da empresa bloqueia)</li>
+<li><code>0c4715a</code> Python pacote 3: Arquivos do PC em todos os programas, atualização automática HTML+Python, bibliotecas por seção, instalador com atalho</li>
+<li><code>58202df</code> README: ajusta diagrama</li>
+<li><code>8044bc5</code> Python sem instalações: servidor só com biblioteca padrão, ABRIR_SISTEMA.bat acha o Python sozinho ou baixa um portátil (PC da empresa)</li>
+</ul>
+<h2>2026-10-31</h2>
+<ul>
+<li><code>cf2e401</code> Python: ABRIR_SISTEMA.bat para abrir pelo CMD/Terminal do Windows e opção --rede</li>
+<li><code>9754e17</code> V112: lista de Obras com colunas Obra, Sub-trecho, Pacote e Status; obra para impressão em uma linha</li>
+<li><code>c318eb6</code> V111: obra 2139-5-01 em Obras para impressão, aviso de versão nova/atualizada no login e pasta python/ (gerador + app Flask)</li>
+</ul>
+<h2>2026-10-29</h2>
+<ul>
+<li><code>9c4932c</code> V110: adiciona Terça Z na barra de Roteirização</li>
+</ul></section><section id="05_PROCURAR_E_RESTAURAR"><h1>05 — Como procurar e como restaurar</h1>
+<h2>Procurar rápido</h2>
+<table>
+<thead>
+<tr>
+<th>Quero achar…</th>
+<th>Onde</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quando uma aba mudou</td>
+<td><code>04_HISTORICO_DE_VERSOES.md</code> → Ctrl+F no nome da aba</td>
+</tr>
+<tr>
+<td>O código de uma aba</td>
+<td><code>index.html</code> → Ctrl+F <code>id="src-pgN"</code> (número da aba no <code>02_MAPA_DAS_ABAS.md</code>)</td>
+</tr>
+<tr>
+<td>A geração da Planilha Base</td>
+<td><code>python/ppcpm/producao/validador_fluxos/validador_fluxos_ppcp.py</code> → Ctrl+F <code>REGRAS FIXAS</code></td>
+</tr>
+<tr>
+<td>Botões/campos do Agrupador</td>
+<td><code>index.html</code> bloco <code>src-pg2</code> (<code>data-w</code> = campo, <code>data-m</code> = ação do Python)</td>
+</tr>
+<tr>
+<td>Listar PCT (leitura do print)</td>
+<td><code>index.html</code> → Ctrl+F <code>function pctObras</code> / <code>pctCorrigir</code> / <code>ntListarPct</code></td>
+</tr>
+<tr>
+<td>Apps da Preparação fábrica</td>
+<td><code>python/ppcpm/fabrica_&lt;app&gt;.py</code></td>
+</tr>
+<tr>
+<td>Versão publicada agora</td>
+<td>rodapé do sistema ("Versão NNN") e <code>versao.json</code> / <code>versao_python.json</code></td>
+</tr>
+</tbody>
+</table>
+<h2>VOLTAR uma versão (quando algo quebrar)</h2>
+<ul>
+<li><strong>Pelo Claude (mais fácil):</strong> pedir "volte a aba X para como estava na VNNN" ou "desfaça a VNNN".
+  O Claude acha o commit no <code>04_HISTORICO_DE_VERSOES.md</code> (código entre crases, ex.: <code>3c99f5e</code>) e publica uma versão nova com a correção.</li>
+<li><strong>Pelo GitHub:</strong> em <code>github.com/lima-prog/WS/commits/main</code>, abrir o commit da versão → ver o que mudou → "Revert".</li>
+<li><strong>Um arquivo só:</strong> no GitHub, abrir o arquivo → History → escolher a versão → copiar o conteúdo.</li>
+<li>Nunca apagar o histórico; voltar sempre publicando uma <strong>versão nova</strong> (assim todos os PCs se atualizam sozinhos).</li>
+</ul>
+<h2>Restaurar o sistema num PC</h2>
+<ol>
+<li>Rodar <code>INSTALAR.bat</code> (copia para <code>C:\Users\&lt;usuário&gt;\SISTEMA-PPCPM</code>, cria o atalho e instala as bibliotecas).</li>
+<li>Se faltar algo: <code>VERIFICAR_SISTEMA.bat</code> ou janela <strong>Verificação da instalação</strong> no próprio sistema.</li>
+<li>Sem PowerShell e sem desligar antivírus.</li>
+</ol>
+<h2>Manter este mapa em dia</h2>
+<ul>
+<li>A cada versão: 1 linha nova no histórico; regra nova → <code>03</code>; aba nova → <code>02</code>.</li>
+<li>Pedir ao Claude: <strong>"atualize o mapa do sistema"</strong> — ele regenera os arquivos e salva nos 3 lugares (pasta X:, GitHub <code>docs/mapa/</code>, projeto Claude).</li>
+</ul></section></main>
+<script>
+const q=document.getElementById('q'),orig=document.querySelector('main').innerHTML;
+q.addEventListener('input',()=>{const m=document.querySelector('main');m.innerHTML=orig;const t=q.value.trim();if(t.length<2)return;
+const w=document.createTreeWalker(m,NodeFilter.SHOW_TEXT);const ns=[];while(w.nextNode())ns.push(w.currentNode);const re=new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');let first=null;
+ns.forEach(n=>{if(!re.test(n.nodeValue))return;re.lastIndex=0;const s=document.createElement('span');s.innerHTML=n.nodeValue.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(re,x=>'<mark>'+x+'</mark>');n.replaceWith(s);first=first||s});
+const mk=m.querySelector('mark');if(mk)mk.scrollIntoView({block:'center'})});
+</script></body></html>
