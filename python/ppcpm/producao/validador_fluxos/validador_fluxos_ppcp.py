@@ -4247,6 +4247,35 @@ class MainWindow(QWidget):
         self.imp_caminhos_cnc = []
         self.imp_lst_cnc.clear()
 
+    # V283: botões Limpar do quadro 2 (PDF das Ordens) e do quadro 6 (Conferência por CNC) + Atualizar zera a aba
+    def _imp_limpar_ordens(self):
+        self.imp_caminho_ordens = None
+        self.imp_lbl_ordens.setText('nenhum arquivo carregado')
+
+    def _imp_limpar_conferencia(self):
+        self._imp_conf_dados = None
+        self._imp_conf = {}
+        for w in (self.imp_lista_cncs, self.imp_tree_detalhe_cnc):
+            w.clear()
+        self.imp_busca_cnc.setText('')
+        self.imp_lbl_conf.setText('Clique em "Conferir antes" pra listar os CNCs. Depois de gerar o PDF, cada '
+                                  'posição é conferida DENTRO do PDF gerado.')
+        self.imp_lbl_pdf_comparado.setText('PDF comparado: nenhum ainda')
+        self.imp_lbl_detalhe_cnc.setText('← clique num CNC (ou numa posição) da lista')
+
+    def _imp_zerar_tudo(self):
+        """Botão Atualizar da aba: apaga tudo (arquivos, resultado, conferência) para começar outro pacote."""
+        self._imp_limpar_cnc()
+        self._imp_limpar_ordens()
+        self.imp_caminho_lantek = None
+        self.imp_lbl_lantek.setText('nenhum relatório carregado — sem ele, a conferência de "programado ou não" fica desligada')
+        self.imp_caminho_saida = None
+        self.imp_tree_resultado.clear()
+        self.imp_lbl_status.setText('Aguardando arquivos...')
+        for k in ('conjuntos', 'ordens', 'cncs', 'pendentes', 'paginas'):
+            self.imp_kpis.definir(k, '—')
+        self._imp_limpar_conferencia()
+
     def _imp_escolher_ordens(self):
         path, _ = QFileDialog.getOpenFileName(self, 'Selecionar PDF das Ordens', '', 'PDF (*.pdf)')
         if not path:
