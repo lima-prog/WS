@@ -491,13 +491,13 @@
       var bVD = botao('vDetalhes', null, 'Detalhes'), bVI = botao('vIcones', null, 'Ícones grandes');
       status.appendChild(stTxt); status.appendChild(bVD); status.appendChild(bVI); card.appendChild(status);
       var rod = el('div', 'pc-rod');
-      var lNome = el('label', null, 'Nome:'); var nome = el('input', 'pc-nome'); nome.type = 'text'; nome.readOnly = true; nome.placeholder = op.multiple ? 'Escolha um ou mais arquivos (Ctrl ou Shift + clique)' : 'Clique duas vezes no arquivo para abrir';
+      var lNome = el('label', null, 'Nome:'); var nome = el('input', 'pc-nome'); nome.type = 'text'; nome.spellcheck = false; nome.autocomplete = 'off'; nome.title = 'Digite ou cole um nome ou um caminho completo (ex.: X:\\10. Programação Fábrica) e aperte Enter, como no Explorador'; nome.placeholder = op.multiple ? 'Escolha um ou mais arquivos ou digite o nome / caminho e aperte Enter' : 'Digite o nome ou cole o caminho do arquivo e aperte Enter';
       var tipoSel = el('select'); tipoSel.title = 'Tipos de arquivo';
       if (filtro) { var o1 = el('option', null, 'Tipos aceitos (' + filtro.split(',').join(', ') + ')'); o1.value = '1'; tipoSel.appendChild(o1); }
       var o2 = el('option', null, 'Todos os arquivos (*.*)'); o2.value = '0'; tipoSel.appendChild(o2); tipoSel.value = filtro ? '1' : '0';
       var bWin = botao('janela', 'Janela do Windows', 'Usar a janela comum de abrir arquivo');
       var bOk = el('button', 'pc-pri', op.pasta ? 'Selecionar pasta' : op.multiple ? 'Abrir selecionados' : 'Abrir'); bOk.disabled = true;
-      if (op.pasta) { tipoSel.style.display = 'none'; lNome.textContent = 'Pasta:'; nome.placeholder = 'Entre na pasta (dois cliques) ou clique nela e use Selecionar pasta'; }
+      if (op.pasta) { tipoSel.style.display = 'none'; lNome.textContent = 'Pasta:'; nome.placeholder = 'Digite o nome ou cole o caminho da pasta e aperte Enter'; }
       var bCan = el('button', null, 'Cancelar');
       var qtd = el('span', 'pc-qtd'); qtd.title = 'Clique para limpar a seleção'; qtd.style.cursor = 'pointer';
       qtd.onclick = function () { estado.sel = []; atualizarSel(); };
@@ -889,10 +889,11 @@
         bOk.disabled = bAbrirC.disabled = op.pasta ? !estado.caminho : !estado.sel.length;
         var n = estado.sel.length, v = ultimaLista, tot = 0;
         v.forEach(function (i) { if (estado.sel.indexOf(i.caminho) >= 0) tot += i.tamanho || 0; });
-        nome.value = estado.sel.map(function (c) { return '"' + c.split(/[\\/]/).pop() + '"'; }).join(' ').replace(/^"([^"]*)"$/, '$1');
+        var digitando = nomeEditado && D.activeElement === nome; if (!digitando) nomeEditado = false;
+        if (!digitando) nome.value = estado.sel.map(function (c) { return '"' + c.split(/[\\/]/).pop() + '"'; }).join(' ').replace(/^"([^"]*)"$/, '$1');
         stTxt.textContent = v.length + (v.length === 1 ? ' item' : ' itens') + (n ? '   |   ' + n + (n === 1 ? ' item selecionado' : ' itens selecionados') + (tot ? '  ' + fmtTam(tot) : '') : '');
         fundo.classList.toggle('com-sel', n > 0);
-        if (op.pasta) { var fp = focoPasta(); nome.value = fp ? fp.nome : (estado.caminho.split(/[\\/]/).filter(Boolean).pop() || estado.caminho); }
+        if (op.pasta && !digitando) { var fp = focoPasta(); nome.value = fp ? fp.nome : (estado.caminho.split(/[\\/]/).filter(Boolean).pop() || estado.caminho); }
         qtd.textContent = n + (n === 1 ? ' arquivo selecionado' : ' arquivos selecionados') + '  ✕';
         if (cbTodos) { var na = v.filter(function (i) { return !entraEm(i); }).length; cbTodos.innerHTML = ''; if (n && n === na) { cbTodos.appendChild(svg('ok', 12)); cbTodos.style.background = '#0b5cad'; cbTodos.style.borderColor = '#0b5cad'; } else { cbTodos.style.background = ''; cbTodos.style.borderColor = ''; } }
         var cf = focoPasta() ? focoPasta().caminho : estado.caminho, jaFix = cf && fixada(cf);
@@ -932,7 +933,55 @@
           if (j.incompleta) stTxt.textContent += '   |   Busca parcial (pasta muito grande). Entre numa subpasta para refinar.';
         }).catch(function (e) { erro(e.message); });
       }
+      /* V294 — campo Nome / Pasta editável, como no Explorador: digitar ou colar um nome (da pasta aberta)
+         ou um caminho completo (C:\..., X:\..., \\servidor\...) e apertar Enter. Pasta → entra nela;
+         arquivo → abre; no "Selecionar pasta" o caminho digitado é escolhido direto. */
+      var nomeEditado = false;
+      function caminhoDigitado(t) {
+        t = String(t || '').trim().replace(/^"|"$/g, '');
+        if (!t) return '';
+        var win = /^[A-Za-z]:|^\\\\/.test(t) || /\\|^[A-Za-z]:/.test(estado.caminho || ''), sep = win ? '\\' : '/';
+        if (win) t = t.replace(/\//g, '\\');
+        if (/^[A-Za-z]:$/.test(t)) return t + '\\';
+        if (/^[A-Za-z]:\\|^\\\\/.test(t) || (!win && t.charAt(0) === '/') || !estado.caminho) return t;
+        if (win && t.charAt(0) === '\\') return estado.caminho.slice(0, 2) + t;             // \pasta = raiz da unidade
+        var base = estado.caminho.replace(/[\\\/]+$/, '');
+        t.split(sep).forEach(function (p) {
+          if (p === '..') { var k = base.lastIndexOf(sep); if (k > 0 && !/^[A-Za-z]:$/.test(base)) base = base.slice(0, k); }
+          else if (p && p !== '.') base += sep + p;
+        });
+        return /^[A-Za-z]:$/.test(base) ? base + '\\' : base || sep;
+      }
+      function abrirDigitado(escolher) {
+        var t = nome.value.trim();
+        if (!nomeEditado || !t) { confirmar(); return; }
+        if (op.multiple && /^".*"\s+"/.test(t)) { nomeEditado = false; confirmar(); return; }   // vários "nomes" já selecionados
+        var alvo = caminhoDigitado(t), norm = function (x) { return String(x || '').replace(/[\\/]+$/, '').toLowerCase(); };
+        stTxt.textContent = 'Procurando ' + alvo + '…';
+        api('listar', { caminho: alvo }).then(function (j) {
+          if (norm(j.caminho) === norm(alvo)) {                                            // é uma pasta
+            nomeEditado = false;
+            if (op.pasta && escolher) { fechar({ pasta: j.caminho, nome: j.caminho.split(/[\\/]/).filter(Boolean).pop() || j.caminho }); return; }
+            ir(alvo); setTimeout(function () { try { nome.focus(); nome.select(); } catch (e) { } }, 60); return;
+          }
+          var nm = alvo.split(/[\\/]/).pop().toLowerCase(), it = (j.itens || []).filter(function (i) { return i.nome.toLowerCase() === nm; })[0];
+          if (!it && !op.pasta) it = { caminho: alvo, nome: alvo.split(/[\\/]/).pop(), pasta: false };   // arquivo oculto pelo filtro: abre assim mesmo
+          if (!it || op.pasta) throw new Error('Pasta não encontrada: ' + alvo);
+          nomeEditado = false; estado.sel = [it.caminho]; confirmar();
+        }).catch(function (e) {
+          stTxt.textContent = '';
+          W.alert((op.pasta ? 'Não encontrei a pasta' : 'Não encontrei o arquivo ou a pasta') + ':\n' + alvo + '\n\nConfira se o nome está certo e se a unidade de rede está conectada.');
+          try { nome.focus(); nome.select(); } catch (_) { }
+        });
+      }
+      nome.addEventListener('input', function () { nomeEditado = true; bOk.disabled = bAbrirC.disabled = !nome.value.trim() && (op.pasta ? !estado.caminho : !estado.sel.length); });
+      nome.addEventListener('focus', function () { try { nome.select(); } catch (e) { } });
+      nome.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); abrirDigitado(false); }
+        else if (e.key === 'Escape' && nomeEditado) { e.preventDefault(); e.stopPropagation(); nomeEditado = false; atualizarSel(); nome.select(); }
+      });
       function confirmar() {
+        if (nomeEditado && nome.value.trim()) { abrirDigitado(true); return; }
         if (op.pasta) { var fp = focoPasta(), c = fp ? fp.caminho : estado.caminho; if (c) fechar({ pasta: c, nome: fp ? fp.nome : (c.split(/[\\/]/).filter(Boolean).pop() || c) }); return; }
         var cams = estado.sel.slice(); if (!cams.length) return;
         bOk.disabled = true; stTxt.textContent = 'Carregando ' + cams.length + (cams.length === 1 ? ' arquivo…' : ' arquivos…');
@@ -975,8 +1024,8 @@
         var r = lista.querySelector('.pc-row[data-c="' + (W.CSS && W.CSS.escape ? W.CSS.escape(v[nk].caminho) : v[nk].caminho.replace(/"/g, '\\"')) + '"]'); if (r) r.scrollIntoView({ block: 'nearest' });
       }
       function tecla(e) {
-        var ed = D.activeElement === cam || D.activeElement === busca;
-        if (e.key === 'Escape' && (D.activeElement === cam || (D.activeElement === busca && (busca.value || estado.busca)))) return;   // o campo trata o Esc
+        var ed = D.activeElement === cam || D.activeElement === busca || D.activeElement === nome;
+        if (e.key === 'Escape' && ((D.activeElement === nome && nomeEditado) || D.activeElement === cam || (D.activeElement === busca && (busca.value || estado.busca)))) return;   // o campo trata o Esc
         if (e.key === 'Escape') { if (menu) { fecharMenu(); e.preventDefault(); return; } e.preventDefault(); e.stopPropagation(); fechar(null); }
         else if (e.key === 'F5') { e.preventDefault(); bAtual.onclick(); }
         else if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); bVolta.onclick(); }
