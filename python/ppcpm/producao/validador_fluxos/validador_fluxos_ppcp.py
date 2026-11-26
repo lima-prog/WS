@@ -5141,6 +5141,11 @@ class MainWindow(QWidget):
     def _impm_definir_relatorio(self, path):          # compatibilidade
         self._impm_definir_relatorios([path])
 
+    def _impm_limpar_lantek(self):
+        """V284: botão Limpar do quadro 4 (Relatório do Lantek) da Multi obra."""
+        self.impm_caminho_lantek = None
+        self.impm_lbl_lantek.setText('nenhum relatório carregado — sem ele, a conferência de "programado ou não" fica desligada')
+
     def _impm_limpar_relatorios(self):
         self.impm_caminhos_relatorio = []
         self.impm_lbl_relatorio.setText('nenhum relatório carregado')
