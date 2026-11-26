@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 278';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 279';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -1106,7 +1106,17 @@ async function pctLer(file,prog){const c=await ocrImagem(file);const w=await ocr
   const r=await w.recognize(c,{},{text:true,blocks:true});const ws=[];(r.data.blocks||[]).forEach(b=>b.paragraphs.forEach(p=>p.lines.forEach(l=>l.words.forEach(x=>ws.push(x)))));
   const h=ws.find(x=>/TRECHO/i.test(x.text));let lista=[];
   if(h){const W=h.bbox.x1-h.bbox.x0,a=h.bbox.x0-W*.6,b=h.bbox.x1+W*.6;lista=pctObras(ws.filter(x=>{const m=(x.bbox.x0+x.bbox.x1)/2;return m>=a&&m<=b&&x.bbox.y0>=h.bbox.y0}).map(x=>x.text).join('\n'))}
-  if(!lista.length)lista=pctObras(r.data.text);return lista}
+  if(!lista.length)lista=pctObras(r.data.text);return pctCorrigir(lista)}
+/* V279: o leitor às vezes "inventa" um dígito (ex.: 2170-2-01 lido como 2170-22-01, o traço vira "2").
+   Confere cada obra lida com as OF-TRECHO conhecidas (planilha de pacotes da Tela inicial): se não existir e houver
+   UMA conhecida com a mesma obra e o mesmo final e o trecho a 1 dígito de diferença, troca pela conhecida. */
+function pctConhecidas(){const m=new Map();try{(PK.linhas||[]).concat(PK.base||[]).forEach(r=>{const v=String(r&&r.of_trecho||'').replace(/\s+/g,'');const x=/^(\d{4})-(\d{1,3})-(\d{2})$/.exec(v);if(x)m.set(v,x)})}catch(_){}return m}
+function pctDist1(a,b){if(a===b)return 0;if(Math.abs(a.length-b.length)>1)return 2;let i=0,j=0,d=0;while(i<a.length&&j<b.length){if(a[i]===b[j]){i++;j++;continue}if(++d>1)return 2;if(a.length>b.length)i++;else if(a.length<b.length)j++;else{i++;j++}}return d+(a.length-i)+(b.length-j)}
+function pctCorrigir(lista){const kn=pctConhecidas();if(!kn.size)return lista;const out=[];
+  for(const o of lista){const v=String(o).replace(/\s+/g,''),x=/^(\d{4})-(\d{1,3})-(\d{2})$/.exec(v);let fim=o;
+    if(x&&!kn.has(v)){const c=[...kn.values()].filter(k=>k[1]===x[1]&&k[3]===x[3]&&pctDist1(k[2],x[2])===1);if(c.length===1)fim=c[0][1]+' - '+c[0][2]+' - '+c[0][3]}
+    if(!out.includes(fim))out.push(fim)}
+  return out}
 /* coloca as obras no texto: primeiro preenche os "OBRA:" que estão vazios, depois cria os blocos que faltam (numeração continua) */
 function pctPreencher(texto,obras){const chave=o=>String(o).replace(/\s+/g,'');const ja=new Set();String(texto).replace(/OBRA\s*:\s*([0-9][0-9 \-]+[0-9])/gi,(m,o)=>{ja.add(chave(o));return m});
   const novas=obras.filter(o=>!ja.has(chave(o)));const rep=obras.length-novas.length;let fila=novas.slice(),usados=0;
@@ -1147,7 +1157,7 @@ function ntListarPct(op){const d=op?document:NT.doc;if(!d||d.getElementById('pct
   dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('on')});dz.addEventListener('dragleave',()=>dz.classList.remove('on'));
   dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('on');ler(e.dataTransfer.files[0])});dz.focus();
   ocrScript().catch(()=>{})}
-window.__pctObras=pctObras;window.__pctPreencher=pctPreencher;window.__listarPct=op=>ntListarPct(op||{});
+window.__pctObras=pctObras;window.__pctCorrigir=pctCorrigir;window.__pctPreencher=pctPreencher;window.__listarPct=op=>ntListarPct(op||{});
 function ntInserir(txt){const t=ntTx();t.focus();if(!NT.doc.execCommand('insertText',false,txt)){t.setRangeText(txt,t.selectionStart,t.selectionEnd,'end');t.dispatchEvent(new Event('input'))}}
 function ntAchar(dir){const t=ntTx(),q=NT.el.querySelector('#ntBusca').value,info=NT.el.querySelector('#ntAchInfo');if(!q){info.textContent='';return false}
  const txt=t.value.toLowerCase(),ql=q.toLowerCase(),tot=txt.split(ql).length-1;let i=txt.indexOf(ql,t.selectionEnd);if(i<0)i=txt.indexOf(ql);
