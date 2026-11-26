@@ -309,3 +309,11 @@ def post(acao: str, d: dict) -> dict:
         _salvar_pref(**k)
         return estado()
     return {"ok": False, "erro": "Ação desconhecida."}
+
+
+# V287: devolve o trabalho que estava aberto antes do sistema reiniciar com a versão nova
+try:
+    from .sessao import devolver_fabrica as _devolver
+    _devolver("vis", _S)
+except Exception:  # noqa: BLE001
+    pass

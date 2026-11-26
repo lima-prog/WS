@@ -121,6 +121,11 @@ def carregar():
             _S["V"] = V
             _S["win"] = V.MainWindow()
             Q.CTX.msgs.clear()
+            try:                                     # V287: devolve o trabalho de antes da atualização
+                from ..sessao import devolver_producao
+                devolver_producao(_S["win"], sys.modules[__name__])
+            except Exception:
+                pass
         except Exception as e:                       # biblioteca faltando etc.
             _S["erro"] = f"{e.__class__.__name__}: {e}"
             _S["trace"] = traceback.format_exc()

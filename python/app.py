@@ -609,6 +609,13 @@ def main(args: list[str]) -> int:
         from ppcpm.atualizador import Agendador
 
         def pedir_reinicio():
+            # V287: não perde o trabalho — espera terminar o que está rodando e guarda tudo antes de reiniciar
+            try:
+                from ppcpm import sessao
+                sessao.esperar_trabalho()
+                sessao.guardar()
+            except Exception:
+                pass
             reiniciar.set()
             servidor.shutdown()
 

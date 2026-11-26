@@ -172,3 +172,11 @@ def post(acao: str, d: dict) -> dict:
     if acao == "processados":
         return processados(bool(d.get("originais")), str(d.get("filtro") or ""))
     return {"ok": False, "erro": "Ação desconhecida."}
+
+
+# V287: devolve o trabalho que estava aberto antes do sistema reiniciar com a versão nova
+try:
+    from .sessao import devolver_fabrica as _devolver
+    _devolver("cor", _S)
+except Exception:  # noqa: BLE001
+    pass

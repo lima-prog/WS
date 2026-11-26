@@ -302,7 +302,7 @@ function pop(on){const p=$('#gp'),b=$('#gb'),v=on===undefined?p.classList.contai
 
 const $=(s,e=document)=>e.querySelector(s),KEY='projeart_pcp_ops_v1',PROC=['Corte','Dobra','Solda','Pintura','Montagem'],CAP={Corte:6000,Dobra:5000,Solda:4500,Pintura:4000,Montagem:3500},STS=['Em aberto','Em produção','Concluída'];
 const COL={'Em produção':'#2b8cff','Concluída':'#22c55e','Atrasada':'#ef4444','Em aberto':'#8fa6cf','Em risco':'#f5b301'};
-const VERSAO='Versão 286';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
+const VERSAO='Versão 287';const PROG=[["pg1", "Análise da DBF X Focco - ERP", "PPCPM - ANÁLISE DBF × FOCCO ERP"], ["pg2", "Agrupador | Base", "PPCPM - AGRUPADOR | BASE"], ["pg3", "Roteirização produção", "PPCPM - ROTEIRIZAÇÃO DE PRODUÇÃO"], ["pg4", "Impressão Casada - ERP", "PPCPM - IMPRESSÃO CASADA - ERP"], ["pg5", "Impressão Casada | Multi obra", "PPCPM - IMPRESSÃO CASADA | MULTI OBRA"], ["pg6", "Impressão Grupo - LIC", "PPCPM - IMPRESSÃO GRUPO - LIC"], ["pg7", "Impressão - FLUXO 04", "PPCPM - IMPRESSÃO - FLUXO 04"], ["pg10", "Alteração de Roteiros", "PPCPM - ALTERAÇÃO DE ROTEIROS"], ["pg15", "Gerenciamento de roteiro - ERP", "PPCPM - GERENCIAMENTO DE ROTEIRO - ERP"], ["pg11", "Acesso ao Intranet", "PPCPM - ACESSO AO INTRANET"], ["pg12", "Impressão de Etiquetas", "PPCPM - IMPRESSÃO DE ETIQUETAS"], ["pg13", "Gerar relatórios das ordens", "PPCPM - GERAR RELATÓRIOS DAS ORDENS"], ["pg14", "Engenharia", "PPCPM - ENGENHARIA"], ["pg16", "Visualizador DXF", "PPCPM - VISUALIZADOR DXF"], ["pg17", "Espelhar DXF", "PPCPM - ESPELHAR DXF"], ["pg18", "Corte Inteligente", "PPCPM - CORTE INTELIGENTE"], ["pg19", "Renomear DXF", "PPCPM - RENOMEAR DXF"], ["pg20", "Conversor CAM → DXF", "PPCPM - CONVERSOR CAM → DXF"], ["pg21", "Criar Pasta / Auditoria", "PPCPM - CRIAR PASTA / AUDITORIA"], ["pg22", "Roteirizador DXF", "PPCPM - ROTEIRIZADOR DXF"]];const PACOTE_ATUAL=700;const OBRA_IMPRESSAO='2139-5-01';
 const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return iso(d)},today=()=>iso(new Date());
 const fd=s=>s.split('-').reverse().slice(0,2).join('/'),sum=(a,k)=>a.reduce((s,o)=>s+(+o[k]||0),0),nf=n=>Math.round(n).toLocaleString(LOC[LANG],{useGrouping:'always'});
@@ -619,10 +619,16 @@ window.__net=n=>{netSet(n)};window.__irEnvioRoteiro=()=>go('pg11');
 @keyframes atuGirar{to{transform:rotate(360deg)}}
 .atu-restaurado{position:fixed;top:16px;right:16px;z-index:99999;display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(180deg,#eef1f4,#d3d9e0);border:1px solid #000;border-left:6px solid #1e9e4a;border-radius:6px;box-shadow:0 10px 26px rgba(0,0,0,.3);font-family:'Segoe UI',Roboto,Arial,sans-serif;font-size:13px;color:#000}
 .atu-restaurado svg{color:#1e9e4a;flex:none}`;document.head.appendChild(st)}
-  function camposDe(doc){const c={};doc.querySelectorAll('input[id],select[id],textarea[id]').forEach(el=>{if(el.type==='file'||el.type==='password'||el.closest('#updAviso'))return;c[el.id]=(el.type==='checkbox'||el.type==='radio')?el.checked:el.value});return c}
-  function salvarTela(){const d={tela:typeof cur!=='undefined'?cur:'',campos:{},quando:Date.now()};
-    try{document.querySelectorAll('#pgpool .pgbox').forEach(b=>{const f=b.querySelector('iframe');try{if(f&&f.contentDocument)d.campos[b.dataset.pg]=camposDe(f.contentDocument)}catch(e){}})}catch(e){}
-    try{localStorage.setItem(CHAVE_ATU,JSON.stringify(d))}catch(e){}return d}
+  /* V287: guarda TODOS os campos de cada aba aberta (com ou sem id) e o que a aba quiser guardar (__ppcpmSalvar).
+     Abas que rodam no Python (Produção, Preparação fábrica) o próprio Python guarda e devolve. */
+  function camposDe(doc){const c={};let n=0;doc.querySelectorAll('input,select,textarea').forEach(el=>{const k=el.id||('@'+(n++));if(!el.id)el.dataset.ppcpmK=k;
+      if(el.type==='file'||el.type==='password'||el.type==='hidden'||el.closest('#updAviso'))return;c[k]=(el.type==='checkbox'||el.type==='radio')?el.checked:el.value});return c}
+  function salvarTela(){const d={tela:typeof cur!=='undefined'?cur:'',campos:{},extra:{},quando:Date.now()};
+    try{document.querySelectorAll('#pgpool .pgbox').forEach(b=>{const f=b.querySelector('iframe');try{const w=f&&f.contentWindow;if(!w||!f.contentDocument)return;
+      if(w.PR&&w.PR.chamar)return;                                   /* Produção: fica no Python */
+      d.campos[b.dataset.pg]=camposDe(f.contentDocument);
+      if(typeof w.__ppcpmSalvar==='function'){try{d.extra[b.dataset.pg]=w.__ppcpmSalvar()}catch(e){}}}catch(e){}})}catch(e){}
+    try{localStorage.setItem(CHAVE_ATU,JSON.stringify(d))}catch(e){try{d.extra={};localStorage.setItem(CHAVE_ATU,JSON.stringify(d))}catch(_){}}return d}
   function banner(nova){
     if(document.getElementById('updAviso'))return;cssAtu();
     const IC_ATU='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 0 0 5.6 6.3L4 8M4 4v4h4M4 13a8 8 0 0 0 14.4 4.7L20 16m0 4v-4h-4"/></svg>';
@@ -654,14 +660,17 @@ window.__net=n=>{netSet(n)};window.__irEnvioRoteiro=()=>go('pg11');
   }
   /* depois de atualizar: volta para a aba que estava aberta e devolve o que estava digitado */
   (function(){let dados=null;try{dados=JSON.parse(localStorage.getItem(CHAVE_ATU)||'null');localStorage.removeItem(CHAVE_ATU)}catch(e){}
-    if(!dados||Date.now()-(dados.quando||0)>15*60000)return;
+    if(!dados||Date.now()-(dados.quando||0)>24*3600000)return;   /* V287: guarda por até 24 h */
     window.__atuRestaurou=true;
     let tent=0;const t=setInterval(()=>{tent++;const app=document.getElementById('app');
       if(tent>60){clearInterval(t);return}
       if(!app||app.classList.contains('hide')||document.getElementById('intro'))return;clearInterval(t);
+      try{Object.keys(dados.campos||{}).forEach(pg=>{if(pg!==dados.tela&&typeof telaViva==='function'){const ja=document.querySelector('#pgpool .pgbox[data-pg="'+pg+'"]');const b=telaViva(pg);if(!ja&&b)b.style.display='none'}})}catch(e){}   /* V287: reabre (escondidas) as outras abas que tinham trabalho */
       try{if(dados.tela&&typeof go==='function'&&cur!==dados.tela)go(dados.tela)}catch(e){}
       setTimeout(()=>{Object.entries(dados.campos||{}).forEach(([pg,c])=>{const f=document.querySelector('#pgpool .pgbox[data-pg="'+pg+'"] iframe');if(!f)return;
-          try{const doc=f.contentDocument;Object.entries(c).forEach(([id,v])=>{const el=doc.getElementById(id);if(!el)return;
+          try{const doc=f.contentDocument;const semId=[...doc.querySelectorAll('input,select,textarea')];
+            try{const ex=(dados.extra||{})[pg];if(ex!=null&&typeof f.contentWindow.__ppcpmRestaurar==='function')f.contentWindow.__ppcpmRestaurar(ex)}catch(e){}
+            Object.entries(c).forEach(([id,v])=>{const el=id.startsWith('@')?semId[+id.slice(1)]:doc.getElementById(id);if(!el)return;
             if(el.type==='checkbox'||el.type==='radio'){if(el.checked!==v){el.checked=v;el.dispatchEvent(new Event('change',{bubbles:true}))}}
             else if(v&&el.value!==v){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}})}catch(e){}});
         cssAtu();const a=document.createElement('div');a.className='atu-restaurado';a.setAttribute('role','status');
