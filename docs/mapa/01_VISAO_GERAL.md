@@ -54,3 +54,23 @@ python/
 ## Documentos relacionados
 - `docs/REQUISITOS_FLUXO_DE_TRABALHO.md` — guia detalhado do fluxo de trabalho e padrão visual (V256).
 - Projeto Claude: `claude/SISTEMA-PPCPM-como-publicar-versoes.md`.
+
+## Pastas de trabalho do Wadson (conectadas ao Claude em 26/11/2026)
+> Pastas que ele usa para fazer o sistema acontecer. G: = Google Drive (atalhos compartilhados); X: = unidade de rede.
+
+| Pasta | Para que serve |
+|---|---|
+| `X:\` (inteiro) e `X:\WADSON  LIMA` | Área do Wadson: 00 Versões · 01 Planilhas para teste · 02 Cópias do sistema · 03 VS Code · 04 Instalador Python · 05 Mapa do app |
+| `X:\WADSON  LIMA\05  -  MAPA  DO  APP\01  -  MEMORIA  DO  SISTEMA` | **Este mapa** |
+| `X:\10. Programação Fábrica\16. Programação- Maquina -Lantek- 2026` | Programação das máquinas Lantek 2026 |
+| `G:\…\1QJ57NfcTjhvbinkho-hL7zV2UPrjgZ4d\PCP-REDE\PPCPM` | Pasta raiz do PCP na rede (PCP-REDE) |
+| `…\PPCPM\08. Base Dados Relatórios\03. LANTEK_SKA-REPORT_REL-ANALISE-NESTINGS` | Planilha LANTEK_SKA (atualizada pelo Agrupador) |
+| `…\PPCPM\10. Programação Fábrica\06. Programação Preparação` | Programação da Preparação |
+| `…\PPCPM\18. FOCCO ERP\04. GO LIVE\02. Validação Peso LIC x POSIÇÕES` | Validação de peso (Análise DBF × FOCCO) |
+| `…\PPCPM\23. CONTROLE DE PACOTES` | Controle de pacotes (Tela inicial) |
+| `…\PPCPM\24. Controle de Impressões por Pacote` | Controle de impressões por pacote |
+| `…\PPCPM\1001 - Diego` | Pasta do Diego |
+| `G:\…\1ZwSq5uhu8VPwI99yMC0iAhkM3Ep2MZB1\LIBERACOES` | Liberações (pasta raiz das obras: LIBERAÇÕES FOCCO) |
+| `C:\Users\wadson.lima\Downloads` | Onde cai a Base gerada e os arquivos baixados |
+| `C:\Users\wadson.lima\Documents` · `Pictures` · `Videos` | Documentos, prints e vídeos de explicação |
+| `C:\Users\wadson.lima\Desktop\DXF` | Arquivos DXF (apps da Preparação fábrica) |
