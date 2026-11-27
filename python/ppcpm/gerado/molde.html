@@ -100,6 +100,35 @@ window.__pjQuadroErro=__pjQuadroErro;
 window.__arqRecusado=function(op){op=op||{};var ex=Array.isArray(op.aceitos)?op.aceitos:__pjExts(op.aceitos);var n=(op.nomes||[]).length;
  return __pjQuadroErro({doc:op.doc,titulo:'Formato de documento inválido',html:(n>1?'Os arquivos selecionados não são compatíveis':'O arquivo selecionado não é compatível')+' com esta etapa e <b>'+(n>1?'não foram adicionados':'não foi adicionado')+'</b>.',nomes:op.nomes,aceitos:ex,descricao:op.descricao,escolher:op.escolher})};
 window.__pjExts=__pjExts;window.__pjAceita=__pjAceita;
+/* V297 — LINHA SELECIONADA EM TODAS AS TABELAS: clicar numa linha marca a linha (faixa azul) e a célula clicada (contorno);
+   as setas ↑ ↓ ← → movem a seleção (como no Excel). Não atrapalha campos de texto, listas, nem telas que já usam as setas. */
+window.__selTabela=function(w){try{var d=w.document;if(!d||d.__pjSelTab)return;d.__pjSelTab=1;
+ var st=d.createElement('style');st.textContent=
+  'tr.pj-sel>td,tr.pj-sel>th{box-shadow:inset 0 2px 0 #0b3d91,inset 0 -2px 0 #0b3d91,inset 0 0 0 9999px rgba(37,99,235,.13)!important}'+
+  'tr.pj-sel>td:first-child,tr.pj-sel>th:first-child{box-shadow:inset 2px 0 0 #0b3d91,inset 0 2px 0 #0b3d91,inset 0 -2px 0 #0b3d91,inset 0 0 0 9999px rgba(37,99,235,.13)!important}'+
+  'tr.pj-sel>td:last-child,tr.pj-sel>th:last-child{box-shadow:inset -2px 0 0 #0b3d91,inset 0 2px 0 #0b3d91,inset 0 -2px 0 #0b3d91,inset 0 0 0 9999px rgba(37,99,235,.13)!important}'+
+  'td.pj-cel{outline:2px solid #1d4ed8!important;outline-offset:-3px}';
+ (d.head||d.documentElement).appendChild(st);
+ var S={tr:null,td:null,tab:null,lin:-1,col:-1};
+ function linhas(tab){var r=[],i,rows=tab.rows;for(i=0;i<rows.length;i++){var x=rows[i];if(x.closest('table')!==tab||x.parentNode.tagName==='THEAD'||x.parentNode.tagName==='TFOOT')continue;
+   if(!x.cells.length||[].every.call(x.cells,function(c){return c.tagName==='TH'}))continue;if(x.offsetParent===null&&x.getClientRects().length===0)continue;r.push(x)}return r}
+ function limpar(){if(S.tr)S.tr.classList.remove('pj-sel');if(S.td)S.td.classList.remove('pj-cel')}
+ function marcar(tr,td){limpar();S.tr=tr;S.td=td;S.tab=tr.closest('table');var ls=linhas(S.tab);S.lin=ls.indexOf(tr);S.col=td?[].indexOf.call(tr.cells,td):0;
+   tr.classList.add('pj-sel');if(td)td.classList.add('pj-cel')}
+ d.addEventListener('click',function(e){var td=e.target&&e.target.closest&&e.target.closest('td,th');if(!td)return;var tr=td.parentNode,tab=td.closest('table');
+   if(!tab||!tr||tr.tagName!=='TR'||tr.parentNode.tagName==='THEAD'||tr.parentNode.tagName==='TFOOT')return;if(linhas(tab).indexOf(tr)<0)return;marcar(tr,td)},true);
+ w.addEventListener('keydown',function(e){var k=e.key;if(!/^Arrow(Up|Down|Left|Right)$/.test(k)||e.defaultPrevented||e.ctrlKey||e.altKey||e.metaKey||e.shiftKey)return;
+   if(!S.tab||!S.tab.isConnected||S.tab.offsetParent===null)return;
+   var a=d.activeElement,t=a&&a.tagName;if(a&&(a.isContentEditable||t==='TEXTAREA'||t==='SELECT'||(t==='INPUT'&&!/^(checkbox|button|submit)$/i.test(a.type))))return;
+   if([].some.call(d.querySelectorAll('[role=dialog],[role=alertdialog]'),function(x){return x.offsetParent!==null||x.getClientRects().length}))return;
+   var ls=linhas(S.tab);if(!ls.length)return;var i=S.tr&&S.tr.isConnected?ls.indexOf(S.tr):-1;if(i<0)i=Math.min(Math.max(S.lin,0),ls.length-1);
+   var tr=ls[i],c=S.col<0?0:S.col;
+   if(k==='ArrowUp')tr=ls[Math.max(0,i-1)];else if(k==='ArrowDown')tr=ls[Math.min(ls.length-1,i+1)];
+   else if(k==='ArrowLeft')c=Math.max(0,c-1);else c=Math.min(tr.cells.length-1,c+1);
+   c=Math.min(c,tr.cells.length-1);var td=tr.cells[c];e.preventDefault();marcar(tr,td);S.col=c;
+   try{(td||tr).scrollIntoView({block:'nearest',inline:'nearest'})}catch(_){}},false);
+}catch(e){}};
+try{window.__selTabela(window)}catch(e){}
 /* filtro geral: qualquer campo de arquivo com "accept" (escolhido ou arrastado) recusa o formato errado com o quadro acima — vale para a página e para as abas */
 window.__pjFiltroArquivos=function(w){try{var d=w.document;if(!d||d.__pjFiltro)return;d.__pjFiltro=1;
  var topo=function(){try{return(w.top&&w.top.__arqRecusado)?w.top:window}catch(_){return window}};
