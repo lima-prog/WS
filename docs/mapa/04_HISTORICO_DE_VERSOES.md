@@ -5,6 +5,9 @@
 > "pacote N" = versão do Python instalado nos PCs. Versões antes da V110 ficaram no projeto antigo (não estão aqui).
 
 
+## 2026-11-27
+
+- `d07c8e5` V296: código novo do app da rede (roteirizador v19.4 de 26/11) — Gerar relatórios das ordens gera pelo Python no sistema instalado (sequência divergente, ORDEM MANUAL/ULT.PROC, ordem repetida, concatenar só ordem numérica, peso líquido, xadrez, guarda-corpo, gráficos, CSC, GESTÃO À VISTA); Roteirizador DXF atualizado; saída na Downloads
 ## 2026-11-26
 
 - `f183355` V295: Gerar relatórios das ordens — cabeçalho do Resultado (Ordens no relatório | Qtde | Abas do Excel | Linhas) centralizado; ícones de linha no registro, status, faixa de erro e botão Baixar Excel

@@ -55,4 +55,5 @@ Código: bloco "V275 — REGRAS FIXAS" em `validador_fluxos_ppcp.py`; resumo em 
 ## APP DA REDE (main.py em X:\ppcp_dxf_ferramentas)
 - É outro app (PPCP — Ferramentas — Projeart), separado do SISTEMA PPCPM; o PPCPM tem uma **cópia** do Validador de Fluxos dele.
 - Regra do Wadson: **avisar cada mudança** feita no app da rede; ele decide o que leva para o PPCPM. Trazer sempre mantendo as configurações do PPCPM (regras da Base, nome do arquivo, Downloads, pastas fixas).
+- **Relatório de ordens x fluxos (pg13)** desde V296: no sistema instalado roda o **mesmo código Python do app da rede** (`apps/Roteirizador_DXF/roteirizador_original/roteirizador_dxf_projeart.py` → `gerar_relatorio_ordens_fluxos`), via `fabrica_rot.py` (`ro_iniciar`/`ro_estado`/`ro_abrir`); pasta arrastada é copiada só para gerar e apagada depois; arquivo vai para Downloads. Para trazer mudanças futuras do roteirizador da rede: copiar esse arquivo por cima (o PPCPM não altera ele). No navegador (Vercel) continua a versão JavaScript antiga.
 - Conferência automática: tarefa agendada "Avisar mudanças no app da rede" (seg–sex 07:43), compara com `BASE_APP_REDE.json` nesta pasta.

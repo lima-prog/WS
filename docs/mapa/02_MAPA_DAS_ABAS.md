@@ -29,7 +29,7 @@ Ligada à **PLANILHA DE CONTROLE DE PACOTES ENTREGUES.xlsx** (aba LIBERAÇÃO DE
 ## Gerenciador de Roteiros
 | Aba | id | O que faz |
 |---|---|---|
-| Gerar relatórios das ordens | pg13 | Relatório de Ordens x Fluxos a partir do arquivo do Focco. |
+| Gerar relatórios das ordens | pg13 | Relatório de Ordens x Fluxos a partir do arquivo do Focco. Desde V296, no sistema instalado usa o código Python do app da rede (regras novas + gráficos); botão "Abrir Excel do relatório" (salvo em Downloads). |
 | Gerenciamento de roteiro - ERP | pg15 | Gerencia roteiros do ERP; regras em massa. |
 | Alteração de Roteiros | pg10 | Altera roteiros; regras em massa. |
 
