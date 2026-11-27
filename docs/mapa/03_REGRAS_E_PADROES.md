@@ -25,6 +25,7 @@
 - **Arquivo aceito** (todas as abas): fundo verde claro `#f3faf5`, borda `#cfe8d6`, **barra verde à esquerda** `#1e8e3e`, texto escuro em negrito com ✓ (V286).
 - Ícones de linha (SVG), sem emoji — inclusive no registro (log), status e avisos de erro de todas as abas (V289 produção, V295 Gerar relatórios); Base fixa = ícone banco de dados com cadeado.
 - Cabeçalhos das tabelas de resultado com o texto **centralizado** e números centralizados embaixo (V295).
+- **Linha selecionada** (V297, todas as tabelas de todas as abas): clicar numa linha marca a linha com faixa azul e borda `#0b3d91` e contorna a célula clicada; setas ↑ ↓ ← → movem a seleção, como no Excel. Não age dentro de campos de texto/listas nem com janela aberta. Código: `window.__selTabela` no `index.html` (ligado em cada aba pelo `telaViva`).
 - Sem barra de rolagem de fora; tema claro e escuro; avisos no idioma escolhido (pt/en/es).
 
 ## PLANILHA BASE (Agrupador | Base → Gerar Base Preenchida) — sempre assim (V275–V278)
