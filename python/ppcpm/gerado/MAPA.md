@@ -1,4 +1,4 @@
-# Mapa do sistema — Versão 297
+# Mapa do sistema — Versão 298
 
 Gerado por `gerar_python.py` a partir do `index.html`. Não edite à mão: rode o gerador de novo.
 
