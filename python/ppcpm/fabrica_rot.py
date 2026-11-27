@@ -751,6 +751,133 @@ def vr_salvar(itens: list) -> dict:
     return {**verificador(), "feitos": ok}
 
 
+
+# ------------------------------------------------------------------ V296: Relatório de ordens x fluxos (aba Gerar relatórios das ordens)
+# O relatório é gerado pelo MESMO código do app da rede (gerar_relatorio_ordens_fluxos do roteirizador original):
+# sequência divergente (aba REGRAS SEQUÊNCIA, linha vermelha), ORDEM MANUAL / ULT.PROC na ROTEIRIZAÇÃO FOCCO, ordem repetida
+# para desconsiderar, concatenar só ordem numérica, peso líquido, chapa xadrez, guarda-corpo, painéis de gráficos e logo.
+# Padrão PPCPM mantido: o arquivo vai para a pasta Downloads do usuário; a tela continua a do sistema.
+PASTA_RO = fabrica.PASTA_DADOS_PRODUCAO / "recebidos" / "relatorio_ordens"
+_RO = {"rodando": False, "log": [], "res": None, "erro": "", "id": 0, "sessao": ""}
+
+
+def _parte_segura(t: str) -> str:
+    t = str(t or "").replace("\\", "/")
+    partes = [p for p in t.split("/") if p not in ("", ".", "..") and ":" not in p]
+    return "/".join(partes)
+
+
+def ro_receber(nome: str, dados: bytes) -> dict:
+    """Arquivo arrastado (sem caminho no PC): grava em recebidos/relatorio_ordens/<sessão>/<caminho relativo>."""
+    rel = _parte_segura(nome)
+    if "/" not in rel:
+        return {"ok": False, "erro": "Nome inválido."}
+    alvo = PASTA_RO.joinpath(*rel.split("/"))
+    alvo.parent.mkdir(parents=True, exist_ok=True)
+    alvo.write_bytes(dados)
+    sessao = rel.split("/")[0]
+    return {"ok": True, "caminho": str(alvo), "base": str(PASTA_RO / sessao)}
+
+
+def _ro_resumo(linhas: list, destino: str) -> dict:
+    import re
+    txt = "\n".join(linhas)
+    num = lambda rx: int(re.search(rx, txt).group(1)) if re.search(rx, txt) else 0   # noqa: E731
+    m_lote = re.search(r"_LOTE_([^_.]+)", os.path.basename(destino))
+    return {
+        "lote": m_lote.group(1) if m_lote else "",
+        "linhas": num(r"Relatório: (\d+) linha"), "com_dxf": num(r"(\d+) com DXF"),
+        "rota_auto": num(r"(\d+) perfilados sem DXF"), "sem_dxf": num(r"perfilados sem DXF, (\d+) sem DXF"),
+        "sem_ordem": num(r"\((\d+) DXF\(s\) sem ordem"), "revisar": num(r"conferência: (\d+) ordem"),
+        "divergentes": num(r"(\d+) ordem\(ns\) com SEQUÊNCIA DIVERGENTE"),
+        "roteirizacao_focco": num(r"ROTEIRIZAÇÃO FOCCO: (\d+) linha"), "preparacao": num(r"Abas: (\d+) em Preparação"),
+        "nao_preparacao": num(r"(\d+) em Não Preparação"), "ps_prep": num(r"(\d+) em PS PREP"),
+        "desconsiderar": num(r"(\d+) ordem\(ns\) para desconsiderar"), "pendentes": num(r"(\d+) de preparação ainda sem fluxo"),
+    }
+
+
+def ro_iniciar(focco: str, pastas: list, sessao: str = "") -> dict:
+    d = disponivel()
+    if not d["ok"]:
+        return d
+    if _RO["rodando"]:
+        return {"ok": False, "erro": "Já tem um relatório sendo gerado."}
+    mod = _modulo()
+    focco = mod._normalizar_caminho(focco)
+    pastas = [mod._normalizar_caminho(p) for p in (pastas or []) if str(p or "").strip()]
+    if not focco or not os.path.exists(focco):
+        return {"ok": False, "erro": "Não encontrei o relatório do Focco: " + str(focco)}
+    falta = [p for p in pastas if not os.path.isdir(p)]
+    if not pastas or falta:
+        return {"ok": False, "erro": "Não encontrei a pasta dos DXF: " + (falta[0] if falta else "(nenhuma)")}
+    _RO.update(rodando=True, log=[], res=None, erro="", sessao=_parte_segura(sessao).split("/")[0] if sessao else "")
+    _RO["id"] += 1
+    threading.Thread(target=_ro_executar, args=(focco, pastas), daemon=True).start()
+    return {"ok": True, "id": _RO["id"]}
+
+
+def _ro_executar(focco, pastas):
+    mod = _modulo()
+    buf: list = []
+    tid = threading.get_ident()
+    pend = [""]
+
+    def escoar():
+        if not buf:
+            return
+        t = pend[0] + "".join(buf)
+        buf.clear()
+        partes = t.split("\n")
+        pend[0] = partes.pop()
+        _RO["log"].extend(p for p in partes if p.strip())
+
+    _ROT.destinos[tid] = buf
+    parar = threading.Event()
+
+    def bomba():
+        while not parar.wait(0.25):
+            escoar()
+
+    threading.Thread(target=bomba, daemon=True).start()
+    try:
+        from .caminhos import pasta_downloads
+        saida = pasta_downloads()
+        os.makedirs(saida, exist_ok=True)
+        regs = mod.coletar_registros_das_pastas(pastas, mod.log)
+        destino = mod.gerar_relatorio_ordens_fluxos(focco, regs, saida, mod.log)
+        escoar()
+        _RO["res"] = {"caminho": destino, "nome": os.path.basename(destino), "pasta": saida,
+                      "resumo": _ro_resumo(_RO["log"], destino)}
+    except Exception as ex:  # noqa: BLE001
+        escoar()
+        _RO["erro"] = str(ex) or ex.__class__.__name__
+    finally:
+        parar.set()
+        _ROT.destinos.pop(tid, None)
+        escoar()
+        if pend[0].strip():
+            _RO["log"].append(pend[0])
+        if _RO["sessao"]:                              # apaga a cópia dos arquivos arrastados
+            shutil.rmtree(PASTA_RO / _RO["sessao"], ignore_errors=True)
+        _RO["rodando"] = False
+
+
+def ro_estado(desde: int = 0) -> dict:
+    lg = _RO["log"]
+    desde = max(0, min(int(desde or 0), len(lg)))
+    return _limpo({"ok": True, "rodando": _RO["rodando"], "log": lg[desde:], "n": len(lg), "res": _RO["res"],
+                   "erro": _RO["erro"], "id": _RO["id"]})
+
+
+def ro_abrir(qual: str = "arquivo") -> dict:
+    r = _RO["res"]
+    if not r:
+        return {"ok": False, "erro": "Gere o relatório primeiro."}
+    alvo = r["caminho"] if qual == "arquivo" else r["pasta"]
+    if not os.path.exists(alvo):
+        return {"ok": False, "erro": "O arquivo não está mais na pasta Downloads: " + alvo}
+    return fabrica.abrir_pasta_caminho(alvo)
+
 # ------------------------------------------------------------------ roteamento (chamado pelo app.py)
 def get(acao: str, q: dict) -> dict:
     if acao == "estado":
@@ -763,6 +890,8 @@ def get(acao: str, q: dict) -> dict:
         return pesos()
     if acao == "verificador":
         return verificador()
+    if acao == "ro_estado":
+        return ro_estado(int(q.get("desde") or 0) if str(q.get("desde") or "0").isdigit() else 0)
     return {"ok": False, "erro": "Ação desconhecida."}
 
 
@@ -793,6 +922,10 @@ def post(acao: str, d: dict) -> dict:
         return vr_conferir(str(d.get("planilha") or ""), str(d.get("caminho") or ""))
     if acao == "vr_salvar":
         return vr_salvar(d.get("itens") or [])
+    if acao == "ro_iniciar":
+        return ro_iniciar(str(d.get("focco") or ""), list(d.get("pastas") or []), str(d.get("sessao") or ""))
+    if acao == "ro_abrir":
+        return ro_abrir(str(d.get("qual") or "arquivo"))
     return {"ok": False, "erro": "Ação desconhecida."}
 
 

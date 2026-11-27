@@ -141,7 +141,7 @@
     <table><thead><tr><th>Ordens no relatório</th><th>Qtde</th></tr></thead><tbody id="tb-ordens"></tbody></table>
     <table><thead><tr><th>Abas do Excel</th><th>Linhas</th></tr></thead><tbody id="tb-abas"></tbody></table>
   </div>
-  <button id="btn-download"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Baixar Excel do relatório<span class="sub" id="nome-saida">Relatorio_Ordens_Fluxos.xlsx</span></button>
+  <button id="btn-download"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg><span id="txt-download">Baixar Excel do relatório</span><span class="sub" id="nome-saida">Relatorio_Ordens_Fluxos.xlsx</span></button>
 </div>
 
 <footer>Processamento 100% local — os arquivos não saem deste computador</footer>
@@ -1737,7 +1737,9 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
       [/❌|✖️|✖/gu, sv('#dc2626', '<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>')],
       [/📁|📂/gu, sv('#5f6b7a', '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>')],
       [/📋|📄/gu, sv('#0b3d91', '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>')],
-      [/📑|📊/gu, sv('#0b3d91', '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/>')]
+      [/📑|📊/gu, sv('#0b3d91', '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/>')],
+      [/🟥/gu, sv('#dc2626', '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v5M12 16h.01"/>')],
+      [/🔷/gu, sv('#2563eb', '<path d="M12 3l8 9-8 9-8-9z"/>')]
     ];
   })();
   const comIcones13 = t => { let h = esc(t); for (const [re, ic] of ICS13) h = h.replace(re, ic); return h.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\uFE0F?/gu, '').replace(/(<\/svg>)\s+/g, '$1'); };
@@ -1754,7 +1756,7 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
   async function escolherFocco(file) {
     if (!file) return;
     const bytes = new Uint8Array(await file.arrayBuffer());
-    focco = { nome: file.name, bytes };
+    focco = { nome: file.name, bytes, caminho: file.ppcpmCaminho || "" };     // caminho: só no sistema instalado (janela PPCPM - ARQUIVOS)
     desenharFocco(); atualizar();
   }
   function tamanhoArq(n) { return n >= 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
@@ -1772,11 +1774,11 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
 
   // ---------------- 2. pastas dos DXF
   const ehDxf = n => /\.dxf$/i.test(n);
-  function adicionarPasta(nome, arquivos) {
+  function adicionarPasta(nome, arquivos, caminho) {
     const dxf = arquivos.filter(a => ehDxf(a.nome));
     const igual = pastas.find(p => p.nome === nome && p.arquivos.length === dxf.length);
     if (igual) { aviso(`A pasta "${nome}" já está na lista.`); return; }
-    pastas.push({ nome, arquivos: dxf });
+    pastas.push({ nome, arquivos: dxf, caminho: caminho || "" });
     desenharPastas(); atualizar();
   }
   function desenharPastas() {
@@ -1809,7 +1811,7 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
       const arqs = await lerPastaSistema(h, [], []);
       st.textContent = antes;
       if (!arqs.length) { aviso(`A pasta "${h.name}" não tem arquivos DXF.`); atualizar(); return; }
-      adicionarPasta(h.name, arqs);
+      adicionarPasta(h.name, arqs, h.ppcpmCaminho || "");
     } catch (ex) { aviso("Não consegui ler a pasta: " + (ex && ex.message ? ex.message : ex)); atualizar(); }
   }, true);
   $("in-pasta").addEventListener("change", e => {
@@ -1871,7 +1873,7 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
   }
   function escreverLog(texto) {
     const div = $("log"); div.style.display = "block";
-    const cls = /^\s*(✅)/.test(texto) ? "ok" : /^\s*(❌)/.test(texto) ? "erro" : /^\s*(⚠)/.test(texto) ? "aviso" : "";
+    const cls = /^\s*(✅)/.test(texto) ? "ok" : /^\s*(❌|🟥)/.test(texto) ? "erro" : /^\s*(⚠)/.test(texto) ? "aviso" : "";
     const ln = document.createElement("div"); if (cls) ln.className = cls; ln.innerHTML = comIcones13(texto);
     div.appendChild(ln); div.scrollTop = div.scrollHeight;
   }
@@ -1885,6 +1887,7 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
     stHtml("", "⚙️ Gerando relatório, aguarde...");
     progresso(2);
     try {
+      if (await PYRO.disponivel()) { resultado = await PYRO.gerar(); mostrarResultado(resultado); return; }
       const registros = await RO.coletar_registros_das_pastas(pastas, escreverLog, (i, n) => progresso(2 + Math.round(78 * i / n)));
       progresso(85);
       resultado = await RO.gerar_relatorio_ordens_fluxos(focco, registros, escreverLog);
@@ -1904,21 +1907,89 @@ RO.LOGO_PNG_B64 = "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19f
       setTimeout(() => { $("barra").style.display = "none"; }, 600);
     }
   });
+  /* V296 — NO SISTEMA INSTALADO o relatório é gerado pelo MESMO código do app da rede (Python, roteirizador original v19.4 de 26/11):
+     sequência divergente (REGRAS SEQUÊNCIA, vermelho, fora da concatenação), ORDEM MANUAL/ULT.PROC na ROTEIRIZAÇÃO FOCCO, ordem repetida
+     em "desconsiderar", concatenar só ordem numérica, peso líquido do DXF, chapa xadrez, guarda-corpo sem dobra, gráficos, CSC, GESTÃO À VISTA.
+     Padrão PPCPM: mesma tela, arquivo salvo direto na pasta Downloads. No navegador (sem o sistema instalado) continua a versão JavaScript abaixo. */
+  const PYRO = (() => {
+    const H = { "X-PPCPM": "1" };
+    const api = (acao, corpo) => fetch("/api/fabrica/rot/" + acao, corpo === undefined ? { headers: H, cache: "no-store" } :
+      { method: "POST", headers: Object.assign({ "Content-Type": "application/json" }, H), body: JSON.stringify(corpo) }).then(r => r.json());
+    let ok = null;
+    async function disponivel() {
+      if (ok !== null) return ok;
+      let host = ""; try { host = window.top.location.hostname; } catch (e) { host = location.hostname; }
+      if (host && !/^(127\.0\.0\.1|localhost)$/.test(host)) return (ok = false);        // Vercel / navegador: versão JavaScript
+      try { const j = await api("disponivel"); ok = !!(j && j.ok); } catch (e) { ok = false; }
+      return ok;
+    }
+    async function enviar(rel, dados) {
+      const r = await fetch("/api/fabrica/rot/ro_enviar", { method: "POST", headers: Object.assign({ "X-Nome": encodeURIComponent(rel) }, H), body: dados });
+      const j = await r.json(); if (!j.ok) throw new Error(j.erro || "Não consegui enviar " + rel); return j;
+    }
+    const pausa = ms => new Promise(ok => setTimeout(ok, ms));
+    async function gerar() {
+      const sessao = "s" + Date.now().toString(36);
+      let usouSessao = false, caminhoFocco = focco.caminho;
+      const caminhos = [];
+      if (!caminhoFocco) { const j = await enviar(`${sessao}/focco/${focco.nome}`, focco.bytes); caminhoFocco = j.caminho; usouSessao = true; }
+      let total = 0, feitos = 0;
+      pastas.forEach(p => { if (!p.caminho) total += p.arquivos.length; });
+      for (let i = 0; i < pastas.length; i++) {
+        const p = pastas[i];
+        if (p.caminho) { caminhos.push(p.caminho); continue; }
+        let base = "";
+        for (const a of p.arquivos) {                                     // pasta arrastada: copia os DXF (mesmas subpastas) só para gerar
+          const j = await enviar([sessao, "P" + i, p.nome].concat(a.partes, [a.nome]).join("/"), await a.ler());
+          base = j.base; feitos++; progresso(2 + Math.round(18 * feitos / Math.max(1, total)));
+        }
+        const sep = base.includes("\\") ? "\\" : "/";
+        caminhos.push([base, "P" + i, p.nome].join(sep)); usouSessao = true;
+      }
+      const ini = await api("ro_iniciar", { focco: caminhoFocco, pastas: caminhos, sessao: usouSessao ? sessao : "" });
+      if (!ini.ok) throw new Error(ini.erro || "Não consegui iniciar o relatório.");
+      let desde = 0, nDxf = 0;
+      for (;;) {
+        await pausa(400);
+        const e = await api("ro_estado?desde=" + desde);
+        for (const l of e.log || []) {
+          const t = String(l).replace(/^\[\d\d:\d\d:\d\d\]\s?/, "").replace(/(Lendo o relatório do Focco: ).*[\\/]/, "$1");
+          escreverLog(t);
+          let m = t.match(/(\d+) arquivo\(s\) DXF encontrado/); if (m) nDxf = +m[1];
+          m = t.match(/(\d+)\/(\d+) arquivos lidos/); if (m) progresso(20 + Math.round(60 * (+m[1]) / (+m[2])));
+          if (/Lendo o relatório do Focco/.test(t)) progresso(85);
+        }
+        desde = e.n || desde;
+        if (!e.rodando) {
+          if (e.erro) throw new Error(e.erro);
+          if (!e.res) throw new Error("O relatório não foi gerado.");
+          progresso(100);
+          escreverLog(`✅ Relatório gerado: ${e.res.nome} (salvo na pasta Downloads)`);
+          stHtml("ok", `✅ Relatório gerado: ${e.res.nome}`);
+          return Object.assign({ python: true }, e.res);
+        }
+      }
+    }
+    return { disponivel, gerar, abrir: q => api("ro_abrir", { qual: q || "arquivo" }) };
+  })();
   function mostrarResultado(r) {
     const s = r.resumo;
     $("badge-lote").textContent = s.lote ? `LOTE ${s.lote}` : "LOTE —";
     const linha = (rot, q, cor) => `<tr><td>${cor ? `<span class="dot" style="background:${cor}"></span>` : ""}${rot}</td><td class="q">${Number(q).toLocaleString("pt-BR")}</td></tr>`;
     $("tb-ordens").innerHTML = linha("Com DXF", s.com_dxf, "#22c55e") + linha("Rota automática (sem DXF)", s.rota_auto, "#3b82f6") +
       linha("Sem DXF ainda", s.sem_dxf, "#ef4444") + linha("DXF sem ordem no Focco", s.sem_ordem, "#94a3b8") +
-      linha("Ordens para revisar (conferência)", s.revisar, "#f59e0b") + `<tr><td><b>Total (Ordens x DXF)</b></td><td class="q">${s.linhas.toLocaleString("pt-BR")}</td></tr>`;
+      linha("Ordens para revisar (conferência)", s.revisar, "#f59e0b") +
+      (s.divergentes ? linha("Sequência divergente (fora da concatenação)", s.divergentes, "#dc2626") : "") + `<tr><td><b>Total (Ordens x DXF)</b></td><td class="q">${s.linhas.toLocaleString("pt-BR")}</td></tr>`;
     $("tb-abas").innerHTML = linha("ROTEIRIZAÇÃO FOCCO", s.roteirizacao_focco) + linha("Preparação", s.preparacao) + linha("Não Preparação", s.nao_preparacao) +
       linha("PS PREP", s.ps_prep) + linha("Ordens para desconsiderar", s.desconsiderar) + linha("Preparação ainda sem fluxo", s.pendentes);
-    $("nome-saida").textContent = r.nome;
+    $("nome-saida").textContent = r.python ? `${r.nome} — salvo na pasta Downloads` : r.nome;
+    $("txt-download").textContent = r.python ? "Abrir Excel do relatório" : "Baixar Excel do relatório";
     $("resultado").style.display = "block";
     $("resultado").scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
   $("btn-download").addEventListener("click", () => {
     if (!resultado) return;
+    if (resultado.python) { PYRO.abrir("arquivo").then(j => { if (!j.ok) aviso(j.erro || "Não consegui abrir o arquivo."); }); return; }
     const blob = new Blob([resultado.buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = resultado.nome;
     document.body.appendChild(a); a.click(); a.remove();

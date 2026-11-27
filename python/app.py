@@ -270,12 +270,12 @@ class Sistema(BaseHTTPRequestHandler):
             if not self._do_proprio_pc():
                 return self._json({"erro": "Os apps da Preparação fábrica rodam só no próprio computador do sistema."}, 403)
             mod_fab, acao = _modulo_fabrica(m_fab.group(1)), m_fab.group(2)
-            if acao == "enviar":       # arquivo arrastado do navegador -> arquivo local
+            if acao in ("enviar", "ro_enviar"):       # arquivo arrastado do navegador -> arquivo local
                 n = int(self.headers.get("Content-Length") or 0)
                 if n <= 0 or n > 500 * 1024 * 1024:
                     return self._json({"ok": False, "erro": "Arquivo vazio ou grande demais."}, 400)
                 from urllib.parse import unquote
-                return self._json(mod_fab.receber(unquote(self.headers.get("X-Nome") or "arquivo"), self.rfile.read(n)))
+                return self._json((mod_fab.ro_receber if acao == "ro_enviar" else mod_fab.receber)(unquote(self.headers.get("X-Nome") or "arquivo"), self.rfile.read(n)))
             try:
                 return self._json(mod_fab.post(acao, self._corpo_json()))
             except Exception as e:  # noqa: BLE001

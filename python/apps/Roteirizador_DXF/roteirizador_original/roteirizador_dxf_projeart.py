@@ -16,6 +16,21 @@ import ctypes
 import zlib
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog, colorchooser
+
+# --- Cache de leitura de DXF (rot49) ---------------------------------------
+# Cada peça era lida do disco e reparseada ~10 vezes (furos, dimensões, recorte,
+# ângulo, área líquida...). Agora o documento é lido uma vez por arquivo (chave:
+# caminho + data + tamanho) e reaproveitado. As funções só LEEM o documento.
+import functools as _ft
+@_ft.lru_cache(maxsize=48)
+def _ler_dxf_cache(caminho, mtime, tam):
+    return ezdxf.readfile(caminho)
+def _ler_dxf(caminho):
+    try:
+        st = os.stat(caminho)
+        return _ler_dxf_cache(str(caminho), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return ezdxf.readfile(caminho)
 # ===== CONSTANTES =====
 DENSIDADE_ACO = 7.85  # g/cm³
 VERSAO = "ROTEIRIZADOR DXF PROJEART v19.4"
@@ -464,6 +479,82 @@ def calcular_peso(largura_mm, altura_mm, espessura_mm):
     peso_kg = (volume_cm3 * DENSIDADE_ACO) / 1000.0
 
     return peso_kg
+
+# ===== PESO LÍQUIDO (regra do Focco) =====
+# O Focco pesa a peça pela ÁREA REAL do DXF (contorno externo menos recortes e
+# furos) x espessura x densidade. O cálculo antigo usava o retângulo envolvente
+# (largura x altura), que superestima peças com recorte/chanfro/furo. Agora o
+# peso sai da área líquida; se o DXF não puder ser lido (contorno aberto etc.),
+# cai no retângulo envolvente como antes.
+from ezdxf import path as ezpath
+def _area(pts):
+    s=0.0
+    for i in range(len(pts)):
+        x1,y1=pts[i]; x2,y2=pts[(i+1)%len(pts)]
+        s+=x1*y2-x2*y1
+    return s/2.0
+def _dentro(p,pts):
+    x,y=p; c=False; n=len(pts)
+    for i in range(n):
+        x1,y1=pts[i]; x2,y2=pts[(i+1)%n]
+        if (y1>y)!=(y2>y) and x<(x2-x1)*(y-y1)/(y2-y1)+x1: c=not c
+    return c
+def area_liquida_dxf(caminho, tol=0.05):
+    doc=_ler_dxf(caminho); msp=doc.modelspace()
+    fechados=[]; abertos=[]
+    for e in msp:
+        t=e.dxftype()
+        if t not in ("LINE","ARC","CIRCLE","ELLIPSE","LWPOLYLINE","POLYLINE","SPLINE"): continue
+        try:
+            p=ezpath.make_path(e)
+            pts=[(v.x,v.y) for v in p.flattening(0.05)]
+        except Exception: continue
+        if len(pts)<2: continue
+        fech = t in ("CIRCLE",) or (t in("LWPOLYLINE","POLYLINE") and getattr(e,"is_closed",False)) or \
+               math.dist(pts[0],pts[-1])<=tol
+        if fech and len(pts)>=3: fechados.append(pts[:-1] if math.dist(pts[0],pts[-1])<=tol else pts)
+        else: abertos.append(pts)
+    # encadeia abertos (ponta a ponta)
+    while abertos:
+        cur=abertos.pop(); mudou=True
+        while mudou and math.dist(cur[0],cur[-1])>tol:
+            mudou=False
+            for i,o in enumerate(abertos):
+                for cand in (o,o[::-1]):
+                    if math.dist(cur[-1],cand[0])<=tol: cur=cur+cand[1:]; abertos.pop(i); mudou=True; break
+                    if math.dist(cur[0],cand[-1])<=tol: cur=cand[:-1]+cur; abertos.pop(i); mudou=True; break
+                if mudou: break
+        if len(cur)>=4 and math.dist(cur[0],cur[-1])<=tol: fechados.append(cur[:-1])
+        # contorno que não fecha: ignorado (o chamador cai no bounding box)
+    if not fechados: return None
+    loops=sorted(((abs(_area(l)),l) for l in fechados if abs(_area(l))>1e-6),key=lambda x:-x[0])
+    total=0.0
+    for i,(a,l) in enumerate(loops):
+        prof=sum(1 for (a2,l2) in loops[:i] if _dentro(l[0],l2))
+        total+= a if prof%2==0 else -a
+    return total if total>0 else None
+
+_CACHE_AREA_LIQ = {}
+def _area_liq_seguro(caminho):
+    """Área líquida (mm²) do DXF, com cache; None se não for possível calcular."""
+    try:
+        chave = (caminho, os.path.getmtime(caminho))
+    except Exception:
+        return None
+    if chave not in _CACHE_AREA_LIQ:
+        try:
+            _CACHE_AREA_LIQ[chave] = area_liquida_dxf(caminho)
+        except Exception:
+            _CACHE_AREA_LIQ[chave] = None
+    return _CACHE_AREA_LIQ[chave]
+def calcular_peso_liquido(largura_mm, altura_mm, espessura_mm, area_liq_mm2=None):
+    """Peso (kg) pela área líquida; sem área válida, usa o retângulo envolvente."""
+    bbox = calcular_peso(largura_mm, altura_mm, espessura_mm)
+    if not area_liq_mm2 or not bbox:
+        return bbox
+    if area_liq_mm2 > largura_mm * altura_mm * 1.001 or area_liq_mm2 < 0.05 * largura_mm * altura_mm:
+        return bbox   # área incoerente com o retângulo: não arrisca
+    return area_liq_mm2 * espessura_mm * DENSIDADE_ACO / 1e6
 def analisar_furos_dxf(caminho):
     """
     Analisa o arquivo DXF para identificar furos na peça
@@ -475,7 +566,7 @@ def analisar_furos_dxf(caminho):
     - quantidade_furos: número total de furos encontrados
     """
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
 
         furos_circulares = []
@@ -547,7 +638,7 @@ def analisar_furos_dxf(caminho):
         return False, None, None, "ERRO NA ANÁLISE", 0
 def obter_dimensoes_dxf(caminho):
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
         xs = []
         ys = []
@@ -674,7 +765,7 @@ def possui_recorte_escalonado(caminho):
     retângulo simples tem 4) é considerada "em degrau".
     """
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
         segmentos = []
         for e in msp:
@@ -694,7 +785,7 @@ def possui_recorte_escalonado(caminho):
         return False
 def possui_irregularidade(caminho):
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
         for e in msp:
             if e.dxftype() in ["ARC", "SPLINE", "ELLIPSE"]:
@@ -712,7 +803,7 @@ def irregularidade_so_arcos_pequenos(caminho, limite_mm=150.0):
     """True quando a "irregularidade" do DXF é SÓ de arcos pequenos - furo oblongo (rasgo) ou canto arredondado: tem arco, nenhum
     arco com diâmetro maior que `limite_mm` (150mm, o mesmo limite do "recorte grande"), sem SPLINE/ELLIPSE e sem contorno em degrau."""
     try:
-        msp = ezdxf.readfile(caminho).modelspace()
+        msp = _ler_dxf(caminho).modelspace()
         tem_arco = False
         for e in msp:
             t = e.dxftype()
@@ -1508,7 +1599,7 @@ def verificar_prefixo(nome_arquivo, prefixos):
 def contar_furos_diametro(caminho, diametro_alvo=14.0, tolerancia=0.01):
     """Conta quantos furos circulares de um diâmetro específico existem no DXF."""
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
         contador = 0
         for e in msp:
@@ -1734,7 +1825,7 @@ def analisar_recorte_dxf(caminho):
       quanto na metade direita da peça (considerando o ponto médio da largura)
     """
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
         todos_xs = []
         centros_recorte_x = []
@@ -1793,7 +1884,7 @@ def possui_angulo_dxf(caminho, tolerancia_graus=1.0):
     são puramente horizontais nem verticais, indicando corte em ângulo.
     """
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
         for e in msp:
             if e.dxftype() == "LINE":
@@ -1828,7 +1919,7 @@ def possui_angulo_dxf_significativo(caminho, min_cateto=20.0, tolerancia_graus=1
     filtro de tamanho mínimo.
     """
     try:
-        doc = ezdxf.readfile(caminho)
+        doc = _ler_dxf(caminho)
         msp = doc.modelspace()
         for e in msp:
             if e.dxftype() == "LINE":
@@ -2757,7 +2848,7 @@ def processar(planilha, pasta_base, simulacao=None):
             # têm dimensões/espessura conhecidas para calcular o peso.
             if fluxo_atual and largura_dxf is not None and altura_dxf is not None and esp is not None:
                 quantidade_peso = qtd_dxf if qtd_dxf is not None else (qtd_planilha if qtd_planilha is not None else 1)
-                peso_unitario = calcular_peso(largura_dxf, altura_dxf, esp)
+                peso_unitario = calcular_peso_liquido(largura_dxf, altura_dxf, esp, _area_liq_seguro(caminho))
                 analise_pesos.append({
                     'fluxo': fluxo_atual,
                     'fluxo_base': extrair_fluxo_base(fluxo_atual),
@@ -3432,23 +3523,23 @@ def _peca_nao_gera_cam(identificador):
 # ===== PADRÃO VISUAL PROJEART (o mesmo dos sistemas web da empresa) =====
 # menu lateral azul-marinho #0B1D3A, destaque #2E6AAD, fundo #F1F5FA, cartões brancos com borda #DFE6EF,
 # cabeçalho de tabela azul-marinho. (Os nomes "_NEON_*" foram mantidos só para não mexer no resto do código.)
-_COR_MARINHO = "#0B2150"          # menu lateral, títulos, cabeçalho de tabela
-_COR_PAGINA = "#EEF1F5"           # fundo da página (em volta dos cartões)
+_COR_MARINHO = "#0B1D3A"          # menu lateral, títulos, cabeçalho de tabela
+_COR_PAGINA = "#F1F5FA"           # fundo da página (em volta dos cartões)
 _COR_FUNDO = "#FFFFFF"            # fundo dos cartões / conteúdo
-_COR_PAINEL = "#F6F7F9"           # painéis internos (zebra, caixas de texto)
-_COR_PAINEL_2 = "#EEF1F5"         # painéis secundários
-_COR_TEXTO = "#000000"
-_COR_TEXTO_SEC = "#4B5563"
-_COR_DESTAQUE = "#0B3D91"         # azul de destaque (botão primário, item ativo do menu)
-_COR_DESTAQUE_HOVER = "#082E6E"
-_COR_OK = "#1E9E4A"
-_COR_ALERTA = "#C62828"
-_COR_INFO = "#0B3D91"
-_COR_AVISO = "#EA580C"
-_COR_BORDA = "#C9D0D8"
-_COR_BORDA_CAMPO = "#98A3B3"
-_NEON_CIANO = "#0B3D91"
-_NEON_CIANO_SUAVE = "#0B3D91"
+_COR_PAINEL = "#F7F9FC"           # painéis internos (zebra, caixas de texto)
+_COR_PAINEL_2 = "#EEF3F9"         # painéis secundários
+_COR_TEXTO = "#1B2A41"
+_COR_TEXTO_SEC = "#5B6B82"
+_COR_DESTAQUE = "#2E6AAD"         # azul de destaque (botão primário, item ativo do menu)
+_COR_DESTAQUE_HOVER = "#3A7BC4"
+_COR_OK = "#1F9D55"
+_COR_ALERTA = "#D64545"
+_COR_INFO = "#2E6AAD"
+_COR_AVISO = "#B7791F"
+_COR_BORDA = "#DFE6EF"
+_COR_BORDA_CAMPO = "#C9D4E3"
+_NEON_CIANO = "#2E6AAD"
+_NEON_CIANO_SUAVE = "#2E6AAD"
 _NEON_ROSA = "#C2549B"
 _NEON_VERDE = "#1F9D55"
 _NEON_ROXO = "#6B4FBB"
@@ -3519,8 +3610,8 @@ def _aplicar_estilo_base(janela):
     janela.option_add("*TCheckbutton.cursor", "hand2")
     janela.option_add("*TCombobox*Listbox.background", "#FFFFFF")
     janela.option_add("*TCombobox*Listbox.foreground", _COR_TEXTO)
-    janela.option_add("*TCombobox*Listbox.selectBackground", "#DBE8FB")
-    janela.option_add("*TCombobox*Listbox.selectForeground", "#000000")
+    janela.option_add("*TCombobox*Listbox.selectBackground", _COR_DESTAQUE)
+    janela.option_add("*TCombobox*Listbox.selectForeground", "#FFFFFF")
     # ---- Containers ----
     style.configure("TFrame", background=_COR_FUNDO)
     style.configure("Painel.TFrame", background=_COR_PAINEL)
@@ -3540,24 +3631,24 @@ def _aplicar_estilo_base(janela):
               bordercolor=[("focus", _COR_DESTAQUE)], lightcolor=[("focus", _COR_DESTAQUE)],
               darkcolor=[("focus", _COR_DESTAQUE)])
     # ---- Botões: secundário branco com borda; primário azul #2E6AAD ----
-    style.configure("TButton", background="#D8DEE6", foreground="#000000",
+    style.configure("TButton", background="#FFFFFF", foreground=_COR_MARINHO,
                     bordercolor=_COR_BORDA_CAMPO, lightcolor=_COR_BORDA_CAMPO, darkcolor=_COR_BORDA_CAMPO,
-                    focuscolor="#D8DEE6", borderwidth=1, padding=(13, 7), font=(F, 9, "bold"), relief="solid")
+                    focuscolor="#FFFFFF", borderwidth=1, padding=(13, 7), font=(F, 9, "bold"), relief="solid")
     style.map("TButton",
-              background=[("pressed", "#BFC8D4"), ("active", "#C9D1DC"), ("disabled", "#E3E8EE")],
+              background=[("pressed", "#E3ECF7"), ("active", "#EFF5FC"), ("disabled", "#F3F6FA")],
               foreground=[("disabled", "#9AA8BD")],
-              bordercolor=[("disabled", "#C9D0D8"), ("active", "#808C9E"), ("pressed", "#808C9E")],
-              lightcolor=[("disabled", "#C9D0D8"), ("active", "#808C9E"), ("pressed", "#808C9E")],
-              darkcolor=[("disabled", "#C9D0D8"), ("active", "#808C9E"), ("pressed", "#808C9E")])
-    style.configure("Destaque.TButton", background="#D8DEE6", foreground="#000000",
-                    bordercolor="#98A3B3", lightcolor="#98A3B3", darkcolor="#98A3B3",
-                    focuscolor="#D8DEE6", font=(F, 10, "bold"), padding=(18, 9), borderwidth=1, relief="solid")
+              bordercolor=[("disabled", "#E5EBF3"), ("active", _COR_DESTAQUE), ("pressed", _COR_DESTAQUE)],
+              lightcolor=[("disabled", "#E5EBF3"), ("active", _COR_DESTAQUE), ("pressed", _COR_DESTAQUE)],
+              darkcolor=[("disabled", "#E5EBF3"), ("active", _COR_DESTAQUE), ("pressed", _COR_DESTAQUE)])
+    style.configure("Destaque.TButton", background=_COR_DESTAQUE, foreground="#FFFFFF",
+                    bordercolor=_COR_DESTAQUE, lightcolor=_COR_DESTAQUE, darkcolor=_COR_DESTAQUE,
+                    focuscolor=_COR_DESTAQUE, font=(F, 10, "bold"), padding=(18, 9), borderwidth=1, relief="solid")
     style.map("Destaque.TButton",
-              background=[("pressed", "#BFC8D4"), ("active", "#C9D1DC"), ("disabled", "#E3E8EE")],
-              foreground=[("disabled", "#8A929E")],
-              bordercolor=[("disabled", "#C9D0D8"), ("active", "#808C9E")],
-              lightcolor=[("disabled", "#C9D0D8"), ("active", "#808C9E")],
-              darkcolor=[("disabled", "#C9D0D8"), ("active", "#808C9E")])
+              background=[("pressed", "#255A94"), ("active", _COR_DESTAQUE_HOVER), ("disabled", "#B9CCE3")],
+              foreground=[("disabled", "#FFFFFF")],
+              bordercolor=[("disabled", "#B9CCE3"), ("active", _COR_DESTAQUE_HOVER)],
+              lightcolor=[("disabled", "#B9CCE3"), ("active", _COR_DESTAQUE_HOVER)],
+              darkcolor=[("disabled", "#B9CCE3"), ("active", _COR_DESTAQUE_HOVER)])
     style.configure("Perigo.TButton", background=_COR_ALERTA, foreground="#FFFFFF",
                     bordercolor=_COR_ALERTA, lightcolor=_COR_ALERTA, darkcolor=_COR_ALERTA, focuscolor=_COR_ALERTA,
                     font=(F, 9, "bold"), padding=(13, 7), borderwidth=1, relief="solid")
@@ -3567,15 +3658,15 @@ def _aplicar_estilo_base(janela):
               bordercolor=[("disabled", "#EBC0C0"), ("active", "#E25C5C")],
               lightcolor=[("disabled", "#EBC0C0"), ("active", "#E25C5C")],
               darkcolor=[("disabled", "#EBC0C0"), ("active", "#E25C5C")])
-    style.configure("Secundario.TButton", background="#D8DEE6", foreground="#000000",
+    style.configure("Secundario.TButton", background="#FFFFFF", foreground=_COR_MARINHO,
                     bordercolor=_COR_BORDA_CAMPO, lightcolor=_COR_BORDA_CAMPO, darkcolor=_COR_BORDA_CAMPO,
-                    focuscolor="#D8DEE6", font=(F, 9, "bold"), padding=(12, 7), borderwidth=1, relief="solid")
+                    focuscolor="#FFFFFF", font=(F, 9, "bold"), padding=(12, 7), borderwidth=1, relief="solid")
     style.map("Secundario.TButton",
-              background=[("pressed", "#BFC8D4"), ("active", "#C9D1DC"), ("disabled", "#E3E8EE")],
+              background=[("pressed", "#E3ECF7"), ("active", "#EFF5FC"), ("disabled", "#F3F6FA")],
               foreground=[("disabled", "#9AA8BD")],
-              bordercolor=[("disabled", "#C9D0D8"), ("active", "#808C9E")],
-              lightcolor=[("disabled", "#C9D0D8"), ("active", "#808C9E")],
-              darkcolor=[("disabled", "#C9D0D8"), ("active", "#808C9E")])
+              bordercolor=[("disabled", "#E5EBF3"), ("active", _COR_DESTAQUE)],
+              lightcolor=[("disabled", "#E5EBF3"), ("active", _COR_DESTAQUE)],
+              darkcolor=[("disabled", "#E5EBF3"), ("active", _COR_DESTAQUE)])
     # ---- Combobox / Checkbutton / Radiobutton ----
     style.configure("TCombobox", fieldbackground="#FFFFFF", background="#FFFFFF", foreground=_COR_TEXTO,
                     arrowcolor=_COR_DESTAQUE, bordercolor=_COR_BORDA_CAMPO, lightcolor=_COR_BORDA_CAMPO,
@@ -3592,10 +3683,10 @@ def _aplicar_estilo_base(janela):
     style.configure("Treeview", background="#FFFFFF", fieldbackground="#FFFFFF", foreground=_COR_TEXTO,
                     rowheight=30, font=("Segoe UI", 9), borderwidth=1, relief="flat",
                     bordercolor=_COR_BORDA, lightcolor=_COR_BORDA, darkcolor=_COR_BORDA)
-    style.configure("Treeview.Heading", background="#D5DBE3", foreground="#000000",
+    style.configure("Treeview.Heading", background=_COR_MARINHO, foreground="#FFFFFF",
                     font=(F, 9, "bold"), padding=(8, 8), borderwidth=0)
-    style.map("Treeview", background=[("selected", "#DBE8FB")], foreground=[("selected", "#000000")])
-    style.map("Treeview.Heading", background=[("active", "#C2CAD5")])
+    style.map("Treeview", background=[("selected", "#DCE9F7")], foreground=[("selected", _COR_MARINHO)])
+    style.map("Treeview.Heading", background=[("active", "#16315C")])
     # ---- Abas ----
     # A navegação principal é o MENU LATERAL: o Notebook principal esconde as próprias abas.
     style.layout("Principal.TNotebook.Tab", [])
@@ -3604,11 +3695,11 @@ def _aplicar_estilo_base(janela):
     # sub-abas das telas (Divergências etc.): abas claras, a ativa fica branca com faixa azul
     style.configure("TNotebook", background=_COR_FUNDO, borderwidth=1, tabmargins=(0, 4, 0, 0),
                     bordercolor=_COR_BORDA, lightcolor=_COR_BORDA, darkcolor=_COR_BORDA)
-    style.configure("TNotebook.Tab", background="#D8DEE6", foreground="#000000", padding=(16, 8),
+    style.configure("TNotebook.Tab", background="#E8EEF6", foreground=_COR_TEXTO_SEC, padding=(16, 8),
                     borderwidth=1, bordercolor=_COR_BORDA, lightcolor=_COR_BORDA, darkcolor=_COR_BORDA,
                     font=(F, 9, "bold"))
     style.map("TNotebook.Tab",
-              background=[("selected", "#FFFFFF"), ("active", "#C9D1DC")],
+              background=[("selected", "#FFFFFF"), ("active", "#DCE6F2")],
               foreground=[("selected", _COR_MARINHO), ("active", _COR_MARINHO)],
               bordercolor=[("selected", _COR_DESTAQUE), ("active", _COR_BORDA_CAMPO)],
               lightcolor=[("selected", _COR_DESTAQUE)], darkcolor=[("selected", "#FFFFFF")],
@@ -3989,10 +4080,42 @@ def _tipo_ordem(tp_focco, mascara, tem_coluna_mascara):
     return "OFA" if mascara else "OFM"
 
 
+# polegadas -> mm das chapas xadrez (quando a descrição vem como "1/4" em vez de "6,35MM")
+_XADREZ_POLEGADA_MM = {"1/8": 3.17, "3/16": 4.75, "1/4": 6.35, "5/16": 7.94, "3/8": 9.53, "1/2": 12.7}
+
+
+def _eh_xadrez(texto):
+    return "XADREZ" in str(texto or "").upper()
+
+
+def _esp_xadrez_do_texto(texto):
+    """Espessura (mm) escrita na descrição de uma CHAPA XADREZ: 'CHAPA_XADREZ_3.00MM' -> 3,0;
+    'CHAPA CORTADA XADREZ ASTM A36 3,00MM' -> 3,0; 'CHAPA XADREZ 4.75' -> 4,75; 'XADREZ 1/4"' -> 6,35.
+    Pega o número seguido de MM; sem 'MM', o número colado depois de XADREZ; por último a fração em polegada."""
+    n = str(texto or "").upper()
+    cand = re.findall(r"(\d+(?:[.,]\d+)?)\s*MM\b", n)
+    if not cand:
+        m = re.search(r"XADREZ[\s_\-]*(\d+(?:[.,]\d+)?)(?![\d/])", n)
+        cand = [m.group(1)] if m else []
+    for c in cand:
+        try:
+            v = float(c.replace(",", "."))
+        except ValueError:
+            continue
+        if 0.5 <= v <= 50:
+            return v
+    m = re.search(r"(\d+/\d+)\s*(?:\"|POL|PL|IN)?", n)
+    if m and m.group(1) in _XADREZ_POLEGADA_MM:
+        return _XADREZ_POLEGADA_MM[m.group(1)]
+    return None
+
+
 def _esp_do_nome(nome):
     """Espessura/bitola escrita no NOME do item quando o campo ESP do Focco vem vazio:
     barras 'BR_RED_9.50' -> 9,5 (diâmetro) e tubos 'TB_50.80X2.00-IND-LL' -> 2,0 (parede)."""
     n = str(nome or "").strip().upper()
+    if "XADREZ" in n:
+        return _esp_xadrez_do_texto(n)
     m = re.match(r"^BR_[A-Z]+_(\d+(?:[.,]\d+)?)$", n) or re.match(r"^TB_[\d.,]+X(\d+(?:[.,]\d+)?)", n)
     if not m:
         return None
@@ -4237,15 +4360,16 @@ def _abrir_tabelas_focco(caminho):
     nome = os.path.basename(caminho)
     try:
         if fmt == "xlsx":
-            xls = pd.ExcelFile(caminho, engine="openpyxl")
-            return {n: xls.parse(n, header=None, dtype=object) for n in xls.sheet_names}
+            with pd.ExcelFile(caminho, engine="openpyxl") as xls:   # fecha o arquivo ao terminar (não deixa preso no Windows)
+                return {n: xls.parse(n, header=None, dtype=object) for n in xls.sheet_names}
         if fmt == "xls":
             try:
                 xls = pd.ExcelFile(caminho, engine="xlrd")
             except ImportError:
                 raise ValueError(f"'{nome}' é um Excel antigo (.xls) e este computador não tem o leitor desse formato. "
                                  "Abra o arquivo no Excel e salve como .xlsx, depois tente de novo.")
-            return {n: xls.parse(n, header=None, dtype=object) for n in xls.sheet_names}
+            with xls:
+                return {n: xls.parse(n, header=None, dtype=object) for n in xls.sheet_names}
         if fmt == "protegido":
             raise ValueError(f"'{nome}' está protegido por senha. Abra no Excel, remova a senha e salve de novo.")
         if fmt == "desconhecido":
@@ -4431,9 +4555,21 @@ def _sequencia_e_maquinas(fluxo_base, tem_furo, dobra):
     return cfg["centro"], cfg["corte"], furo_final, dobra_final, seq
 
 
-def _regra_dobra(mascara_info, comp):
+def _eh_guarda_corpo(*textos):
+    """GUARDA-CORPO (posição/marca GC300, GC304…): na PREPARAÇÃO nunca é dobrado — o roteiro é só o corte (ex.: LASER),
+    mesmo que a máscara do Focco diga PERFIL DOBRADO."""
+    for t in textos:
+        for v in _pos_variantes(t):
+            if re.match(r"^GC\d", v):
+                return True
+    return False
+
+
+def _regra_dobra(mascara_info, comp, pos=None, marca=None):
     """Regra da planilha PCP: só dobra se a máscara diz PERFIL DOBRADO; até
-    400mm de comprimento = PQ, até 3000mm = 3M, acima = 6M."""
+    400mm de comprimento = PQ, até 3000mm = 3M, acima = 6M. Guarda-corpo (GC…) nunca dobra na preparação."""
+    if _eh_guarda_corpo(pos, marca):
+        return "NÃO"
     if not mascara_info.get("dobrado") or comp is None:
         return "NÃO"
     if comp <= 400:
@@ -4504,7 +4640,7 @@ def coletar_registros_das_pastas(pastas, log_fn=log):
         registros.append({
             "of": of, "pos": pos, "identificador": "", "arquivo": nome, "caminho": caminho,
             "fluxo": fluxo, "fluxo_final": fluxo, "fluxo_pasta": pasta_nome if fluxo else None, "esp": esp,
-            "largura_dxf": largura, "altura_dxf": altura,
+            "largura_dxf": largura, "altura_dxf": altura, "area_liq": _area_liq_seguro(caminho),
             "parte": extrair_parte_nome(nome),
             "qtd_dxf": extrair_quantidade_arquivo(nome), "qtd_planilha": None,
             "quantidade_furos": furos or 0, "material": material or "",
@@ -4600,6 +4736,31 @@ def _sequencia_pcp(fluxo_base, dobra, tem_furo):
             return maq + " > " + dobra
         return maq if dobra == "NÃO" else ""
     return ""
+
+
+# Todas as SEQUÊNCIAS DE ROTEIRO que a regra aceita (gerada pela própria regra acima). Uma sequência fora desta lista é
+# DIVERGENTE (ex.: "GUILHOTINA PQ > DOBRADEIRA 3M": a guilhotina e a dobradeira têm de ser do mesmo porte) — fica em vermelho nas
+# abas e fora da lista de concatenar da ROTEIRIZAÇÃO FOCCO até alguém corrigir.
+_SEQUENCIAS_VALIDAS = sorted({_sequencia_pcp(_f, _d, _t) for _f in ("FLUXO 1", "FLUXO 2", "FLUXO 3", "FLUXO 4", "LASER")
+                              for _d in ("NÃO", "DOBRADEIRA 6M", "DOBRADEIRA 3M", "DOBRADEIRA PQ") for _t in (True, False)} - {""})
+_SEQUENCIAS_VALIDAS_SET = set(_SEQUENCIAS_VALIDAS)
+_ABA_REGRAS_SEQ = "REGRAS SEQUÊNCIA"
+
+
+def _formulas_linha_divergente(d, fluxo_orig):
+    """Fórmulas (Excel em inglês) que derivam FLUXO / CORTE / FURO / DOBRA da SEQUÊNCIA digitada na célula `d` (ex.: "D86"):
+    GUILHOTINA 3M -> Fluxo 2, GUILHOTINA PQ -> Fluxo 4, GUILHOTINA 6M -> Fluxo 1, PLASMA -> Fluxo 3, LASER -> LASER.
+    Sem reconhecer a máquina, mantém o fluxo original."""
+    n = f'UPPER(SUBSTITUTE({d}," ",""))'
+    fluxo = (f'=IF(ISNUMBER(SEARCH("GUILHOTINA3M",{n})),"Fluxo 2",IF(ISNUMBER(SEARCH("GUILHOTINAPQ",{n})),"Fluxo 4",'
+             f'IF(ISNUMBER(SEARCH("GUILHOTINA6M",{n})),"Fluxo 1",IF(ISNUMBER(SEARCH("PLASMA",{n})),"Fluxo 3",'
+             f'IF(ISNUMBER(SEARCH("LASER",{n})),"LASER","{fluxo_orig}")))))')
+    corte = f'=UPPER(TRIM(IFERROR(LEFT({d},FIND(">",{d})-1),{d})))'
+
+    def trecho(chave):
+        ini = f'FIND("{chave}",UPPER({d}))'
+        return f'=IFERROR(UPPER(TRIM(MID({d},{ini},IFERROR(FIND(">",{d},{ini}),LEN({d})+1)-{ini}))),"-")'
+    return {"FLUXO": fluxo, "CORTE": corte, "FURO": trecho("PUNCIONADEIRA"), "DOBRA": trecho("DOBRADEIRA")}
 
 
 # ===== ROTAS DO HTML "PPCP - ROTEIRIZAÇÃO L - UC" (classificação por linha de demanda) =====
@@ -4799,10 +4960,842 @@ def _ordem_de_pintura(o):
     return bool(dem) and all(_flags_pcp(d, o.get("cod_item"))[1] for d in dem)
 
 
+def _ordem_so_demanda_pintura(o):
+    """True quando TODAS as demandas da ordem são tinta/zinco/diluente/catalisador/intermediário (como _ordem_de_pintura, mas
+    sem a exceção da CHAPA): é a ordem 'ULT.PROC' da peça, que só consome pintura."""
+    if not o or not o.get("tem_col_demanda"):
+        return False
+    dem = [d for d in (o.get("demandas") or []) if str(d or "").strip()]
+    return bool(dem) and all(_flags_pcp(d, o.get("cod_item"))[1] for d in dem)
+
+
+def _ordem_consome_intermediaria(o):
+    """True quando a ordem tem como demanda o item INTERMEDIÁRIO (ex.: 'CHAPA INTERMEDIARIA', cód. CH_INT): é a ordem FINAL
+    (ULT.PROC) que CONSOME a peça cortada por outra ordem — não é ordem de corte, então não é Preparação."""
+    if not o:
+        return False
+    return any("INTERMEDI" in str(d or "").upper() for d in (o.get("demandas") or []))
+
+
+def _flags_ordem_repetida(dados, ordens_da_linha, i_of, i_pos, i_peso, i_qtde, i_ordem):
+    """A MESMA peça pode ter duas ordens no Focco: a que corta (intermediária, ex. CH_INT) e a 'ULT.PROC' (final, só pintura,
+    ex. CH), com a mesma posição, quantidade e peso. As duas entravam na Preparação e o peso dos totais saía em dobro.
+    Devolve uma lista de True/False (por linha de `dados`): True = é a ordem de pintura REPETIDA — só quando existe, na mesma
+    OF-TRECHO + POSIÇÃO, outra ordem com a mesma quantidade e o mesmo peso que NÃO é só de pintura. Nunca remove o único registro
+    da posição. Se a ordem CONSOME o intermediário ('CHAPA INTERMEDIARIA'), é final: sai mesmo com quantidade/peso diferentes."""
+    grupos = {}
+    for i, (l, o) in enumerate(zip(dados, ordens_da_linha)):
+        if o is None or l[i_ordem] in (None, "-", "ORDEM MANUAL"):
+            continue
+        grupos.setdefault((str(l[i_of]), str(l[i_pos])), []).append(i)
+    marca = [False] * len(dados)
+    for idxs in grupos.values():
+        if len(idxs) < 2:
+            continue
+        for i in idxs:
+            if not _ordem_so_demanda_pintura(ordens_da_linha[i]):
+                continue
+            assin = (str(dados[i][i_qtde]), str(dados[i][i_peso]))
+            consome_interm = _ordem_consome_intermediaria(ordens_da_linha[i])   # ordem FINAL: consome a chapa/peça intermediária
+            if any(j != i and not _ordem_so_demanda_pintura(ordens_da_linha[j])
+                   and (consome_interm or (str(dados[j][i_qtde]), str(dados[j][i_peso])) == assin) for j in idxs):
+                marca[i] = True
+    return marca
+
+
 # ===== PADRÃO DO RELATÓRIO (igual ao arquivo tratado pelo usuário) =====
 # Ordem das abas, colunas que saem em cada aba, tudo centralizado e larguras de coluna.
-_ORDEM_ABAS_RELATORIO = ["ROTEIRIZAÇÃO FOCCO", "Preparação", "Não Preparação", "PS PREP", "ORDENS PARA DESCONSIDERAR",
-                         "Relatório Consolidado (FLuxos)", "CSC", "Ordens x DXF", "BASE DE DADOS", "Resumo"]
+# ─────────────────────────────────────────────────────────────────────────────
+# PAINÉIS DE GRÁFICOS (depois da aba PS PREP): "GRÁFICOS PREPARAÇÃO", "GRÁFICO ÚNICO PREP" e "GRÁFICOS NÃO PREP".
+# Tudo é FÓRMULA em cima das abas Preparação / Não Preparação (SUMPRODUCT) — mudou fluxo, espessura ou peso lá, o gráfico acompanha.
+# MODELO do gráfico (Pizza / Rosca / Barras / Colunas) e MEDIDA (Ordens / Peças / Peso) são trocados nas caixas amarelas do topo:
+# por baixo há um gráfico de cada modelo no mesmo lugar; só o escolhido tem dados (os outros ficam vazios e transparentes).
+# ─────────────────────────────────────────────────────────────────────────────
+_ABA_GRAF_PREP = "GRÁFICOS PREPARAÇÃO"
+_ABA_GRAF_UNICO = "GESTÃO À VISTA"
+_ABA_GRAF_NAO = "GRÁFICOS NÃO PREP"
+_FLUXOS_GRAF = ["Fluxo 1", "Fluxo 2", "Fluxo 3", "Fluxo 4", "LASER"]
+_MODELOS_GRAF = ["Pizza", "Rosca", "Barras", "Colunas"]
+_MEDIDAS_GRAF = ["Ordens", "Peças", "Peso (kg)"]
+_CORES_PAINEL = ["003366", "9DC3E6", "2CA6A4", "F2A900", "D9534F", "7B6CB8", "5B9BD5", "8DA0B6", "6AA84F", "E69138", "C27BA0", "76A5AF"]   # fatia 2 clara: o rótulo escuro lê bem
+_CORES_GRAF = ["003366", "1F77B4", "2CA6A4", "F2A900", "D9534F", "7B6CB8", "5B9BD5", "8DA0B6", "6AA84F", "E69138", "C27BA0", "76A5AF"]
+
+
+def _melhor_giro(partes, todas=False, larg=1.9, alt=0.28):
+    """Ângulo inicial (graus) da pizza que mais afasta os rótulos das fatias pequenas entre si (evita sobreposição).
+    `partes` = frações (somam ~1) na ordem das fatias. Fatias >= 10% levam o rótulo por dentro e não entram na conta."""
+    import math
+    cent, acc = [], 0.0
+    for f in partes:
+        cent.append((acc + f / 2) * 360)
+        acc += f
+    melhor = (-1.0, 0)
+    for th in range(0, 360, 3):
+        pts = []
+        for f, c in zip(partes, cent):
+            if (0.001 if todas else 0.004) <= f < (2.0 if todas else 0.10):
+                a = math.radians(c + th)
+                pts.append((math.sin(a) * 1.3, -math.cos(a) * 1.3))
+        if len(pts) < 2:
+            sc = 99.0
+        else:
+            sc = min(max(abs(p[0] - q[0]) / larg, abs(p[1] - q[1]) / alt) for i, p in enumerate(pts) for q in pts[i + 1:])
+        sc += 0.03 * sum(1 for p in pts if p[0] < 0) / max(1, len(pts))      # leve preferência pelo lado esquerdo
+        if sc > melhor[0] + 1e-9:
+            melhor = (sc, th)
+    return melhor[1]
+
+
+def _fonte_graf(tamanho=900, negrito=False, cor="404040", rot=None):
+    from openpyxl.chart.text import RichText
+    from openpyxl.drawing.text import Paragraph, ParagraphProperties, CharacterProperties, RichTextProperties
+    return RichText(bodyPr=RichTextProperties(rot=rot, vert="horz") if rot is not None else None, p=[Paragraph(pPr=ParagraphProperties(defRPr=CharacterProperties(sz=tamanho, b=negrito, solidFill=cor)),
+                                 endParaRPr=CharacterProperties())])
+
+
+def _graficos_alternaveis(ws, ancora, larg_cm, alt_cm, l_ini, l_fim, col_rot, col_vals, cel_modelo, cel_idx, col_aux, legenda=True, rotulo_cat=False):
+    """Põe, no mesmo lugar, um gráfico de cada modelo (pizza/rosca/barras/colunas) lendo colunas auxiliares (escondidas).
+    Os RÓTULOS são texto pronto (nome + valor, montado por fórmula na coluna auxiliar "(nome)"): no modelo NÃO escolhido os valores são
+    NA() (nada é desenhado) e o texto é vazio — assim não sobra "0" nem "#N/D" por cima do gráfico escolhido (o Excel ignora formato de rótulo)."""
+    from openpyxl.chart import BarChart, PieChart, DoughnutChart, Reference
+    from openpyxl.chart.label import DataLabelList
+    from openpyxl.chart.series import DataPoint
+    from openpyxl.chart.shapes import GraphicalProperties
+    from openpyxl.utils import get_column_letter as L
+    c1, c3 = col_vals[0], col_vals[-1]
+    tot = f"CHOOSE({cel_idx},SUM(${L(col_vals[0])}${l_ini}:${L(col_vals[0])}${l_fim}),SUM(${L(col_vals[1])}${l_ini}:${L(col_vals[1])}${l_fim}),SUM(${L(col_vals[2])}${l_ini}:${L(col_vals[2])}${l_fim}))"
+    for j, modelo in enumerate(_MODELOS_GRAF):
+        ws.cell(l_ini - 1, col_aux + j, modelo)
+        ws.cell(l_ini - 1, col_aux + 4 + j, modelo + " (nome)")
+        for r in range(l_ini, l_fim + 1):
+            v = f"N(INDEX(${L(c1)}{r}:${L(c3)}{r},{cel_idx}))"
+            sel = f'AND({cel_modelo}="{modelo}",$A{r}<>"")'
+            ws.cell(r, col_aux + j, f'=IF({sel},{v},NA())')
+            vt = f'IF({cel_idx}=3,FIXED({v},0)&" kg",FIXED({v},0))'
+            if modelo in ("Pizza", "Rosca"):
+                texto = f'$A{r}&CHAR(10)&{vt}&"  ·  "&ROUND(100*{v}/MAX({tot},1),0)&"%"'
+            else:
+                texto = f'$A{r}&"  "&{vt}'
+            ws.cell(r, col_aux + 4 + j, f'=IF(AND({sel},{v}>0),{texto},"")')
+    n = l_fim - l_ini + 1
+    for j, modelo in enumerate(_MODELOS_GRAF):
+        ref = Reference(ws, min_col=col_aux + j, min_row=l_ini - 1, max_row=l_fim)
+        cats = Reference(ws, min_col=col_aux + 4 + j, min_row=l_ini, max_row=l_fim)
+        if modelo in ("Pizza", "Rosca"):
+            ch = PieChart() if modelo == "Pizza" else DoughnutChart()
+            if modelo == "Rosca":
+                ch.holeSize = 50
+            ch.add_data(ref, titles_from_data=True)
+            ch.set_categories(cats)
+            ch.dataLabels = DataLabelList()
+            ch.dataLabels.showPercent = False
+            ch.dataLabels.showVal = False
+            ch.dataLabels.showCatName = True
+            ch.dataLabels.showSerName = False
+            ch.dataLabels.showLegendKey = False
+            ch.dataLabels.showLeaderLines = True
+            ch.dataLabels.txPr = _fonte_graf(900, True, "FFFFFF" if modelo == "Rosca" else "262626")
+            if modelo == "Pizza":
+                ch.dataLabels.position = "bestFit"
+            for k in range(n):
+                dp = DataPoint(idx=k)
+                dp.graphicalProperties.solidFill = _CORES_GRAF[k % len(_CORES_GRAF)]
+                dp.graphicalProperties.line.solidFill = "FFFFFF"
+                dp.graphicalProperties.line.width = 19050
+                ch.series[0].dPt.append(dp)
+        else:
+            ch = BarChart()
+            ch.type = "bar" if modelo == "Barras" else "col"
+            ch.add_data(ref, titles_from_data=True)
+            ch.set_categories(cats)
+            ch.series[0].graphicalProperties.solidFill = "2E75B6" if modelo == "Barras" else "2CA6A4"
+            ch.dataLabels = DataLabelList()
+            ch.dataLabels.showVal = False
+            ch.dataLabels.showSerName = False
+            ch.dataLabels.showCatName = True            # o rótulo (nome + valor) é o texto da coluna auxiliar
+            ch.dataLabels.showLegendKey = False
+            ch.dataLabels.position = "outEnd"
+            ch.dataLabels.txPr = _fonte_graf(900, False, "262626", rot=-2700000 if modelo == "Colunas" else None)
+            ch.gapWidth = 35
+            ch.y_axis.majorGridlines = None
+            ch.y_axis.delete = True
+            ch.x_axis.delete = True
+            if modelo == "Barras":
+                ch.x_axis.scaling.orientation = "maxMin"
+        ch.legend = None
+        ch.title = None
+        ch.visible_cells_only = False
+        ch.graphical_properties = GraphicalProperties(noFill=True)
+        ch.graphical_properties.line.noFill = True
+        ch.plot_area.graphicalProperties = GraphicalProperties(noFill=True)
+        ch.width, ch.height = larg_cm, alt_cm
+        ws.add_chart(ch, ancora)
+    for j in range(8):
+        ws.column_dimensions[L(col_aux + j)].hidden = True
+
+
+def _rotulo_sem_grupo(desc, cod, setor):
+    """GRUPO LIC vazio/"0" no Focco: em vez de "sem grupo", usa a FAMÍLIA do item (descrição sem a bitola final: BR_RED_16.00 → "BR RED"),
+    ou o código do item, ou o setor. Devolve (rótulo, tipo, valor) — tipo "desc" (prefixo da descrição), "cod" ou "setor"."""
+    d = str(desc or "").strip()
+    pref = re.sub(r"[\s_\-]*\d+([.,]\d+)?\s*$", "", d).strip(" _-")
+    if pref:
+        return pref.replace("_", " ").strip(), "desc", pref
+    c = str(cod or "").strip()
+    if c:
+        return c.replace("_", " ").strip(), "cod", c
+    st = str(setor or "").strip() or "SEM SETOR"
+    return st, "setor", st
+
+
+def _cond_sem_grupo(rng, tipo, valor, col_grupo="GRUPO LIC"):
+    """Condição (SUMPRODUCT) das peças com GRUPO LIC vazio/0 e a mesma família/código/setor."""
+    g = rng(col_grupo)
+    base = f'--(({g}="")+({g}="-")+({g}="0")>0)'
+    v = str(valor).replace('"', '""')
+    if tipo == "desc":
+        return f'{base},--(LEFT({rng("DESCRIÇÃO DO ITEM")},{len(str(valor))})="{v}")'
+    if tipo == "cod":
+        return f'{base},--({rng("COD ITEM")}="{v}")'
+    return f'{base},--({rng("SETOR")}="{v}")'
+
+
+def _corrigir_numfmt_graficos(caminho):
+    """O openpyxl grava <numFmt formatCode=".."/> dos rótulos sem sourceLinked="0"; sem isso o Excel/LibreOffice podem ignorar o formato
+    (e mostrar "0" onde o formato manda esconder). Acrescenta o atributo nos gráficos do relatório."""
+    import zipfile, shutil, re as _re
+    tmp = caminho + ".tmp"
+    with zipfile.ZipFile(caminho) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
+        for it in zin.infolist():
+            dados = zin.read(it.filename)
+            if it.filename.startswith("xl/charts/chart") and it.filename.endswith(".xml"):
+                txt = dados.decode("utf-8")
+                txt = _re.sub(r'<numFmt formatCode="([^"]*)"\s*/>', r'<numFmt formatCode="\1" sourceLinked="0"/>', txt)
+                dados = txt.encode("utf-8")
+            zout.writestr(it, dados)
+    shutil.move(tmp, caminho)
+
+
+import copy
+
+
+def _criar_paineis_graficos(wb):
+    from collections import Counter
+    from openpyxl.chart import BarChart, Reference
+    from openpyxl.chart.label import DataLabelList
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter as L
+    from openpyxl.worksheet.datavalidation import DataValidation
+
+    AZUL, AZUL_CL, CINZA, AMARELO = "003366", "BDE0F4", "F2F6FA", "FFF2B3"
+    LIM = 3000                                              # linhas lidas pelas fórmulas (cabem lotes grandes)
+    COL_AUX = 40                                            # colunas auxiliares (escondidas) a partir de AN
+    fino = Side(style="thin", color="9DC3E6")
+
+    def natural(t):
+        return [int(x) if x.isdigit() else x.lower() for x in re.split(r"(\d+)", str(t))]
+
+    def num_br(t):
+        try:
+            return float(str(t).replace(",", "."))
+        except ValueError:
+            return 1e9
+
+    def cabecalho_pagina(ws, titulo, subtitulo, kpis, rng, seletor_cols=("F", "G")):
+        ws.sheet_view.showGridLines = False
+        ws.sheet_view.zoomScale = 90
+        ws.sheet_properties.tabColor = AZUL
+        ws["A1"] = titulo
+        ws["A1"].font = Font(bold=True, size=18, color="FFFFFF")
+        ws["A1"].fill = PatternFill("solid", fgColor=AZUL)
+        ws["A1"].alignment = Alignment(vertical="center")
+        ws.merge_cells("A1:V1")
+        ws.row_dimensions[1].height = 34
+        ws["A2"] = subtitulo
+        ws["A2"].font = Font(italic=True, color="5A6B7F")
+        for j, (rot, fml, fmt) in enumerate(kpis):
+            c_l, c_v = ws.cell(3, 1 + j), ws.cell(4, 1 + j)
+            c_l.value, c_v.value = rot, fml(rng)
+            c_l.font = Font(bold=True, size=9, color="5A6B7F")
+            c_v.font = Font(bold=True, size=20, color=AZUL)
+            c_v.number_format = fmt
+            for c_ in (c_l, c_v):
+                c_.fill = PatternFill("solid", fgColor=CINZA)
+                c_.alignment = Alignment(horizontal="center", vertical="center")
+                c_.border = Border(left=fino, right=fino, top=fino if c_ is c_l else None, bottom=fino if c_ is c_v else None)
+        ws.row_dimensions[4].height = 34
+
+    def seletores(ws, col_modelo, col_medida, rotulo_extra=None):
+        """Caixas amarelas: modelo e medida (lista suspensa) + célula auxiliar com o nº da medida. Devolve (cel_modelo, cel_idx)."""
+        for col, rot, lista, padrao in ((col_modelo, "MODELO DO GRÁFICO", _MODELOS_GRAF, "Pizza"), (col_medida, "MEDIDA", _MEDIDAS_GRAF, "Ordens")):
+            ws[f"{col}3"] = rot
+            ws[f"{col}3"].font = Font(bold=True, size=9, color="5A6B7F")
+            ws[f"{col}3"].alignment = Alignment(horizontal="center", vertical="center")
+            ws[f"{col}4"] = padrao
+            ws[f"{col}4"].font = Font(bold=True, size=13, color=AZUL)
+            ws[f"{col}4"].fill = PatternFill("solid", fgColor=AMARELO)
+            ws[f"{col}4"].alignment = Alignment(horizontal="center", vertical="center")
+            ws[f"{col}4"].border = Border(left=fino, right=fino, top=fino, bottom=fino)
+            ws.column_dimensions[col].width = max(ws.column_dimensions[col].width or 0, 19)
+            dv = DataValidation(type="list", formula1='"' + ",".join(lista) + '"', allow_blank=False, showDropDown=False)
+            dv.error, dv.errorTitle = "Escolha uma das opções da lista.", "Opção inválida"
+            ws.add_data_validation(dv)
+            dv.add(f"{col}4")
+        cel_idx = f"${L(COL_AUX)}$4"
+        ws[f"{L(COL_AUX)}4"] = f'=IF({col_medida}4="Peças",2,IF({col_medida}4="Peso (kg)",3,1))'
+        return f"${col_modelo}$4", cel_idx
+
+    def montar(nome_aba, aba_dados, linha_cab, titulo, subtitulo, blocos, kpis):
+        ws_d = wb[aba_dados]
+        cab = {c.value: c.column for c in ws_d[linha_cab] if c.value}
+        ini = linha_cab + 1
+        valores = {k: [ws_d.cell(r, c).value for r in range(ini, ws_d.max_row + 1)] for k, c in cab.items()}
+
+        def rng(col):
+            return f"'{aba_dados}'!${L(cab[col])}${ini}:${L(cab[col])}${LIM}"
+
+        ws = wb.create_sheet(nome_aba)
+        ws.column_dimensions["A"].width = 34
+        for c in "BCD":
+            ws.column_dimensions[c].width = 15
+        cabecalho_pagina(ws, titulo, subtitulo, kpis, rng)
+        cel_modelo, cel_idx = seletores(ws, "F", "G")
+        ws.column_dimensions[L(COL_AUX)].hidden = True
+        nb = 0
+        linha = 6
+        for bl in blocos:
+            col_cat, titulo_bl = bl["col"], bl["titulo"]
+            if bl.get("fixas"):
+                cats = list(bl["fixas"])
+            else:
+                cont = Counter(str(v).strip() for v in valores.get(col_cat, []) if v not in (None, "", "-") and not str(v).startswith("="))
+                if col_cat in ("ESPESSURA (mm)",):
+                    cats = sorted(cont, key=num_br)
+                elif bl.get("ordem") == "natural":
+                    cats = sorted(cont, key=natural)
+                else:
+                    cats = [k for k, _ in cont.most_common()]
+                if bl.get("max"):
+                    cats = cats[:bl["max"]]
+            if not cats and not bl.get("sim_nao"):
+                continue
+            if bl.get("empilhado"):
+                ws.cell(linha, 1, titulo_bl + "  ·  peso (kg)")
+            else:
+                ws.cell(linha, 1, f'="{titulo_bl}  ·  "&$G$4&"  ·  "&$F$4')           # título acompanha as caixas amarelas
+            ws.cell(linha, 1).font = Font(bold=True, size=12, color="FFFFFF")
+            for cc in range(1, 19):
+                ws.cell(linha, cc).fill = PatternFill("solid", fgColor=AZUL)
+            h = linha + 1
+            if bl.get("empilhado"):
+                ws.cell(h, 1, bl["rot_cat"])
+                for j, fx in enumerate(_FLUXOS_GRAF):
+                    ws.cell(h, 2 + j, fx)
+                    ws.column_dimensions[L(2 + j)].width = max(ws.column_dimensions[L(2 + j)].width or 0, 12)
+                n_cols = 1 + len(_FLUXOS_GRAF)
+                for i, cat in enumerate(cats):
+                    r = h + 1 + i
+                    ws.cell(r, 1, cat)
+                    for j in range(len(_FLUXOS_GRAF)):
+                        ws.cell(r, 2 + j, f"=SUMPRODUCT(--({rng(col_cat)}=$A{r}),--({rng('FLUXO')}={L(2 + j)}${h}),{rng('PESO TOTAL (kg)')})")
+                        ws.cell(r, 2 + j).number_format = "#,##0.0"
+            else:
+                ws.cell(h, 1, bl["rot_cat"])
+                for j, t in enumerate(("ORDENS", "PEÇAS", "PESO (kg)")):
+                    ws.cell(h, 2 + j, t)
+                n_cols = 4
+                chave = bl.get("sim_nao")
+                for i, cat in enumerate(cats):
+                    r = h + 1 + i
+                    ws.cell(r, 1, cat)
+                    cond = chave[cat](rng) if chave else f"--({rng(col_cat)}=$A{r})"
+                    ws.cell(r, 2, f"=SUMPRODUCT({cond})")
+                    ws.cell(r, 3, f"=SUMPRODUCT({cond},{rng('QTDE (ORDEM)')})")
+                    ws.cell(r, 4, f"=SUMPRODUCT({cond},{rng('PESO TOTAL (kg)')})")
+                    ws.cell(r, 4).number_format = "#,##0.0"
+            for cc in range(1, n_cols + 1):
+                c_h = ws.cell(h, cc)
+                c_h.font = Font(bold=True)
+                c_h.fill = PatternFill("solid", fgColor=AZUL_CL)
+                c_h.alignment = Alignment(horizontal="center")
+            ult = h + len(cats)
+            r_tot = ult + 1
+            ws.cell(r_tot, 1, "TOTAL").font = Font(bold=True)
+            for cc in range(2, n_cols + 1):
+                ws.cell(r_tot, cc, f"=SUM({L(cc)}{h + 1}:{L(cc)}{ult})").font = Font(bold=True)
+                ws.cell(r_tot, cc).number_format = "#,##0.0" if (cc == 4 or bl.get("empilhado")) else "#,##0"
+            for rr in range(h + 1, r_tot + 1):
+                for cc in range(1, n_cols + 1):
+                    ws.cell(rr, cc).border = Border(bottom=Side(style="hair", color="9DC3E6"))
+                    if cc > 1:
+                        ws.cell(rr, cc).alignment = Alignment(horizontal="center")
+            alt_cm = 10
+            col_graf = 6 if not bl.get("empilhado") else 8
+            if bl.get("empilhado"):
+                ch = BarChart()
+                ch.type, ch.grouping, ch.overlap = "col", "stacked", 100
+                ch.title = f"{titulo_bl} — peso (kg)"
+                ch.add_data(Reference(ws, min_col=2, max_col=1 + len(_FLUXOS_GRAF), min_row=h, max_row=ult), titles_from_data=True)
+                ch.set_categories(Reference(ws, min_col=1, min_row=h + 1, max_row=ult))
+                for k, s in enumerate(ch.series):
+                    s.graphicalProperties.solidFill = _CORES_GRAF[k % len(_CORES_GRAF)]
+                ch.width, ch.height = 21, alt_cm
+                ws.add_chart(ch, f"{L(col_graf)}{h}")
+            else:
+                _graficos_alternaveis(ws, f"{L(col_graf)}{h}", 19, alt_cm, h + 1, ult, 1, [2, 3, 4], cel_modelo, cel_idx,
+                                      COL_AUX + 1 + 8 * nb, legenda=True)
+                nb += 1
+            linha = linha + max(len(cats) + 6, 23)                                  # passo fixo: blocos alinhados e respirando
+        ws.freeze_panes = "A5"
+        return ws
+
+    def painel_unico():
+        """GESTÃO À VISTA — folha PRONTA PARA IMPRIMIR (A4 paisagem, 1 folha) com o lote inteiro (Preparação + Não Preparação):
+        LOTE no topo, GRUPO LIC (tabela + pizza), SEQUENCIAMENTO (tabela + barras) e OBRAS DO LOTE ao lado, todos com o PESO e o mesmo total."""
+        from openpyxl.chart import BarChart, PieChart, Reference
+        from openpyxl.chart.label import DataLabelList
+        from openpyxl.chart.series import DataPoint
+        from openpyxl.formatting.rule import DataBarRule
+        from openpyxl.chart.shapes import GraphicalProperties
+        from openpyxl.worksheet.properties import PageSetupProperties
+        FONTES = (("Preparação", 1), ("Não Preparação", 6))
+        dados, cabs = {}, {}
+        for nome, lcab in FONTES:
+            if nome not in wb.sheetnames:
+                continue
+            w = wb[nome]
+            cabs[nome] = {c.value: c.column for c in w[lcab] if c.value}
+            dados[nome] = {k: [w.cell(r, c).value for r in range(lcab + 1, w.max_row + 1)] for k, c in cabs[nome].items()}
+
+        def rng(nome, col):
+            ini = 2 if nome == "Preparação" else 7
+            return f"'{nome}'!${L(cabs[nome][col])}${ini}:${L(cabs[nome][col])}${LIM}"
+
+        def num(x):
+            try:
+                return float(x)
+            except (TypeError, ValueError):
+                return 0.0
+
+        def vazio(v):
+            return v is None or str(v).strip() in ("", "-", "0")
+
+        def esc(t):
+            return str(t).replace('"', '""')
+
+        def soma(medida, conds):
+            """Fórmula somando, nas duas abas, as linhas que cumprem a condição de cada aba (conds = {aba: expressão SUMPRODUCT})."""
+            partes = []
+            for nome, cond in conds.items():
+                if nome not in dados:
+                    continue
+                ativo = f'--({rng(nome, "NUM ORDEM")}<>"")'
+                extra = {"ordens": "", "pecas": "," + rng(nome, "QTDE (ORDEM)"), "peso": "," + rng(nome, "PESO TOTAL (kg)")}[medida]
+                partes.append(f"SUMPRODUCT({cond},{ativo}{extra})")
+            return "=" + ("+".join(partes) if partes else "0")
+
+        P, N = "Preparação", "Não Preparação"
+        # ── categorias (ordenadas por peso)
+        pesos_g, quais_g = Counter(), {}
+        for nome in dados:
+            if nome != N:
+                continue                                  # GRUPO LIC = bloco da Não Preparação; a Preparação tem bloco próprio
+            n_it = len(dados[nome].get("GRUPO LIC", []))
+            descs = dados[nome].get("DESCRIÇÃO DO ITEM", [None] * n_it)
+            cods = dados[nome].get("COD ITEM", [None] * n_it)
+            for g, p, st, ds, cd in zip(dados[nome].get("GRUPO LIC", []), dados[nome].get("PESO TOTAL (kg)", []), dados[nome].get("SETOR", []), descs, cods):
+                if g is None and p is None:
+                    continue
+                # GRUPO LIC vazio/"0" no Focco: em vez de "sem grupo", mostra a família do item (ex.: BR RED) — é a informação que existe
+                if vazio(g):
+                    rot_, tp_, vl_ = _rotulo_sem_grupo(ds, cd, st)
+                    tipo = ("vazio", rot_, tp_, vl_)
+                else:
+                    tipo = ("grupo", str(g).strip())
+                k = tipo[1]
+                if k in quais_g and quais_g[k] != tipo:
+                    k += " (setor)"
+                quais_g[k] = tipo
+                pesos_g[k] += num(p)
+        grupos = sorted(pesos_g, key=lambda k: (-pesos_g[k], k))[:16]
+        def cond_grupo(nome, tipo):
+            rg = rng(nome, "GRUPO LIC")
+            if tipo[0] == "vazio":
+                return _cond_sem_grupo(lambda c: rng(nome, c), tipo[2], tipo[3])
+            return f'--({rg}="{esc(tipo[1])}")'
+        seqs = Counter()
+        for sq, p in zip(dados.get(P, {}).get("FLUXO", []), dados.get(P, {}).get("PESO TOTAL (kg)", [])):
+            if sq and not str(sq).startswith("="):
+                seqs[str(sq).strip()] += num(p)
+        setores = Counter()
+        for st, p in zip(dados.get(N, {}).get("SETOR", []), dados.get(N, {}).get("PESO TOTAL (kg)", [])):
+            if st and not str(st).startswith("="):
+                setores[str(st).strip()] += num(p)
+        if "LASER" in seqs:                                   # no Focco o LASER é Fluxo 3: soma nele e a pizza fica só Fluxo 1 a 4
+            seqs["Fluxo 3"] += seqs.pop("LASER")
+        def _cond_fluxo(sq):
+            r_ = rng(P, "FLUXO")
+            if sq == "Fluxo 3":
+                return f'--((({r_}="Fluxo 3")+({r_}="LASER"))>0)'
+            return f'--({r_}="{esc(sq)}")'
+        seq_rows = [(sq, {P: _cond_fluxo(sq)}) for sq in sorted(seqs, key=lambda k: (0 if re.fullmatch(r"(?i)fluxo\s*[1-4]", k) else 1, natural(k) if hasattr(natural, "__call__") else k))]
+        seq_rows = seq_rows[:14]
+        obras = sorted({str(v).strip() for nome in dados for v in dados[nome].get("OF-TRECHO", []) if v and not str(v).startswith("=")}, key=natural)[:30]
+
+        ws = wb.create_sheet(_ABA_GRAF_UNICO)
+        ws.sheet_view.showGridLines = False
+        ws.sheet_view.zoomScale = 90
+        ws.sheet_properties.tabColor = "FFC000"
+        for col, w in (("A", 38), ("B", 10), ("C", 10), ("D", 14), ("E", 11), ("F", 3), ("G", 12), ("H", 12), ("I", 12), ("J", 12), ("K", 12), ("L", 12), ("M", 12), ("N", 2), ("O", 17), ("P", 10), ("Q", 11), ("R", 12), ("S", 12)):
+            ws.column_dimensions[col].width = w
+        PIE_COL = 30
+        ws.column_dimensions[L(PIE_COL)].hidden = True
+        # ── topo
+        ws["A1"] = "GESTÃO À VISTA"
+        ws["A1"].font = Font(bold=True, size=24, color="FFFFFF")
+        ws["A1"].alignment = Alignment(vertical="center", horizontal="left", indent=1)
+        for cc in range(1, 20):
+            ws.cell(1, cc).fill = PatternFill("solid", fgColor=AZUL)
+        ws.merge_cells("A1:M1")
+        ws["O1"] = f'="LOTE "&INDEX({rng(P, "LOTE")},1)' if "LOTE" in cabs.get(P, {}) else "LOTE"
+        ws["O1"].font = Font(bold=True, size=22, color=AZUL)
+        ws["O1"].alignment = Alignment(horizontal="center", vertical="center")
+        ws["O1"].fill = PatternFill("solid", fgColor="FFD966")
+        ws.merge_cells("O1:S1")
+        ws.row_dimensions[1].height = 42
+        pp = f'SUM({rng(P, "PESO TOTAL (kg)")})'
+        pn = f'SUM({rng(N, "PESO TOTAL (kg)")})' if N in dados else "0"
+        def cartao(c1, c2, rotulo, formula, fmt, cor_fundo="F2F6FA", cor_valor=AZUL):
+            ws.merge_cells(start_row=3, start_column=c1, end_row=3, end_column=c2)
+            ws.merge_cells(start_row=4, start_column=c1, end_row=4, end_column=c2)
+            ws.cell(3, c1, rotulo).font = Font(bold=True, size=9, color="5A6B7F")
+            v = ws.cell(4, c1, formula)
+            v.font = Font(bold=True, size=20, color=cor_valor)
+            v.number_format = fmt
+            for cc in range(c1, c2 + 1):
+                for rr in (3, 4):
+                    c_ = ws.cell(rr, cc)
+                    c_.fill = PatternFill("solid", fgColor=cor_fundo)
+                    c_.alignment = Alignment(horizontal="center", vertical="center")
+                    c_.border = Border(left=fino if cc == c1 else None, right=fino if cc == c2 else None,
+                                       top=fino if rr == 3 else None, bottom=fino if rr == 4 else None)
+        cartao(1, 1, "PESO TOTAL DO LOTE", f"={pp}+{pn}", '#,##0" kg"', "FFF2CC")
+        cartao(2, 5, "PREPARAÇÃO", f"={pp}", '#,##0" kg"')
+        cartao(7, 10, "NÃO PREPARAÇÃO", f"={pn}", '#,##0" kg"')
+        cartao(11, 13, "ORDENS", "=" + "+".join(f'SUMPRODUCT(--({rng(nm, "OF-TRECHO")}<>""))' for nm in dados), "#,##0")
+        cartao(15, 19, "OBRAS", len(obras), "#,##0")
+        ws.row_dimensions[3].height = 18
+        ws.row_dimensions[4].height = 36
+
+        def banda(l, c_ini, c_fim, texto):
+            ws.cell(l, c_ini, texto).font = Font(bold=True, size=12, color="FFFFFF")
+            for cc in range(c_ini, c_fim + 1):
+                ws.cell(l, cc).fill = PatternFill("solid", fgColor=AZUL)
+
+        def cab_tab(l, c_ini, titulos):
+            for k, t in enumerate(titulos):
+                c = ws.cell(l, c_ini + k, t)
+                c.font = Font(bold=True)
+                c.fill = PatternFill("solid", fgColor=AZUL_CL)
+                c.alignment = Alignment(horizontal="center", vertical="center")
+                c.border = Border(top=fino, bottom=fino)
+
+        def linha_tab(l, c_ini, n_cols, negrito=False, altura=16, quebra=True):
+            ws.row_dimensions[l].height = max(ws.row_dimensions[l].height or 0, altura)
+            for k in range(n_cols):
+                c = ws.cell(l, c_ini + k)
+                c.border = Border(bottom=Side(style="hair", color="9DC3E6"))
+                c.alignment = Alignment(horizontal="left" if k == 0 else "center", vertical="center", indent=1 if k == 0 else 0, wrap_text=(k == 0 and quebra))
+                if negrito:
+                    c.font = Font(bold=True)
+
+        def tabela(l0, titulo, rot, linhas):
+            """linhas = [(rótulo, {aba: cond})]. Devolve (primeira, última, total)."""
+            banda(l0, 1, 5, titulo)
+            cab_tab(l0 + 1, 1, (rot, "ORDENS", "PEÇAS", "PESO (kg)", "% PESO"))
+            a, b = l0 + 2, l0 + 1 + len(linhas)
+            t = b + 1
+            for i, (rotulo, conds) in enumerate(linhas):
+                r = a + i
+                ws.cell(r, 1, rotulo)
+                ws.cell(r, 2, soma("ordens", conds))
+                ws.cell(r, 3, soma("pecas", conds))
+                ws.cell(r, 4, soma("peso", conds))
+                ws.cell(r, 5, f"=IF($D${t}=0,0,D{r}/$D${t})")
+                ws.cell(r, 3).number_format = "#,##0"
+                ws.cell(r, 4).number_format = "#,##0.0"
+                ws.cell(r, 5).number_format = "0.0%"
+                linha_tab(r, 1, 5, altura=30 if len(rotulo) > 44 else 16)
+            ws.cell(t, 1, "TOTAL")
+            for cc, fmt in ((2, "#,##0"), (3, "#,##0"), (4, "#,##0.0"), (5, "0.0%")):
+                ws.cell(t, cc, f"=SUM({L(cc)}{a}:{L(cc)}{b})").number_format = fmt
+            linha_tab(t, 1, 5, True)
+            for cc in range(1, 6):
+                ws.cell(t, cc).border = Border(top=fino, bottom=fino)
+            ws.conditional_formatting.add(f"D{a}:D{b}", DataBarRule(start_type="num", start_value=0, end_type="max", color="9DC3E6", showValue=True))
+            return a, b, t
+
+        def pizza(titulo, a, b, col_rot, n, ancora, larg=14, alt=10.6, melhor=False, ang=0, interno=(0.15, 0.15, 0.7, 0.7), branco=0, cores=None):
+            cores = cores or _CORES_PAINEL
+            pz = PieChart()
+            pz.title = None
+            pz.graphical_properties = GraphicalProperties(noFill=True)
+            pz.graphical_properties.line.noFill = True
+            pz.add_data(Reference(ws, min_col=4, min_row=a - 1, max_row=b), titles_from_data=True)
+            pz.set_categories(Reference(ws, min_col=col_rot, min_row=a, max_row=b))
+            pz.dataLabels = DataLabelList()
+            pz.dataLabels.showCatName = True
+            pz.dataLabels.showVal = pz.dataLabels.showPercent = pz.dataLabels.showSerName = pz.dataLabels.showLegendKey = False
+            pz.dataLabels.showLeaderLines = True
+            pz.dataLabels.position = "bestFit" if melhor else "outEnd"
+            pz.dataLabels.txPr = _fonte_graf(1300, True, "262626")
+            if melhor and branco is not None:               # fatias grandes e escuras: rótulo branco (ficam por dentro)
+                from openpyxl.chart.label import DataLabel
+                _lst = branco if isinstance(branco, (list, tuple)) else [branco]
+                pz.dataLabels.dLbl = [DataLabel(idx=_i, showCatName=True, showVal=False, showPercent=False, showSerName=False,
+                                                showLegendKey=False, showLeaderLines=True, dLblPos="bestFit",
+                                                txPr=_fonte_graf(1300, True, "FFFFFF")) for _i in _lst]
+            for k in range(n):
+                dp = DataPoint(idx=k)
+                dp.graphicalProperties.solidFill = cores[k % len(cores)]
+                dp.graphicalProperties.line.solidFill = "FFFFFF"
+                dp.graphicalProperties.line.width = 19050
+                pz.series[0].dPt.append(dp)
+            pz.legend = None
+            try:
+                from openpyxl.chart.layout import Layout, ManualLayout
+                pz.layout = Layout(manualLayout=ManualLayout(layoutTarget="inner", xMode="edge", yMode="edge", x=interno[0], y=interno[1], w=interno[2], h=interno[3]))
+            except Exception:
+                pass
+            if ang:
+                pz.firstSliceAng = int(ang) % 360
+            pz.visible_cells_only = False
+            pz.width, pz.height = larg, alt
+            ws.add_chart(pz, ancora)
+
+        # ── 1) PREPARAÇÃO (só a aba Preparação), por SEQUENCIAMENTO
+        _fixas = {"fluxo 1": "003366", "fluxo 2": "1F77B4", "fluxo 3": "2CA6A4", "fluxo 4": "F2A900", "laser": "D9534F"}
+        _resto = [c for c in ("7B6CB8", "6AA84F", "E69138", "C27BA0", "8DA0B6", "76A5AF") if c not in _fixas.values()]
+        cores_fluxo = []
+        for sq, _ in seq_rows:
+            cores_fluxo.append(_fixas.get(str(sq).strip().lower()) or _resto[len(cores_fluxo) % len(_resto)])
+        p0, p1, pt = tabela(7, "PREPARAÇÃO  ·  FLUXO", "FLUXO", seq_rows)
+        for i in range(len(seq_rows)):
+            r = p0 + i
+            ws.cell(r, PIE_COL, f'=IF(E{r}<0.0005,"",A{r}&"")')     # rótulo curto; o nome está na tabela (chave de cor ■)
+            ws.cell(r, 6, "■").font = Font(size=12, color=cores_fluxo[i])
+            ws.cell(r, 6).alignment = Alignment(horizontal="center", vertical="center")
+        _pf = [seqs.get(sq, 0) for sq, _ in seq_rows]
+        _tf = sum(_pf) or 1
+        _fr = [v / _tf for v in _pf]
+        _imax = _fr.index(max(_fr)) if _fr else 0
+        pizza("PREPARAÇÃO — peso (kg) por fluxo", p0, p1, PIE_COL, len(seq_rows), "G7", melhor=False, larg=16, alt=14.5, interno=(0.1, 0.05, 0.8, 0.9),
+              ang=_melhor_giro(_fr, todas=True, larg=0.9, alt=0.22), cores=cores_fluxo)
+        # ── 2) GRUPO LIC (só a aba Não Preparação)
+        r2 = max(pt + 3, 27)
+        lin_g = [(g, {N: cond_grupo(N, quais_g[g])}) for g in grupos]
+        g0, g1, gt = tabela(r2, "GRUPO LIC  ·  NÃO PREPARAÇÃO", "GRUPO LIC", lin_g)
+        for i, g in enumerate(grupos):
+            r = g0 + i
+            ws.cell(r, PIE_COL + 1, f'=IF(E{r}<0.01,"",A{r}&CHAR(10)&FIXED(D{r},0)&" kg  ·  "&ROUND(100*E{r},1)&"%")')            # rótulo curto; o nome está na tabela (chave de cor ■)
+            ws.cell(r, 6, "■").font = Font(size=12, color=_CORES_PAINEL[i % len(_CORES_PAINEL)])
+            ws.cell(r, 6).alignment = Alignment(horizontal="center", vertical="center")
+        ws.column_dimensions[L(PIE_COL + 1)].hidden = True
+        sem = [g for g in grupos if quais_g[g][0] == "vazio"]
+        if sem:
+            ws.cell(gt + 1, 1, "* " + ", ".join(sem) + ": peças sem GRUPO LIC cadastrado no Focco — aparece a família do item (descrição).").font = Font(italic=True, size=9, color="5A6B7F")
+        _tot_g = sum(pesos_g.get(g, 0) for g in grupos) or 1
+        _p0 = (pesos_g.get(grupos[0], 0) / _tot_g) if grupos else 0
+        # fatia grande primeiro; gira para as fatias pequenas ficarem juntas no lado ESQUERDO, onde há espaço para os rótulos
+        _ang = _melhor_giro([pesos_g.get(g, 0) / _tot_g for g in grupos])
+        pizza("GRUPO LIC — peso (kg)", g0, g1, PIE_COL + 1, len(grupos), f"G{r2}", melhor=True, branco=[0], ang=_ang,
+              larg=19, alt=13.5,
+              interno=(0.35, 0.08, 0.55, 0.84) if _p0 > 0.5 else (0.22, 0.1, 0.55, 0.8))
+        st_, bc = gt, None
+        # ── 3) OBRAS DO LOTE (ao lado)
+        banda(7, 15, 19, "OBRAS DO LOTE")
+        cab_tab(8, 15, ("OF-TRECHO", "ORDENS", "PREP (kg)", "NÃO PREP (kg)", "TOTAL (kg)"))
+        ws.row_dimensions[8].height = 28
+        for k in range(15, 20):
+            ws.cell(8, k).alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        o0 = 9
+        o1 = o0 + len(obras) - 1
+        for i, ob in enumerate(obras):
+            r = o0 + i
+            ws.cell(r, 15, ob)
+            ws.cell(r, 16, soma("ordens", {nome: f"--({rng(nome, 'OF-TRECHO')}=$O{r})" for nome in dados}))
+            ws.cell(r, 17, soma("peso", {P: f"--({rng(P, 'OF-TRECHO')}=$O{r})"}))
+            ws.cell(r, 18, soma("peso", {N: f"--({rng(N, 'OF-TRECHO')}=$O{r})"}) if N in dados else 0)
+            ws.cell(r, 19, f"=Q{r}+R{r}")
+            for cc in (17, 18, 19):
+                ws.cell(r, cc).number_format = "#,##0.0"
+            linha_tab(r, 15, 5, quebra=False)
+        ot = o1 + 1
+        ws.cell(ot, 15, "TOTAL")
+        for cc, fmt in ((16, "#,##0"), (17, "#,##0.0"), (18, "#,##0.0"), (19, "#,##0.0")):
+            ws.cell(ot, cc, f"=SUM({L(cc)}{o0}:{L(cc)}{o1})").number_format = fmt
+        linha_tab(ot, 15, 5, True)
+        for cc in range(15, 20):
+            ws.cell(ot, cc).border = Border(top=fino, bottom=fino)
+        ws.conditional_formatting.add(f"S{o0}:S{o1}", DataBarRule(start_type="num", start_value=0, end_type="max", color="FFD966", showValue=True))
+        # ── impressão: A4 paisagem, 1 folha
+        ult = max(st_, ot, r2 + 16) + 1
+        # ── rodapé de impressão: o "P" da Projeart + "Projeart — Gestão à vista — data" (dentro da folha, para sair no papel)
+        for _row in ws.iter_rows(min_row=3, max_row=ult, min_col=1, max_col=19):
+            for _c in _row:
+                if _c.value is not None and _c.font is not None:
+                    _f = copy.copy(_c.font)
+                    _f.size = (_f.size or 11) + (4 if _c.row >= 7 else 2.5)
+                    _c.font = _f
+        for _r in range(7, ult + 1):
+            if (ws.row_dimensions[_r].height or 15) < 24:
+                ws.row_dimensions[_r].height = 24
+        PG_W, PG_H = 11.19 * 72, 7.67 * 72                 # A4 paisagem menos margens (pontos)
+        larg_pt = sum(((ws.column_dimensions[L(c)].width or 8.43) * 7 + 5) * 0.75 for c in range(1, 20))
+        h_fixa = sum((ws.row_dimensions[r].height or 15) for r in range(1, 7))
+        h_corpo = sum((ws.row_dimensions[r].height or 15) for r in range(7, ult + 1))
+        h_rod = 66
+        h_tot = h_fixa + h_corpo + h_rod + 30
+        esc_h = min(1.0, PG_H / h_tot)                     # a altura é quem limita a escala? então alarga as colunas p/ ocupar a largura
+        alvo_w = PG_W / esc_h
+        if larg_pt < alvo_w:
+            fx = min(1.9, alvo_w / larg_pt)
+            for c in range(1, 20):
+                ws.column_dimensions[L(c)].width = (ws.column_dimensions[L(c)].width or 8.43) * fx
+            for _ch in ws._charts:
+                _ch.width *= fx
+            larg_pt *= fx
+        esc = min(1.0, PG_W / larg_pt)                     # escala que o Excel aplicará (ajustar a 1 página)
+        cap = PG_H / esc                                   # altura útil, em pontos "da folha"
+        folga = cap - h_fixa - h_corpo - h_rod - 6
+        if folga > 0 and h_corpo > 0:                       # estica as linhas das tabelas (até +30%) e o resto vira respiro
+            fy = min(2.4, 1 + folga / h_corpo)
+            for r in range(7, ult + 1):
+                ws.row_dimensions[r].height = round((ws.row_dimensions[r].height or 15) * fy, 2)
+            folga -= h_corpo * (fy - 1)
+        r_rod = ult + 1
+        ws.row_dimensions[r_rod].height = max(6, min(folga, 120)) + 6 if folga > 0 else 6
+        r_rod += 1
+        ws.row_dimensions[r_rod].height = 44                # linha do "P" (centralizado)
+        _borda_rod = Border(top=Side(style="medium", color="003366"))
+        for cc in range(1, 20):
+            ws.cell(r_rod, cc).border = _borda_rod
+        r_txt = r_rod + 1                                   # linha do texto + data (centralizado)
+        ws.row_dimensions[r_txt].height = 22
+        ws.merge_cells(start_row=r_txt, start_column=1, end_row=r_txt, end_column=19)
+        _t = ws.cell(r_txt, 1, '="Projeart — Gestão à vista — "&TEXT(DAY(TODAY()),"00")&"/"&TEXT(MONTH(TODAY()),"00")&"/"&YEAR(TODAY())')
+        _t.font = Font(name="Calibri", size=13, bold=True, color="003366")
+        _t.alignment = Alignment(horizontal="center", vertical="center")
+        try:
+            import base64 as _b64p, io as _iop
+            from openpyxl.drawing.image import Image as _XImg
+            from openpyxl.drawing.spreadsheet_drawing import OneCellAnchor, AnchorMarker
+            from openpyxl.drawing.xdr import XDRPositiveSize2D
+            from openpyxl.utils.units import pixels_to_EMU
+            _img = _XImg(_iop.BytesIO(_b64p.b64decode(_LOGO_P_PROJEART_PNG_B64)))
+            _w_img, _h_img = 40, 42
+            _img.width, _img.height = _w_img, _h_img
+            _px = [((ws.column_dimensions[L(c)].width or 8.43) * 7 + 5) for c in range(1, 20)]
+            _meio = sum(_px) / 2 - _w_img / 2
+            _acum, _col = 0, 0
+            for _k, _wc in enumerate(_px):
+                if _acum + _wc > _meio:
+                    _col = _k
+                    break
+                _acum += _wc
+            _img.anchor = OneCellAnchor(_from=AnchorMarker(col=_col, colOff=pixels_to_EMU(int(_meio - _acum)), row=r_rod - 1,
+                                                           rowOff=pixels_to_EMU(2)),
+                                        ext=XDRPositiveSize2D(pixels_to_EMU(_w_img), pixels_to_EMU(_h_img)))
+            ws.add_image(_img)
+        except Exception:                                  # sem Pillow: um "P" em texto, na cor da marca
+            ws.merge_cells(start_row=r_rod, start_column=1, end_row=r_rod, end_column=19)
+            _p = ws.cell(r_rod, 1, "P")
+            _p.font = Font(name="Arial Black", size=30, bold=True, color="1F2E8C")
+            _p.alignment = Alignment(horizontal="center", vertical="center")
+        r_rod = r_txt
+        ult = r_rod
+        ws.print_area = f"A1:S{ult}"
+        ws.page_setup.orientation = "landscape"
+        ws.page_setup.paperSize = 9
+        ws.page_setup.fitToWidth = 1
+        ws.page_setup.fitToHeight = 1
+        ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
+        ws.print_options.horizontalCentered = True
+        ws.page_margins.left = ws.page_margins.right = 0.25
+        ws.page_margins.top = ws.page_margins.bottom = 0.3
+        ws.page_margins.footer = ws.page_margins.header = 0.2
+        ws.freeze_panes = None
+
+    def f_soma(col):
+        return lambda rng: f"=SUM({rng(col)})"
+
+    def f_ordens(rng):
+        return f'=SUMPRODUCT(--({rng("OF-TRECHO")}<>""))'
+
+    def f_distintos(col):
+        return lambda rng: (f'=SUMPRODUCT(({rng(col)}<>"")/COUNTIF({rng(col)},{rng(col)}&""))')
+
+    kp_comuns = [("ORDENS", f_ordens, "#,##0"), ("PEÇAS", f_soma("QTDE (ORDEM)"), "#,##0"),
+                 ("PESO TOTAL (kg)", f_soma("PESO TOTAL (kg)"), "#,##0.0"), ("OBRAS-TRECHOS", f_distintos("OF-TRECHO"), "#,##0")]
+    sim_nao_dobra = {"COM DOBRA": lambda rng: f'--({rng("DOBRA")}<>"-"),--({rng("DOBRA")}<>"")',
+                     "SEM DOBRA": lambda rng: f'--(({rng("DOBRA")}="-")+({rng("DOBRA")}="")>0)'}
+    sim_nao_furo = {"COM FURO": lambda rng: f'--({rng("TEM FURO?")}="SIM")', "SEM FURO": lambda rng: f'--({rng("TEM FURO?")}<>"SIM")'}
+
+    if "Preparação" in wb.sheetnames:
+        cab_p = {c.value for c in wb["Preparação"][1] if c.value}
+        bl = [dict(col="FLUXO", titulo="Por FLUXO", rot_cat="FLUXO", fixas=_FLUXOS_GRAF),
+              dict(col="ESPESSURA (mm)", titulo="Por ESPESSURA (mm)", rot_cat="ESPESSURA (mm)"),
+              dict(col="ESPESSURA (mm)", titulo="Espessura × Fluxo", rot_cat="ESPESSURA (mm)", empilhado=True),
+              dict(col="CORTE", titulo="Por MÁQUINA DE CORTE", rot_cat="CORTE"),
+              dict(col="OF-TRECHO", titulo="Por OBRA-TRECHO", rot_cat="OF-TRECHO", ordem="natural"),
+              dict(col="MATERIAL", titulo="Por MATERIAL", rot_cat="MATERIAL")]
+        if "DOBRA" in cab_p:
+            bl.append(dict(col="DOBRA", titulo="Com / sem DOBRA", rot_cat="DOBRA", fixas=list(sim_nao_dobra), sim_nao=sim_nao_dobra))
+        if "TEM FURO?" in cab_p:
+            bl.append(dict(col="TEM FURO?", titulo="Com / sem FURO", rot_cat="FURO", fixas=list(sim_nao_furo), sim_nao=sim_nao_furo))
+        montar(_ABA_GRAF_PREP, "Preparação", 1, "📊 PREPARAÇÃO — visão geral",
+               "Tudo calculado por fórmula sobre a aba Preparação. Troque o MODELO (pizza, rosca, barras, colunas) e a MEDIDA nas caixas amarelas.", bl, kp_comuns)
+        painel_unico()
+    if "Não Preparação" in wb.sheetnames:
+        ws_np = wb["Não Preparação"]
+        cab_np = {c.value: c.column for c in ws_np[6] if c.value}
+        cont_g, tipos_g = Counter(), {}
+        for r_np in range(7, ws_np.max_row + 1):
+            g_ = ws_np.cell(r_np, cab_np["GRUPO LIC"]).value if "GRUPO LIC" in cab_np else None
+            if g_ is None and ws_np.cell(r_np, cab_np.get("NUM ORDEM", 1)).value is None:
+                continue
+            st_ = str(ws_np.cell(r_np, cab_np["SETOR"]).value or "").strip() if "SETOR" in cab_np else ""
+            vazio_ = g_ is None or str(g_).strip() in ("", "-", "0")
+            if vazio_:
+                ds_ = ws_np.cell(r_np, cab_np["DESCRIÇÃO DO ITEM"]).value if "DESCRIÇÃO DO ITEM" in cab_np else None
+                cd_ = ws_np.cell(r_np, cab_np["COD ITEM"]).value if "COD ITEM" in cab_np else None
+                rot_, tp_, vl_ = _rotulo_sem_grupo(ds_, cd_, st_)
+                tipo_ = ("vazio", rot_, tp_, vl_)
+            else:
+                tipo_ = ("grupo", str(g_).strip())
+            k_ = tipo_[1] + (" (setor)" if tipos_g.get(tipo_[1], tipo_) != tipo_ else "")
+            tipos_g[k_] = tipo_
+            cont_g[k_] += 1
+        def _cond_grupo_np(tipo_):
+            def f(rng, tipo_=tipo_):
+                if tipo_[0] == "vazio":
+                    return _cond_sem_grupo(rng, tipo_[2], tipo_[3])
+                return f'--({rng("GRUPO LIC")}="{tipo_[1]}")'
+            return f
+        grupos_np = [k for k, _ in cont_g.most_common()]
+        bl = [dict(col="SETOR", titulo="Por SETOR", rot_cat="SETOR"),
+              dict(col="GRUPO LIC", titulo="Por GRUPO LIC", rot_cat="GRUPO LIC", fixas=grupos_np,
+                   sim_nao={k: _cond_grupo_np(tipos_g[k]) for k in grupos_np}),
+              dict(col="OF-TRECHO", titulo="Por OBRA-TRECHO", rot_cat="OF-TRECHO", ordem="natural"),
+              dict(col="MATERIAL", titulo="Por MATERIAL", rot_cat="MATERIAL"),
+              dict(col="TIPO DE PINTURA", titulo="Por TIPO DE PINTURA", rot_cat="TIPO DE PINTURA"),
+              dict(col="ESPESSURA (mm)", titulo="Por ESPESSURA (mm)", rot_cat="ESPESSURA (mm)")]
+        montar(_ABA_GRAF_NAO, "Não Preparação", 6, "📊 NÃO PREPARAÇÃO — visão geral",
+               "Tudo calculado por fórmula sobre a aba Não Preparação. Troque o MODELO (pizza, rosca, barras, colunas) e a MEDIDA nas caixas amarelas.", bl, kp_comuns)
+
+
+_ORDEM_ABAS_RELATORIO = ["ROTEIRIZAÇÃO FOCCO", "Preparação", "Não Preparação", "PS PREP", "CSC", _ABA_GRAF_PREP, _ABA_GRAF_UNICO, _ABA_GRAF_NAO, "ORDENS PARA DESCONSIDERAR",
+                         "Relatório Consolidado (FLuxos)", "Ordens x DXF", "BASE DE DADOS", "Resumo"]
 _GERAR_ABA_CONFERENCIA = False   # True = gera também a aba "Conferência Roteirização" (no fim)
 _COLUNAS_FORA_PREPARACAO = ("TP ORD", "OBRA", "SUB TRECHO")
 _COLUNAS_NAO_PREPARACAO = ["LOTE OF", "SETOR", "OF-TRECHO", "NUM ORDEM", "POSIÇÃO", "ESPESSURA (mm)", "COD ITEM",
@@ -5104,7 +6097,7 @@ def montar_base_dados(fl, mapa_ordem, mapa_pintura=None):
         chave = f"{obra_trecho}_{pos}"
         comp_num = _foc_float(get(linha, "comp"))
         mascara = _foc_texto(get(linha, "mascara"))
-        if "PERFIL DOBRADO" in mascara:
+        if "PERFIL DOBRADO" in mascara and not _eh_guarda_corpo(pos, _foc_texto(get(linha, "marca"))):
             c = comp_num or 0
             dobra = "DOBRADEIRA PQ" if c <= 400 else ("DOBRADEIRA 3M" if c <= 3000 else "DOBRADEIRA 6M")
         else:
@@ -5131,6 +6124,7 @@ def montar_base_dados(fl, mapa_ordem, mapa_pintura=None):
     return cabecalho, saida, calc
 
 
+_LOGO_P_PROJEART_PNG_B64 = "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"
 _LOGO_PROJEART_PNG_B64 = (
     "iVBORw0KGgoAAAANSUhEUgAAAi8AAAB8CAIAAAAuM8djAABayElEQVR42u19fVxT59n/nZAAOQmHAAlGaAIaQKRWQNoq6hRnWdeKOp6n+NRu0h"
     "e3ddp2ndNnz/p0a6u2W9fVtu5pda7VWt1mh+uoilp/1IlWiqjIi4gIpEDSYIBA8JAXIIfk98dNDicnJycnkCDo+X7Oxw8mJ+fcr9f3vq77uq6b"
@@ -5505,6 +6499,7 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
+    from openpyxl.formatting.rule import FormulaRule
 
     caminho_focco = _resolver_arquivo_focco(caminho_focco)
     log_fn(f"📋 Lendo o relatório do Focco: {caminho_focco}")
@@ -5559,21 +6554,31 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
         else:                                        # relatório sem coluna de demanda: regra do planejador
             fluxo_perf = _fluxo_perfilado_do_planejador(o)
         esp = (r["esp"] if tem_dxf and r["esp"] else None) or (o["esp"] if o else None) or mk.get("esp") \
-            or (_esp_do_nome(o["nome_perfil"]) or _esp_do_nome(o["desc_item"]) if o else None)
+            or ((_esp_do_nome(o["nome_perfil"]) or _esp_do_nome(o["desc_item"])
+                 or next((e for e in map(_esp_do_nome, o.get("demandas") or []) if e), None)) if o else None)
+        xadrez = bool(o) and any(_eh_xadrez(t) for t in [o["nome_perfil"], o["desc_item"], o["cod_item"]] + list(o.get("demandas") or []))
         material = (o["material"] if o and o["material"] else "") or (r["material"] if tem_dxf and r["material"] else "") \
             or mk.get("material") or "-"
         if tem_dxf and dividida:
             larg = sum(max(a["largura_dxf"], a["altura_dxf"]) for a in partes_a)
             alt = max(min(a["largura_dxf"], a["altura_dxf"]) for a in partes_a)
-            peso_unit = sum(calcular_peso(a["largura_dxf"], a["altura_dxf"], esp) for a in partes_a) if esp else None
+            peso_unit = sum(calcular_peso_liquido(a["largura_dxf"], a["altura_dxf"], esp, a.get("area_liq")) for a in partes_a) if esp else None
         elif tem_dxf and r["largura_dxf"] is not None and r["altura_dxf"] is not None:
             larg = max(r["largura_dxf"], r["altura_dxf"])
             alt = min(r["largura_dxf"], r["altura_dxf"])
-            peso_unit = calcular_peso(r["largura_dxf"], r["altura_dxf"], esp) if esp else None
+            peso_unit = calcular_peso_liquido(r["largura_dxf"], r["altura_dxf"], esp, r.get("area_liq")) if esp else None
         else:
             larg = (o["comp"] if o and o["comp"] else None) or mk.get("comp")
             alt = (o["larg"] if o and o["larg"] else None) or mk.get("larg")
             peso_unit = mk.get("peso")
+        if xadrez and not dividida and mk.get("peso"):
+            peso_unit = mk["peso"]            # xadrez: vale o peso do Focco (a chapa xadrez pesa mais que a lisa — o cálculo por espessura erra)
+        if xadrez and esp:
+            for a in achados:                 # o Relatório Consolidado lê espessura/peso do registro do DXF
+                if not a.get("esp"):
+                    a["esp"] = esp
+                if peso_unit:
+                    a["peso_unit_xadrez"] = peso_unit
         qtde_ordem = o["qtde"] if o else None
         if tem_dxf:
             qtd = r["qtd_dxf"] if r["qtd_dxf"] is not None else (qtde_ordem or r["qtd_planilha"] or 1)
@@ -5585,7 +6590,7 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
             tem_furo = any((a["quantidade_furos"] or 0) > 0 for a in achados)
             comp_dobra = (o["comp"] if o and o["comp"] else None) or mk.get("comp") or larg
             if r["fluxo_final"]:
-                centro, corte, furo, dobra, seq = _sequencia_e_maquinas(fluxo, tem_furo, _regra_dobra(mk, comp_dobra))
+                centro, corte, furo, dobra, seq = _sequencia_e_maquinas(fluxo, tem_furo, _regra_dobra(mk, comp_dobra, o["pos"] if o else r["pos"], o["marca"] if o else None))
             else:
                 centro, corte, furo, dobra, seq = "-", "-", "-", "-", "SEM ROTEIRIZAÇÃO"
             tem_furo_txt = "SIM" if tem_furo else "NÃO"
@@ -5639,7 +6644,10 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     ordens_da_linha = [p[1] for p in pares]
     i_pos_d, i_marca_d = cabecalho.index("POSIÇÃO"), cabecalho.index("MARCA")
     flags_marca = [_marca_pos_desconsiderar(l[i_pos_d]) or _marca_pos_desconsiderar(l[i_marca_d]) for l in dados]    # SD1 / SEZ1-4
-    flags_pintura = [_ordem_de_pintura(o) or fm for o, fm in zip(ordens_da_linha, flags_marca)]     # para desconsiderar: só na aba própria
+    flags_repetida = _flags_ordem_repetida(dados, ordens_da_linha, cabecalho.index("OF-TRECHO"), i_pos_d,
+                                           cabecalho.index("PESO TOTAL (kg)"), cabecalho.index("QTDE (ORDEM)"),
+                                           cabecalho.index("NUM ORDEM"))    # ordem 'ULT.PROC' repetida da mesma peça
+    flags_pintura = [_ordem_de_pintura(o) or fm or rp for o, fm, rp in zip(ordens_da_linha, flags_marca, flags_repetida)]     # para desconsiderar: só na aba própria
     dados_pintura = [l for l, f in zip(dados, flags_pintura) if f]
     flags_ps = [(not f) and _ordem_ps_prep(o) for o, f in zip(ordens_da_linha, flags_pintura)]    # PS PREP: aba própria
     dados_ps = [l for l, f in zip(dados, flags_ps) if f]
@@ -5762,7 +6770,33 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
                                 fluxo, dobra if fluxo not in ("-", "SEM FLUXO") else "-", linha[28], seq or "-",
                                 rota or "-", linha[19]))
     contagem_sit["🔷 Rota automática (não precisa roteirizar)"] = contagem_rota_auto
-    lista_focco.sort(key=lambda t: (t[0], t[1], t[2], t[3]))
+    # A Preparação manda: tudo que está nela com roteiro válido tem de estar na ROTEIRIZAÇÃO FOCCO. O laço acima só pega ordem do
+    # Focco com demanda "livre"; ficavam de fora (1) DXF SEM ordem no Focco (ORDEM MANUAL) e (2) a chapa 'ULT.PROC' que a regra
+    # mantém na Preparação mas cuja demanda é só tinta/intermediário (considerada "desconsiderada" no laço).
+    ja_na_lista = {(str(t[5]), str(t[2]), str(t[1])) for t in lista_focco}
+    bloqueadas = []                      # sequência DIVERGENTE (fora da regra): aparece em vermelho, mas NÃO entra na lista de concatenar
+    for linha, o, classe, pf, ps_ in zip(dados, ordens_da_linha, classes, flags_pintura, flags_ps):
+        if classe != "fluxos" or pf or ps_:
+            continue
+        seq_p = linha[27]
+        if seq_p in (None, "", "-", "SEM ROTEIRIZAÇÃO") or not str(linha[20]).startswith("✅"):
+            continue
+        ordem_p = o["num_ordem"] if o is not None else "ORDEM MANUAL"
+        if ordem_p in (None, "", "-"):
+            ordem_p = "ORDEM MANUAL"
+        if (str(linha[6]), str(linha[7]), str(ordem_p)) in ja_na_lista:
+            continue
+        ja_na_lista.add((str(linha[6]), str(linha[7]), str(ordem_p)))
+        dem_p = _demanda_principal(o["demandas"]) if o is not None else "-"
+        if seq_p in _SEQUENCIAS_VALIDAS_SET:
+            lista_focco.append((seq_p, ordem_p, linha[7], dem_p, linha[26] or "-", linha[6], linha[8]))
+            contagem_sit["✅ Roteirizado (sequência válida)"] += 1
+        else:
+            bloqueadas.append((seq_p, ordem_p, linha[7], dem_p, linha[26] or "-", linha[6], linha[8]))
+            contagem_sit["🟥 Sequência divergente (em vermelho, fora da lista de concatenar até corrigir)"] += 1
+    lista_focco.sort(key=lambda t: (t[0], 0 if isinstance(t[1], int) else 1, t[1] if isinstance(t[1], int) else 0,
+                                    str(t[2]), str(t[3])))
+    bloqueadas.sort(key=lambda t: (t[0], str(t[5]), str(t[2])))
     prioridade_sit = {"❌": 0, "⚠": 1, "ℹ": 2}
     conferencia.sort(key=lambda t: (prioridade_sit.get(t[0][0], 9), t[0], t[2]))
 
@@ -5921,12 +6955,14 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
         c.fill = PatternFill("solid", fgColor="C00000")
     idx_pint = [cabecalho.index(h) for h in cols_pint]
     linhas_pint = []
-    for l, o, f_d in zip(dados, ordens_da_linha, flags_pintura):
+    for l, o, f_d, f_rep in zip(dados, ordens_da_linha, flags_pintura, flags_repetida):
         if f_d:
             dem = " | ".join(dict.fromkeys(str(d).strip() for d in ((o or {}).get("demandas") or []) if str(d or "").strip()))
             if not o and not dem and l[cabecalho.index("DESCRIÇÃO DO ITEM")] not in (None, "-"):
                 dem = str(l[cabecalho.index("DESCRIÇÃO DO ITEM")])                  # item de estoque: "SD1 ESTOQUE"
-            motivo = "ORDEM DE PINTURA / GALVÂNICA" if _ordem_de_pintura(o) else "MARCA / POSIÇÃO SD1 / SEZ1-SEZ4"
+            motivo = ("ORDEM DE PINTURA / GALVÂNICA" if _ordem_de_pintura(o) else
+                      ("ORDEM REPETIDA DA MESMA PEÇA (final/pintura — a ordem que corta já está na Preparação)" if f_rep
+                       else "MARCA / POSIÇÃO SD1 / SEZ1-SEZ4"))
             lin_p = [l[i] for i in idx_pint] + [dem or "-", motivo]
             if not o:                                                                 # sem ordem no Focco = ORDEM MANUAL
                 lin_p[cols_pint.index("NUM ORDEM")] = "ORDEM MANUAL"
@@ -5945,7 +6981,12 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     azul = PatternFill("solid", fgColor="003366")           # usado pela aba de conferência
     azul_claro = PatternFill("solid", fgColor="BDE0F4")
     lado_rf = Side(style="thin", color="9DC3E6")
-    ultima = max(7, 6 + len(lista_focco))
+    ultima = max(7, 6 + len(lista_focco) + len(bloqueadas))
+    _ref_regras = f"'{_ABA_REGRAS_SEQ}'!$C$2:$C$300"          # coluna C = sequências válidas SEM espaços e em maiúsculas
+    _ref_regras_a = f"'{_ABA_REGRAS_SEQ}'!$A$2:$A$300"        # coluna A = texto bonito (o que aparece)
+
+    def _nx(ref):                                             # normaliza: maiúsculas e sem espaços (digitou "3M> Dobradeira" = vale)
+        return f'UPPER(SUBSTITUTE({ref}," ",""))'
     # FÓRMULA DE CONCATENAR (ativa, sem precisar de TEXTJOIN): fica VAZIA enquanto nenhuma linha estiver filtrada; ao filtrar a
     # tabela, junta (separadas por vírgula) as ORDENS que ficaram visíveis. Usa a coluna auxiliar I (oculta), que vai
     # acumulando as ordens visíveis linha a linha - funciona em qualquer versão do Excel.
@@ -5971,8 +7012,11 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     aux["A1"] = "ROTEIRIZAÇÃO FOCCO (ordens visíveis, acumuladas)"
     for k in range(7, ultima + 1):
         d_k = f"{ref_rf}D{k}"
-        aux.cell(row=k, column=1, value=(f'=IF(SUBTOTAL(103,{d_k})=1,{d_k}&"","")' if k == 7 else
-                                         f'=A{k - 1}&IF(SUBTOTAL(103,{d_k})=1,IF(A{k - 1}="","",",")&{d_k},"")'))
+        # só ORDEM numérica entra na lista para colar no Focco ("ORDEM MANUAL" não tem número: fica de fora)
+        a_k = f"{ref_rf}A{k}"                            # sequência válida (está em REGRAS SEQUÊNCIA) — a divergente NÃO entra na lista
+        ok_k = f"COUNTIF({_ref_regras},{_nx(a_k)})>0"
+        aux.cell(row=k, column=1, value=(f'=IF(AND(SUBTOTAL(103,{d_k})=1,ISNUMBER({d_k}),{ok_k}),{d_k}&"","")' if k == 7 else
+                                         f'=A{k - 1}&IF(AND(SUBTOTAL(103,{d_k})=1,ISNUMBER({d_k}),{ok_k}),IF(A{k - 1}="","",",")&{d_k},"")'))
     # segundo campo: TODAS - sem nada filtrado traz todas as ordens (imprimir tudo de uma vez); filtrando (ex.: uma obra), só as
     # ordens que ficaram visíveis. Fica em H:I, com a
     # coluna G vazia entre os dois campos, para não misturar com o FILTRO (D:F)
@@ -5998,11 +7042,93 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     for k, t in enumerate(lista_focco, 7):    # t = (sequência, ordem, posição, descrição, planejador, obra e trecho, fluxo)
         for j, v in enumerate([t[0], t[5], t[2], t[1], t[6], t[3], t[4]], 1):
             rf.cell(row=k, column=j, value=v)
+    # divergentes (no fim): a SEQUÊNCIA é um LINK para a célula da aba Preparação — corrigiu lá, corrige aqui e a ordem entra sozinha
+    _prep = wb["Preparação"]
+    _cab_prep = {c.value: c.column for c in _prep[1] if c.value}
+    _linha_prep = {}
+    for _r in range(2, _prep.max_row + 1):
+        _linha_prep[(str(_prep.cell(_r, _cab_prep["NUM ORDEM"]).value), str(_prep.cell(_r, _cab_prep["OF-TRECHO"]).value),
+                     str(_prep.cell(_r, _cab_prep["POSIÇÃO"]).value))] = _r
+    _col_seq_prep = get_column_letter(_cab_prep["SEQUÊNCIA DE ROTEIRO"])
+    _links_div = []
+    for k, t in enumerate(bloqueadas, 7 + len(lista_focco)):
+        for j, v in enumerate([t[0], t[5], t[2], t[1], t[6], t[3], t[4]], 1):
+            rf.cell(row=k, column=j, value=v)
+        _lp = _linha_prep.get((str(t[1]), str(t[5]), str(t[2])))
+        if _lp:
+            _sq = f"'Preparação'!{_col_seq_prep}{_lp}"
+            # mostra o texto CERTO da regra (mesmo que digitem "3M> Dobradeira"); se ainda divergente, mostra o que está na Preparação
+            rf.cell(row=k, column=1, value=(f"=IFERROR(INDEX({_ref_regras_a},MATCH({_nx(_sq)},{_ref_regras},0)),{_sq})"))
+            _fx_o = _prep.cell(_lp, _cab_prep["FLUXO"]).value
+            for _n, _f in _formulas_linha_divergente(f"{_col_seq_prep}{_lp}", _fx_o).items():     # FLUXO/CORTE/FURO/DOBRA seguem a sequência digitada
+                _prep.cell(_lp, _cab_prep[_n], _f)
+            rf.cell(row=k, column=5, value=f"='Preparação'!{get_column_letter(_cab_prep['FLUXO'])}{_lp}")
+            _links_div.append(_lp)
     for i, w in enumerate(_LARGURAS_ROTEIRIZACAO_FOCCO, 1):
         rf.column_dimensions[get_column_letter(i)].width = w
     rf.sheet_view.zoomScale = 110
     rf.freeze_panes = "A7"
     rf.auto_filter.ref = f"A6:G{ultima}"
+
+    # ---- SEQUÊNCIA DIVERGENTE: aba de regras + marcação em vermelho (a cor some SOZINHA quando a sequência é corrigida) ----
+    rg = wb.create_sheet(_ABA_REGRAS_SEQ)
+    rg.append(["SEQUÊNCIAS VÁLIDAS", "COMO FUNCIONA"])
+    for c in rg[1]:
+        c.font = Font(bold=True, color="FFFFFF")
+        c.fill = azul
+        c.alignment = Alignment(horizontal="center")
+    for seq_v in _SEQUENCIAS_VALIDAS:
+        rg.append([seq_v])
+    rg["C1"] = "(apoio: sem espaços/maiúsculas)"
+    for i_g in range(2, 301):                       # coluna C: comparação tolerante (a pessoa pode digitar "3M> Dobradeira")
+        rg.cell(row=i_g, column=3, value=f'=IF(A{i_g}="","",UPPER(SUBSTITUTE(A{i_g}," ","")))')
+    rg.column_dimensions["C"].width = 40
+    _textos_rg = ["Dica: na linha vermelha da Preparação é só DIGITAR a sequência certa na própria célula (ex.: GUILHOTINA 3M > DOBRADEIRA 3M — maiúscula/espaço não importam): FLUXO (3M=Fluxo 2, PQ=Fluxo 4, 6M=Fluxo 1, PLASMA=Fluxo 3, LASER), CORTE, FURO e DOBRA, a Ordens x DXF e a ROTEIRIZAÇÃO FOCCO acompanham sozinhos.",
+                  "Linha em VERMELHO (Preparação / Ordens x DXF / ROTEIRIZAÇÃO FOCCO) = SEQUÊNCIA DE ROTEIRO que não está nesta lista",
+                  "(ex.: GUILHOTINA PQ > DOBRADEIRA 3M: guilhotina e dobradeira têm de ser do mesmo porte).",
+                  "Ela NÃO entra na lista de concatenar da ROTEIRIZAÇÃO FOCCO enquanto estiver divergente.",
+                  "Para liberar: corrija a SEQUÊNCIA na aba Preparação (ex.: GUILHOTINA 3M > DOBRADEIRA 3M) — o vermelho sai sozinho e a ordem",
+                  "passa a entrar na lista. Se for uma sequência nova e correta, basta digitá-la aqui, na coluna A (abaixo da última)."]
+    for i_t, txt in enumerate(_textos_rg, 2):
+        rg.cell(row=i_t, column=2, value=txt)
+    rg.column_dimensions["A"].width = 58
+    rg.column_dimensions["B"].width = 120
+    rg.freeze_panes = "A2"
+    _vermelho = PatternFill(start_color="F8B4B4", end_color="F8B4B4", fill_type="solid")
+    _fonte_verm = Font(color="9C0006", bold=True)
+
+    def _marcar_divergente(ws_m, col_seq_t, col_status_t=None):
+        cab_m = {c.value: c.column for c in ws_m[1] if c.value}
+        if col_seq_t not in cab_m:
+            return
+        ls = get_column_letter(cab_m[col_seq_t])
+        cond = f"COUNTIF({_ref_regras},{_nx('$' + ls + '2')})=0"
+        if col_status_t and col_status_t in cab_m:
+            cond = f'AND(LEFT(${get_column_letter(cab_m[col_status_t])}2,1)="✅",{cond})'
+        ws_m.conditional_formatting.add(f"A2:{get_column_letter(ws_m.max_column)}{max(ws_m.max_row, 2)}",
+                                        FormulaRule(formula=[cond], fill=_vermelho, font=_fonte_verm))
+    _od = wb["Ordens x DXF"]
+    _cab_od = {c.value: c.column for c in _od[1] if c.value}
+    _lin_od = {(str(_od.cell(_r, _cab_od["NUM ORDEM"]).value), str(_od.cell(_r, _cab_od["OF-TRECHO"]).value),
+                str(_od.cell(_r, _cab_od["POSIÇÃO"]).value)): _r for _r in range(2, _od.max_row + 1)}
+    for _lp in _links_div:                           # Ordens x DXF: CORTE/FURO/DOBRA/SEQUÊNCIA viram link da Preparação (uma edição só)
+        _ch = (str(_prep.cell(_lp, _cab_prep["NUM ORDEM"]).value), str(_prep.cell(_lp, _cab_prep["OF-TRECHO"]).value),
+               str(_prep.cell(_lp, _cab_prep["POSIÇÃO"]).value))
+        _lo = _lin_od.get(_ch)
+        if _lo:
+            for _n in ("FLUXO", "CORTE", "FURO", "DOBRA", "SEQUÊNCIA DE ROTEIRO"):
+                if _n in _cab_od and _n in _cab_prep:
+                    _od.cell(_lo, _cab_od[_n], f"='Preparação'!{get_column_letter(_cab_prep[_n])}{_lp}")
+    _marcar_divergente(wb["Preparação"], "SEQUÊNCIA DE ROTEIRO", "STATUS")
+    _marcar_divergente(wb["Ordens x DXF"], "SEQUÊNCIA DE ROTEIRO", "STATUS")
+    rf.conditional_formatting.add(f"A7:G{ultima}", FormulaRule(
+        formula=[f'AND($A7<>"",COUNTIF({_ref_regras},{_nx("$A7")})=0)'], fill=_vermelho, font=_fonte_verm))
+    rf.merge_cells("D4:I5")
+    _n_div = f'SUMPRODUCT(--(A7:A{ultima}<>""),--(COUNTIF({_ref_regras},{_nx(f"A7:A{ultima}")})=0))'
+    rf["D4"] = (f'=IF({_n_div}=0,"","⚠️ "&{_n_div}&" ordem(ns) com SEQUÊNCIA DIVERGENTE (em vermelho no fim da lista): '
+                f'NÃO entram na concatenação. Corrija a sequência na aba Preparação e elas entram sozinhas.")')
+    rf["D4"].font = Font(bold=True, color="C00000")
+    rf["D4"].alignment = Alignment(wrap_text=True, horizontal="left", vertical="center")
 
     # ---- aba de conferência: o que NÃO ficou roteirizado certo ----
     cf = wb.create_sheet("Conferência Roteirização")
@@ -6058,7 +7184,9 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
         esp_r = r.get("esp")
         larg_r = max(r["largura_dxf"], r["altura_dxf"]) if r.get("largura_dxf") is not None and r.get("altura_dxf") is not None else None
         alt_r = min(r["largura_dxf"], r["altura_dxf"]) if larg_r is not None else None
-        pu = calcular_peso(r["largura_dxf"], r["altura_dxf"], esp_r) if (larg_r is not None and esp_r) else None
+        pu = calcular_peso_liquido(r["largura_dxf"], r["altura_dxf"], esp_r, r.get("area_liq")) if (larg_r is not None and esp_r) else None
+        if r.get("peso_unit_xadrez"):
+            pu = r["peso_unit_xadrez"]
         qtd_r = r.get("qtd_dxf") or 1
         base_fl = r["fluxo_final"]
         fluxo_nome = _nome_fluxo_pcp(r.get("fluxo_pasta") or (f"{base_fl} [{str(esp_r).replace('.', ',')}]" if esp_r else base_fl))
@@ -6192,7 +7320,11 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     for i, w in enumerate([46, 14, 18], 1):
         rs.column_dimensions[get_column_letter(i)].width = w
 
-    ordem_abas = list(_ORDEM_ABAS_RELATORIO) + (["Conferência Roteirização"] if _GERAR_ABA_CONFERENCIA else []) + [_ABA_AUX_CONCATENAR]
+    try:                                             # painéis de gráficos (Preparação / Não Preparação), logo depois de PS PREP
+        _criar_paineis_graficos(wb)
+    except Exception as ex_graf:
+        log_fn(f"⚠️  Não consegui montar os painéis de gráficos ({ex_graf}); o restante do relatório está completo.")
+    ordem_abas = list(_ORDEM_ABAS_RELATORIO) + (["Conferência Roteirização"] if _GERAR_ABA_CONFERENCIA else []) + [_ABA_REGRAS_SEQ, _ABA_AUX_CONCATENAR]
     for nome_extra in list(wb.sheetnames):          # abas que não fazem parte do padrão (PLAN DIN, Conferência...)
         if nome_extra not in ordem_abas:
             del wb[nome_extra]
@@ -6219,6 +7351,10 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     except PermissionError:  # arquivo aberto no Excel - salva com outro nome
         destino = os.path.join(pasta_saida, nome.replace(".xlsx", datetime.now().strftime("_%H%M%S.xlsx")))
         wb.save(destino)
+    try:
+        _corrigir_numfmt_graficos(destino)
+    except Exception as ex_fmt:
+        log_fn(f"⚠️  Ajuste dos rótulos dos gráficos não aplicado ({ex_fmt}).")
     try:                                                 # logo da Projeart no painel do topo da ROTEIRIZAÇÃO FOCCO
         import base64 as _b64
         _png_logo = _b64.b64decode("".join(_LOGO_PROJEART_PNG_B64))
@@ -6233,6 +7369,9 @@ def gerar_relatorio_ordens_fluxos(caminho_focco, registros, pasta_saida, log_fn=
     if not tem_demanda:
         log_fn("⚠️  O relatório do Focco não tem a coluna 'DESC TECNICA DEMANDA': as regras de desconsiderar "
                "(armação/limpeza, pintura/lanternim) só puderam usar o código do item.")
+    if bloqueadas:
+        log_fn(f"🟥 {len(bloqueadas)} ordem(ns) com SEQUÊNCIA DIVERGENTE (em vermelho, fora da lista de concatenar): "
+               + ", ".join(f"{t[1]} [{t[0]}]" for t in bloqueadas[:10]) + (" …" if len(bloqueadas) > 10 else ""))
     log_fn(f"📋 ROTEIRIZAÇÃO FOCCO: {len(lista_focco)} linha(s) | conferência: {len(conferencia)} ordem(ns) para revisar")
     log_fn(f"📑 Abas: {len(dados_fluxos)} em Preparação, {len(dados_nao_prep)} em Não Preparação, "
            f"{len(dados_ps)} em PS PREP, {len(dados_pintura)} ordem(ns) para desconsiderar (aba própria), "
@@ -6338,6 +7477,20 @@ def _placeholder(entry, var, texto):
         atualizar()
     except Exception:
         pass
+def _instalar_foco_ao_clicar(root):
+    """Teclado/colar nos campos quando o roteirizador roda ENCAIXADO na janela do unificador. O 'focus' normal do Tk só muda o foco
+    interno do Tk; com a janela-filha de outro processo o foco REAL do Windows pode ficar com o unificador (os campos parecem
+    'travados': não aceitam digitar nem Ctrl+V depois de clicar em outro canto). focus_force() pede o foco real do Windows."""
+    classes = ("TEntry", "Entry", "Text", "TCombobox", "TSpinbox", "Spinbox")
+
+    def ao_clicar(ev):
+        try:
+            w = ev.widget
+            if w.winfo_class() in classes and str(w.cget("state")) != "disabled":
+                w.after_idle(lambda: w.focus_force() if w.winfo_exists() else None)
+        except Exception:
+            pass
+    root.bind_all("<ButtonPress-1>", ao_clicar, add="+")
 def _instalar_menu_contexto(root):
     """Menu do botão direito (Recortar/Copiar/Colar/Selecionar tudo) nos campos de texto."""
     menu = tk.Menu(root, tearoff=0, bg="#FFFFFF", fg=_COR_TEXTO, activebackground=_COR_DESTAQUE,
@@ -6931,6 +8084,7 @@ class AplicativoRoteirizador:
                     pass
         try:
             _instalar_menu_contexto(self.root)
+            _instalar_foco_ao_clicar(self.root)
             self._instalar_atalhos()
         except Exception:
             pass
