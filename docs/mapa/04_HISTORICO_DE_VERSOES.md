@@ -7,6 +7,7 @@
 
 ## 2026-11-27
 
+- `be52102` V298: Impressão de Etiquetas — títulos das colunas centralizados
 - `5cca07f` V297: todas as tabelas de todas as abas — clicar marca a linha (faixa azul) e a célula; setas ↑ ↓ ← → movem a seleção
 - `d07c8e5` V296: código novo do app da rede (roteirizador v19.4 de 26/11) — Gerar relatórios das ordens gera pelo Python no sistema instalado (sequência divergente, ORDEM MANUAL/ULT.PROC, ordem repetida, concatenar só ordem numérica, peso líquido, xadrez, guarda-corpo, gráficos, CSC, GESTÃO À VISTA); Roteirizador DXF atualizado; saída na Downloads
 ## 2026-11-26
